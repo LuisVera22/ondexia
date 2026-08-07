@@ -1,0 +1,261 @@
+<div>
+  <app-page-breadcrumb [pageTitle]="titulo" />
+
+  @if (bajoMinimo) {
+  <div class="mb-5 flex items-start gap-3 rounded-xl border border-warning-200 bg-warning-50 p-4 dark:border-warning-500/30 dark:bg-warning-500/10">
+    <svg class="mt-0.5 shrink-0 text-warning-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 8.5v4.5M12 16.5h.01" /><circle cx="12" cy="12" r="9" />
+    </svg>
+    <p class="text-sm text-warning-700 dark:text-warning-400">
+      El stock total ({{ stockTotal }}) está en el mínimo configurado o por debajo.
+    </p>
+  </div>
+  }
+
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+    <!-- Pestañas -->
+    <div class="border-b border-gray-200 px-5 dark:border-gray-800">
+      <nav class="-mb-px flex gap-6 overflow-x-auto">
+        @for (item of [
+          { clave: 'general', nombre: 'Datos generales' },
+          { clave: 'presentaciones', nombre: 'Presentaciones' },
+          { clave: 'precios', nombre: 'Precios' },
+          { clave: 'existencias', nombre: 'Existencias' }
+        ]; track item.clave) {
+        <button
+          type="button"
+          (click)="pestana = $any(item.clave)"
+          class="whitespace-nowrap border-b-2 py-4 text-sm font-medium transition"
+          [class]="
+            pestana === item.clave
+              ? 'border-brand-500 text-brand-500'
+              : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+          "
+        >
+          {{ item.nombre }}
+        </button>
+        }
+      </nav>
+    </div>
+
+    <div class="p-5 xl:p-6">
+      <!-- Datos generales -->
+      @if (pestana === 'general') {
+      <form [formGroup]="formulario" class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div>
+          <label for="codigo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Código <span class="text-error-500">*</span>
+          </label>
+          <input id="codigo" type="text" formControlName="codigo"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+        </div>
+
+        <div>
+          <label for="unidad" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Unidad de medida <span class="text-error-500">*</span>
+          </label>
+          <select id="unidad" formControlName="unidad"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+            <option value="">Seleccione</option>
+            <option value="NIU">Unidad (NIU)</option>
+            <option value="BOL">Bolsa (BG)</option>
+            <option value="KG">Kilogramo (KGM)</option>
+            <option value="M">Metro (MTR)</option>
+          </select>
+        </div>
+
+        <div class="sm:col-span-2">
+          <label for="nombre" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Nombre <span class="text-error-500">*</span>
+          </label>
+          <input id="nombre" type="text" formControlName="nombre"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            Es la descripción que se imprime en cada línea del comprobante.
+          </p>
+        </div>
+
+        <div>
+          <label for="marca" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Marca</label>
+          <input id="marca" type="text" formControlName="marca"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+        </div>
+
+        <div>
+          <label for="modelo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Modelo</label>
+          <input id="modelo" type="text" formControlName="modelo"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+        </div>
+
+        <div>
+          <label for="afectacion" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Afectación del IGV <span class="text-error-500">*</span>
+          </label>
+          <select id="afectacion" formControlName="afectacionIgv"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+            <option value="GRAVADO">Gravado</option>
+            <option value="EXONERADO">Exonerado</option>
+            <option value="INAFECTO">Inafecto</option>
+          </select>
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            Determina si el producto genera IGV al venderse.
+          </p>
+        </div>
+
+        <div>
+          <label for="stockMinimo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Stock mínimo
+          </label>
+          <input id="stockMinimo" type="number" min="0" formControlName="stockMinimo"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            Al alcanzarlo, el producto aparece en «Productos por agotarse».
+          </p>
+        </div>
+      </form>
+      }
+
+      <!-- Presentaciones -->
+      @if (pestana === 'presentaciones') {
+      <div>
+        <div class="mb-4 flex items-center justify-between">
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            El factor indica cuántas unidades base contiene cada presentación.
+          </p>
+          <button type="button" class="rounded-lg bg-brand-500 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-brand-600">
+            Agregar
+          </button>
+        </div>
+
+        @if (presentaciones.length === 0) {
+        <p class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+          Registre al menos la presentación base, con factor 1.
+        </p>
+        } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[520px]">
+            <thead class="border-b border-gray-200 dark:border-gray-800">
+              <tr class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                <th class="py-3 text-left">Presentación</th>
+                <th class="w-24 py-3 text-right">Factor</th>
+                <th class="w-44 py-3 text-left">Código de barras</th>
+                <th class="w-20 py-3 text-center">Base</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              @for (p of presentaciones; track p.id) {
+              <tr class="text-sm text-gray-700 dark:text-gray-300">
+                <td class="py-3">{{ p.descripcion }}</td>
+                <td class="py-3 text-right tabular-nums">{{ p.factor }}</td>
+                <td class="py-3">{{ p.codigoBarras || '—' }}</td>
+                <td class="py-3 text-center">
+                  @if (p.base) {
+                  <span class="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-600 dark:bg-brand-500/15 dark:text-brand-400">Sí</span>
+                  } @else { — }
+                </td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        }
+      </div>
+      }
+
+      <!-- Precios -->
+      @if (pestana === 'precios') {
+      <div>
+        <div class="mb-4 flex items-center justify-between">
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Precios sin IGV por tipo y presentación.
+          </p>
+          <button type="button" class="rounded-lg bg-brand-500 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-brand-600">
+            Agregar
+          </button>
+        </div>
+
+        @if (precios.length === 0) {
+        <p class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+          Sin precios asignados, el producto no se puede agregar a un comprobante.
+        </p>
+        } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[520px]">
+            <thead class="border-b border-gray-200 dark:border-gray-800">
+              <tr class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                <th class="py-3 text-left">Tipo de precio</th>
+                <th class="py-3 text-left">Presentación</th>
+                <th class="w-32 py-3 text-right">Valor</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              @for (p of precios; track p.id) {
+              <tr class="text-sm text-gray-700 dark:text-gray-300">
+                <td class="py-3">{{ p.tipo }}</td>
+                <td class="py-3">{{ p.presentacion }}</td>
+                <td class="py-3 text-right tabular-nums">S/ {{ formatoImporte(p.valor) }}</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        }
+      </div>
+      }
+
+      <!-- Existencias -->
+      @if (pestana === 'existencias') {
+      <div>
+        <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+          Las existencias no se editan aquí: se modifican con guías de ingreso y
+          con las ventas. Esta vista es de consulta.
+        </p>
+
+        @if (existencias.length === 0) {
+        <p class="py-10 text-center text-sm text-gray-500 dark:text-gray-400">
+          Todavía no hay existencias registradas de este producto.
+        </p>
+        } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-[480px]">
+            <thead class="border-b border-gray-200 dark:border-gray-800">
+              <tr class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                <th class="py-3 text-left">Almacén</th>
+                <th class="py-3 text-left">Establecimiento</th>
+                <th class="w-32 py-3 text-right">Cantidad</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+              @for (e of existencias; track e.id) {
+              <tr class="text-sm text-gray-700 dark:text-gray-300">
+                <td class="py-3">{{ e.almacen }}</td>
+                <td class="py-3">{{ e.establecimiento }}</td>
+                <td class="py-3 text-right tabular-nums">{{ e.cantidad }}</td>
+              </tr>
+              }
+            </tbody>
+            <tfoot class="border-t border-gray-200 dark:border-gray-800">
+              <tr class="text-sm font-medium text-gray-800 dark:text-white/90">
+                <td class="py-3" colspan="2">Total</td>
+                <td class="py-3 text-right tabular-nums">{{ stockTotal }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        }
+      </div>
+      }
+    </div>
+
+    <div class="flex justify-end gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-800">
+      <a routerLink="/almacen/productos"
+        class="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+        Volver
+      </a>
+      <button type="button"
+        class="rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600">
+        Guardar producto
+      </button>
+    </div>
+  </div>
+</div>

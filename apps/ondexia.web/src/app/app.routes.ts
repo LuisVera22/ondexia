@@ -17,6 +17,13 @@ import { UsuariosComponent } from './pages/configuracion/usuarios/usuarios.compo
 import { RolesComponent } from './pages/configuracion/roles/roles.component';
 import { ComprobantesComponent } from './pages/configuracion/comprobantes/comprobantes.component';
 import { SuscripcionComponent } from './pages/configuracion/suscripcion/suscripcion.component';
+import { UnidadesComponent } from './pages/almacen/unidades/unidades.component';
+import { MarcasComponent } from './pages/almacen/marcas/marcas.component';
+import { ModelosComponent } from './pages/almacen/modelos/modelos.component';
+import { TiposPrecioComponent } from './pages/almacen/tipos-precio/tipos-precio.component';
+import { PresentacionesComponent } from './pages/almacen/presentaciones/presentaciones.component';
+import { ProductosComponent } from './pages/almacen/productos/productos.component';
+import { FichaProductoComponent } from './pages/almacen/ficha-producto/ficha-producto.component';
 
 // Páginas de demostración de la plantilla. Se conservan bajo /kit como
 // referencia visual mientras se construyen las vistas reales, y se eliminan
@@ -69,17 +76,17 @@ export const routes: Routes = [
       },
 
       // ── Almacén ──────────────────────────────────────────────────────────
-      pendiente('almacen/productos', 'Productos', 'Almacén', 'Etapa 2'),
-      pendiente('almacen/productos/:id', 'Ficha de producto', 'Almacén', 'Etapa 2'),
-      pendiente('almacen/presentaciones', 'Presentaciones', 'Almacén', 'Etapa 2'),
+      { path: 'almacen/productos', component: ProductosComponent, title: `Productos | ${TITULO}` },
+      { path: 'almacen/productos/:id', component: FichaProductoComponent, title: `Ficha de producto | ${TITULO}` },
+      { path: 'almacen/presentaciones', component: PresentacionesComponent, title: `Presentaciones | ${TITULO}` },
       pendiente('almacen/por-agotarse', 'Productos por agotarse', 'Almacén', 'Etapa 6'),
       pendiente('almacen/guias-remision', 'Guías de remisión', 'Almacén', 'Etapa 6'),
       pendiente('almacen/guias-remision/nueva', 'Emitir guía de remisión', 'Almacén', 'Etapa 6'),
       pendiente('almacen/guias-ingreso', 'Guías de ingreso', 'Almacén', 'Etapa 6'),
-      pendiente('almacen/tipos-precio', 'Tipos de precio', 'Almacén', 'Etapa 2'),
-      pendiente('almacen/marcas', 'Marcas', 'Almacén', 'Etapa 2'),
-      pendiente('almacen/modelos', 'Modelos', 'Almacén', 'Etapa 2'),
-      pendiente('almacen/unidades', 'Unidades de medida', 'Almacén', 'Etapa 2'),
+      { path: 'almacen/tipos-precio', component: TiposPrecioComponent, title: `Tipos de precio | ${TITULO}` },
+      { path: 'almacen/marcas', component: MarcasComponent, title: `Marcas | ${TITULO}` },
+      { path: 'almacen/modelos', component: ModelosComponent, title: `Modelos | ${TITULO}` },
+      { path: 'almacen/unidades', component: UnidadesComponent, title: `Unidades de medida | ${TITULO}` },
       { path: 'almacen/almacenes', component: AlmacenesComponent, title: `Almacenes | ${TITULO}` },
 
       // ── Compras ──────────────────────────────────────────────────────────
