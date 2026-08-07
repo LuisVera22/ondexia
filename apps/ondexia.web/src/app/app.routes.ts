@@ -4,7 +4,9 @@ import { EcommerceComponent } from './pages/dashboard/ecommerce/ecommerce.compon
 import { ProfileComponent } from './pages/profile/profile.component';
 import { EnConstruccionComponent } from './pages/en-construccion/en-construccion.component';
 import { NotFoundComponent } from './pages/other-page/not-found/not-found.component';
-import { SignInComponent } from './pages/auth-pages/sign-in/sign-in.component';
+import { IngresarComponent } from './pages/acceso/ingresar/ingresar.component';
+import { RecuperarComponent } from './pages/acceso/recuperar/recuperar.component';
+import { SinPermisosComponent } from './pages/acceso/sin-permisos/sin-permisos.component';
 import { KitOndexiaComponent } from './pages/kit-ondexia/kit-ondexia.component';
 
 // Páginas de demostración de la plantilla. Se conservan bajo /kit como
@@ -109,7 +111,11 @@ export const routes: Routes = [
       pendiente('configuracion/suscripcion', 'Suscripción y consumo', 'Configuración', 'Etapa 1'),
 
       // ── Estados del sistema ──────────────────────────────────────────────
-      pendiente('sin-permisos', 'Sin permisos', 'Sistema', 'Etapa 1'),
+      {
+        path: 'sin-permisos',
+        component: SinPermisosComponent,
+        title: `Sin permisos | ${TITULO}`,
+      },
 
       // ── Kit de la plantilla (referencia interna, se elimina al publicar) ──
       { path: 'kit/componentes', component: KitOndexiaComponent, title: `Kit · Componentes de Ondexia | ${TITULO}` },
@@ -132,12 +138,12 @@ export const routes: Routes = [
   // ── Acceso (fuera del layout de la aplicación) ──────────────────────────
   {
     path: 'acceso/ingresar',
-    component: SignInComponent,
+    component: IngresarComponent,
     title: `Iniciar sesión | ${TITULO}`,
   },
   {
     path: 'acceso/recuperar',
-    component: SignInComponent,
+    component: RecuperarComponent,
     title: `Recuperar contraseña | ${TITULO}`,
   },
 
