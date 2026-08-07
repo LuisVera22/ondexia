@@ -1,0 +1,14 @@
+<span class="inline-flex items-center gap-2">
+  <span
+    class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+    [class]="apariencia.clases"
+    [title]="apariencia.ayuda"
+  >
+    <span class="h-1.5 w-1.5 rounded-full" [class]="apariencia.punto"></span>
+    {{ apariencia.texto }}
+  </span>
+
+  @if (conAyuda) {
+  <span class="text-xs text-gray-500 dark:text-gray-400">{{ apariencia.ayuda }}</span>
+  }
+</span>
