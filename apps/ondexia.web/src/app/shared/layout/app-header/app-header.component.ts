@@ -1,10 +1,12 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { SidebarService } from '../../services/sidebar.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ThemeToggleButtonComponent } from '../../components/common/theme-toggle/theme-toggle-button.component';
 import { NotificationDropdownComponent } from '../../components/header/notification-dropdown/notification-dropdown.component';
 import { UserDropdownComponent } from '../../components/header/user-dropdown/user-dropdown.component';
+import { SelectorContextoComponent } from '../../components/comunes/selector-contexto/selector-contexto.component';
+import { ContextoService } from '../../services/contexto.service';
 
 @Component({
   selector: 'app-header',
@@ -14,10 +16,14 @@ import { UserDropdownComponent } from '../../components/header/user-dropdown/use
     ThemeToggleButtonComponent,
     NotificationDropdownComponent,
     UserDropdownComponent,
+    SelectorContextoComponent,
   ],
   templateUrl: './app-header.component.html',
 })
 export class AppHeaderComponent {
+  /** Contexto de trabajo: determina la serie del comprobante y el almacén. */
+  readonly contexto = inject(ContextoService);
+
   isApplicationMenuOpen = false;
   readonly isMobileOpen$;
 
