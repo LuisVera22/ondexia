@@ -54,16 +54,17 @@ export class FichaProductoComponent {
    * es acumulado y reordenarlos cambiaría los costos calculados.
    */
   movimientos: MovimientoKardex[] = [
-    { fecha: '01/07/2026', codigoOperacion: '01', documento: 'Inventario inicial', almacen: 'Almacén Principal', entradaCantidad: 200, entradaCostoUnitario: 26.9 },
-    { fecha: '08/07/2026', codigoOperacion: '02', documento: 'GI-000331', almacen: 'Almacén Principal', entradaCantidad: 500, entradaCostoUnitario: 27.4 },
-    { fecha: '12/07/2026', codigoOperacion: '10', documento: 'F001-000098', almacen: 'Almacén Principal', salidaCantidad: 120 },
-    { fecha: '15/07/2026', codigoOperacion: '16', documento: 'T001-000870', almacen: 'Almacén Principal', salidaCantidad: 80 },
-    { fecha: '15/07/2026', codigoOperacion: '05', documento: 'T001-000870', almacen: 'Tienda Miraflores', entradaCantidad: 80, entradaCostoUnitario: 27.26 },
-    { fecha: '22/07/2026', codigoOperacion: '02', documento: 'GI-000339', almacen: 'Almacén Principal', entradaCantidad: 300, entradaCostoUnitario: 28.1 },
-    { fecha: '28/07/2026', codigoOperacion: '10', documento: 'F001-000114', almacen: 'Almacén Principal', salidaCantidad: 250 },
-    { fecha: '02/08/2026', codigoOperacion: '10', documento: 'B001-008902', almacen: 'Tienda Miraflores', salidaCantidad: 16 },
-    { fecha: '05/08/2026', codigoOperacion: '10', documento: 'F001-000123', almacen: 'Almacén Principal', salidaCantidad: 30 },
-    { fecha: '06/08/2026', codigoOperacion: '04', documento: 'FC01-000037', almacen: 'Almacén Principal', entradaCantidad: 12, entradaCostoUnitario: 27.66 },
+    { fecha: '01/07/2026', codigoOperacion: '01', documento: 'Inventario inicial', almacen: 'Almacén Principal', tipo: 'entrada', cantidad: 200, costoUnitario: 26.9 },
+    { fecha: '08/07/2026', codigoOperacion: '02', documento: 'GI-000331', almacen: 'Almacén Principal', tipo: 'entrada', cantidad: 500, costoUnitario: 27.4 },
+    { fecha: '12/07/2026', codigoOperacion: '10', documento: 'F001-000098', almacen: 'Almacén Principal', tipo: 'salida', cantidad: 120 },
+    { fecha: '15/07/2026', codigoOperacion: '16', documento: 'T001-000870', almacen: 'Almacén Principal', tipo: 'salida', cantidad: 80 },
+    // Entra al mismo costo con que salió: un traslado mueve existencias, no las revaloriza.
+    { fecha: '15/07/2026', codigoOperacion: '05', documento: 'T001-000870', almacen: 'Tienda Miraflores', tipo: 'entrada', cantidad: 80, costoTotal: 2180.57 },
+    { fecha: '22/07/2026', codigoOperacion: '02', documento: 'GI-000339', almacen: 'Almacén Principal', tipo: 'entrada', cantidad: 300, costoUnitario: 28.1 },
+    { fecha: '28/07/2026', codigoOperacion: '10', documento: 'F001-000114', almacen: 'Almacén Principal', tipo: 'salida', cantidad: 250 },
+    { fecha: '02/08/2026', codigoOperacion: '10', documento: 'B001-008902', almacen: 'Tienda Miraflores', tipo: 'salida', cantidad: 16 },
+    { fecha: '05/08/2026', codigoOperacion: '10', documento: 'F001-000123', almacen: 'Almacén Principal', tipo: 'salida', cantidad: 30 },
+    { fecha: '06/08/2026', codigoOperacion: '04', documento: 'FC01-000037', almacen: 'Almacén Principal', tipo: 'entrada', cantidad: 12, costoUnitario: 27.66 },
   ];
 
   existencias = [
