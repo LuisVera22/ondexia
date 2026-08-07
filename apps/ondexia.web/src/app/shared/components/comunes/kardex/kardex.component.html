@@ -7,7 +7,7 @@
         <label for="kardexAlmacen" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">
           Almacén
         </label>
-        <select id="kardexAlmacen" [(ngModel)]="almacenFiltro"
+        <select id="kardexAlmacen" [(ngModel)]="almacenFiltro" (ngModelChange)="reiniciarPagina()"
           class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
           <option value="">Todos (saldo consolidado)</option>
           @for (almacen of almacenes; track almacen) {
@@ -19,13 +19,13 @@
 
       <div>
         <label for="kardexDesde" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Desde</label>
-        <input id="kardexDesde" type="date" [(ngModel)]="desde"
+        <input id="kardexDesde" type="date" [(ngModel)]="desde" (ngModelChange)="reiniciarPagina()"
           class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
       </div>
 
       <div>
         <label for="kardexHasta" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Hasta</label>
-        <input id="kardexHasta" type="date" [(ngModel)]="hasta"
+        <input id="kardexHasta" type="date" [(ngModel)]="hasta" (ngModelChange)="reiniciarPagina()"
           class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
       </div>
     </div>
@@ -61,7 +61,7 @@
     </p>
   </div>
 
-  @if (filas.length === 0 && !saldoInicial) {
+  @if (total === 0) {
   <div class="rounded-2xl border border-gray-200 px-5 py-14 text-center dark:border-gray-800">
     <p class="text-sm text-gray-500 dark:text-gray-400">
       @if (hayFiltrosActivos) {
@@ -123,16 +123,14 @@
       </thead>
 
       <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-        @if (saldoInicial) {
+        @if (saldoArrastrado; as arrastre) {
         <tr class="bg-gray-50 text-sm text-gray-600 dark:bg-white/[0.02] dark:text-gray-400">
-          <td colspan="7" class="px-4 py-3 italic">
-            Saldo al inicio del período consultado
-          </td>
+          <td colspan="7" class="px-4 py-3 italic">{{ etiquetaSaldoArrastrado }}</td>
           <td class="border-l border-gray-100 px-3 py-3 text-right font-medium tabular-nums dark:border-gray-800">
-            {{ cantidad(saldoInicial.saldoCantidad) }}
+            {{ cantidad(arrastre.saldoCantidad) }}
           </td>
-          <td class="px-3 py-3 text-right tabular-nums">{{ formato(saldoInicial.saldoCostoUnitario) }}</td>
-          <td class="px-4 py-3 text-right font-medium tabular-nums">{{ formato(saldoInicial.saldoCostoTotal) }}</td>
+          <td class="px-3 py-3 text-right tabular-nums">{{ formato(arrastre.saldoCostoUnitario) }}</td>
+          <td class="px-4 py-3 text-right font-medium tabular-nums">{{ formato(arrastre.saldoCostoTotal) }}</td>
         </tr>
         }
 
@@ -180,23 +178,55 @@
         }
       </tbody>
 
-      <tfoot class="border-t-2 border-gray-200 dark:border-gray-800">
-        <tr class="text-sm font-semibold text-gray-800 dark:text-white/90">
-          <td colspan="4" class="px-4 py-3">Saldo final</td>
-          <td class="px-3 py-3 text-right tabular-nums text-success-600 dark:text-success-400">
-            +{{ cantidad(totalEntradas) }}
-          </td>
-          <td colspan="2" class="px-3 py-3 text-right tabular-nums text-error-600 dark:text-error-400">
-            −{{ cantidad(totalSalidas) }}
-          </td>
-          <td class="border-l border-gray-200 px-3 py-3 text-right tabular-nums dark:border-gray-800">
-            {{ cantidad(saldoFinal?.saldoCantidad ?? 0) }}
-          </td>
-          <td class="px-3 py-3 text-right tabular-nums">{{ formato(saldoFinal?.saldoCostoUnitario ?? 0) }}</td>
-          <td class="px-4 py-3 text-right tabular-nums">{{ formato(saldoFinal?.saldoCostoTotal ?? 0) }}</td>
-        </tr>
-      </tfoot>
     </table>
+  </div>
+
+  <!-- Paginación -->
+  <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex flex-wrap items-center gap-3">
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Mostrando {{ rangoDesde }} a {{ rangoHasta }} de {{ total }}
+        {{ total === 1 ? 'movimiento' : 'movimientos' }}
+      </p>
+
+      @if (total > tamanosPagina[0]) {
+      <label class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+        <span class="hidden sm:inline">Por página</span>
+        <select [value]="tamanoPagina" (change)="cambiarTamano($any($event.target).value)"
+          aria-label="Movimientos por página"
+          class="h-8 rounded-lg border border-gray-300 bg-transparent px-2 text-sm text-gray-700 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
+          @for (tamano of tamanosPagina; track tamano) {
+          <option [value]="tamano">{{ tamano }}</option>
+          }
+        </select>
+      </label>
+      }
+    </div>
+
+    @if (hayVariasPaginas) {
+    <div class="flex items-center gap-1">
+      <button type="button" (click)="irAPagina(paginaVigente - 1)" [disabled]="paginaVigente === 1"
+        class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+        Anterior
+      </button>
+
+      @for (numero of paginasVisibles; track numero) {
+      <button type="button" (click)="irAPagina(numero)"
+        [attr.aria-current]="numero === paginaVigente ? 'page' : null"
+        class="min-w-9 rounded-lg px-3 py-1.5 text-sm tabular-nums transition"
+        [class]="numero === paginaVigente
+          ? 'bg-brand-500 text-white'
+          : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.03]'">
+        {{ numero }}
+      </button>
+      }
+
+      <button type="button" (click)="irAPagina(paginaVigente + 1)" [disabled]="paginaVigente === totalPaginas"
+        class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+        Siguiente
+      </button>
+    </div>
+    }
   </div>
   }
 </div>
