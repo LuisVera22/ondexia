@@ -68,7 +68,7 @@
       </thead>
 
       <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
-        @for (registro of registros; track registro[campoClave]) {
+        @for (registro of registrosVisibles; track registro[campoClave]) {
         <tr
           class="transition hover:bg-gray-50 dark:hover:bg-white/[0.02]"
           [class.bg-brand-25]="estaSeleccionado(registro)"
@@ -106,19 +106,38 @@
     </table>
   </div>
 
-  @if (totalRegistros > tamanoPagina) {
   <div
     class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between"
   >
-    <p class="text-sm text-gray-500 dark:text-gray-400">
-      Mostrando {{ desde }} a {{ hasta }} de {{ totalRegistros }} registros
-    </p>
+    <div class="flex flex-wrap items-center gap-3">
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Mostrando {{ desde }} a {{ hasta }} de {{ total }}
+        {{ total === 1 ? 'registro' : 'registros' }}
+      </p>
 
+      @if (total > tamanosPagina[0]) {
+      <label class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+        <span class="hidden sm:inline">Por página</span>
+        <select
+          [value]="tamanoVigente"
+          (change)="cambiarTamano($any($event.target).value)"
+          aria-label="Registros por página"
+          class="h-8 rounded-lg border border-gray-300 bg-transparent px-2 text-sm text-gray-700 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"
+        >
+          @for (tamano of tamanosPagina; track tamano) {
+          <option [value]="tamano">{{ tamano }}</option>
+          }
+        </select>
+      </label>
+      }
+    </div>
+
+    @if (hayVariasPaginas) {
     <div class="flex items-center gap-1">
       <button
         type="button"
-        (click)="irAPagina(pagina - 1)"
-        [disabled]="pagina === 1"
+        (click)="irAPagina(paginaVigente - 1)"
+        [disabled]="paginaVigente === 1"
         class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
       >
         Anterior
@@ -128,9 +147,10 @@
       <button
         type="button"
         (click)="irAPagina(numero)"
-        class="min-w-9 rounded-lg px-3 py-1.5 text-sm transition"
+        [attr.aria-current]="numero === paginaVigente ? 'page' : null"
+        class="min-w-9 rounded-lg px-3 py-1.5 text-sm tabular-nums transition"
         [class]="
-          numero === pagina
+          numero === paginaVigente
             ? 'bg-brand-500 text-white'
             : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.03]'
         "
@@ -141,13 +161,14 @@
 
       <button
         type="button"
-        (click)="irAPagina(pagina + 1)"
-        [disabled]="pagina === totalPaginas"
+        (click)="irAPagina(paginaVigente + 1)"
+        [disabled]="paginaVigente === totalPaginas"
         class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
       >
         Siguiente
       </button>
     </div>
+    }
   </div>
-  } }
+  }
 </div>
