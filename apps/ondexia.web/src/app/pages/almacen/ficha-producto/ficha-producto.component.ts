@@ -2,8 +2,9 @@ import { Component, inject } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { KardexComponent, MovimientoKardex } from '../../../shared/components/comunes/kardex/kardex.component';
 
-type Pestana = 'general' | 'presentaciones' | 'precios' | 'existencias';
+type Pestana = 'general' | 'presentaciones' | 'precios' | 'existencias' | 'kardex';
 
 /**
  * Ficha de producto.
@@ -15,7 +16,7 @@ type Pestana = 'general' | 'presentaciones' | 'precios' | 'existencias';
  */
 @Component({
   selector: 'app-ficha-producto',
-  imports: [PageBreadcrumbComponent, ReactiveFormsModule, RouterModule],
+  imports: [PageBreadcrumbComponent, ReactiveFormsModule, RouterModule, KardexComponent],
   templateUrl: './ficha-producto.component.html',
 })
 export class FichaProductoComponent {
@@ -48,6 +49,23 @@ export class FichaProductoComponent {
     { id: 3, tipo: 'Distribuidor', presentacion: 'Pallet 50 bolsas', valor: 1420.0, moneda: 'PEN' },
   ];
 
+  /**
+   * Movimientos que alimentan el kardex. Van en orden cronológico: el saldo
+   * es acumulado y reordenarlos cambiaría los costos calculados.
+   */
+  movimientos: MovimientoKardex[] = [
+    { fecha: '01/07/2026', codigoOperacion: '01', documento: 'Inventario inicial', almacen: 'Almacén Principal', entradaCantidad: 200, entradaCostoUnitario: 26.9 },
+    { fecha: '08/07/2026', codigoOperacion: '02', documento: 'GI-000331', almacen: 'Almacén Principal', entradaCantidad: 500, entradaCostoUnitario: 27.4 },
+    { fecha: '12/07/2026', codigoOperacion: '10', documento: 'F001-000098', almacen: 'Almacén Principal', salidaCantidad: 120 },
+    { fecha: '15/07/2026', codigoOperacion: '16', documento: 'T001-000870', almacen: 'Almacén Principal', salidaCantidad: 80 },
+    { fecha: '15/07/2026', codigoOperacion: '05', documento: 'T001-000870', almacen: 'Tienda Miraflores', entradaCantidad: 80, entradaCostoUnitario: 27.26 },
+    { fecha: '22/07/2026', codigoOperacion: '02', documento: 'GI-000339', almacen: 'Almacén Principal', entradaCantidad: 300, entradaCostoUnitario: 28.1 },
+    { fecha: '28/07/2026', codigoOperacion: '10', documento: 'F001-000114', almacen: 'Almacén Principal', salidaCantidad: 250 },
+    { fecha: '02/08/2026', codigoOperacion: '10', documento: 'B001-008902', almacen: 'Tienda Miraflores', salidaCantidad: 16 },
+    { fecha: '05/08/2026', codigoOperacion: '10', documento: 'F001-000123', almacen: 'Almacén Principal', salidaCantidad: 30 },
+    { fecha: '06/08/2026', codigoOperacion: '04', documento: 'FC01-000037', almacen: 'Almacén Principal', entradaCantidad: 12, entradaCostoUnitario: 27.66 },
+  ];
+
   existencias = [
     { id: 1, almacen: 'Almacén Principal', establecimiento: 'Principal', cantidad: 312 },
     { id: 2, almacen: 'Tienda Miraflores', establecimiento: 'Miraflores', cantidad: 84 },
@@ -71,11 +89,16 @@ export class FichaProductoComponent {
       this.presentaciones = [];
       this.precios = [];
       this.existencias = [];
+      this.movimientos = [];
     }
   }
 
   get titulo(): string {
     return this.esNuevo ? 'Nuevo producto' : this.formulario.controls.nombre.value;
+  }
+
+  get nombresAlmacenes(): string[] {
+    return [...new Set(this.movimientos.map((m) => m.almacen))];
   }
 
   get stockTotal(): number {
