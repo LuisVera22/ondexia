@@ -55,12 +55,13 @@
     <p class="text-sm text-blue-light-700 dark:text-blue-light-400">
       Las salidas se valorizan por <strong>promedio ponderado</strong>: cada
       entrada recalcula el costo promedio y las salidas se descargan a ese
-      costo. El kardex es de solo lectura — se construye desde las guías de
-      ingreso, las ventas y los traslados.
+      costo. Las cifras son de <strong>costo</strong> —lo que la existencia
+      costó adquirirla—, no de precio de venta. El kardex es de solo lectura:
+      se construye desde las guías de ingreso, las ventas y los traslados.
     </p>
   </div>
 
-  @if (filas.length === 0) {
+  @if (filas.length === 0 && !saldoInicial) {
   <div class="rounded-2xl border border-gray-200 px-5 py-14 text-center dark:border-gray-800">
     <p class="text-sm text-gray-500 dark:text-gray-400">
       @if (hayFiltrosActivos) {
@@ -72,17 +73,23 @@
   </div>
   } @else {
   <!-- Resumen -->
-  <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+  <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-4">
     <div class="rounded-xl border border-gray-200 px-4 py-3 dark:border-gray-800">
       <p class="text-xs text-gray-500 dark:text-gray-400">Total entradas</p>
       <p class="mt-0.5 text-lg font-semibold tabular-nums text-success-600 dark:text-success-400">
-        {{ cantidad(totalEntradas) || '0' }} <span class="text-xs font-normal text-gray-400">{{ unidad }}</span>
+        {{ cantidad(totalEntradas) }} <span class="text-xs font-normal text-gray-400">{{ unidad }}</span>
       </p>
     </div>
     <div class="rounded-xl border border-gray-200 px-4 py-3 dark:border-gray-800">
       <p class="text-xs text-gray-500 dark:text-gray-400">Total salidas</p>
       <p class="mt-0.5 text-lg font-semibold tabular-nums text-error-600 dark:text-error-400">
-        {{ cantidad(totalSalidas) || '0' }} <span class="text-xs font-normal text-gray-400">{{ unidad }}</span>
+        {{ cantidad(totalSalidas) }} <span class="text-xs font-normal text-gray-400">{{ unidad }}</span>
+      </p>
+    </div>
+    <div class="rounded-xl border border-gray-200 px-4 py-3 dark:border-gray-800">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Costo promedio</p>
+      <p class="mt-0.5 text-lg font-semibold tabular-nums text-gray-800 dark:text-white/90">
+        {{ simboloMoneda }} {{ formato(saldoFinal?.saldoCostoUnitario ?? 0) }}
       </p>
     </div>
     <div class="rounded-xl border border-gray-200 px-4 py-3 dark:border-gray-800">
@@ -95,30 +102,40 @@
 
   <!-- Movimientos -->
   <div class="overflow-x-auto rounded-2xl border border-gray-200 dark:border-gray-800">
-    <table class="w-full min-w-[1000px]">
+    <table class="w-full min-w-[900px]">
       <thead>
         <tr class="border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
           <th rowspan="2" class="px-4 py-3 text-left align-bottom">Fecha</th>
           <th rowspan="2" class="px-3 py-3 text-left align-bottom">Operación</th>
           <th rowspan="2" class="px-3 py-3 text-left align-bottom">Documento</th>
-          <th colspan="3" class="border-l border-gray-200 px-3 py-2 text-center dark:border-gray-800">Entradas</th>
-          <th colspan="3" class="border-l border-gray-200 px-3 py-2 text-center dark:border-gray-800">Salidas</th>
+          <th colspan="4" class="border-l border-gray-200 px-3 py-2 text-center dark:border-gray-800">Movimiento</th>
           <th colspan="3" class="border-l border-gray-200 px-3 py-2 text-center dark:border-gray-800">Saldo</th>
         </tr>
         <tr class="border-b border-gray-200 text-[11px] font-medium uppercase text-gray-400 dark:border-gray-800 dark:text-gray-500">
-          <th class="border-l border-gray-200 px-3 py-2 text-right dark:border-gray-800">Cant.</th>
-          <th class="px-3 py-2 text-right">C. unit.</th>
-          <th class="px-3 py-2 text-right">C. total</th>
-          <th class="border-l border-gray-200 px-3 py-2 text-right dark:border-gray-800">Cant.</th>
-          <th class="px-3 py-2 text-right">C. unit.</th>
-          <th class="px-3 py-2 text-right">C. total</th>
-          <th class="border-l border-gray-200 px-3 py-2 text-right dark:border-gray-800">Cant.</th>
-          <th class="px-3 py-2 text-right">C. unit.</th>
-          <th class="px-4 py-2 text-right">C. total</th>
+          <th class="border-l border-gray-200 px-3 py-2 text-left dark:border-gray-800">Tipo</th>
+          <th class="px-3 py-2 text-right">Cantidad</th>
+          <th class="px-3 py-2 text-right">Costo unit.</th>
+          <th class="px-3 py-2 text-right">Costo total</th>
+          <th class="border-l border-gray-200 px-3 py-2 text-right dark:border-gray-800">Cantidad</th>
+          <th class="px-3 py-2 text-right">Costo unit.</th>
+          <th class="px-4 py-2 text-right">Costo total</th>
         </tr>
       </thead>
 
       <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+        @if (saldoInicial) {
+        <tr class="bg-gray-50 text-sm text-gray-600 dark:bg-white/[0.02] dark:text-gray-400">
+          <td colspan="7" class="px-4 py-3 italic">
+            Saldo al inicio del período consultado
+          </td>
+          <td class="border-l border-gray-100 px-3 py-3 text-right font-medium tabular-nums dark:border-gray-800">
+            {{ cantidad(saldoInicial.saldoCantidad) }}
+          </td>
+          <td class="px-3 py-3 text-right tabular-nums">{{ formato(saldoInicial.saldoCostoUnitario) }}</td>
+          <td class="px-4 py-3 text-right font-medium tabular-nums">{{ formato(saldoInicial.saldoCostoTotal) }}</td>
+        </tr>
+        }
+
         @for (fila of filas; track $index) {
         <tr class="text-sm text-gray-700 dark:text-gray-300">
           <td class="whitespace-nowrap px-4 py-3 tabular-nums">{{ fila.fecha }}</td>
@@ -130,28 +147,32 @@
             {{ fila.documento }}
           </td>
 
-          <td class="border-l border-gray-100 px-3 py-3 text-right tabular-nums dark:border-gray-800">
-            {{ cantidad(fila.entradaCantidad) }}
+          <td class="border-l border-gray-100 px-3 py-3 dark:border-gray-800">
+            @if (fila.tipo === 'entrada') {
+            <span class="inline-flex items-center gap-1 rounded-full bg-success-50 px-2 py-0.5 text-xs font-medium text-success-700 dark:bg-success-500/15 dark:text-success-400">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 19V5m0 0-6 6m6-6 6 6" />
+              </svg>
+              Entrada
+            </span>
+            } @else {
+            <span class="inline-flex items-center gap-1 rounded-full bg-error-50 px-2 py-0.5 text-xs font-medium text-error-700 dark:bg-error-500/15 dark:text-error-400">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5v14m0 0 6-6m-6 6-6-6" />
+              </svg>
+              Salida
+            </span>
+            }
           </td>
-          <td class="px-3 py-3 text-right tabular-nums">
-            {{ fila.entradaCantidad ? formato(fila.entradaCostoUnitario ?? 0) : '' }}
+          <td class="px-3 py-3 text-right font-medium tabular-nums"
+            [class]="fila.tipo === 'entrada' ? 'text-success-600 dark:text-success-400' : 'text-error-600 dark:text-error-400'">
+            {{ fila.tipo === 'entrada' ? '+' : '−' }}{{ cantidad(fila.cantidad) }}
           </td>
-          <td class="px-3 py-3 text-right tabular-nums">
-            {{ fila.entradaCantidad ? formato(fila.entradaCostoTotal) : '' }}
-          </td>
-
-          <td class="border-l border-gray-100 px-3 py-3 text-right tabular-nums dark:border-gray-800">
-            {{ cantidad(fila.salidaCantidad) }}
-          </td>
-          <td class="px-3 py-3 text-right tabular-nums">
-            {{ fila.salidaCantidad ? formato(fila.salidaCostoUnitario) : '' }}
-          </td>
-          <td class="px-3 py-3 text-right tabular-nums">
-            {{ fila.salidaCantidad ? formato(fila.salidaCostoTotal) : '' }}
-          </td>
+          <td class="px-3 py-3 text-right tabular-nums">{{ formato(fila.costoUnitarioEfectivo) }}</td>
+          <td class="px-3 py-3 text-right tabular-nums">{{ formato(fila.costoTotalEfectivo) }}</td>
 
           <td class="border-l border-gray-100 px-3 py-3 text-right font-medium tabular-nums dark:border-gray-800">
-            {{ cantidad(fila.saldoCantidad) || '0' }}
+            {{ cantidad(fila.saldoCantidad) }}
           </td>
           <td class="px-3 py-3 text-right tabular-nums">{{ formato(fila.saldoCostoUnitario) }}</td>
           <td class="px-4 py-3 text-right font-medium tabular-nums">{{ formato(fila.saldoCostoTotal) }}</td>
@@ -161,17 +182,15 @@
 
       <tfoot class="border-t-2 border-gray-200 dark:border-gray-800">
         <tr class="text-sm font-semibold text-gray-800 dark:text-white/90">
-          <td colspan="3" class="px-4 py-3">Saldo final</td>
-          <td class="border-l border-gray-200 px-3 py-3 text-right tabular-nums dark:border-gray-800">
-            {{ cantidad(totalEntradas) || '0' }}
+          <td colspan="4" class="px-4 py-3">Saldo final</td>
+          <td class="px-3 py-3 text-right tabular-nums text-success-600 dark:text-success-400">
+            +{{ cantidad(totalEntradas) }}
           </td>
-          <td colspan="2"></td>
-          <td class="border-l border-gray-200 px-3 py-3 text-right tabular-nums dark:border-gray-800">
-            {{ cantidad(totalSalidas) || '0' }}
+          <td colspan="2" class="px-3 py-3 text-right tabular-nums text-error-600 dark:text-error-400">
+            −{{ cantidad(totalSalidas) }}
           </td>
-          <td colspan="2"></td>
           <td class="border-l border-gray-200 px-3 py-3 text-right tabular-nums dark:border-gray-800">
-            {{ cantidad(saldoFinal?.saldoCantidad ?? 0) || '0' }}
+            {{ cantidad(saldoFinal?.saldoCantidad ?? 0) }}
           </td>
           <td class="px-3 py-3 text-right tabular-nums">{{ formato(saldoFinal?.saldoCostoUnitario ?? 0) }}</td>
           <td class="px-4 py-3 text-right tabular-nums">{{ formato(saldoFinal?.saldoCostoTotal ?? 0) }}</td>
