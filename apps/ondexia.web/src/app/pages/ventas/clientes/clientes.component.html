@@ -18,12 +18,7 @@
 
       <div>
         <label for="tipo" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Tipo de documento</label>
-        <select id="tipo" [(ngModel)]="tipoFiltro"
-          class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
-          <option value="">Todos</option>
-          <option value="RUC">RUC</option>
-          <option value="DNI">DNI</option>
-        </select>
+        <app-desplegable idCampo="tipo" [opciones]="opcionesTipo" [(ngModel)]="tipoFiltro" />
       </div>
     </div>
 

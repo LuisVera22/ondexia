@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
 
 /**
  * Ficha de proveedor.
@@ -12,10 +13,18 @@ import { PageBreadcrumbComponent } from '../../../shared/components/common/page-
  */
 @Component({
   selector: 'app-ficha-proveedor',
-  imports: [PageBreadcrumbComponent, ReactiveFormsModule, RouterModule],
+  imports: [PageBreadcrumbComponent, ReactiveFormsModule, RouterModule, DesplegableComponent],
   templateUrl: './ficha-proveedor.component.html',
 })
 export class FichaProveedorComponent {
+  readonly opcionesCondicionPago: OpcionDesplegable[] = [
+    { valor: 'Contado', etiqueta: 'Contado' },
+    { valor: 'Crédito 15 días', etiqueta: 'Crédito 15 días' },
+    { valor: 'Crédito 30 días', etiqueta: 'Crédito 30 días' },
+    { valor: 'Crédito 45 días', etiqueta: 'Crédito 45 días' },
+    { valor: 'Crédito 60 días', etiqueta: 'Crédito 60 días' },
+  ];
+
   private readonly ruta = inject(ActivatedRoute);
   private readonly constructorFormulario = inject(FormBuilder);
 

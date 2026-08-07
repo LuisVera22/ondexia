@@ -55,14 +55,8 @@
           <label for="unidad" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             Unidad de medida <span class="text-error-500">*</span>
           </label>
-          <select id="unidad" formControlName="unidad"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
-            <option value="">Seleccione</option>
-            <option value="NIU">Unidad (NIU)</option>
-            <option value="BOL">Bolsa (BG)</option>
-            <option value="KG">Kilogramo (KGM)</option>
-            <option value="M">Metro (MTR)</option>
-          </select>
+          <app-desplegable idCampo="unidad" formControlName="unidad"
+            [opciones]="opcionesUnidad" alto="formulario" />
         </div>
 
         <div class="sm:col-span-2">
@@ -92,12 +86,8 @@
           <label for="afectacion" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             Afectación del IGV <span class="text-error-500">*</span>
           </label>
-          <select id="afectacion" formControlName="afectacionIgv"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
-            <option value="GRAVADO">Gravado</option>
-            <option value="EXONERADO">Exonerado</option>
-            <option value="INAFECTO">Inafecto</option>
-          </select>
+          <app-desplegable idCampo="afectacion" formControlName="afectacionIgv"
+            [opciones]="opcionesAfectacion" alto="formulario" />
           <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
             Determina si el producto genera IGV al venderse.
           </p>

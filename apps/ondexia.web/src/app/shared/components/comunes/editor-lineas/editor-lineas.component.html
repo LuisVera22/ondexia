@@ -89,17 +89,14 @@
           </td>
 
           <td class="px-3 py-3">
-            <select
-              [(ngModel)]="linea.afectacion"
-              (ngModelChange)="alEditar()"
-              [disabled]="soloLectura"
-              class="h-9 w-full rounded-lg border border-gray-300 bg-transparent px-2 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-            >
-              <option value="GRAVADO">Gravado</option>
-              <option value="EXONERADO">Exonerado</option>
-              <option value="INAFECTO">Inafecto</option>
-              <option value="GRATUITO">Gratuito</option>
-            </select>
+            <app-desplegable
+              [opciones]="opcionesAfectacion"
+              [ngModel]="linea.afectacion"
+              (ngModelChange)="cambiarAfectacion(linea, $event)"
+              [deshabilitado]="soloLectura"
+              alto="compacto"
+              etiquetaAccesible="Afectación al IGV"
+            />
           </td>
 
           <td class="px-3 py-3 text-right text-sm font-medium tabular-nums text-gray-800 dark:text-white/90">

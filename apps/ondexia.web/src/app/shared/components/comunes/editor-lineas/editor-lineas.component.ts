@@ -1,5 +1,6 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DesplegableComponent, OpcionDesplegable } from '../desplegable/desplegable.component';
 
 /**
  * Códigos del catálogo SUNAT nº 07 — tipo de afectación del IGV.
@@ -45,10 +46,17 @@ export interface TotalesDocumento {
  */
 @Component({
   selector: 'app-editor-lineas',
-  imports: [FormsModule],
+  imports: [FormsModule, DesplegableComponent],
   templateUrl: './editor-lineas.component.html',
 })
 export class EditorLineasComponent {
+  readonly opcionesAfectacion: OpcionDesplegable[] = [
+    { valor: 'GRAVADO', etiqueta: 'Gravado' },
+    { valor: 'EXONERADO', etiqueta: 'Exonerado' },
+    { valor: 'INAFECTO', etiqueta: 'Inafecto' },
+    { valor: 'GRATUITO', etiqueta: 'Gratuito' },
+  ];
+
   @Input() lineas: LineaDocumento[] = [];
 
   /** Tasa vigente del IGV. Se recibe como dato, nunca fija en el código. */
@@ -65,6 +73,16 @@ export class EditorLineasComponent {
   @Output() lineasCambio = new EventEmitter<LineaDocumento[]>();
   @Output() totalesCambio = new EventEmitter<TotalesDocumento>();
   @Output() solicitarProducto = new EventEmitter<void>();
+
+  /**
+   * El desplegable entrega texto; la línea guarda un tipo cerrado. La
+   * conversión se hace aquí para que el aserto quede en un solo sitio y no
+   * repartido por la plantilla.
+   */
+  cambiarAfectacion(linea: LineaDocumento, valor: string): void {
+    linea.afectacion = valor as AfectacionIgv;
+    this.alEditar();
+  }
 
   get simboloMoneda(): string {
     return this.moneda === 'USD' ? '$' : 'S/';

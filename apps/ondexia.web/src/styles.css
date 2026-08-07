@@ -189,6 +189,41 @@ layer(base);
   body {
     @apply relative font-normal font-outfit z-1 bg-gray-50;
   }
+
+  /*
+   * Controles nativos con el color de la marca.
+   *
+   * El proyecto no usa el plugin de formularios de Tailwind, así que clases
+   * como `text-brand-500` sobre un checkbox no hacen nada: el navegador lo
+   * pinta con el azul del sistema operativo. `accent-color` sí lo alcanza, y
+   * a diferencia de reimplementar el control conserva gratis el teclado, el
+   * foco y el comportamiento que espera un lector de pantalla.
+   */
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--color-brand-500);
+  }
+
+  /*
+   * El icono del calendario y del reloj lo dibuja el navegador en negro, que
+   * sobre fondo oscuro queda invisible. Se invierte solo en modo oscuro.
+   */
+  .dark input[type="date"]::-webkit-calendar-picker-indicator,
+  .dark input[type="time"]::-webkit-calendar-picker-indicator,
+  .dark input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(1) opacity(0.6);
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.55;
+  }
+
+  input[type="date"]::-webkit-calendar-picker-indicator:hover,
+  input[type="time"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+  }
 }
 
 @utility menu-item {

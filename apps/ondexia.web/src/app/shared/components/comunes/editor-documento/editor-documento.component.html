@@ -61,20 +61,14 @@
 
         <div>
           <label for="moneda" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Moneda</label>
-          <select id="moneda" [(ngModel)]="moneda"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
-            <option value="PEN">Soles (S/)</option>
-            <option value="USD">Dólares ($)</option>
-          </select>
+          <app-desplegable idCampo="moneda" [opciones]="opcionesMoneda"
+            [(ngModel)]="moneda" alto="formulario" />
         </div>
 
         <div>
           <label for="formaPago" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Forma de pago</label>
-          <select id="formaPago" [(ngModel)]="formaPago"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
-            <option value="Contado">Contado</option>
-            <option value="Crédito">Crédito</option>
-          </select>
+          <app-desplegable idCampo="formaPago" [opciones]="opcionesFormaPago"
+            [(ngModel)]="formaPago" alto="formulario" />
         </div>
 
         <!-- Referencia y motivo: notas de crédito y débito -->
@@ -94,13 +88,9 @@
           <label for="motivo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             Motivo <span class="text-error-500">*</span>
           </label>
-          <select id="motivo" [(ngModel)]="motivoSeleccionado"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
-            <option value="">Seleccione el motivo</option>
-            @for (motivo of configuracion.motivos ?? []; track motivo.codigo) {
-            <option [value]="motivo.codigo">{{ motivo.codigo }} — {{ motivo.nombre }}</option>
-            }
-          </select>
+          <app-desplegable idCampo="motivo" [opciones]="opcionesMotivo"
+            [(ngModel)]="motivoSeleccionado" alto="formulario"
+            marcador="Seleccione el motivo" />
           @if (intentoEnvio && !motivoSeleccionado) {
           <p class="mt-1.5 text-xs text-error-500">El motivo es obligatorio y viaja en el comprobante.</p>
           }
@@ -123,16 +113,9 @@
           <label for="motivoTraslado" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             Motivo del traslado <span class="text-error-500">*</span>
           </label>
-          <select id="motivoTraslado" [(ngModel)]="motivoTraslado"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
-            <option value="">Seleccione el motivo</option>
-            <option value="01">01 — Venta</option>
-            <option value="02">02 — Compra</option>
-            <option value="04">04 — Traslado entre establecimientos de la misma empresa</option>
-            <option value="08">08 — Importación</option>
-            <option value="09">09 — Exportación</option>
-            <option value="13">13 — Otros</option>
-          </select>
+          <app-desplegable idCampo="motivoTraslado" [opciones]="opcionesMotivoTraslado"
+            [(ngModel)]="motivoTraslado" alto="formulario"
+            marcador="Seleccione el motivo" />
           @if (intentoEnvio && !motivoTraslado) {
           <p class="mt-1.5 text-xs text-error-500">El motivo viaja en la guía y es obligatorio.</p>
           }

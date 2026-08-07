@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { TablaDatosComponent, ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
+import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
 
 interface ProductoPorAgotarse extends Record<string, unknown> {
   id: number;
@@ -26,10 +27,17 @@ interface ProductoPorAgotarse extends Record<string, unknown> {
  */
 @Component({
   selector: 'app-por-agotarse',
-  imports: [PageBreadcrumbComponent, TablaDatosComponent, FormsModule, RouterModule],
+  imports: [PageBreadcrumbComponent, TablaDatosComponent, FormsModule, RouterModule, DesplegableComponent],
   templateUrl: './por-agotarse.component.html',
 })
 export class PorAgotarseComponent {
+  get opcionesAlmacen(): OpcionDesplegable[] {
+    return [
+      { valor: '', etiqueta: 'Todos' },
+      ...this.almacenes.map((a) => ({ valor: a, etiqueta: a })),
+    ];
+  }
+
   almacenFiltro = '';
   soloAgotados = false;
 
