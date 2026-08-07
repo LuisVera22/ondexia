@@ -196,10 +196,6 @@ export class KardexComponent {
     return Math.min(this.pagina, this.totalPaginas);
   }
 
-  get hayVariasPaginas(): boolean {
-    return this.totalPaginas > 1;
-  }
-
   /** Filas que se pintan: solo la página vigente del rango consultado. */
   get filas(): FilaKardex[] {
     return this.filasDelRango.slice(this.inicioPagina, this.inicioPagina + this.tamanoPagina);

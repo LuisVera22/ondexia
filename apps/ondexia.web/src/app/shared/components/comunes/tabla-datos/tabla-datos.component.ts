@@ -147,10 +147,6 @@ export class TablaDatosComponent implements OnChanges {
     return Math.min(this.paginaVigente * this.tamanoVigente, this.total);
   }
 
-  get hayVariasPaginas(): boolean {
-    return this.totalPaginas > 1;
-  }
-
   get todosSeleccionados(): boolean {
     const visibles = this.registrosVisibles;
     return (

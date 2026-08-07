@@ -132,7 +132,8 @@
       }
     </div>
 
-    @if (hayVariasPaginas) {
+    <!-- Siempre visible: si desaparece al quedar una sola página, el usuario
+         no sabe si la tabla está paginada o si el control se rompió. -->
     <div class="flex items-center gap-1">
       <button
         type="button"
@@ -168,7 +169,6 @@
         Siguiente
       </button>
     </div>
-    }
   </div>
   }
 </div>
