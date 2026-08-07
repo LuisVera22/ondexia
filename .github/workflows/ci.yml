@@ -1,0 +1,56 @@
+name: CI
+
+# GitFlow: se construye en las dos ramas de larga vida y en toda rama de
+# trabajo (feature, release, hotfix), para que nada llegue roto a `develop`.
+on:
+  push:
+    branches: [main, develop, 'feature/**', 'release/**', 'hotfix/**']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+# Un solo job, sin filtros de rutas. Con un desarrollador y un proyecto de este
+# tamaño, construir todo en cada commit cuesta minutos y ahorra la clase de
+# error que aparece cuando el frontend y el backend se compilan por separado.
+# Si algún día el build molesta por lento, ahí se agregan filtros — no antes.
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      # Cada paso se salta solo mientras el módulo no exista (Fase 0).
+      # Así el pipeline está listo desde hoy sin fallar en rojo por lo que
+      # todavía no se ha escrito.
+
+      - name: Frontend
+        if: hashFiles('apps/ondexia.web/package.json') != ''
+        working-directory: apps/ondexia.web
+        run: |
+          npm ci
+          npm run build
+          npm run test:ci
+
+      - name: Backend
+        if: hashFiles('apps/pom.xml') != ''
+        working-directory: apps
+        run: mvn -B verify
+
+      - name: Infraestructura
+        if: hashFiles('ondexia.infra/package.json') != ''
+        working-directory: ondexia.infra
+        run: |
+          npm ci
+          npx cdk synth

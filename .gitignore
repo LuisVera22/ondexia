@@ -1,0 +1,53 @@
+# === Secretos y material criptográfico — NUNCA al repositorio ===
+# Un certificado que entra al historial obliga a reescribirlo o a revocar el certificado.
+*.pfx
+*.p12
+*.jks
+*.pem
+*.key
+*.crt
+.env
+.env.*
+!.env.example
+
+# === Volcados de datos ===
+*.dump
+*.sql.gz
+*.bak
+
+# === Node / Angular / Astro ===
+node_modules/
+dist/
+.angular/
+.astro/
+*.tsbuildinfo
+coverage/
+
+# === Java / Maven ===
+target/
+*.class
+!.mvn/wrapper/maven-wrapper.jar
+.mvn/timing.properties
+
+# === AWS CDK ===
+cdk.out/
+cdk.context.json
+
+# === Entornos y herramientas ===
+.venv/
+__pycache__/
+*.pyc
+
+# === Editores ===
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.iml
+
+# === Sistema operativo ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Repositorio independiente ===
+ia-skills

@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DTE-ONX-001 — DTE-ONX-001 — Documento Técnico de Especificación</title>
+<link rel="stylesheet" href="assets/coe-qe.css">
+</head>
+<body>
+<div class="barra-superior">
+  <div class="breadcrumb">COE QE · <strong>DTE-ONX-001</strong></div>
+  <a href="index.html">← Volver al índice</a>
+</div>
+<div class="contenedor">
+  <div class="documento">
+<h1 id="dte-onx-001-documento-tecnico-de-especificacion">DTE-ONX-001 — Documento Técnico de Especificación</h1>
+<h2 id="ondexia-sistema-de-gestion-comercial-con-facturacion-electronica">Ondexia — Sistema de gestión comercial con facturación electrónica</h2>
+<hr>
+<h2 id="1-identificacion">§1 Identificación</h2>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Código</td>
+<td>DTE-ONX-001</td>
+</tr>
+<tr>
+<td>Versión</td>
+<td>0.7</td>
+</tr>
+<tr>
+<td>Estado</td>
+<td><strong>Preliminar</strong></td>
+</tr>
+<tr>
+<td>Fecha</td>
+<td>2026-08-06</td>
+</tr>
+<tr>
+<td>Producto</td>
+<td>Ondexia — Almacén, Compras, Ventas + Facturación Electrónica SUNAT</td>
+</tr>
+<tr>
+<td>Fase COE QE</td>
+<td>Fase 2 · Etapa 2 · Actividad 1</td>
+</tr>
+<tr>
+<td>Tech Lead</td>
+<td>Desarrollador único (R-13)</td>
+</tr>
+<tr>
+<td>Arquitecto</td>
+<td>Desarrollador único (R-13)</td>
+</tr>
+<tr>
+<td>Peer review</td>
+<td><strong>PENDIENTE PR — ver 12.1</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="11-bloque-iora">1.1 Bloque IORA</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Insumos</strong></td>
+<td><a href="01-dominios.html">01-dominios</a> · <a href="02-alcance-modulos.html">02-alcance-modulos</a></td>
+</tr>
+<tr>
+<td><strong>Objetivo</strong></td>
+<td>Definir <strong>cómo</strong> se construye Ondexia: arquitectura, stack, modelo de datos, integraciones SUNAT, seguridad e infraestructura</td>
+</tr>
+<tr>
+<td><strong>Resultado</strong></td>
+<td>Decisiones técnicas trazables (DT-01…DT-13) que habilitan el inicio del desarrollo</td>
+</tr>
+<tr>
+<td><strong>Alcance</strong></td>
+<td>Los módulos marcados V1 en el documento de alcance §1. No cubre estrategia de pruebas, diseño UX ni planificación de sprints</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12-nota-de-desviacion-doctrinal">1.2 Nota de desviación doctrinal</h3>
+<blockquote>
+<p>El proceso COE QE exige un <strong>PRD en estado "Aprobado"</strong> como precondición bloqueante de este artefacto. <strong>No existe PRD</strong>: no se ejecutó la Etapa 1 de descubrimiento (AS-IS, Mapa de Stakeholders, Journeys, Personas, Escenarios, TO-BE).</p>
+<p><strong>Decisión:</strong> se avanza en estado <strong>Preliminar</strong> para no bloquear las decisiones de infraestructura, que tienen plazo propio por el registro de dominios y la homologación ante SUNAT.</p>
+<p><strong>Consecuencias asumidas:</strong>
+- Este DTE <strong>no puede pasar a "Aprobado"</strong> sin PRD y sin al menos una bitácora de peer review formal (§12).
+- Los NFRs de §9 son <strong>propuestos por el equipo técnico</strong>, no derivados de un PRD §7 validado con negocio. Están marcados <code>[PROPUESTO]</code>.
+- Los flujos técnicos de §6 se derivan del inventario de módulos del sistema de referencia, no de user stories Must priorizadas con MoSCoW.
+- <strong>Riesgo residual:</strong> construir sobre requisitos no validados. Mitigado parcialmente porque el alcance replica un sistema ya en operación.</p>
+</blockquote>
+<hr>
+<h2 id="2-contexto-tecnico-restricciones-heredadas">§2 Contexto técnico — restricciones heredadas</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Restricción</th>
+<th>Origen</th>
+<th>Impacto en el diseño</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R-01</td>
+<td>Región AWS <code>us-east-1</code></td>
+<td>Dominios §7</td>
+<td>Todo el cómputo y datos en una región. Latencia ~60-80 ms a Perú</td>
+</tr>
+<tr>
+<td>R-02</td>
+<td>Subdominios <code>app</code> / <code>api</code> / <code>auth</code> / <code>cdn</code> / <code>ver</code></td>
+<td>Dominios §2</td>
+<td>Cinco superficies con políticas de caché, WAF y despliegue distintas</td>
+</tr>
+<tr>
+<td>R-03</td>
+<td><code>ver.ondexia.com</code> es público, <strong>sin autenticación</strong></td>
+<td>Dominios §5.1</td>
+<td>Superficie anónima aislada del resto. Token opaco de 128 bits por comprobante</td>
+</tr>
+<tr>
+<td>R-04</td>
+<td>Multiempresa desde V1</td>
+<td>Decisión de negocio</td>
+<td><code>empresa_id</code> en toda tabla transaccional. Un certificado digital por RUC</td>
+</tr>
+<tr>
+<td>R-05</td>
+<td>5 tipos de comprobante electrónico en V1</td>
+<td>Alcance §3</td>
+<td>Factura, Boleta, Resumen Diario, Liquidación de Compra, GRE</td>
+</tr>
+<tr>
+<td>R-06</td>
+<td>La GRE usa <strong>API REST con OAuth2</strong>, no el canal CPE</td>
+<td>Alcance §3</td>
+<td>Dos integraciones SUNAT distintas, dos modelos de autenticación</td>
+</tr>
+<tr>
+<td>R-07</td>
+<td>El Resumen Diario es <strong>asíncrono con ticket</strong></td>
+<td>Alcance §3</td>
+<td>Obliga a colas y trabajos en segundo plano desde V1. No es opcional</td>
+</tr>
+<tr>
+<td>R-08</td>
+<td>Backend Java / Spring Boot</td>
+<td>Decisión de equipo</td>
+<td>Apache Santuario para XAdES. Ver DT-01</td>
+</tr>
+<tr>
+<td>R-09</td>
+<td>Cómputo Lambda + API Gateway</td>
+<td>Decisión de equipo</td>
+<td>Arranque en frío de la JVM: ver DT-02, es el riesgo técnico principal</td>
+</tr>
+<tr>
+<td>R-10</td>
+<td>IP de salida fija hacia SUNAT</td>
+<td>Dominios §5</td>
+<td>Elastic IP sobre instancia NAT (DT-14). Lambdas en subred privada</td>
+</tr>
+<tr>
+<td>R-11</td>
+<td>Certificado digital <code>.pfx</code> por empresa emisora</td>
+<td>Normativa SUNAT</td>
+<td>Secrets Manager. Nunca en repositorio ni en imagen</td>
+</tr>
+<tr>
+<td>R-12</td>
+<td><strong>Costo de infraestructura mínimo</strong></td>
+<td>Decisión de negocio</td>
+<td>Prioridad explícita sobre alta disponibilidad en V1. Determina DT-03 y DT-14. Ver §4.6</td>
+</tr>
+<tr>
+<td>R-13</td>
+<td><strong>Equipo de un solo desarrollador, asistido por IA</strong></td>
+<td>Realidad del proyecto</td>
+<td>Reabre DT-12 (ver §7.1). Invalida el peer review convencional (§12). Bus factor = 1 es el riesgo principal del proyecto, por encima de cualquier riesgo técnico</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="3-arquitectura-del-sistema">§3 Arquitectura del sistema</h2>
+<h3 id="31-decision-estructural">3.1 Decisión estructural</h3>
+<p><strong>El motor de facturación electrónica es un componente separado del núcleo comercial</strong>, no un módulo dentro de él.</p>
+<p><strong>Decisión técnica DT-13: Separación del motor de facturación</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Opciones evaluadas</td>
+<td>A) Facturación como paquete dentro del monolito · B) Componente separado con contrato por cola · C) Microservicio independiente con su propia base de datos</td>
+</tr>
+<tr>
+<td>Criterio de elección</td>
+<td>R-06 y R-07 (dos canales SUNAT, uno asíncrono) + la emisión no puede bloquear la venta + el ciclo de vida de la normativa SUNAT es independiente del de negocio</td>
+</tr>
+<tr>
+<td><strong>Decisión</strong></td>
+<td><strong>B — Componente separado, misma base de datos, comunicación por SQS</strong></td>
+</tr>
+<tr>
+<td>Consecuencias</td>
+<td>El núcleo comercial nunca llama a SUNAT de forma síncrona: publica un evento y sigue. Permite reintentar, reprocesar y absorber caídas de SUNAT sin afectar la venta. Se evita la complejidad de C (transacciones distribuidas, consistencia eventual sobre datos contables) manteniendo una sola base de datos transaccional. <strong>Deuda:</strong> el acoplamiento por base de datos compartida dificulta extraerlo a microservicio si el volumen lo exige</td>
+</tr>
+</tbody>
+</table>
+<p>Razón de fondo: <strong>SUNAT se cae, y con frecuencia</strong>. Si la emisión fuera síncrona dentro de la transacción de venta, cada caída de SUNAT sería una caída de Ondexia. Con la cola de por medio, la venta se registra y el comprobante se emite cuando SUNAT responda.</p>
+<h3 id="32-diagrama-de-componentes">3.2 Diagrama de componentes</h3>
+<p><div class="coeqe-flow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 1530" width="100%" style="max-width:200px;height:auto;font-family:sans-serif" role="img" aria-label="Diagrama de flujo COE QE">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#1B3A57"/>
+  </marker>
+</defs>
+<line x1="100" y1="80" x2="100" y2="130" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="100" y1="80" x2="100" y2="240" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="100" y1="190" x2="100" y2="350" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="100" y1="410" x2="100" y2="460" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="100" y="429" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">autoriza</text>
+<line x1="100" y1="410" x2="100" y2="570" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="100" y1="630" x2="100" y2="680" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="100" y1="630" x2="100" y2="790" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="100" y="704" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">publica evento</text>
+<line x1="100" y1="850" x2="100" y2="900" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="100" y="869" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">consume</text>
+<line x1="100" y1="960" x2="100" y2="1120" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="100" y="1034" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">carga certificado</text>
+<line x1="100" y1="960" x2="100" y2="1230" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="100" y="1089" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">guarda XML firmado</text>
+<line x1="100" y1="960" x2="100" y2="1340" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="100" y1="1400" x2="100" y2="1450" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="100" y1="1450" x2="100" y2="1070" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="100" y="1254" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">ticket</text>
+<line x1="100" y1="1010" x2="100" y2="740" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="100" y="869" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">actualiza estado</text>
+<line x1="100" y1="300" x2="100" y2="1230" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="100" y="759" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">lee PDF y XML</text>
+<rect x="20" y="20" width="160" height="60" rx="12" ry="12" fill="#DCE3F1" stroke="#5C7AB8" stroke-width="1.5"/>
+<text x="100" y="53" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">CloudFront</text>
+<rect x="20" y="130" width="160" height="60" rx="0" ry="0" fill="#DCE3F1" stroke="#5C7AB8" stroke-width="1.5"/>
+<text x="100" y="163" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">App Angular SPA</text>
+<rect x="20" y="240" width="160" height="60" rx="0" ry="0" fill="#DCE3F1" stroke="#5C7AB8" stroke-width="1.5"/>
+<text x="100" y="273" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Portal publico ver</text>
+<rect x="20" y="350" width="160" height="60" rx="12" ry="12" fill="#D4DCE6" stroke="#1B3A57" stroke-width="1.5"/>
+<text x="100" y="383" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">API Gateway</text>
+<rect x="20" y="460" width="160" height="60" rx="0" ry="0" fill="#D4DCE6" stroke="#1B3A57" stroke-width="1.5"/>
+<text x="100" y="493" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Cognito</text>
+<rect x="20" y="570" width="160" height="60" rx="0" ry="0" fill="#D4DCE6" stroke="#1B3A57" stroke-width="1.5"/>
+<text x="100" y="596" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Lambda API Core</text>
+<text x="100" y="610" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Spring Boot</text>
+<rect x="20" y="680" width="160" height="60" rx="0" ry="0" fill="#E5EDE8" stroke="#6B9080" stroke-width="1.5"/>
+<text x="100" y="713" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">RDS PostgreSQL</text>
+<rect x="20" y="790" width="160" height="60" rx="12" ry="12" fill="#F2DCE3" stroke="#A4456A" stroke-width="1.5"/>
+<text x="100" y="823" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">SQS cola de emision</text>
+<rect x="20" y="900" width="160" height="60" rx="0" ry="0" fill="#F2DCE3" stroke="#A4456A" stroke-width="1.5"/>
+<text x="100" y="926" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Lambda Emisor firma</text>
+<text x="100" y="940" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">XAdES</text>
+<rect x="20" y="1010" width="160" height="60" rx="0" ry="0" fill="#F2DCE3" stroke="#A4456A" stroke-width="1.5"/>
+<text x="100" y="1036" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Lambda Poller de</text>
+<text x="100" y="1050" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">ticket</text>
+<rect x="20" y="1120" width="160" height="60" rx="0" ry="0" fill="#EFE6D8" stroke="#8B6F47" stroke-width="1.5"/>
+<text x="100" y="1146" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Secrets Manager</text>
+<text x="100" y="1160" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">certificados</text>
+<rect x="20" y="1230" width="160" height="60" rx="0" ry="0" fill="#E5EDE8" stroke="#6B9080" stroke-width="1.5"/>
+<text x="100" y="1263" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">S3 XML CDR PDF</text>
+<rect x="20" y="1340" width="160" height="60" rx="12" ry="12" fill="#EFE6D8" stroke="#8B6F47" stroke-width="1.5"/>
+<text x="100" y="1366" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Instancia NAT IP</text>
+<text x="100" y="1380" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">fija</text>
+<rect x="20" y="1450" width="160" height="60" rx="0" ry="0" fill="#EFE6D8" stroke="#8B6F47" stroke-width="1.5"/>
+<text x="100" y="1483" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">SUNAT CPE y GRE</text>
+</svg></div></p>
+<h3 id="33-responsabilidades-y-boundaries">3.3 Responsabilidades y boundaries</h3>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>Responsabilidad</th>
+<th>No hace</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>App Angular</strong></td>
+<td>Interfaz de los tres módulos</td>
+<td>No firma, no habla con SUNAT</td>
+</tr>
+<tr>
+<td><strong>Portal público</strong></td>
+<td>Consulta anónima de un comprobante por token</td>
+<td>No accede a la base transaccional: lee solo de S3 y una tabla de consulta</td>
+</tr>
+<tr>
+<td><strong>API Core</strong></td>
+<td>Reglas de negocio, correlativos, stock, persistencia</td>
+<td><strong>No llama a SUNAT.</strong> Publica en SQS y responde</td>
+</tr>
+<tr>
+<td><strong>Emisor</strong></td>
+<td>Genera UBL 2.1, firma XAdES, envía a SUNAT, procesa CDR</td>
+<td>No conoce reglas de negocio</td>
+</tr>
+<tr>
+<td><strong>Poller</strong></td>
+<td>Consulta tickets pendientes del Resumen Diario</td>
+<td>No emite</td>
+</tr>
+<tr>
+<td><strong>RDS PostgreSQL</strong></td>
+<td>Verdad transaccional</td>
+<td>No almacena XML ni PDF (van a S3)</td>
+</tr>
+<tr>
+<td><strong>S3</strong></td>
+<td>XML firmado, CDR, PDF. Inmutables</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>El boundary que importa: <strong>el API Core nunca abre una conexión hacia SUNAT</strong>. Toda comunicación con el exterior fiscal pasa por el Emisor. Eso concentra el manejo de certificados, reintentos e IP fija en un solo componente auditable.</p>
+<hr>
+<h2 id="4-stack-tecnologico">§4 Stack tecnológico</h2>
+<p><strong>Decisión técnica DT-01: Lenguaje y framework de backend</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Opciones evaluadas</td>
+<td>A) Java 21 LTS + Spring Boot · B) Node.js + NestJS · C) C# + .NET · D) Python + FastAPI</td>
+</tr>
+<tr>
+<td>Criterio de elección</td>
+<td>Madurez de XAdES-BES sobre XML UBL 2.1 + experiencia del equipo</td>
+</tr>
+<tr>
+<td><strong>Decisión</strong></td>
+<td><strong>A — Java 21 LTS + Spring Boot</strong> (sustento de la versión en 4.3)</td>
+</tr>
+<tr>
+<td>Consecuencias</td>
+<td>Apache Santuario es la implementación de referencia de XML-DSig; la firma digital deja de ser riesgo técnico y pasa a ser trabajo conocido. Existe ecosistema UBL en Java. <strong>Contra:</strong> es el peor runtime para Lambda por arranque en frío — ver DT-02, que existe únicamente para compensar esto</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Decisión técnica DT-02: Modelo de cómputo y mitigación de arranque en frío</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Opciones evaluadas</td>
+<td>A) Lambda + API Gateway con SnapStart · B) ECS Fargate · C) EC2</td>
+</tr>
+<tr>
+<td>Criterio de elección</td>
+<td>Decisión de equipo (Lambda) + R-07 (trabajos asíncronos)</td>
+</tr>
+<tr>
+<td><strong>Decisión</strong></td>
+<td><strong>A — Lambda + API Gateway, con SnapStart obligatorio en la función API</strong></td>
+</tr>
+<tr>
+<td>Consecuencias</td>
+<td>Sin SnapStart, un Spring Boot en Lambda arranca en <strong>6-10 s</strong>: inaceptable para una interfaz de punto de venta. SnapStart toma un snapshot del microVM ya inicializado y lo restaura en <strong>200-400 ms</strong>, <strong>sin costo adicional en runtimes Java gestionados</strong>. <strong>SnapStart no es opcional en esta arquitectura, es un requisito.</strong> Exige publicar versiones y apuntar el alias — el <code>$LATEST</code> no lo soporta. Ver 4.2 por sus implicancias criptográficas</td>
+</tr>
+</tbody>
+</table>
+<h3 id="41-naturaleza-del-arranque-en-frio">4.1 Naturaleza del arranque en frío</h3>
+<p>Conviene precisar el problema, porque determina por qué la solución es SnapStart y no otra:</p>
+<p><strong>Java no es lento en régimen</strong> — una vez caliente, la JVM supera en rendimiento a Node o Python. Lo lento es el <strong>encendido</strong>, y son dos capas que se suman:</p>
+<ol>
+<li><strong>La JVM arranca interpretando.</strong> El compilador JIT necesita ejecuciones para optimizar; las primeras invocaciones corren en el modo más lento. Súmese la carga y verificación de clases.</li>
+<li><strong>Spring inicializa el contexto en el arranque.</strong> Escaneo del classpath, resolución de dependencias e instanciación de beans, todo antes de atender la primera solicitud.</li>
+</ol>
+<p>En una aplicación de larga vida esto se paga una vez y no importa. En Lambda, donde el proceso muere y renace, se paga en cada instancia nueva: 6-10 s.</p>
+<p>SnapStart no acelera Java — <strong>se salta ambas capas</strong> tomando una fotografía de la memoria ya inicializada y restaurándola. Por eso la ganancia es tan grande.</p>
+<p><strong>Alternativa descartada:</strong> compilar a imagen nativa con GraalVM (Quarkus, Micronaut o Spring Native) arranca en ~50 ms con menor huella de memoria. Se descarta porque Apache Santuario (DT-06) depende intensamente de reflexión, y la configuración de reflexión para imagen nativa en una ruta criptográfica es frágil y difícil de depurar. SnapStart entrega un beneficio comparable sin ese riesgo.</p>
+<h3 id="42-snapstart-y-criptografia-la-trampa">4.2 SnapStart y criptografía — la trampa</h3>
+<p>SnapStart restaura <strong>el mismo snapshot de memoria</strong> en cada instancia nueva. En una aplicación de firma digital eso es peligroso:</p>
+<table>
+<thead>
+<tr>
+<th>Riesgo</th>
+<th>Por qué</th>
+<th>Mitigación obligatoria</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>SecureRandom</code> con semilla clonada</strong></td>
+<td>Todas las instancias restauradas comparten el estado del generador capturado en el snapshot. Números "aleatorios" idénticos entre instancias</td>
+<td>Re-sembrar en <code>afterRestore()</code> del hook CRaC. Nunca cachear una instancia de <code>SecureRandom</code> antes del checkpoint</td>
+</tr>
+<tr>
+<td><strong>Certificado <code>.pfx</code> cacheado en el snapshot</strong></td>
+<td>El material privado quedaría persistido en el snapshot de Lambda</td>
+<td><strong>Cargar el certificado siempre después del restore</strong>, nunca en la inicialización. Es además la política correcta de rotación</td>
+</tr>
+<tr>
+<td><strong>Conexiones a base de datos muertas</strong></td>
+<td>Las conexiones del pool no sobreviven al snapshot</td>
+<td>Cerrar el pool en <code>beforeCheckpoint()</code> y reabrir en <code>afterRestore()</code>. <strong>Sin RDS Proxy (DT-03) este hook es crítico</strong>, no una optimización</td>
+</tr>
+<tr>
+<td><strong>Tokens OAuth de GRE vencidos</strong></td>
+<td>Un token capturado en el snapshot puede restaurarse ya expirado</td>
+<td>Tratar el token como caché con TTL, revalidando siempre tras el restore</td>
+</tr>
+</tbody>
+</table>
+<p>Estos cuatro puntos se implementan vía la interfaz <code>org.crac.Resource</code>. <strong>Van al Definition of Done de la primera historia de facturación</strong>, no al final.</p>
+<p><strong>Decisión técnica DT-03: Base de datos</strong> · <em>revisada en v0.2 por restricción de costo</em></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Opciones evaluadas</td>
+<td>A) Aurora Serverless v2 + RDS Proxy · B) RDS PostgreSQL <code>db.t4g.micro</code> sin proxy · C) DynamoDB</td>
+</tr>
+<tr>
+<td>Criterio de elección</td>
+<td>Correlativos sin saltos + integridad contable + <strong>costo fijo mínimo (R-12)</strong></td>
+</tr>
+<tr>
+<td><strong>Decisión</strong></td>
+<td><strong>B — RDS PostgreSQL en <code>db.t4g.micro</code>, sin RDS Proxy</strong></td>
+</tr>
+<tr>
+<td>Consecuencias</td>
+<td>C sigue descartada: los correlativos exigen bloqueo transaccional (F-02) y los reportes exigen <code>JOIN</code>. <strong>A se descarta por costo:</strong> Aurora Serverless v2 factura desde 0.5 ACU (~44 USD/mes de piso) y RDS Proxy añade ~22 USD/mes, contra ~14 USD/mes de <code>t4g.micro</code> — que además entra en la capa gratuita 12 meses. <strong>Contra:</strong> una sola instancia sin réplica ni Multi-AZ; el respaldo es PITR. Sin proxy, el pool se controla por límite de concurrencia (ver 4.6). Migrar a Aurora después es un cambio de endpoint, no de modelo: la deuda es reversible</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Decisión técnica DT-14: Salida a internet hacia SUNAT</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Opciones evaluadas</td>
+<td>A) NAT Gateway administrado · B) Instancia NAT <code>t4g.nano</code> con Elastic IP · C) Lambdas fuera de la VPC, sin salida controlada</td>
+</tr>
+<tr>
+<td>Criterio de elección</td>
+<td>R-12 (costo) + mantener IP fija disponible para un eventual allowlist de OSE</td>
+</tr>
+<tr>
+<td><strong>Decisión</strong></td>
+<td><strong>B — Instancia NAT <code>t4g.nano</code> con Elastic IP</strong></td>
+</tr>
+<tr>
+<td>Consecuencias</td>
+<td>El NAT Gateway cuesta ~32 USD/mes de piso: es la línea individual más cara de la arquitectura original y no aporta nada que a este volumen no cubra una instancia de ~3 USD/mes. Conserva la IP fija de R-10. <strong>Contra:</strong> punto único de falla y parcheo a cargo del equipo; si cae, la emisión se detiene (los comprobantes se acumulan en SQS y drenan al restablecerse, sin pérdida). Añadir <em>endpoint</em> de tipo gateway para S3 —gratuito— para que el tráfico de documentos no pase por el NAT</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Decisión técnica DT-04: Framework de la aplicación</strong> · <em>revisada en v0.4</em></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Opciones evaluadas</td>
+<td>A) Angular 22 · B) Vue 3 (Composition API) · C) React SPA <em>(decisión previa, descartada)</em></td>
+</tr>
+<tr>
+<td>Criterio de elección</td>
+<td>Densidad de formularios complejos del dominio + afinidad con un equipo Java/Spring + vida útil larga del producto</td>
+</tr>
+<tr>
+<td><strong>Decisión</strong></td>
+<td><strong>A — Angular con TypeScript estricto</strong></td>
+</tr>
+<tr>
+<td>Consecuencias</td>
+<td>Ver 4.4 para el sustento. <strong>Contra:</strong> curva de aprendizaje de RxJS, mayor verbosidad y peso inicial de bundle (irrelevante tras login). <strong>Efecto colateral:</strong> la landing deja de ser Next.js, que arrastraba React sin necesidad — ver DT-15</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Decisión técnica DT-15: Framework de la landing</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Opciones evaluadas</td>
+<td>A) Astro · B) Angular Universal · C) HTML + Tailwind sin framework</td>
+</tr>
+<tr>
+<td>Criterio de elección</td>
+<td>Al salir React de la app (DT-04), mantener Next.js en la landing significaría sostener un segundo ecosistema solo para una página de marketing</td>
+</tr>
+<tr>
+<td><strong>Decisión</strong></td>
+<td><strong>A — Astro con salida estática</strong></td>
+</tr>
+<tr>
+<td>Consecuencias</td>
+<td>Entrega HTML puro sin JavaScript de framework: es lo más rápido posible para SEO y lo más barato de servir en CloudFront. <strong>Contra:</strong> una herramienta más en el equipo, aunque de superficie mínima. B se descarta porque SSR en Angular exige servidor y contradice R-12</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43-politica-de-versiones">4.3 Política de versiones</h3>
+<p><strong>Regla: este documento fija criterios de versión, no números.</strong> Un DTE vive años; los números de versión caducan en meses. Cuando un número aparece, es referencia al momento de redacción y <strong>debe verificarse al arrancar cada corte</strong> (Alcance §6).</p>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>Criterio</th>
+<th><strong>Versión decidida</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Angular</strong></td>
+<td>Última versión estable al iniciar el desarrollo del frontend</td>
+<td><strong>22</strong></td>
+</tr>
+<tr>
+<td><strong>Java</strong></td>
+<td>LTS que soporte el runtime gestionado de Lambda con SnapStart</td>
+<td><strong>21 (LTS)</strong></td>
+</tr>
+<tr>
+<td><strong>Spring Boot</strong></td>
+<td>Versión estable compatible con el Java elegido y con CRaC</td>
+<td>Rama estable sobre Java 21</td>
+</tr>
+<tr>
+<td><strong>PostgreSQL</strong></td>
+<td>Versión disponible en RDS con soporte vigente</td>
+<td>Más reciente disponible al desplegar</td>
+</tr>
+<tr>
+<td><strong>Astro</strong></td>
+<td>Última estable</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Sobre Java 21:</strong> es la elección de menor riesgo, no una concesión. El requisito duro es SnapStart (DT-02), y Java 21 tiene runtime gestionado con soporte probado. Un LTS más nuevo solo aporta si Lambda ya lo ofrece con SnapStart, y llegar antes que el runtime obligaría a empaquetar runtime propio — más trabajo y más riesgo para el único desarrollador (R-13), a cambio de nada que este sistema necesite.</p>
+<p>Dos precisiones sobre el criterio:</p>
+<ul>
+<li><strong>Para Java, la restricción vinculante no es qué LTS publicó Oracle, sino qué runtime ofrece Lambda con SnapStart.</strong> SnapStart es requisito de DT-02, así que un Java sin runtime gestionado compatible queda descartado por más moderno que sea. Verificar en la documentación de Lambda, no en la de Java.</li>
+<li><strong>Para Angular, arrancar en la última versión es lo correcto en un proyecto nuevo</strong>, sobre todo con un solo desarrollador (R-13): cada mayor que se salta es una migración menos, y Angular sostiene cada versión por un período acotado. Verificar antes que la biblioteca de componentes elegida (Material o PrimeNG) ya publicó su versión compatible — el ecosistema suele ir unas semanas detrás de un lanzamiento mayor.</li>
+</ul>
+<blockquote>
+<p><strong>Advertencia sobre la fuente de estos números.</strong> Provienen del conocimiento del asistente que redactó el documento, con fecha de corte propia. <strong>Confírmalos en la documentación oficial antes de fijar dependencias</strong>, especialmente Angular y el runtime de Lambda, que son los que más rápido se mueven.</p>
+</blockquote>
+<h3 id="44-angular-vs-vue-sustento-de-dt-04">4.4 Angular vs Vue — sustento de DT-04</h3>
+<p><strong>1. Formularios reactivos con estructura dinámica.</strong> Es el argumento decisivo. El detalle de una factura es una lista variable de líneas donde cada una tiene validación cruzada: afectación de IGV, cálculo de valor unitario contra precio unitario, redondeo a los decimales que SUNAT valida. Los <code>FormArray</code> de Angular modelan exactamente eso, con validadores compuestos y estado de validez propagado, en el núcleo del framework. En Vue hay que ensamblarlo con una librería externa (VeeValidate, FormKit) y mantener esa integración. En un sistema que es esencialmente formularios y tablas, la diferencia es estructural, no de preferencia.</p>
+<p><strong>2. Afinidad con el equipo.</strong> El backend es Java + Spring (DT-01). Angular comparte inyección de dependencias, decoradores, separación por capas y una arquitectura opinada. Un desarrollador de Spring lee un servicio de Angular sin traducción mental. Vue exige adoptar un modelo de composición distinto al que el equipo ya practica en el backend.</p>
+<p><strong>3. Vida útil y disciplina.</strong> Angular impone router, cliente HTTP, formularios y pruebas de forma oficial y versionada en conjunto. En un producto de facturación que va a vivir años y a ser mantenido por gente que hoy no está en el equipo, que el framework imponga la estructura vale más que la libertad de elegirla. Vue deja esas decisiones al equipo: más rápido al inicio, más divergente a los tres años.</p>
+<p><strong>Cuándo Vue habría sido la elección correcta:</strong> con un equipo de uno o dos desarrolladores priorizando velocidad de entrega sobre estructura, o si el equipo ya tuviera experiencia en Vue y ninguna en Angular. Vue exige menos código y se aprende antes; su desventaja aquí es específica del dominio (formularios complejos) y del contexto (equipo Java, producto de larga vida), no de calidad.</p>
+<p><strong>Sobre descartar React:</strong> era la opción con mayor ecosistema y mercado laboral, pero es una biblioteca, no un framework — enrutamiento, formularios y estado se eligen y se mantienen por separado. Para este perfil de producto, esa libertad es costo, no beneficio.</p>
+<p><strong>Componentes de interfaz:</strong> evaluar Angular Material + CDK (tabla virtualizada, accesibilidad resuelta) o PrimeNG (mayor densidad de componentes de datos, más cercano a lo que un ERP necesita). Decisión pendiente para la Etapa 3, no bloquea nada ahora.</p>
+<p><strong>Decisión técnica DT-05: Autenticación</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Opciones evaluadas</td>
+<td>A) Cognito · B) Keycloak autogestionado · C) Auth0</td>
+</tr>
+<tr>
+<td>Criterio de elección</td>
+<td>Costo, multiempresa (R-04), MFA</td>
+</tr>
+<tr>
+<td><strong>Decisión</strong></td>
+<td><strong>A — Cognito con dominio propio <code>auth.ondexia.com</code></strong></td>
+</tr>
+<tr>
+<td>Consecuencias</td>
+<td>Integración nativa con API Gateway (authorizer sin código), MFA incluido, 50 000 usuarios activos gratis. <strong>Contra:</strong> la personalización de la interfaz de login es limitada, y la migración fuera de Cognito es costosa. La pertenencia a empresa y los permisos finos <strong>no</strong> viven en Cognito: viven en la base (ver §5.2)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Decisión técnica DT-06: Firma digital XAdES</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Opciones evaluadas</td>
+<td>A) Apache Santuario directo · B) Librería UBL de terceros · C) Delegar la firma a un OSE</td>
+</tr>
+<tr>
+<td>Criterio de elección</td>
+<td>Control sobre el formato exacto que SUNAT valida + independencia de proveedor</td>
+</tr>
+<tr>
+<td><strong>Decisión</strong></td>
+<td><strong>A — Apache Santuario, firma enveloped sobre el nodo <code>ExtensionContent</code></strong></td>
+</tr>
+<tr>
+<td>Consecuencias</td>
+<td>Control total y sin costo por comprobante. <strong>Contra:</strong> cada detalle del canónico y del digest es responsabilidad nuestra; los errores de firma son la causa más común de rechazo en homologación. Presupuestar tiempo de homologación real</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Decisión técnica DT-12: Canal de envío — directo a SUNAT vs OSE</strong></p>
+<table>
+<thead>
+<tr>
+<th>Campo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Opciones evaluadas</td>
+<td>A) SEE del contribuyente, envío directo a SUNAT · B) A través de un OSE · C) A través de un PSE</td>
+</tr>
+<tr>
+<td>Criterio de elección</td>
+<td>Ondexia <strong>es</strong> el producto de facturación; tercerizar el núcleo lo convierte en un revendedor</td>
+</tr>
+<tr>
+<td><strong>Decisión</strong></td>
+<td><strong>A — Envío directo a SUNAT</strong></td>
+</tr>
+<tr>
+<td>Consecuencias</td>
+<td>Sin costo por comprobante y sin dependencia de un tercero para el margen del producto. <strong>Contra:</strong> la homologación ante SUNAT es responsabilidad propia y el soporte de incidencias también. <strong>Esta decisión requiere confirmación explícita del sponsor</strong> — es la de mayor impacto comercial del documento</td>
+</tr>
+</tbody>
+</table>
+<h3 id="45-resumen-del-stack">4.5 Resumen del stack</h3>
+<table>
+<thead>
+<tr>
+<th>Capa</th>
+<th>Tecnología</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Landing</td>
+<td>Astro (salida estática) · S3 + CloudFront</td>
+</tr>
+<tr>
+<td>App</td>
+<td>Angular 22 + TypeScript estricto · S3 + CloudFront</td>
+</tr>
+<tr>
+<td>API</td>
+<td>Java 21 LTS · Spring Boot · Lambda con SnapStart · API Gateway HTTP API</td>
+</tr>
+<tr>
+<td>Asíncrono</td>
+<td>SQS (estándar + FIFO donde aplique) · EventBridge Scheduler</td>
+</tr>
+<tr>
+<td>Datos</td>
+<td>RDS PostgreSQL · <code>db.t4g.micro</code> · sin proxy (concurrencia acotada)</td>
+</tr>
+<tr>
+<td>Red</td>
+<td>VPC con subred privada · instancia NAT <code>t4g.nano</code> + Elastic IP · endpoint gateway S3</td>
+</tr>
+<tr>
+<td>Documentos</td>
+<td>S3 con versionado y Object Lock</td>
+</tr>
+<tr>
+<td>Secretos</td>
+<td>Secrets Manager (certificados, credenciales SOL) · SSM Parameter Store (endpoints)</td>
+</tr>
+<tr>
+<td>Identidad</td>
+<td>Cognito</td>
+</tr>
+<tr>
+<td>Firma</td>
+<td>Apache Santuario (XAdES-BES)</td>
+</tr>
+<tr>
+<td>PDF</td>
+<td>OpenPDF o JasperReports en Lambda dedicada</td>
+</tr>
+<tr>
+<td>IaC</td>
+<td>AWS CDK en TypeScript</td>
+</tr>
+<tr>
+<td>Observabilidad</td>
+<td>CloudWatch Logs · X-Ray · alarmas sobre la DLQ</td>
+</tr>
+</tbody>
+</table>
+<h3 id="46-perfil-de-costo">4.6 Perfil de costo</h3>
+<p><strong>SnapStart no tiene costo adicional en los runtimes Java gestionados.</strong> La mitigación del arranque en frío (DT-02) es gratis: el costo de esta arquitectura no está en el cómputo, y <strong>ninguna de las decisiones de costo relevantes tiene relación con haber elegido Java</strong>.</p>
+<p>La tabla corresponde a la <strong>Fase 2</strong> del plan de despliegue (§10.3). Las fases 0 y 1 cuestan prácticamente cero y son donde arranca el proyecto.</p>
+<p>Estimación de orden de magnitud en <code>us-east-1</code>, volumen inicial bajo. <strong>Verificar en la calculadora de AWS antes de comprometer presupuesto</strong> — y confirmar qué esquema de capa gratuita aplica a la cuenta, porque AWS modificó el modelo y las cuentas nuevas ya no reciben necesariamente los 12 meses clásicos.</p>
+<table>
+<thead>
+<tr>
+<th>Concepto</th>
+<th>Año 1 (capa gratuita)</th>
+<th>Estado estable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Lambda (API + Emisor + Poller)</td>
+<td>0</td>
+<td>~0 — 1 M solicitudes/mes siempre gratis</td>
+</tr>
+<tr>
+<td>SnapStart</td>
+<td>0</td>
+<td><strong>0</strong> — sin cargo en Java</td>
+</tr>
+<tr>
+<td>API Gateway HTTP API</td>
+<td>0</td>
+<td>~1</td>
+</tr>
+<tr>
+<td>RDS <code>db.t4g.micro</code> + 20 GB</td>
+<td>0</td>
+<td>~14</td>
+</tr>
+<tr>
+<td>Instancia NAT <code>t4g.nano</code></td>
+<td>~3</td>
+<td>~3</td>
+</tr>
+<tr>
+<td>S3 (XML, CDR, PDF)</td>
+<td>~0.5</td>
+<td>~1</td>
+</tr>
+<tr>
+<td>SQS</td>
+<td>0</td>
+<td>0 — 1 M/mes siempre gratis</td>
+</tr>
+<tr>
+<td>CloudFront</td>
+<td>0</td>
+<td>0 — nivel siempre gratuito</td>
+</tr>
+<tr>
+<td>Cognito</td>
+<td>0</td>
+<td>0 al volumen previsto</td>
+</tr>
+<tr>
+<td>Secrets Manager (2 secretos)</td>
+<td>~0.8</td>
+<td>~0.8</td>
+</tr>
+<tr>
+<td>Route 53 (2 zonas) + dominio</td>
+<td>~1.6</td>
+<td>~1.6</td>
+</tr>
+<tr>
+<td>CloudWatch</td>
+<td>~0.5</td>
+<td>~2</td>
+</tr>
+<tr>
+<td><strong>Total aproximado USD/mes</strong></td>
+<td><strong>~6</strong></td>
+<td><strong>~24</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Contra el diseño original (Aurora Serverless v2 + RDS Proxy + NAT Gateway), el piso baja de ~96 a ~24 USD/mes.</p>
+<p>Controles para que no se dispare:</p>
+<ul>
+<li><strong>Límite de concurrencia reservada</strong> en la Lambda API (sugerido: 20) y <code>HikariCP</code> con <code>maximum-pool-size: 2</code>. Sustituye al RDS Proxy y además acota el gasto ante un pico o un bucle accidental.</li>
+<li><strong>Presupuesto de AWS Budgets con alerta</strong> al 80 % de un tope mensual definido. Obligatorio antes del primer despliegue.</li>
+<li><strong>Retención de logs de CloudWatch a 30 días.</strong> Los logs sin política de retención son la fuga de costo más común en proyectos pequeños.</li>
+<li><strong><code>dev</code> apagado fuera de horario.</strong> La instancia RDS de <code>dev</code> se detiene por planificador; la capa gratuita cubre una sola instancia, así que dos entornos encendidos siempre ya cuestan.</li>
+</ul>
+<hr>
+<h2 id="5-modelo-de-datos">§5 Modelo de datos</h2>
+<h3 id="51-principios">5.1 Principios</h3>
+<ol>
+<li><strong><code>empresa_id</code> en toda tabla transaccional y de catálogo</strong> (R-04). Sin excepción; una tabla sin <code>empresa_id</code> es una fuga entre clientes esperando ocurrir.</li>
+<li><strong>Row Level Security de PostgreSQL activo</strong> sobre las tablas multiempresa. La defensa no puede depender solo de que el desarrollador recuerde el <code>WHERE empresa_id = ?</code>.</li>
+<li><strong>Los importes son <code>NUMERIC(18,6)</code></strong>, jamás <code>float</code>. SUNAT valida a 2 decimales en totales y hasta 6 en valores unitarios; un error de redondeo es un comprobante rechazado.</li>
+<li><strong>Los documentos emitidos son inmutables.</strong> No se actualizan: se anulan con otro documento.</li>
+<li><strong>Las unidades de medida mapean al catálogo SUNAT nº 03</strong>, los tipos de documento al nº 01 y las monedas al nº 02. Los catálogos son tablas, no enumeraciones en código: SUNAT los actualiza.</li>
+</ol>
+<h3 id="52-entidades-nucleo">5.2 Entidades núcleo</h3>
+<table>
+<thead>
+<tr>
+<th>Entidad</th>
+<th>Campos clave</th>
+<th>Constraints e índices</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>empresa</code></td>
+<td><code>id</code>, <code>ruc</code> (UNIQUE), <code>razon_social</code>, <code>nombre_comercial</code>, <code>domicilio_fiscal</code>, <code>secret_arn_certificado</code>, <code>usuario_sol</code>, <code>modo_sunat</code> (beta/prod)</td>
+<td><code>ruc</code> único global. <code>secret_arn_certificado</code> es una referencia, <strong>nunca el certificado</strong></td>
+</tr>
+<tr>
+<td><code>sucursal</code></td>
+<td><code>empresa_id</code>, <code>codigo</code>, <code>direccion</code>, <code>ubigeo</code></td>
+<td>UNIQUE(<code>empresa_id</code>,<code>codigo</code>)</td>
+</tr>
+<tr>
+<td><code>usuario</code></td>
+<td><code>cognito_sub</code> (UNIQUE), <code>email</code>, <code>nombre</code>, <code>activo</code></td>
+<td>Global, no por empresa</td>
+</tr>
+<tr>
+<td><code>usuario_empresa</code></td>
+<td><code>usuario_id</code>, <code>empresa_id</code>, <code>rol_id</code></td>
+<td>UNIQUE(<code>usuario_id</code>,<code>empresa_id</code>). Habilita que un contador opere varios RUC</td>
+</tr>
+<tr>
+<td><code>rol</code> / <code>permiso</code> / <code>rol_permiso</code></td>
+<td><code>codigo</code>, <code>modulo</code>, <code>accion</code></td>
+<td>Permiso por módulo <strong>y acción</strong>: registrar ≠ aprobar ≠ anular</td>
+</tr>
+<tr>
+<td><code>auditoria</code></td>
+<td><code>empresa_id</code>, <code>usuario_id</code>, <code>entidad</code>, <code>entidad_id</code>, <code>accion</code>, <code>datos_antes</code> (JSONB), <code>datos_despues</code>, <code>ip</code>, <code>creado_en</code></td>
+<td>Índice en (<code>empresa_id</code>,<code>entidad</code>,<code>entidad_id</code>). <strong>Append-only</strong>, sin UPDATE ni DELETE</td>
+</tr>
+</tbody>
+</table>
+<h3 id="53-almacen">5.3 Almacén</h3>
+<table>
+<thead>
+<tr>
+<th>Entidad</th>
+<th>Campos clave</th>
+<th>Constraints</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>marca</code></td>
+<td><code>empresa_id</code>, <code>nombre</code></td>
+<td>UNIQUE(<code>empresa_id</code>,<code>nombre</code>)</td>
+</tr>
+<tr>
+<td><code>modelo</code></td>
+<td><code>empresa_id</code>, <code>marca_id</code>, <code>nombre</code></td>
+<td>UNIQUE(<code>empresa_id</code>,<code>marca_id</code>,<code>nombre</code>)</td>
+</tr>
+<tr>
+<td><code>unidad_medida</code></td>
+<td><code>codigo_sunat</code> (cat. 03), <code>nombre</code>, <code>abreviatura</code></td>
+<td>Catálogo global, no por empresa</td>
+</tr>
+<tr>
+<td><code>producto</code></td>
+<td><code>empresa_id</code>, <code>codigo</code> , <code>nombre</code>, <code>marca_id</code>, <code>modelo_id</code>, <code>unidad_id</code>, <code>tipo_afectacion_igv</code>, <code>stock_minimo</code></td>
+<td>UNIQUE(<code>empresa_id</code>,<code>codigo</code>). Índice GIN sobre <code>nombre</code> para búsqueda</td>
+</tr>
+<tr>
+<td><code>presentacion</code></td>
+<td><code>producto_id</code>, <code>descripcion</code>, <code>factor_conversion</code>, <code>codigo_barras</code></td>
+<td><code>factor_conversion &gt; 0</code>. Una presentación es marcada <code>es_base</code></td>
+</tr>
+<tr>
+<td><code>tipo_precio</code></td>
+<td><code>empresa_id</code>, <code>nombre</code>, <code>orden</code></td>
+<td>Ej. mayorista, minorista, distribuidor</td>
+</tr>
+<tr>
+<td><code>precio_producto</code></td>
+<td><code>producto_id</code>, <code>presentacion_id</code>, <code>tipo_precio_id</code>, <code>valor</code>, <code>moneda</code>, <code>vigente_desde</code></td>
+<td>UNIQUE(<code>producto_id</code>,<code>presentacion_id</code>,<code>tipo_precio_id</code>,<code>vigente_desde</code>)</td>
+</tr>
+<tr>
+<td><code>almacen</code></td>
+<td><code>empresa_id</code>, <code>sucursal_id</code>, <code>nombre</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>stock</code></td>
+<td><code>almacen_id</code>, <code>producto_id</code>, <code>presentacion_id</code>, <code>cantidad</code></td>
+<td>UNIQUE(<code>almacen_id</code>,<code>producto_id</code>,<code>presentacion_id</code>). <code>cantidad &gt;= 0</code> salvo config</td>
+</tr>
+<tr>
+<td><code>movimiento_stock</code></td>
+<td><code>almacen_id</code>, <code>producto_id</code>, <code>cantidad</code>, <code>tipo</code>, <code>documento_origen_tipo</code>, <code>documento_origen_id</code>, <code>creado_en</code></td>
+<td><strong>Libro mayor de inventario: append-only.</strong> <code>stock</code> es su proyección</td>
+</tr>
+<tr>
+<td><code>guia_ingreso</code></td>
+<td><code>empresa_id</code>, <code>almacen_id</code>, <code>proveedor_id</code>, <code>numero</code>, <code>fecha</code></td>
+<td>Documento interno</td>
+</tr>
+<tr>
+<td><code>guia_remision</code></td>
+<td><code>empresa_id</code>, <code>serie</code>, <code>numero</code>, <code>tipo</code> (09/31), <code>punto_partida</code>, <code>punto_llegada</code>, <code>transportista</code>, <code>estado_sunat</code></td>
+<td>UNIQUE(<code>empresa_id</code>,<code>serie</code>,<code>numero</code>)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>"Productos por agotarse" no es una entidad.</strong> Es la consulta <code>stock.cantidad &lt;= producto.stock_minimo</code>. Construirla como tabla es duplicar estado que se desincroniza.</p>
+</blockquote>
+<h3 id="54-terceros">5.4 Terceros</h3>
+<table>
+<thead>
+<tr>
+<th>Entidad</th>
+<th>Campos clave</th>
+<th>Constraints</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cliente</code></td>
+<td><code>empresa_id</code>, <code>tipo_documento</code> (cat. 06), <code>numero_documento</code>, <code>razon_social</code>, <code>direccion</code>, <code>email</code></td>
+<td>UNIQUE(<code>empresa_id</code>,<code>tipo_documento</code>,<code>numero_documento</code>)</td>
+</tr>
+<tr>
+<td><code>proveedor</code></td>
+<td>Misma forma que cliente</td>
+<td>Idéntico constraint</td>
+</tr>
+</tbody>
+</table>
+<p>Cliente y proveedor se mantienen <strong>separados</strong> pese a compartir forma: sus ciclos de vida, validaciones y permisos difieren, y un mismo RUC puede ser ambos con datos distintos.</p>
+<h3 id="55-ventas-y-comprobantes">5.5 Ventas y comprobantes</h3>
+<p>Decisión central del modelo: <strong>cabecera unificada con discriminador de tipo</strong>, no una tabla por tipo de documento.</p>
+<table>
+<thead>
+<tr>
+<th>Entidad</th>
+<th>Campos clave</th>
+<th>Constraints</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>serie_correlativo</code></td>
+<td><code>empresa_id</code>, <code>sucursal_id</code>, <code>tipo_documento</code>, <code>serie</code>, <code>ultimo_numero</code></td>
+<td>UNIQUE(<code>empresa_id</code>,<code>tipo_documento</code>,<code>serie</code>). <strong>Fuente única del correlativo</strong></td>
+</tr>
+<tr>
+<td><code>documento_venta</code></td>
+<td><code>empresa_id</code>, <code>tipo_documento</code> (01/03/07/08), <code>serie</code>, <code>numero</code>, <code>cliente_id</code>, <code>fecha_emision</code>, <code>moneda</code>, <code>tipo_cambio</code>, <code>total_gravado</code>, <code>total_igv</code>, <code>total_exonerado</code>, <code>total_inafecto</code>, <code>total_venta</code>, <code>forma_pago</code>, <code>estado</code></td>
+<td>UNIQUE(<code>empresa_id</code>,<code>tipo_documento</code>,<code>serie</code>,<code>numero</code>)</td>
+</tr>
+<tr>
+<td><code>documento_venta_detalle</code></td>
+<td><code>documento_id</code>, <code>producto_id</code>, <code>presentacion_id</code>, <code>cantidad</code>, <code>valor_unitario</code>, <code>precio_unitario</code>, <code>tipo_afectacion_igv</code>, <code>igv</code>, <code>total</code></td>
+<td><code>cantidad &gt; 0</code></td>
+</tr>
+<tr>
+<td><code>documento_referencia</code></td>
+<td><code>documento_id</code>, <code>tipo_doc_referencia</code>, <code>serie_ref</code>, <code>numero_ref</code>, <code>motivo</code> (cat. 09/10)</td>
+<td>Obligatorio para notas de crédito y débito</td>
+</tr>
+<tr>
+<td><code>comprobante_electronico</code></td>
+<td><code>documento_id</code> (UNIQUE), <code>estado_sunat</code>, <code>xml_s3_key</code>, <code>cdr_s3_key</code>, <code>pdf_s3_key</code>, <code>hash_firma</code>, <code>token_publico</code> (UNIQUE), <code>ticket</code>, <code>codigo_respuesta</code>, <code>descripcion_respuesta</code>, <code>intentos</code>, <code>enviado_en</code></td>
+<td><code>token_publico</code> de 128 bits generado con CSPRNG (Dominios §5.1)</td>
+</tr>
+<tr>
+<td><code>resumen_diario</code></td>
+<td><code>empresa_id</code>, <code>fecha_referencia</code>, <code>correlativo</code>, <code>ticket</code>, <code>estado</code>, <code>xml_s3_key</code>, <code>cdr_s3_key</code></td>
+<td>UNIQUE(<code>empresa_id</code>,<code>fecha_referencia</code>,<code>correlativo</code>)</td>
+</tr>
+<tr>
+<td><code>cotizacion</code> / <code>nota_preventa</code></td>
+<td><code>empresa_id</code>, <code>numero</code>, <code>cliente_id</code>, <code>validez_hasta</code>, <code>estado</code></td>
+<td>Documentos internos, sin serie fiscal</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Estados de <code>comprobante_electronico</code>:</strong> <code>PENDIENTE → FIRMADO → ENVIADO → ACEPTADO | RECHAZADO | OBSERVADO | ERROR_ENVIO → ANULADO</code>. La transición es una máquina explícita, no un campo de texto libre.</p>
+<h3 id="56-compras">5.6 Compras</h3>
+<table>
+<thead>
+<tr>
+<th>Entidad</th>
+<th>Campos clave</th>
+<th>Notas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>nota_pedido</code></td>
+<td><code>empresa_id</code>, <code>numero</code>, <code>proveedor_id</code>, <code>estado</code></td>
+<td>Interno</td>
+</tr>
+<tr>
+<td><code>orden_compra</code></td>
+<td><code>empresa_id</code>, <code>numero</code>, <code>proveedor_id</code>, <code>nota_pedido_id</code>, <code>moneda</code>, <code>total</code>, <code>estado</code></td>
+<td>Interno. Estado incluye aprobación</td>
+</tr>
+<tr>
+<td><code>orden_servicio</code></td>
+<td>Misma forma, sin detalle de productos</td>
+<td><strong>No genera movimiento de stock</strong></td>
+</tr>
+<tr>
+<td><code>nota_compra</code></td>
+<td><code>empresa_id</code>, <code>numero</code>, <code>orden_compra_id</code></td>
+<td>Interno</td>
+</tr>
+<tr>
+<td><code>factura_compra</code></td>
+<td><code>empresa_id</code>, <code>proveedor_id</code>, <code>tipo_documento</code>, <code>serie</code>, <code>numero</code>, <code>fecha_emision</code>, <code>total</code>, <code>orden_compra_id</code>, <code>estado_validacion_sunat</code></td>
+<td>UNIQUE(<code>empresa_id</code>,<code>proveedor_id</code>,<code>tipo_documento</code>,<code>serie</code>,<code>numero</code>). <strong>Recibida, no emitida</strong></td>
+</tr>
+<tr>
+<td><code>liquidacion_compra</code></td>
+<td><code>empresa_id</code>, <code>serie</code>, <code>numero</code>, <code>proveedor_id</code>, <code>estado_sunat</code></td>
+<td><strong>Emitida por nosotros (tipo 04)</strong> → reutiliza <code>comprobante_electronico</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="57-diagrama-de-relaciones-nucleo">5.7 Diagrama de relaciones núcleo</h3>
+<p><div class="coeqe-flow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 210" width="100%" style="max-width:1080px;height:auto;font-family:sans-serif" role="img" aria-label="Diagrama de flujo COE QE">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#1B3A57"/>
+  </marker>
+</defs>
+<line x1="180" y1="50" x2="240" y2="50" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="180" y1="50" x2="460" y2="50" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="620" y1="50" x2="680" y2="50" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="900" y1="50" x2="840" y2="50" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="870" y="44" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">proyecta</text>
+<line x1="100" y1="80" x2="100" y2="130" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="180" y1="160" x2="240" y2="160" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="400" y1="160" x2="460" y2="160" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="540" y1="160" x2="980" y2="50" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="760" y="99" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">descarga stock</text>
+<line x1="400" y1="160" x2="680" y2="160" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="540" y="154" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">1 a 1</text>
+<line x1="900" y1="160" x2="400" y2="160" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="650" y="154" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">asigna numero</text>
+<rect x="20" y="20" width="160" height="60" rx="0" ry="0" fill="#D4DCE6" stroke="#1B3A57" stroke-width="1.5"/>
+<text x="100" y="53" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">empresa</text>
+<rect x="240" y="20" width="160" height="60" rx="0" ry="0" fill="#D4DCE6" stroke="#1B3A57" stroke-width="1.5"/>
+<text x="320" y="53" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">usuario_empresa</text>
+<rect x="460" y="20" width="160" height="60" rx="0" ry="0" fill="#E5EDE8" stroke="#6B9080" stroke-width="1.5"/>
+<text x="540" y="53" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">producto</text>
+<rect x="680" y="20" width="160" height="60" rx="0" ry="0" fill="#E5EDE8" stroke="#6B9080" stroke-width="1.5"/>
+<text x="760" y="53" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">stock</text>
+<rect x="900" y="20" width="160" height="60" rx="0" ry="0" fill="#E5EDE8" stroke="#6B9080" stroke-width="1.5"/>
+<text x="980" y="53" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">movimiento_stock</text>
+<rect x="20" y="130" width="160" height="60" rx="0" ry="0" fill="#DCE3F1" stroke="#5C7AB8" stroke-width="1.5"/>
+<text x="100" y="163" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">cliente</text>
+<rect x="240" y="130" width="160" height="60" rx="0" ry="0" fill="#F2DCE3" stroke="#A4456A" stroke-width="1.5"/>
+<text x="320" y="163" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">documento_venta</text>
+<rect x="460" y="130" width="160" height="60" rx="0" ry="0" fill="#F2DCE3" stroke="#A4456A" stroke-width="1.5"/>
+<text x="540" y="163" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">documento_detalle</text>
+<rect x="680" y="130" width="160" height="60" rx="0" ry="0" fill="#EFE6D8" stroke="#8B6F47" stroke-width="1.5"/>
+<text x="760" y="163" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">comprobante_electronico</text>
+<rect x="900" y="130" width="160" height="60" rx="0" ry="0" fill="#EFE6D8" stroke="#8B6F47" stroke-width="1.5"/>
+<text x="980" y="163" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">serie_correlativo</text>
+</svg></div></p>
+<hr>
+<h2 id="6-flujos-tecnicos">§6 Flujos técnicos</h2>
+<h3 id="f-01-emision-de-factura-o-boleta">F-01 · Emisión de factura o boleta</h3>
+<p>El punto crítico: <strong>SUNAT puede tardar más de 30 segundos en responder, y API Gateway corta a los 29</strong>. La emisión no puede ser síncrona de extremo a extremo.</p>
+<p><div class="coeqe-flow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 1200" width="100%" style="max-width:200px;height:auto;font-family:sans-serif" role="img" aria-label="Diagrama de flujo COE QE">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#1B3A57"/>
+  </marker>
+</defs>
+<line x1="100" y1="80" x2="100" y2="130" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="100" y1="190" x2="100" y2="240" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="100" y1="300" x2="100" y2="350" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="100" y1="410" x2="100" y2="460" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="100" y1="520" x2="100" y2="570" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="100" y1="630" x2="100" y2="680" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="100" y1="740" x2="100" y2="790" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="100" y1="850" x2="100" y2="900" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="100" y="869" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">aceptado</text>
+<line x1="100" y1="850" x2="100" y2="1010" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="100" y="924" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">rechazado 2xxx</text>
+<line x1="100" y1="850" x2="100" y2="1120" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="100" y="979" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">error de red o 0100</text>
+<rect x="20" y="20" width="160" height="60" rx="12" ry="12" fill="#DCE3F1" stroke="#5C7AB8" stroke-width="1.5"/>
+<text x="100" y="46" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Usuario confirma</text>
+<text x="100" y="60" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">venta</text>
+<rect x="20" y="130" width="160" height="60" rx="0" ry="0" fill="#D4DCE6" stroke="#1B3A57" stroke-width="1.5"/>
+<text x="100" y="156" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">API valida y asigna</text>
+<text x="100" y="170" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">correlativo</text>
+<rect x="20" y="240" width="160" height="60" rx="0" ry="0" fill="#D4DCE6" stroke="#1B3A57" stroke-width="1.5"/>
+<text x="100" y="266" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Persiste documento</text>
+<text x="100" y="280" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">estado PENDIENTE</text>
+<rect x="20" y="350" width="160" height="60" rx="0" ry="0" fill="#D4DCE6" stroke="#1B3A57" stroke-width="1.5"/>
+<text x="100" y="376" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Publica en SQS y</text>
+<text x="100" y="390" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">responde 202</text>
+<rect x="20" y="460" width="160" height="60" rx="0" ry="0" fill="#F2DCE3" stroke="#A4456A" stroke-width="1.5"/>
+<text x="100" y="486" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Emisor genera UBL</text>
+<text x="100" y="500" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">2.1</text>
+<rect x="20" y="570" width="160" height="60" rx="0" ry="0" fill="#F2DCE3" stroke="#A4456A" stroke-width="1.5"/>
+<text x="100" y="596" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Firma XAdES con</text>
+<text x="100" y="610" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">certificado</text>
+<rect x="20" y="680" width="160" height="60" rx="0" ry="0" fill="#EFE6D8" stroke="#8B6F47" stroke-width="1.5"/>
+<text x="100" y="706" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Envia a SUNAT por IP</text>
+<text x="100" y="720" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">fija</text>
+<polygon points="100,790 180,820 100,850 20,820" fill="#EFE6D8" stroke="#8B6F47" stroke-width="1.5"/>
+<text x="100" y="823" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Respuesta SUNAT</text>
+<rect x="20" y="900" width="160" height="60" rx="0" ry="0" fill="#E5EDE8" stroke="#6B9080" stroke-width="1.5"/>
+<text x="100" y="926" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Guarda CDR y marca</text>
+<text x="100" y="940" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">ACEPTADO</text>
+<rect x="20" y="1010" width="160" height="60" rx="0" ry="0" fill="#F2DCE3" stroke="#A4456A" stroke-width="1.5"/>
+<text x="100" y="1036" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Marca RECHAZADO y</text>
+<text x="100" y="1050" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">notifica</text>
+<rect x="20" y="1120" width="160" height="60" rx="0" ry="0" fill="#F2DCE3" stroke="#A4456A" stroke-width="1.5"/>
+<text x="100" y="1146" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Reintento con</text>
+<text x="100" y="1160" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">backoff o DLQ</text>
+</svg></div></p>
+<p>Puntos de diseño:</p>
+<ul>
+<li><strong>La respuesta al usuario es inmediata</strong> (<code>202 Accepted</code> con el id del documento). La interfaz muestra el estado y lo actualiza por polling o WebSocket.</li>
+<li><strong>Distinguir rechazo de fallo de comunicación.</strong> Un código <code>2xxx</code> de SUNAT es un rechazo definitivo del comprobante: reintentarlo es inútil. Un timeout o un <code>0100</code> es un fallo transitorio: reintentar con backoff exponencial. Confundirlos genera duplicados o comprobantes perdidos.</li>
+<li><strong>Idempotencia obligatoria.</strong> SQS estándar garantiza entrega <em>al menos una vez</em>: el Emisor puede recibir el mismo mensaje dos veces. La clave de idempotencia es <code>(empresa_id, tipo, serie, numero)</code>, verificada antes de enviar.</li>
+<li><strong>La DLQ tiene alarma.</strong> Un mensaje en la cola de mensajes fallidos es un comprobante que el cliente cree emitido y no lo está. Es incidente, no métrica.</li>
+</ul>
+<h3 id="f-02-asignacion-de-correlativo-concurrencia">F-02 · Asignación de correlativo (concurrencia)</h3>
+<p>SUNAT no tolera correlativos duplicados y penaliza los saltos. Con Lambda concurrente, dos ventas simultáneas pueden pedir el mismo número.</p>
+<pre><code class="language-sql">BEGIN;
+SELECT ultimo_numero FROM serie_correlativo
+ WHERE empresa_id = ? AND tipo_documento = ? AND serie = ?
+ FOR UPDATE;                      -- bloqueo de fila, serializa a los concurrentes
+UPDATE serie_correlativo SET ultimo_numero = ultimo_numero + 1 WHERE ...;
+INSERT INTO documento_venta (...) VALUES (...);
+COMMIT;                           -- correlativo y documento, o ninguno
+</code></pre>
+<ul>
+<li><strong>No usar <code>SEQUENCE</code> de PostgreSQL:</strong> no es transaccional y deja huecos ante cualquier rollback.</li>
+<li><strong>El correlativo se asigna al confirmar, nunca al abrir un borrador.</strong> Un borrador abandonado con número asignado es un hueco permanente en la numeración.</li>
+<li>El bloqueo es por <code>(empresa, tipo, serie)</code>, así que ventas de series distintas no se serializan entre sí.</li>
+</ul>
+<h3 id="f-03-resumen-diario-de-boletas">F-03 · Resumen Diario de boletas</h3>
+<p>Es el flujo asíncrono en dos tiempos que obliga a tener planificador desde V1.</p>
+<p><div class="coeqe-flow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 210" width="100%" style="max-width:1080px;height:auto;font-family:sans-serif" role="img" aria-label="Diagrama de flujo COE QE">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#1B3A57"/>
+  </marker>
+</defs>
+<line x1="180" y1="50" x2="240" y2="50" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="400" y1="50" x2="460" y2="50" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="620" y1="50" x2="680" y2="50" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="840" y1="50" x2="900" y2="50" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="980" y1="50" x2="100" y2="160" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="540" y="99" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">cada 5 min</text>
+<line x1="180" y1="160" x2="240" y2="160" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="400" y1="160" x2="460" y2="160" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="430" y="154" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">procesado</text>
+<line x1="240" y1="160" x2="180" y2="160" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="210" y="154" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">en proceso</text>
+<line x1="400" y1="160" x2="680" y2="160" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="540" y="154" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">con errores</text>
+<rect x="20" y="20" width="160" height="60" rx="12" ry="12" fill="#DCE3F1" stroke="#5C7AB8" stroke-width="1.5"/>
+<text x="100" y="53" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">EventBridge dispara</text>
+<rect x="240" y="20" width="160" height="60" rx="0" ry="0" fill="#D4DCE6" stroke="#1B3A57" stroke-width="1.5"/>
+<text x="320" y="46" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Agrupa boletas del</text>
+<text x="320" y="60" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">dia por empresa</text>
+<rect x="460" y="20" width="160" height="60" rx="0" ry="0" fill="#F2DCE3" stroke="#A4456A" stroke-width="1.5"/>
+<text x="540" y="46" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Genera y firma XML</text>
+<text x="540" y="60" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">RC</text>
+<rect x="680" y="20" width="160" height="60" rx="0" ry="0" fill="#EFE6D8" stroke="#8B6F47" stroke-width="1.5"/>
+<text x="760" y="46" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Envia y recibe</text>
+<text x="760" y="60" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">TICKET</text>
+<rect x="900" y="20" width="160" height="60" rx="0" ry="0" fill="#E5EDE8" stroke="#6B9080" stroke-width="1.5"/>
+<text x="980" y="46" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Guarda ticket estado</text>
+<text x="980" y="60" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">PENDIENTE</text>
+<rect x="20" y="130" width="160" height="60" rx="0" ry="0" fill="#F2DCE3" stroke="#A4456A" stroke-width="1.5"/>
+<text x="100" y="156" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Poller consulta el</text>
+<text x="100" y="170" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">ticket</text>
+<polygon points="320,130 400,160 320,190 240,160" fill="#EFE6D8" stroke="#8B6F47" stroke-width="1.5"/>
+<text x="320" y="163" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Estado</text>
+<rect x="460" y="130" width="160" height="60" rx="0" ry="0" fill="#E5EDE8" stroke="#6B9080" stroke-width="1.5"/>
+<text x="540" y="156" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Marca boletas</text>
+<text x="540" y="170" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">ACEPTADO</text>
+<rect x="680" y="130" width="160" height="60" rx="0" ry="0" fill="#F2DCE3" stroke="#A4456A" stroke-width="1.5"/>
+<text x="760" y="156" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Registra</text>
+<text x="760" y="170" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">observaciones</text>
+</svg></div></p>
+<p>El envío <strong>no devuelve el CDR</strong>: devuelve un ticket que se consulta después. El poller corre por EventBridge Scheduler cada 5 minutos y abandona tras N intentos escalando a alerta.</p>
+<h3 id="f-04-guia-de-remision-electronica">F-04 · Guía de Remisión Electrónica</h3>
+<p>Canal distinto (R-06). Secuencia: obtener token OAuth2 del endpoint de seguridad → <code>POST</code> del comprobante en JSON con el XML firmado embebido en base64 → recibir ticket → consultar estado. El token se cachea con TTL y <strong>se revalida siempre tras un restore de SnapStart</strong> (§4.2).</p>
+<h3 id="f-05-consulta-en-el-portal-publico">F-05 · Consulta en el portal público</h3>
+<p><div class="coeqe-flow"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 100" width="100%" style="max-width:1080px;height:auto;font-family:sans-serif" role="img" aria-label="Diagrama de flujo COE QE">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+    <path d="M0,0 L10,5 L0,10 z" fill="#1B3A57"/>
+  </marker>
+</defs>
+<line x1="180" y1="50" x2="240" y2="50" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<line x1="400" y1="50" x2="900" y2="50" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="650" y="44" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">hit</text>
+<line x1="400" y1="50" x2="460" y2="50" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="430" y="44" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">miss</text>
+<line x1="620" y1="50" x2="680" y2="50" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<text x="650" y="44" font-size="11" fill="#4A4A4A" text-anchor="middle" style="paint-order:stroke;stroke:#FAFAF7;stroke-width:3">busca por token</text>
+<line x1="840" y1="50" x2="900" y2="50" stroke="#1B3A57" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="20" y="20" width="160" height="60" rx="12" ry="12" fill="#DCE3F1" stroke="#5C7AB8" stroke-width="1.5"/>
+<text x="100" y="46" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Cliente abre ver</text>
+<text x="100" y="60" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">punto ondexia</text>
+<polygon points="320,20 400,50 320,80 240,50" fill="#DCE3F1" stroke="#5C7AB8" stroke-width="1.5"/>
+<text x="320" y="53" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">CloudFront cache</text>
+<rect x="460" y="20" width="160" height="60" rx="0" ry="0" fill="#D4DCE6" stroke="#1B3A57" stroke-width="1.5"/>
+<text x="540" y="46" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Lambda resuelve</text>
+<text x="540" y="60" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">token</text>
+<rect x="680" y="20" width="160" height="60" rx="0" ry="0" fill="#E5EDE8" stroke="#6B9080" stroke-width="1.5"/>
+<text x="760" y="46" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Tabla de consulta</text>
+<text x="760" y="60" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">publica</text>
+<rect x="900" y="20" width="160" height="60" rx="0" ry="0" fill="#E5EDE8" stroke="#6B9080" stroke-width="1.5"/>
+<text x="980" y="46" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">Entrega PDF XML CDR</text>
+<text x="980" y="60" font-size="12" font-weight="500" fill="#1B3A57" text-anchor="middle">de S3</text>
+</svg></div></p>
+<p>El portal <strong>no consulta la base transaccional</strong>: lee una tabla de proyección con solo lo publicable. Aunque un fallo de autorización se colara, no habría nada más que exponer. WAF con límite por IP delante.</p>
+<h3 id="f-06-registro-de-compra-con-afectacion-de-stock">F-06 · Registro de compra con afectación de stock</h3>
+<p>Orden de Compra aprobada → recepción por Guía de Ingreso → <code>movimiento_stock</code> de entrada → registro de Factura de compra → validación del comprobante contra SUNAT. La Orden de Servicio recorre el mismo flujo <strong>sin</strong> generar movimiento de stock.</p>
+<hr>
+<h2 id="7-integraciones-externas">§7 Integraciones externas</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Integración</th>
+<th>Protocolo</th>
+<th>Autenticación</th>
+<th>Manejo de fallos</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I-01</td>
+<td><strong>SUNAT CPE</strong> (factura, boleta, NC, ND, liquidación, resumen)</td>
+<td>SOAP 1.1 con WS-Security</td>
+<td>Usuario SOL (<code>RUC+usuario</code>/clave) desde Secrets Manager</td>
+<td>Backoff exponencial 1/2/4/8/16 min, máx. 5 intentos → DLQ + alarma. Distinguir rechazo definitivo de fallo transitorio</td>
+</tr>
+<tr>
+<td>I-02</td>
+<td><strong>SUNAT GRE</strong></td>
+<td>REST/JSON</td>
+<td>OAuth2 client credentials, token con TTL</td>
+<td>Igual que I-01, más revalidación de token ante <code>401</code></td>
+</tr>
+<tr>
+<td>I-03</td>
+<td><strong>Consulta RUC/DNI</strong></td>
+<td>REST</td>
+<td>API key de proveedor</td>
+<td><strong>Degradación elegante:</strong> si no responde, permitir carga manual. Nunca bloquear una venta por una consulta de padrón</td>
+</tr>
+<tr>
+<td>I-04</td>
+<td><strong>Amazon SES</strong></td>
+<td>API AWS</td>
+<td>IAM</td>
+<td>Cola de reintento. Un fallo de correo no invalida el comprobante</td>
+</tr>
+</tbody>
+</table>
+<h3 id="71-dt-12-reabierta-por-r-13-emision-propia-vs-proveedor">7.1 DT-12 reabierta por R-13 — emisión propia vs proveedor</h3>
+<p>La decisión de enviar directo a SUNAT (DT-12) se tomó cuando el equipo era una incógnita. Con <strong>un solo desarrollador</strong>, el cálculo cambia y hay que rehacerlo explícitamente.</p>
+<p>Lo que implica emitir directo, y que recae entero sobre una persona:</p>
+<table>
+<thead>
+<tr>
+<th>Trabajo</th>
+<th>Naturaleza</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Generación de UBL 2.1 por cada tipo de comprobante</td>
+<td>Una vez por tipo, 5 tipos en V1</td>
+</tr>
+<tr>
+<td>Firma XAdES correcta al detalle (canónico, digest)</td>
+<td>Una vez, pero con depuración larga</td>
+</tr>
+<tr>
+<td><strong>Homologación ante SUNAT</strong></td>
+<td>Proceso externo, plazo fuera de tu control</td>
+</tr>
+<tr>
+<td>Gestión de certificados, vencimientos y rotación</td>
+<td><strong>Permanente</strong></td>
+</tr>
+<tr>
+<td>Seguimiento de cambios normativos de SUNAT</td>
+<td><strong>Permanente, indefinido</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Las dos últimas filas son las que importan: no son trabajo de construcción sino <strong>carga operativa perpetua</strong> sobre la única persona del proyecto.</p>
+<p><strong>Alternativa: delegar la emisión en un proveedor con API REST</strong> (OSE/PSE del mercado peruano). Entregas el comprobante en JSON y el proveedor se encarga de UBL, firma, envío, CDR y actualizaciones normativas.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Emisión propia</th>
+<th>Vía proveedor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Esfuerzo inicial</td>
+<td>Alto — la parte más incierta del proyecto</td>
+<td>Bajo — integración REST convencional</td>
+</tr>
+<tr>
+<td>Homologación</td>
+<td>A tu cargo</td>
+<td>Ya resuelta por el proveedor</td>
+</tr>
+<tr>
+<td>Cambios normativos</td>
+<td>A tu cargo, para siempre</td>
+<td>Del proveedor</td>
+</tr>
+<tr>
+<td>Costo</td>
+<td>Sin costo por comprobante</td>
+<td>Costo variable por comprobante</td>
+</tr>
+<tr>
+<td>Control y margen</td>
+<td>Total</td>
+<td>Menor</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recomendación revisada:</strong> empezar con proveedor, migrar a emisión propia cuando el volumen lo justifique.</p>
+<p>Lo que hace viable esa migración sin castigo es que <strong>la arquitectura ya la contempla</strong>: DT-13 aisló el Emisor como componente separado detrás de una cola. El núcleo comercial no sabe —ni debe saber— si detrás del Emisor está SUNAT o un tercero. Cambiar de uno a otro es reemplazar la implementación de un componente, no rediseñar el sistema.</p>
+<p><strong>Matiz sobre la objeción anterior.</strong> Argumenté que tercerizar convertiría a Ondexia en revendedor. Eso aplica a un producto cuyo negocio <em>es</em> la facturación electrónica; Ondexia es un ERP que además emite comprobantes. La mayoría de los ERP del mercado peruano opera exactamente así, y no es lo que los diferencia.</p>
+<p><strong>Decisión pendiente del sponsor.</strong> Si la estrategia comercial es vender facturación como diferenciador, la emisión propia se justifica pese al costo en tiempo.</p>
+<p><strong>Endpoints por entorno</strong> en SSM Parameter Store, nunca en código:</p>
+<table>
+<thead>
+<tr>
+<th>Entorno</th>
+<th>CPE</th>
+<th>Certificado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dev</code></td>
+<td>Beta de SUNAT</td>
+<td>Certificado de prueba</td>
+</tr>
+<tr>
+<td><code>prod</code></td>
+<td>Producción</td>
+<td>Certificado real del contribuyente</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Con solo dos entornos (Alcance §3 del documento de dominios), <code>dev</code> es el <strong>único</strong> lugar donde se prueba contra beta. Un despliegue que apunte <code>dev</code> a producción emite comprobantes legalmente válidos por error. Bloquear por política de IAM: el rol de <code>dev</code> no tiene permiso de lectura sobre el secreto del certificado de producción.</p>
+</blockquote>
+<hr>
+<h2 id="8-seguridad-y-cumplimiento">§8 Seguridad y cumplimiento</h2>
+<h3 id="81-autenticacion-y-autorizacion">8.1 Autenticación y autorización</h3>
+<ul>
+<li>Cognito emite JWT; API Gateway lo valida antes de invocar la Lambda.</li>
+<li>El token porta <code>cognito_sub</code>; <strong>la empresa activa y los permisos se resuelven en la base</strong>, no en el token. Un token no debe poder ampliar su propio alcance.</li>
+<li>Autorización por <code>(modulo, accion)</code>. Anular un comprobante es un permiso propio, separado de emitirlo.</li>
+<li>Row Level Security de PostgreSQL como segunda barrera del aislamiento multiempresa.</li>
+</ul>
+<h3 id="82-certificados-digitales">8.2 Certificados digitales</h3>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Implementación</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Almacenamiento</td>
+<td>Secrets Manager, un secreto por empresa, cifrado con clave KMS propia</td>
+</tr>
+<tr>
+<td>Acceso</td>
+<td>Solo el rol de ejecución del Emisor. El API Core <strong>no tiene permiso</strong></td>
+</tr>
+<tr>
+<td>En memoria</td>
+<td>Cargado tras el restore de SnapStart, nunca en la inicialización (§4.2)</td>
+</tr>
+<tr>
+<td>Rotación</td>
+<td>Alarma a 60 días del vencimiento. Un certificado vencido detiene toda la facturación del cliente</td>
+</tr>
+<tr>
+<td>Auditoría</td>
+<td>CloudTrail sobre cada acceso al secreto</td>
+</tr>
+</tbody>
+</table>
+<h3 id="83-owasp-top-10-controles">8.3 OWASP Top 10 — controles</h3>
+<table>
+<thead>
+<tr>
+<th>Riesgo</th>
+<th>Control</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Control de acceso roto</td>
+<td>RLS + autorización por acción + pruebas de aislamiento entre empresas en CI</td>
+</tr>
+<tr>
+<td>Fallas criptográficas</td>
+<td>TLS 1.2+ obligatorio, cifrado en reposo con KMS, certificados fuera del código</td>
+</tr>
+<tr>
+<td>Inyección</td>
+<td>JPA con consultas parametrizadas. Prohibida la concatenación de SQL</td>
+</tr>
+<tr>
+<td>Diseño inseguro</td>
+<td>Token opaco en el portal público (no enumerable), documentos inmutables</td>
+</tr>
+<tr>
+<td>Configuración incorrecta</td>
+<td>CDK como fuente única, <code>cdk-nag</code> en el pipeline, sin bucket público</td>
+</tr>
+<tr>
+<td>Componentes vulnerables</td>
+<td>Dependabot + OWASP Dependency-Check bloqueante en CI</td>
+</tr>
+<tr>
+<td>Fallas de identificación</td>
+<td>MFA disponible, política de contraseñas de Cognito, bloqueo por intentos</td>
+</tr>
+<tr>
+<td>Integridad de datos</td>
+<td><strong>Firma XAdES es la integridad del comprobante.</strong> S3 con versionado y Object Lock</td>
+</tr>
+<tr>
+<td>Fallas de registro</td>
+<td>Bitácora <code>auditoria</code> append-only + CloudTrail + alarmas sobre la DLQ</td>
+</tr>
+<tr>
+<td>SSRF</td>
+<td>Sin URLs de destino controladas por el usuario. Egress restringido por security group</td>
+</tr>
+</tbody>
+</table>
+<h3 id="84-proteccion-de-datos-personales">8.4 Protección de datos personales</h3>
+<p>Ley 29733 y su reglamento aplican: se tratan nombre, documento de identidad y domicilio de clientes finales.</p>
+<ul>
+<li>El portal público expone datos personales del adquiriente a quien tenga el enlace. <strong>El token opaco es el control de acceso</strong>, por eso su calidad criptográfica es un requisito de cumplimiento, no una preferencia técnica.</li>
+<li>Sin analítica de terceros en <code>ver.ondexia.com</code>.</li>
+<li>Retención: el XML y el CDR se conservan por obligación tributaria (5 años). La caducidad del <strong>enlace público</strong> es decisión abierta (Dominios §Pendientes).</li>
+</ul>
+<hr>
+<h2 id="9-nfrs-tecnicos">§9 NFRs técnicos</h2>
+<blockquote>
+<p><code>[PROPUESTO]</code> — sin PRD aprobado, estos NFR son propuestas del equipo técnico. Requieren validación con negocio.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>NFR</th>
+<th>Objetivo</th>
+<th>Mecanismo técnico concreto</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NFR-01 <code>[PROPUESTO]</code></td>
+<td>Respuesta de la API &lt; 500 ms en p95</td>
+<td>SnapStart (200-400 ms de restore) + índices de §5 + pool acotado. Alarma sobre <code>p95</code> de API Gateway</td>
+</tr>
+<tr>
+<td>NFR-02 <code>[PROPUESTO]</code></td>
+<td>Confirmar una venta al usuario en &lt; 2 s</td>
+<td>Respuesta <code>202</code> sin esperar a SUNAT (F-01). El tiempo de SUNAT queda fuera de la ruta crítica</td>
+</tr>
+<tr>
+<td>NFR-03 <code>[PROPUESTO]</code></td>
+<td>99.5 % de comprobantes aceptados en &lt; 5 min</td>
+<td>Cola con 5 reintentos y backoff. Métrica: antigüedad del mensaje más viejo en SQS</td>
+</tr>
+<tr>
+<td>NFR-04 <code>[PROPUESTO]</code></td>
+<td>Cero correlativos duplicados o con salto</td>
+<td><code>SELECT FOR UPDATE</code> transaccional (F-02) + constraint UNIQUE como última defensa</td>
+</tr>
+<tr>
+<td>NFR-05 <code>[PROPUESTO]</code></td>
+<td>Una caída de SUNAT no interrumpe la venta</td>
+<td>Desacople por SQS (DT-13). El sistema acumula y drena al restablecerse</td>
+</tr>
+<tr>
+<td>NFR-06 <code>[PROPUESTO]</code></td>
+<td>Aislamiento total entre empresas</td>
+<td>RLS + <code>empresa_id</code> obligatorio + prueba automatizada de fuga entre inquilinos en CI</td>
+</tr>
+<tr>
+<td>NFR-07 <code>[PROPUESTO]</code></td>
+<td>RPO ≤ 5 min · RTO ≤ 4 h</td>
+<td>RDS con PITR (respaldo continuo); S3 con versionado; infraestructura reproducible por CDK. <strong>Sin Multi-AZ por R-12:</strong> el RTO depende de restaurar, no de conmutar</td>
+</tr>
+<tr>
+<td>NFR-08 <code>[PROPUESTO]</code></td>
+<td>Portal público resiste escaneo automatizado</td>
+<td>Token de 128 bits + WAF con límite por IP + <code>noindex</code></td>
+</tr>
+<tr>
+<td>NFR-09 <code>[PROPUESTO]</code></td>
+<td>Trazabilidad completa de todo comprobante</td>
+<td>Bitácora append-only + CloudTrail + correlation-id propagado por X-Ray</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="10-infraestructura-y-despliegue">§10 Infraestructura y despliegue</h2>
+<h3 id="101-entornos">10.1 Entornos</h3>
+<table>
+<thead>
+<tr>
+<th>Entorno</th>
+<th>Dominio</th>
+<th>SUNAT</th>
+<th>Datos</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>dev</code></td>
+<td><code>*.dev.ondexia.com</code></td>
+<td><strong>Beta</strong></td>
+<td>Sintéticos. Prohibido copiar producción. <strong>Instancia RDS detenida fuera de horario</strong> por planificador (R-12)</td>
+</tr>
+<tr>
+<td><code>prod</code></td>
+<td><code>*.ondexia.com</code></td>
+<td>Producción</td>
+<td>Reales</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>La capa gratuita de RDS cubre <strong>una sola</strong> instancia. Con dos entornos encendidos de forma permanente ya hay factura, de ahí el apagado programado de <code>dev</code>. Alternativa válida durante el desarrollo temprano: PostgreSQL en contenedor local y <code>dev</code> en AWS solo para pruebas de integración contra la beta de SUNAT.</p>
+</blockquote>
+<h3 id="102-pipeline">10.2 Pipeline</h3>
+<p><code>push</code> → build Maven + pruebas unitarias → análisis estático + Dependency-Check → <code>cdk synth</code> + <code>cdk-nag</code> → despliegue a <code>dev</code> → pruebas de integración contra beta de SUNAT → <strong>aprobación manual</strong> → despliegue a <code>prod</code>.</p>
+<p>La aprobación manual antes de producción no es burocracia: un despliegue defectuoso del Emisor genera comprobantes inválidos con consecuencias fiscales para el cliente.</p>
+<h3 id="103-plan-de-despliegue-por-fases-r-12">10.3 Plan de despliegue por fases (R-12)</h3>
+<p><strong>Principio: la arquitectura no cambia entre fases, solo cambia dónde corre.</strong> Como toda la infraestructura se define en CDK, pasar de una fase a la siguiente es cambiar parámetros de configuración, no reescribir. Eso es lo que hace seguro empezar en la fase más barata.</p>
+<h4 id="fase-0-desarrollo-local-usd-0mes">Fase 0 — Desarrollo local · <strong>USD 0/mes</strong></h4>
+<p>Nada desplegado en AWS. El entorno completo corre en la máquina del desarrollador:</p>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>En local</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PostgreSQL</td>
+<td>Contenedor Docker</td>
+</tr>
+<tr>
+<td>API Spring Boot</td>
+<td><code>spring-boot:run</code> directo, sin Lambda</td>
+</tr>
+<tr>
+<td>SQS, S3, Secrets Manager</td>
+<td>LocalStack</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td>Vite en modo desarrollo</td>
+</tr>
+<tr>
+<td><strong>SUNAT beta</strong></td>
+<td><strong>Se consume desde la máquina local</strong> — no requiere infraestructura desplegada</td>
+</tr>
+</tbody>
+</table>
+<p>Punto clave: la homologación contra la beta de SUNAT —la parte más incierta y más larga del proyecto— <strong>se puede completar entera sin desplegar nada</strong>. No hay razón técnica para pagar infraestructura durante esa etapa.</p>
+<p>Único gasto real de esta fase: el dominio (~13 USD/año). Conviene registrarlo ya para asegurar la marca, aunque no apunte a nada.</p>
+<h4 id="fase-1-primer-despliegue-demostrable-usd-0-3mes">Fase 1 — Primer despliegue demostrable · <strong>~USD 0-3/mes</strong></h4>
+<p>Cuando exista algo que mostrar a un cliente potencial:</p>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>Servicio</th>
+<th>Costo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Landing y app</td>
+<td>S3 + CloudFront</td>
+<td>0 — nivel siempre gratuito</td>
+</tr>
+<tr>
+<td>API</td>
+<td>Lambda <strong>fuera de la VPC</strong></td>
+<td>0 — 1 M solicitudes/mes gratis</td>
+</tr>
+<tr>
+<td>Colas y documentos</td>
+<td>SQS + S3</td>
+<td>~0</td>
+</tr>
+<tr>
+<td>Base de datos</td>
+<td>Postgres gestionado de capa gratuita externa (Neon, Supabase o equivalente)</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Autenticación</td>
+<td>Cognito</td>
+<td>0</td>
+</tr>
+</tbody>
+</table>
+<p>La clave del cero está en <strong>no crear la VPC</strong>: sin VPC no hay NAT que pagar, y las Lambdas alcanzan tanto a SUNAT como a los servicios de AWS por endpoints públicos. La base de datos se accede por internet con TLS.</p>
+<blockquote>
+<p><strong>Límite estricto de esta fase:</strong> una base de datos de capa gratuita externa <strong>no es admisible para comprobantes reales</strong>. Esos niveles gratuitos suspenden la instancia por inactividad y no ofrecen garantía de retención, mientras que un comprobante emitido obliga a conservar XML y CDR por 5 años. La Fase 1 es para demostración y datos sintéticos contra la beta de SUNAT. <strong>Emitir en producción exige pasar a Fase 2.</strong></p>
+</blockquote>
+<h4 id="fase-2-produccion-con-clientes-reales-usd-24mes">Fase 2 — Producción con clientes reales · <strong>~USD 24/mes</strong></h4>
+<p>La arquitectura descrita en §3 y §4.6: VPC, RDS <code>db.t4g.micro</code>, instancia NAT con IP fija, entornos separados. Se activa cuando hay el primer cliente pagando — el costo deja de ser gasto y pasa a ser costo de servicio.</p>
+<p><strong>Disparador de transición:</strong> la primera emisión con certificado de producción. No antes, y de ninguna manera después.</p>
+<h3 id="104-continuidad">10.4 Continuidad</h3>
+<table>
+<thead>
+<tr>
+<th>Métrica</th>
+<th>Objetivo</th>
+<th>Mecanismo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RPO</td>
+<td>≤ 5 min</td>
+<td>RDS PITR (respaldo continuo, retención 7 días)</td>
+</tr>
+<tr>
+<td>RTO</td>
+<td>≤ 4 h</td>
+<td>Infraestructura reproducible por CDK + restauración de snapshot. Sin conmutación automática (R-12)</td>
+</tr>
+<tr>
+<td>Retención fiscal</td>
+<td>5 años</td>
+<td>S3 Object Lock sobre XML y CDR</td>
+</tr>
+<tr>
+<td>Bus factor</td>
+<td><strong>1 (R-13)</strong></td>
+<td><strong>Riesgo aceptado y no mitigable con tecnología.</strong> Los paliativos son documentales: este DTE, la IaC versionada, decisiones con sustento escrito y <code>README</code> de arranque reproducible. Si el proyecto adquiere valor comercial, la mitigación real es incorporar una segunda persona</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="11-deuda-tecnica-conocida">§11 Deuda técnica conocida</h2>
+<p>Lo que <strong>no</strong> se diseña ahora, con su razón:</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Deuda</th>
+<th>Razón</th>
+<th>Disparador para atacarla</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DT-D1</td>
+<td>Base de datos compartida entre núcleo y motor de facturación</td>
+<td>Evita transacciones distribuidas sobre datos contables en V1</td>
+<td>Si la facturación necesita escalar o desplegarse por separado</td>
+</tr>
+<tr>
+<td>DT-D2</td>
+<td>Sin Nota de Crédito ni Comunicación de Baja</td>
+<td>Excluidas del alcance V1</td>
+<td><strong>Alto riesgo — ver Alcance §2 V-1.</strong> Recomendación abierta de subirlas a V1</td>
+</tr>
+<tr>
+<td>DT-D3</td>
+<td>Sin caché de lectura (Redis)</td>
+<td>Volumen inicial no lo justifica; añade costo fijo</td>
+<td>Cuando el p95 de lectura supere el NFR-01</td>
+</tr>
+<tr>
+<td>DT-D4</td>
+<td>Sin búsqueda de texto completo dedicada</td>
+<td>El índice GIN de PostgreSQL alcanza para el catálogo inicial</td>
+<td>Catálogos sobre ~100 000 productos</td>
+</tr>
+<tr>
+<td>DT-D5</td>
+<td>Reportes sobre la base transaccional</td>
+<td>No hay volumen para justificar una réplica de lectura</td>
+<td>Cuando un reporte degrade la operación</td>
+</tr>
+<tr>
+<td>DT-D6</td>
+<td>SnapStart acopla a Lambda</td>
+<td>Migrar a Fargate exigiría rehacer el arranque</td>
+<td>Solo si el modelo de costo cambia</td>
+</tr>
+<tr>
+<td>DT-D7</td>
+<td>Sin conciliación automática de comprobantes con SUNAT</td>
+<td>No hay consulta masiva en V1</td>
+<td>Ante la primera discrepancia detectada en producción</td>
+</tr>
+<tr>
+<td>DT-D8</td>
+<td>Estados por polling, sin WebSocket</td>
+<td>Simplifica V1</td>
+<td>Si la espera percibida molesta a los usuarios</td>
+</tr>
+<tr>
+<td>DT-D9</td>
+<td><strong>Base de datos sin Multi-AZ ni réplica</strong></td>
+<td>R-12: Multi-AZ duplica el costo de la instancia</td>
+<td>Al primer cliente con compromiso contractual de disponibilidad</td>
+</tr>
+<tr>
+<td>DT-D10</td>
+<td><strong>Instancia NAT como punto único de falla</strong></td>
+<td>R-12: ahorra ~29 USD/mes frente al NAT Gateway</td>
+<td>Cuando la facturación detenida por caída del NAT tenga costo mayor que el ahorro</td>
+</tr>
+<tr>
+<td>DT-D11</td>
+<td>Sin RDS Proxy; pool controlado por concurrencia reservada</td>
+<td>R-12: ~22 USD/mes que a este volumen no se justifican</td>
+<td>Si el agotamiento de conexiones aparece en producción</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="12-validacion-y-peer-review">§12 Validación y peer review</h2>
+<table>
+<thead>
+<tr>
+<th>Rol</th>
+<th>Nombre</th>
+<th>Estado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tech Lead</td>
+<td>Rol acumulado por el desarrollador único (R-13)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Arquitecto</td>
+<td>Rol acumulado por el desarrollador único (R-13)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>Peer review formal</td>
+<td>—</td>
+<td><strong>PENDIENTE PR — ver 12.1</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="121-peer-review-con-equipo-de-una-persona">12.1 Peer review con equipo de una persona</h3>
+<p>El proceso COE QE exige revisión por pares antes de "Aprobado". <strong>Con un solo desarrollador no hay par</strong>, así que la práctica no se puede cumplir tal como está escrita. Declararlo es preferible a simularlo con una firma vacía.</p>
+<p>Sustitutos admisibles, en orden de valor:</p>
+<table>
+<thead>
+<tr>
+<th>Mecanismo</th>
+<th>Qué cubre</th>
+<th>Qué <strong>no</strong> cubre</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Revisor externo puntual</strong> (contador o desarrollador de confianza, una sesión por artefacto)</td>
+<td>Errores de dominio tributario y supuestos falsos</td>
+<td>Requiere agenda de un tercero</td>
+</tr>
+<tr>
+<td><strong>Revisión asistida por IA con la checklist doctrinal</strong> aplicada en sesión separada de la de redacción</td>
+<td>Inconsistencias, omisiones, criterios de cierre sin cumplir</td>
+<td><strong>No detecta un supuesto de negocio equivocado si el autor y el revisor comparten el error</strong></td>
+</tr>
+<tr>
+<td><strong>Revisión diferida</strong> — releer el artefacto a los N días con la checklist</td>
+<td>Errores de redacción y saltos lógicos</td>
+<td>Sesgo del autor intacto</td>
+</tr>
+<tr>
+<td><strong>Pruebas automatizadas como red de seguridad</strong></td>
+<td>Regresiones de código</td>
+<td>Nada del diseño</td>
+</tr>
+</tbody>
+</table>
+<p><strong>El riesgo residual que ninguno cubre:</strong> un error de interpretación de la normativa SUNAT que el autor da por cierto. Una IA tiende a aceptar la premisa del autor, y las pruebas solo verifican lo que el autor pensó verificar.</p>
+<p><strong>Mitigación específica y obligatoria:</strong> validar la interpretación tributaria contra <strong>la beta de SUNAT</strong>, que es un revisor imparcial e inapelable. Un comprobante que la beta acepta está bien formado; uno que rechaza señala exactamente dónde está el error. Es la razón por la que la Fase 0 (§10.3) prioriza llegar temprano a la beta: sustituye al peer review en la única dimensión donde el peer review era insustituible.</p>
+<p><strong>Este documento no puede pasar a "Aprobado" mientras:</strong></p>
+<ol>
+<li>No exista un PRD en estado "Aprobado" (§1.2).</li>
+<li>No se ejecute al menos uno de los mecanismos sustitutos de 12.1, con bitácora.</li>
+<li>No se resuelva DT-12 reabierta (§7.1) — emisión propia vs proveedor.</li>
+<li>No se resuelvan las 5 preguntas abiertas del documento de alcance §5.</li>
+<li>No se confirme el plan de cortes verticales del alcance §6.</li>
+</ol>
+<hr>
+<h2 id="13-control-de-versiones">§13 Control de versiones</h2>
+<table>
+<thead>
+<tr>
+<th>Tipo de cambio</th>
+<th>Requiere</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Corrección de redacción</td>
+<td>Registro en la bitácora, sin nueva versión</td>
+</tr>
+<tr>
+<td>Nueva decisión técnica DT-XX</td>
+<td>Versión menor + revisión del Tech Lead</td>
+</tr>
+<tr>
+<td>Cambio de una DT ya aprobada</td>
+<td>Versión mayor + peer review + análisis de impacto</td>
+</tr>
+<tr>
+<td>Cambio en el modelo de datos post-desarrollo</td>
+<td>Versión mayor + migración documentada</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Versión</th>
+<th>Fecha</th>
+<th>Cambio</th>
+<th>Autor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.1</td>
+<td>2026-08-06</td>
+<td>Redacción inicial en estado Preliminar, con desviación documentada por ausencia de PRD</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0.2</td>
+<td>2026-08-06</td>
+<td>Restricción de costo R-12. DT-03 revisada (RDS <code>t4g.micro</code> en vez de Aurora Serverless v2 + proxy), DT-14 nueva (instancia NAT), §4.3 perfil de costo, deudas DT-D9 a DT-D11</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0.3</td>
+<td>2026-08-06</td>
+<td>§10.3 plan de despliegue en 3 fases con costo cero en Fase 0 y 1. Aclaración de la naturaleza del arranque en frío de Spring en Lambda (§4.1)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0.4</td>
+<td>2026-08-06</td>
+<td>DT-04 revisada: Angular en vez de React. DT-15 nueva: landing en Astro. §4.5 sustento Angular vs Vue</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td>2026-08-06</td>
+<td>R-13 (equipo unipersonal). §7.1 reabre DT-12 con recomendación de proveedor de emisión. §12.1 sustitutos del peer review. Bus factor 1 asumido</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0.6</td>
+<td>2026-08-06</td>
+<td>Corrección de versiones desactualizadas (Angular 19→22, PostgreSQL 16→17/18, Java y Spring Boot despinneados). §4.3 nueva: política de versiones por criterio, no por número</td>
+<td>—</td>
+</tr>
+<tr>
+<td>0.7</td>
+<td>2026-08-06</td>
+<td>Versiones confirmadas: Angular 22, Java 21 LTS, Spring Boot sobre Java 21, PostgreSQL en RDS</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><em>Proceso COE QE · Wirbi S.A.C</em></p>
+  </div>
+  <footer>
+    DTE-ONX-001 · Estado: <span class="badge badge-aprobado">Aprobado</span> · Última actualización: 06/08/2026
+    <br>Confidencial — uso interno · Proceso COE QE · Wirbi S.A.C
+  </footer>
+</div>
+</body>
+</html>

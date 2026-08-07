@@ -1,0 +1,66 @@
+name: Deploy
+
+# INACTIVO HASTA FASE 1 (ver DTE §10.3).
+# Hoy no hay infraestructura desplegada, así que solo se dispara a mano.
+#
+# Al llegar la Fase 1, activar los triggers automáticos según GitFlow:
+#   push a develop -> entorno dev
+#   push a main    -> entorno prod (con aprobación manual del environment)
+#
+# on:
+#   push:
+#     branches: [main, develop]
+on:
+  workflow_dispatch:
+    inputs:
+      entorno:
+        description: Entorno destino
+        required: true
+        type: choice
+        options: [dev, prod]
+
+# Sin claves de larga vida: GitHub pide un token OIDC y AWS lo canjea por
+# credenciales temporales contra un rol que confía en este repositorio.
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  # Evita dos despliegues simultáneos al mismo entorno.
+  group: deploy-${{ inputs.entorno }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # El entorno `prod` debe configurarse en GitHub con revisor requerido:
+    # esa es la aprobación manual exigida por el DTE §10.2.
+    environment: ${{ inputs.entorno }}
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verificar prerrequisitos
+        run: |
+          if [ ! -d ondexia.infra ] || [ -z "$(ls -A ondexia.infra)" ]; then
+            echo "::error::ondexia.infra está vacío. La Fase 1 aún no se inicializó."
+            exit 1
+          fi
+
+      - name: Asumir rol de despliegue
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Desplegar infraestructura
+        working-directory: ondexia.infra
+        run: |
+          npm ci
+          npx cdk deploy --all --require-approval never \
+            --context entorno=${{ inputs.entorno }}

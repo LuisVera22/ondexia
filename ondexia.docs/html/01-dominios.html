@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>01-dominios — Ondexia — Esquema de dominios y DNS</title>
+<link rel="stylesheet" href="assets/coe-qe.css">
+</head>
+<body>
+<div class="barra-superior">
+  <div class="breadcrumb">COE QE · <strong>01-dominios</strong></div>
+  <a href="index.html">← Volver al índice</a>
+</div>
+<div class="contenedor">
+  <div class="documento">
+<h1 id="ondexia-esquema-de-dominios-y-dns">Ondexia — Esquema de dominios y DNS</h1>
+<p>Estado: <strong>decidido (v1)</strong> · Fecha: 2026-08-06</p>
+<p><strong>Decisiones cerradas:</strong> marca <code>ondexia</code> (dominio verificado libre) · región principal <code>us-east-1</code>.</p>
+<h2 id="1-dominios-a-registrar">1. Dominios a registrar</h2>
+<table>
+<thead>
+<tr>
+<th>Dominio</th>
+<th>Uso</th>
+<th>Prioridad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ondexia.com</code></td>
+<td>Marca principal: landing + toda la plataforma</td>
+<td><strong>Obligatorio — libre, confirmado</strong></td>
+</tr>
+<tr>
+<td><code>ondexia.pe</code></td>
+<td>Defensivo + confianza local (cliente peruano, contexto SUNAT). Redirige 301 a <code>.com</code></td>
+<td>Alta</td>
+</tr>
+<tr>
+<td><code>ondexia.com.pe</code></td>
+<td>Defensivo (evita suplantación en el TLD más usado en Perú)</td>
+<td>Media</td>
+</tr>
+<tr>
+<td><code>ondexia.app</code> / <code>ondexia.net</code></td>
+<td>Defensivo de marca</td>
+<td>Baja</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Verificar disponibilidad antes de fijar la marca. Si <code>ondexia.com</code> no está libre, <strong>no</strong> usar <code>getondexia.com</code> ni <code>ondexia-app.com</code> como plan A: el costo de marca a largo plazo es mayor que buscar otro nombre ahora.</p>
+</blockquote>
+<p><strong>Dónde registrar cada uno:</strong></p>
+<ul>
+<li><code>ondexia.com</code> → <strong>Route 53 Domains</strong>. Registrar y hosted zone en la misma cuenta: la validación DNS de ACM se automatiza y no dependes de un panel externo para emitir certificados.</li>
+<li><code>ondexia.pe</code> y <code>ondexia.com.pe</code> → <strong>Route 53 no es registrar de TLD peruanos</strong>. Hay que registrarlos con un agente acreditado ante NIC.pe (Punto.pe u otro) y luego <strong>apuntar sus nameservers a la hosted zone de Route 53</strong>. Así el DNS sigue centralizado aunque el registrar sea distinto.</li>
+<li>El registro <code>.pe</code> exige datos del titular; usar la razón social, no una persona natural, y una cuenta de correo de rol (<code>dominios@</code>) que sobreviva a cambios de personal.</li>
+</ul>
+<h2 id="2-subdominios-de-produccion">2. Subdominios de producción</h2>
+<p>Todo cuelga de <code>ondexia.com</code>. Un solo apex, una sola marca.</p>
+<table>
+<thead>
+<tr>
+<th>Host</th>
+<th>Qué sirve</th>
+<th>Infra AWS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ondexia.com</code></td>
+<td>Landing / marketing (estática, Astro)</td>
+<td>S3 + CloudFront (OAC)</td>
+</tr>
+<tr>
+<td><code>www.ondexia.com</code></td>
+<td>301 → apex</td>
+<td>CloudFront function</td>
+</tr>
+<tr>
+<td><code>app.ondexia.com</code></td>
+<td>Aplicación Angular (SPA): ventas, compras, usuarios</td>
+<td>CloudFront + S3</td>
+</tr>
+<tr>
+<td><code>api.ondexia.com</code></td>
+<td>API backend (REST/GraphQL)</td>
+<td>API Gateway o ALB</td>
+</tr>
+<tr>
+<td><code>auth.ondexia.com</code></td>
+<td>Login / OIDC</td>
+<td>Cognito custom domain (o Keycloak en ECS)</td>
+</tr>
+<tr>
+<td><code>cdn.ondexia.com</code></td>
+<td>Assets estáticos, PDFs y XML de comprobantes servidos al cliente</td>
+<td>CloudFront + S3</td>
+</tr>
+<tr>
+<td><code>ver.ondexia.com</code></td>
+<td><strong>Portal público de comprobantes</strong> (sin login): consulta de boleta/factura por el cliente final</td>
+<td>CloudFront + Lambda@Edge o API Gateway</td>
+</tr>
+<tr>
+<td><code>docs.ondexia.com</code></td>
+<td>Documentación de API para integradores</td>
+<td>S3 + CloudFront</td>
+</tr>
+<tr>
+<td><code>status.ondexia.com</code></td>
+<td>Página de estado</td>
+<td>Externo (fuera de la infra que monitorea)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="decisiones-incorporadas">Decisiones incorporadas</h3>
+<ul>
+<li><strong>Landing y app separadas por subdominio, no por path.</strong> La landing es estática, cacheada agresivamente y desplegada por marketing; la app es dinámica y con auth. Mezclarlas en <code>ondexia.com/app</code> obliga a compartir distribución de CloudFront, políticas de caché y pipeline de deploy.</li>
+<li><strong><code>api</code> separado de <code>app</code>.</strong> Permite mover el backend (Lambda → ECS → EKS) sin tocar el frontend, y aplicar WAF/rate-limit distintos.</li>
+<li><strong>Cookies:</strong> emitir con <code>Domain=.ondexia.com</code> solo si <code>app</code> y <code>api</code> deben compartir sesión. Preferible: tokens JWT en <code>api</code> con CORS explícito hacia <code>https://app.ondexia.com</code>, sin cookies cross-subdomain.</li>
+</ul>
+<h2 id="3-entornos-no-productivos">3. Entornos no productivos</h2>
+<p><strong>Dos entornos: <code>dev</code> y producción.</strong> Sin QA por ahora.</p>
+<p>Zona delegada, no subdominios sueltos:</p>
+<pre><code>dev.ondexia.com      → hosted zone propia
+  app.dev.ondexia.com
+  api.dev.ondexia.com
+  auth.dev.ondexia.com
+  ver.dev.ondexia.com
+</code></pre>
+<p>La zona delegada conviene aunque uses una sola cuenta AWS: <code>dev</code> administra sus propios registros sin tocar la zona raíz, y si mañana separas cuentas, el corte ya está hecho. Si en algún momento entra QA, se replica el mismo patrón en <code>qa.ondexia.com</code> sin tocar nada de lo existente.</p>
+<p>Con solo dos entornos, la regla que hay que respetar sin excepción es que <strong><code>dev</code> apunte al entorno beta de SUNAT y producción al de producción</strong>, parametrizado en SSM (§5). Sin QA de por medio, <code>dev</code> es el único lugar donde se prueban comprobantes antes de que sean legalmente válidos.</p>
+<p>Ventaja: delegas <code>dev.ondexia.com</code> con un NS record desde la zona raíz y la cuenta de desarrollo administra sus registros sin acceso a producción. Los certificados ACM de dev se validan solos dentro de su zona.</p>
+<p>Añadir <code>noindex</code> + Basic Auth (CloudFront function) en todo lo que no sea producción.</p>
+<h2 id="4-multi-tenant">4. Multi-tenant</h2>
+<p>Arrancar con <strong>path-based</strong>: <code>app.ondexia.com/o/{slug}</code>. Es lo que soporta un certificado simple y no exige DNS por cliente.</p>
+<p>Reservar desde ya la ruta de crecimiento:
+- Certificado ACM en <code>us-east-1</code> con SAN <code>*.ondexia.com</code> (además del apex) → habilita <code>{cliente}.ondexia.com</code> sin re-arquitectura.
+- Dominio propio del cliente (<code>facturacion.sucliente.com</code> → CNAME a la app) es fase 3; requiere emisión de certificados on-demand.</p>
+<p><strong>Reservar slugs</strong> desde el día uno para que ningún tenant pueda tomarlos: <code>www, app, api, auth, cdn, docs, status, ver, admin, mail, smtp, blog, static, assets, help, soporte, sunat, ose, dev, qa</code>.</p>
+<h2 id="5-facturacion-electronica-sunat-implicancias-de-red">5. Facturación electrónica (SUNAT) — implicancias de red</h2>
+<p>No requiere subdominio público: la comunicación con SUNAT/OSE es <strong>saliente</strong> (SOAP hacia sus endpoints). Pero sí condiciona el diseño:</p>
+<ul>
+<li>El servicio de facturación debe salir por una <strong>IP fija (Elastic IP)</strong>. Algunos OSE requieren allowlist de IP de origen, y una IP estable evita rehacer trámites cada despliegue. Por costo se implementa con una <strong>instancia NAT <code>t4g.nano</code></strong>, no con NAT Gateway administrado — ver DT-14 del DTE.</li>
+<li>Certificado digital de firma (.pfx del contribuyente) va en <strong>AWS Secrets Manager</strong>, nunca en el repo ni en la imagen. Es distinto e independiente de los certificados TLS de los dominios.</li>
+<li>Endpoints SUNAT a parametrizar por entorno (beta vs producción) en SSM Parameter Store; nunca hardcodeados.</li>
+</ul>
+<h2 id="51-portal-publico-de-comprobantes-verondexiacom">5.1 Portal público de comprobantes — <code>ver.ondexia.com</code></h2>
+<p><strong>Decidido: sí habrá portal público.</strong></p>
+<h3 id="el-qr-de-sunat-no-es-una-url">El QR de SUNAT no es una URL</h3>
+<p>El código QR de la representación impresa tiene contenido <strong>fijado por SUNAT</strong>: una cadena delimitada por <code>|</code> con RUC emisor, tipo de comprobante, serie, número, total IGV, total venta, fecha de emisión, tipo y número de documento del adquiriente, y el valor resumen de la firma digital. No admite una URL propia.</p>
+<p>Consecuencia de diseño: el acceso al portal va <strong>aparte</strong> del QR normativo. Dos opciones en la representación impresa:</p>
+<ol>
+<li>Un texto corto con el enlace (<code>ver.ondexia.com/c/XXXXXXXX</code>) al pie del documento. Es lo mínimo y no compite con el QR obligatorio.</li>
+<li>Un <strong>segundo QR</strong> rotulado ("Ver comprobante en línea"), claramente separado del QR de SUNAT para que nadie los confunda al fiscalizar.</li>
+</ol>
+<p>Recomendado: opción 1 en la primera versión, y el segundo QR solo si los clientes finales lo piden. Dos QR en un ticket de boleta generan más confusión de la que resuelven.</p>
+<h3 id="la-url-debe-ser-opaca-no-enumerable">La URL debe ser opaca, no enumerable</h3>
+<p><strong>No usar</strong> <code>ver.ondexia.com/{ruc}/{serie}/{numero}</code>. Esa ruta es adivinable: cualquiera puede iterar números de serie y leer los comprobantes de todos los clientes de un emisor — nombre del adquiriente, su documento de identidad y montos. Es una fuga de datos personales, no un detalle estético.</p>
+<p>Formato correcto:</p>
+<pre><code>ver.ondexia.com/c/{token}
+</code></pre>
+<p>donde <code>{token}</code> es un identificador aleatorio de ≥128 bits (22 caracteres base62), generado con CSPRNG, sin relación derivable con el RUC ni el correlativo. Se almacena junto al comprobante al emitirlo.</p>
+<h3 id="que-expone">Qué expone</h3>
+<table>
+<thead>
+<tr>
+<th>Contenido</th>
+<th>¿Público?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PDF de la representación impresa</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>XML firmado</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>CDR de SUNAT (constancia de recepción)</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Estado del comprobante (aceptado / rechazado / anulado)</td>
+<td>Sí</td>
+</tr>
+<tr>
+<td>Datos de otros comprobantes del mismo emisor</td>
+<td><strong>No</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="controles">Controles</h3>
+<ul>
+<li><code>X-Robots-Tag: noindex, nofollow</code> — los comprobantes no deben terminar indexados en buscadores.</li>
+<li><strong>Rate limit por IP</strong> en WAF: el token es largo, pero el límite corta el escaneo automatizado y el scraping si un token se filtra.</li>
+<li><strong>Sin sesión, sin cookies, sin analytics de terceros.</strong> La página se sirve a un tercero que no es usuario de la plataforma; no hay motivo para rastrearlo.</li>
+<li>Caché de CloudFront alta para PDF y XML (son inmutables una vez emitidos); el <strong>estado</strong> se consulta aparte con TTL corto, porque una anulación debe reflejarse rápido.</li>
+<li>Considerar caducidad del enlace (ej. 12 meses) según lo que decidas sobre retención.</li>
+</ul>
+<h3 id="por-que-subdominio-propio-y-no-una-ruta-de-app">Por qué subdominio propio y no una ruta de <code>app</code></h3>
+<p>Es la única superficie de la plataforma <strong>sin autenticación y expuesta a tráfico anónimo masivo</strong>. Separarla permite darle su propio WAF, su propio rate limit y su propia distribución, sin que un pico de consultas públicas afecte a la app de los clientes de pago. Además mantiene la URL corta, que importa cuando va impresa.</p>
+<h2 id="6-correo">6. Correo</h2>
+<ul>
+<li>Registros MX + SPF + DKIM + DMARC en <code>ondexia.com</code> desde el inicio, aunque no envíes correo todavía. Un dominio sin SPF/DMARC es suplantable.</li>
+<li>Correo transaccional (envío de boletas al cliente final) por <strong>SES</strong>, con subdominio dedicado <code>mail.ondexia.com</code> como MAIL FROM. Aísla la reputación del transaccional respecto al correo corporativo.</li>
+<li>DMARC inicial: <code>p=none</code> con reporte, y endurecer a <code>p=reject</code> cuando el flujo esté estable.</li>
+</ul>
+<h2 id="7-certificados-tls">7. Certificados TLS</h2>
+<p>Región principal fijada: <strong><code>us-east-1</code></strong>. Como CloudFront y ACM ya exigen esa región para certificados de distribución, y la app corre ahí también, <strong>basta un solo certificado por entorno</strong> — no hay que duplicarlo en una región regional distinta.</p>
+<table>
+<thead>
+<tr>
+<th>Certificado</th>
+<th>Región</th>
+<th>Cubre</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prod</td>
+<td><code>us-east-1</code></td>
+<td><code>ondexia.com</code>, <code>*.ondexia.com</code></td>
+</tr>
+<tr>
+<td>Dev</td>
+<td><code>us-east-1</code></td>
+<td><code>dev.ondexia.com</code>, <code>*.dev.ondexia.com</code></td>
+</tr>
+</tbody>
+</table>
+<p>Validación por DNS (no email) y renovación automática.</p>
+<p>Nota sobre el wildcard: <code>*.ondexia.com</code> cubre <code>app.ondexia.com</code> pero <strong>no</strong> <code>app.dev.ondexia.com</code> — el comodín solo cubre un nivel. Por eso cada zona delegada lleva su propio certificado.</p>
+<p>La latencia a Perú desde <code>us-east-1</code> es de ~60–80 ms, y CloudFront la absorbe casi por completo en el frontend. El único punto donde se nota es la API; si más adelante pesa, la respuesta es CloudFront delante de <code>api.ondexia.com</code> (no mudar la región).</p>
+<h2 id="8-orden-de-ejecucion">8. Orden de ejecución</h2>
+<ol>
+<li><strong>Registrar <code>ondexia.com</code></strong> en Route 53 Domains (con privacidad WHOIS y auto-renovación activadas).</li>
+<li><strong>Crear la hosted zone</strong> de producción (Route 53 la crea sola al registrar).</li>
+<li><strong>Solicitar ACM</strong> en <code>us-east-1</code>: <code>ondexia.com</code> + <code>*.ondexia.com</code>, validación DNS.</li>
+<li><strong>Delegar <code>dev.ondexia.com</code></strong>: crear la hosted zone de dev y copiar sus 4 NS como registro <code>NS</code> en la zona raíz.</li>
+<li><strong>Publicar SPF y DMARC</strong> aunque no haya buzón todavía (ver §6) — un dominio recién registrado sin estos registros es suplantable de inmediato.</li>
+<li><strong>Registrar <code>.pe</code> / <code>.com.pe</code></strong> vía agente NIC.pe y apuntar sus NS a Route 53.</li>
+<li><strong>Levantar la landing</strong> en <code>ondexia.com</code> — es lo único desplegable sin depender del backend, y valida la cadena completa (dominio → ACM → CloudFront → S3).</li>
+</ol>
+<h3 id="registros-dns-iniciales-de-la-zona-raiz">Registros DNS iniciales de la zona raíz</h3>
+<table>
+<thead>
+<tr>
+<th>Nombre</th>
+<th>Tipo</th>
+<th>Valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ondexia.com</code></td>
+<td>A (alias)</td>
+<td>distribución CloudFront de la landing</td>
+</tr>
+<tr>
+<td><code>www</code></td>
+<td>CNAME</td>
+<td><code>ondexia.com</code></td>
+</tr>
+<tr>
+<td><code>ondexia.com</code></td>
+<td>TXT</td>
+<td><code>v=spf1 include:amazonses.com -all</code></td>
+</tr>
+<tr>
+<td><code>_dmarc</code></td>
+<td>TXT</td>
+<td><code>v=DMARC1; p=none; rua=mailto:dmarc@ondexia.com; fo=1</code></td>
+</tr>
+<tr>
+<td><code>dev</code></td>
+<td>NS</td>
+<td>4 nameservers de la zona <code>dev.ondexia.com</code></td>
+</tr>
+<tr>
+<td><code>_acm-challenge…</code></td>
+<td>CNAME</td>
+<td>los que genere ACM (automático si la zona es de Route 53)</td>
+</tr>
+</tbody>
+</table>
+<p><code>app</code>, <code>api</code>, <code>auth</code>, <code>cdn</code> y <code>ver</code> se agregan cuando exista el destino; no crear registros apuntando a nada.</p>
+<h2 id="pendientes-de-decision">Pendientes de decisión</h2>
+<ul>
+<li><strong>Retención de comprobantes en el portal público</strong>: ¿el enlace <code>ver.ondexia.com/c/{token}</code> vive indefinidamente o caduca? SUNAT obliga al emisor a conservar el XML y el CDR, pero eso es distinto de mantener el enlace público abierto para siempre.</li>
+<li><strong>Estructura de cuentas AWS</strong>: una sola cuenta, o dos (prod / dev) bajo Organizations. La delegación de <code>dev.ondexia.com</code> funciona en ambos casos, así que no bloquea nada; conviene resolverlo antes del primer despliegue de producción.</li>
+</ul>
+<h2 id="registro-de-cambios">Registro de cambios</h2>
+<ul>
+<li><strong>v1 (2026-08-06)</strong> — Esquema inicial. Decidido: marca <code>ondexia</code>, región <code>us-east-1</code>, entornos <code>dev</code> + producción, portal público de comprobantes en <code>ver.ondexia.com</code> con URL opaca.</li>
+</ul>
+  </div>
+  <footer>
+    01-dominios · Estado: <span class="badge badge-aprobado">Aprobado</span> · Última actualización: 06/08/2026
+    <br>Confidencial — uso interno · Proceso COE QE · Wirbi S.A.C
+  </footer>
+</div>
+</body>
+</html>

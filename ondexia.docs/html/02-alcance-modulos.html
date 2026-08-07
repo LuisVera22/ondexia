@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>02-alcance-modulos — Ondexia — Alcance funcional V1</title>
+<link rel="stylesheet" href="assets/coe-qe.css">
+</head>
+<body>
+<div class="barra-superior">
+  <div class="breadcrumb">COE QE · <strong>02-alcance-modulos</strong></div>
+  <a href="index.html">← Volver al índice</a>
+</div>
+<div class="contenedor">
+  <div class="documento">
+<h1 id="ondexia-alcance-funcional-v1">Ondexia — Alcance funcional V1</h1>
+<p>Estado: <strong>borrador para confirmación</strong> · Fecha: 2026-08-06 · Fuente: inventario de módulos del sistema de referencia</p>
+<blockquote>
+<p>Este documento fija <strong>qué se construye en V1</strong>. Es el insumo de alcance del que el DTE deriva entidades, flujos técnicos e integraciones. No sustituye a un PRD (ver §5).</p>
+</blockquote>
+<h2 id="1-modulos-en-alcance">1. Módulos en alcance</h2>
+<p>Tres módulos: <strong>Almacén</strong>, <strong>Compras</strong>, <strong>Ventas</strong>. Usuarios es transversal, no un módulo de negocio (ver §4).</p>
+<h3 id="11-almacen">1.1 Almacén</h3>
+<table>
+<thead>
+<tr>
+<th>Submódulo</th>
+<th>V1</th>
+<th>Notas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Productos</td>
+<td>✅</td>
+<td>Entidad núcleo de todo el sistema</td>
+</tr>
+<tr>
+<td>Presentación</td>
+<td>✅</td>
+<td>Unidad de venta/empaque del producto</td>
+</tr>
+<tr>
+<td>Productos por agotarse</td>
+<td>✅</td>
+<td>Vista derivada: stock vs punto de reorden. No es entidad nueva</td>
+</tr>
+<tr>
+<td>Guías de Remisión</td>
+<td>✅</td>
+<td><strong>Comprobante electrónico</strong> — integración SUNAT GRE (ver §3)</td>
+</tr>
+<tr>
+<td>Guías de Ingreso</td>
+<td>✅</td>
+<td>Documento interno de recepción de mercadería</td>
+</tr>
+<tr>
+<td>Tipos de Precio</td>
+<td>✅</td>
+<td>Listas de precio por segmento de cliente</td>
+</tr>
+<tr>
+<td>Marcas</td>
+<td>✅</td>
+<td>Catálogo maestro</td>
+</tr>
+<tr>
+<td>Modelos</td>
+<td>✅</td>
+<td>Catálogo maestro, depende de Marca</td>
+</tr>
+<tr>
+<td>Unidades</td>
+<td>✅</td>
+<td>Unidades de medida — deben mapear al catálogo SUNAT nº 03</td>
+</tr>
+<tr>
+<td>Retazos Vidrio</td>
+<td>❌</td>
+<td>Fuera de V1</td>
+</tr>
+<tr>
+<td>Traslados</td>
+<td>❌</td>
+<td>Fuera de V1 — pero ver riesgo A-1</td>
+</tr>
+<tr>
+<td>Clases</td>
+<td>❌</td>
+<td>Fuera de V1</td>
+</tr>
+<tr>
+<td>Administrar Jabas</td>
+<td>❌</td>
+<td>Fuera de V1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12-compras">1.2 Compras</h3>
+<table>
+<thead>
+<tr>
+<th>Submódulo</th>
+<th>V1</th>
+<th>Notas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Proveedores</td>
+<td>✅</td>
+<td>Maestro. Validación de RUC contra SUNAT</td>
+</tr>
+<tr>
+<td>Órdenes de Compra</td>
+<td>✅</td>
+<td>Documento interno</td>
+</tr>
+<tr>
+<td>Órdenes de Servicio</td>
+<td>✅</td>
+<td>Documento interno, sin movimiento de stock</td>
+</tr>
+<tr>
+<td>Nota de Pedidos</td>
+<td>✅</td>
+<td>Documento interno previo a la OC</td>
+</tr>
+<tr>
+<td>Nota de Compra</td>
+<td>✅</td>
+<td>Documento interno</td>
+</tr>
+<tr>
+<td>Facturas (compra)</td>
+<td>✅</td>
+<td><strong>Registro</strong> de comprobantes recibidos, no emisión</td>
+</tr>
+<tr>
+<td>Liquidación de Compra</td>
+<td>✅</td>
+<td><strong>Comprobante electrónico que TÚ emites</strong> (tipo 04) — ver §3</td>
+</tr>
+<tr>
+<td>Importaciones</td>
+<td>❌</td>
+<td>Fuera de V1</td>
+</tr>
+<tr>
+<td>Letras por Pagar</td>
+<td>❌</td>
+<td>Fuera de V1</td>
+</tr>
+<tr>
+<td>Nota de Crédito Compra</td>
+<td>❌</td>
+<td>Fuera de V1 (registro de NC recibida)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="13-ventas">1.3 Ventas</h3>
+<table>
+<thead>
+<tr>
+<th>Submódulo</th>
+<th>V1</th>
+<th>Notas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Clientes</td>
+<td>✅</td>
+<td>Maestro. Validación RUC/DNI</td>
+</tr>
+<tr>
+<td>Cotizaciones</td>
+<td>✅</td>
+<td>Documento interno</td>
+</tr>
+<tr>
+<td>Notas de Preventa</td>
+<td>✅</td>
+<td>Documento interno previo al comprobante</td>
+</tr>
+<tr>
+<td>Facturas</td>
+<td>✅</td>
+<td><strong>Comprobante electrónico</strong> (tipo 01)</td>
+</tr>
+<tr>
+<td>Boletas</td>
+<td>✅</td>
+<td><strong>Comprobante electrónico</strong> (tipo 03)</td>
+</tr>
+<tr>
+<td>Resumen Diario</td>
+<td>✅</td>
+<td><strong>Obligatorio para boletas</strong> (RC)</td>
+</tr>
+<tr>
+<td>Formas de Pago</td>
+<td>✅</td>
+<td>Contado / crédito / mixto</td>
+</tr>
+<tr>
+<td>Notas de Crédito</td>
+<td>❌</td>
+<td>Fuera de V1 — <strong>ver riesgo V-1, recomendamos incluirla</strong></td>
+</tr>
+<tr>
+<td>Notas de Débito</td>
+<td>❌</td>
+<td>Fuera de V1</td>
+</tr>
+<tr>
+<td>Comunicación de Baja</td>
+<td>❌</td>
+<td>Fuera de V1 — <strong>ver riesgo V-1</strong></td>
+</tr>
+<tr>
+<td>Letras por Cobrar</td>
+<td>❌</td>
+<td>Fuera de V1</td>
+</tr>
+<tr>
+<td>Métodos de Pago</td>
+<td>❌</td>
+<td>Fuera de V1 — posible duplicado de "Formas de Pago" (ver §5)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-riesgos-de-alcance-detectados">2. Riesgos de alcance detectados</h2>
+<h3 id="v-1-sin-nota-de-credito-ni-comunicacion-de-baja-no-existe-forma-legal-de-anular-una-venta-severidad-alta">V-1 — Sin Nota de Crédito ni Comunicación de Baja no existe forma legal de anular una venta · <strong>Severidad: Alta</strong></h3>
+<p>Emitir facturas y boletas sin poder corregirlas deja al usuario sin salida ante el error más frecuente de la operación diaria (cliente equivocado, monto equivocado, devolución de mercadería). En el régimen peruano hay exactamente dos mecanismos, y ambos quedaron fuera de V1:</p>
+<table>
+<thead>
+<tr>
+<th>Mecanismo</th>
+<th>Para qué sirve</th>
+<th>Plazo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Comunicación de Baja</strong></td>
+<td>Anular una factura ya enviada a SUNAT</td>
+<td>Hasta 7 días calendario desde la emisión</td>
+</tr>
+<tr>
+<td><strong>Nota de Crédito</strong> (tipo 07)</td>
+<td>Anular fuera de plazo, devoluciones, descuentos, corrección de datos</td>
+<td>Sin plazo equivalente</td>
+</tr>
+</tbody>
+</table>
+<p>Pasado el plazo de la baja, la NC es el <strong>único</strong> camino. Las boletas, además, se anulan por el Resumen Diario (que sí está en V1) pero solo dentro de su ventana.</p>
+<p><strong>Recomendación:</strong> subir <strong>Nota de Crédito</strong> y <strong>Comunicación de Baja</strong> a V1. El costo incremental es bajo — reutilizan el mismo pipeline de firma y envío que ya construimos para factura y boleta — y sin ellas el producto no es operable en producción real.</p>
+<h3 id="a-1-guias-de-remision-sin-traslados-severidad-media">A-1 — Guías de Remisión sin Traslados · <strong>Severidad: Media</strong></h3>
+<p>La GRE está en V1 pero "Traslados" no. Si el traslado entre almacenes propios es un caso de uso real, la guía existe sin el movimiento de inventario que la origina. Confirmar si en V1 la GRE cubre solo el traslado <strong>por venta</strong> (origen: almacén → cliente); si es así, no hay problema y se deja constancia.</p>
+<h3 id="c-1-cadena-de-compras-larga-sin-definir-obligatoriedad-severidad-media">C-1 — Cadena de compras larga sin definir obligatoriedad · <strong>Severidad: Media</strong></h3>
+<p>Nota de Pedido → Orden de Compra → Nota de Compra → Factura de compra son cuatro documentos internos encadenados. Hay que definir cuáles son obligatorios y cuáles opcionales, y si se puede saltar pasos. Si los cuatro son obligatorios siempre, la fricción operativa es alta; si ninguno lo es, la trazabilidad se pierde.</p>
+<h2 id="3-documentos-que-tocan-sunat-en-v1">3. Documentos que tocan SUNAT en V1</h2>
+<p>Esta es la parte cara del alcance y determina la arquitectura. <strong>Cinco tipos de comprobante electrónico</strong> en V1:</p>
+<table>
+<thead>
+<tr>
+<th>Documento</th>
+<th>Código</th>
+<th>Canal SUNAT</th>
+<th>Módulo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Factura de venta</td>
+<td>01</td>
+<td>CPE</td>
+<td>Ventas</td>
+</tr>
+<tr>
+<td>Boleta de venta</td>
+<td>03</td>
+<td>CPE + Resumen Diario</td>
+<td>Ventas</td>
+</tr>
+<tr>
+<td>Resumen Diario de boletas</td>
+<td>RC</td>
+<td>CPE (asíncrono, con ticket)</td>
+<td>Ventas</td>
+</tr>
+<tr>
+<td>Liquidación de Compra</td>
+<td>04</td>
+<td>CPE</td>
+<td>Compras</td>
+</tr>
+<tr>
+<td>Guía de Remisión Electrónica</td>
+<td>09 / 31</td>
+<td><strong>API REST GRE — canal distinto</strong></td>
+<td>Almacén</td>
+</tr>
+</tbody>
+</table>
+<p>Dos observaciones que condicionan el diseño técnico:</p>
+<ol>
+<li><strong>La GRE no usa el mismo canal que el resto.</strong> Desde su migración, la guía electrónica se emite contra una <strong>API REST con autenticación OAuth2</strong>, mientras que factura, boleta, resumen y liquidación van por el canal CPE tradicional. Son dos integraciones distintas con dos modelos de autenticación distintos, aunque compartan la firma digital del XML (UBL 2.1). Presupuestar como tal.</li>
+<li><strong>El Resumen Diario es asíncrono.</strong> No devuelve el CDR en la misma llamada: entrega un <strong>ticket</strong> que hay que consultar después. Eso obliga a tener trabajos en segundo plano y manejo de estados desde el día uno — no es algo que se pueda agregar luego.</li>
+</ol>
+<p>Si se aprueba la recomendación de V-1, se suman Nota de Crédito (07) y Nota de Débito (08) por el canal CPE, más la Comunicación de Baja.</p>
+<h2 id="4-usuarios-y-seguridad-transversal">4. Usuarios y seguridad (transversal)</h2>
+<p>No es un módulo de negocio sino una capa que cruza los tres. Alcance V1:</p>
+<ul>
+<li>Autenticación con MFA opcional</li>
+<li>Roles y permisos por módulo y por acción (no basta rol global: quien registra una compra no necesariamente aprueba la orden)</li>
+<li>Multiempresa: un usuario puede operar más de un RUC emisor</li>
+<li><strong>Bitácora de auditoría</strong> sobre todo documento que llegue a SUNAT — quién emitió, quién anuló, cuándo. Es requisito de trazabilidad, no una funcionalidad opcional</li>
+</ul>
+<h2 id="5-preguntas-abiertas">5. Preguntas abiertas</h2>
+<ol>
+<li>¿Se aprueba subir <strong>Nota de Crédito</strong> y <strong>Comunicación de Baja</strong> a V1? (riesgo V-1)</li>
+<li><strong>Formas de Pago</strong> vs <strong>Métodos de Pago</strong>: ¿son conceptos distintos (condición contado/crédito vs instrumento efectivo/tarjeta/transferencia) o el sistema de referencia los duplica?</li>
+<li>¿La GRE de V1 cubre solo traslado por venta, o también entre almacenes propios? (riesgo A-1)</li>
+<li>¿Cuáles documentos de la cadena de compras son obligatorios? (riesgo C-1)</li>
+<li>¿El sistema opera <strong>un solo RUC emisor</strong> o es multiempresa desde V1? Cambia el modelo de datos y el manejo de certificados digitales.</li>
+</ol>
+<h2 id="6-capacidad-del-equipo-y-cortes-verticales">6. Capacidad del equipo y cortes verticales</h2>
+<blockquote>
+<p><strong>Actualización:</strong> el proyecto lo desarrolla <strong>una sola persona, asistida por IA</strong>.</p>
+</blockquote>
+<h3 id="61-el-alcance-v1-esta-dimensionado-para-un-equipo">6.1 El alcance V1 está dimensionado para un equipo</h3>
+<p>Lo marcado ✅ en §1 son <strong>23 submódulos</strong>, más 5 tipos de comprobante electrónico, más multiempresa, más autenticación con roles y permisos por acción. Es alcance de equipo, no de una persona.</p>
+<p>Sin cambiar nada, el resultado previsible no es el fracaso sino algo peor de detectar: <strong>muchos módulos a medias y ninguno en producción</strong>. La IA acelera la escritura de código, pero no acelera la homologación ante SUNAT, ni las decisiones de negocio, ni el descubrimiento de que un supuesto tributario era falso.</p>
+<p><strong>El alcance no se reduce: se secuencia.</strong> Todo lo de §1 se construye, pero en cortes verticales que llegan a producción uno por uno.</p>
+<h3 id="62-cortes-propuestos">6.2 Cortes propuestos</h3>
+<p>Cada corte es <strong>funcional de extremo a extremo</strong> — no "todos los catálogos primero". Un corte terminado es algo que un cliente real puede usar.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Corte</th>
+<th>Contenido</th>
+<th>Por qué en este orden</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>C1</strong></td>
+<td><strong>Emitir una boleta</strong></td>
+<td>Empresa · Usuario · Producto (mínimo) · Cliente · Boleta · emisión · CDR · PDF · portal público</td>
+<td>Atraviesa <strong>toda</strong> la arquitectura y ataca primero lo más incierto: la emisión ante SUNAT. Si algo va a salir mal, que salga mal en el mes 1, no en el 9</td>
+</tr>
+<tr>
+<td><strong>C2</strong></td>
+<td><strong>Operar ventas de verdad</strong></td>
+<td>Factura · <strong>Nota de Crédito</strong> · <strong>Comunicación de Baja</strong> · Resumen Diario · Formas de Pago · Cotización · Nota de Preventa</td>
+<td>Cierra el riesgo V-1: aquí el sistema pasa a ser legalmente operable</td>
+</tr>
+<tr>
+<td><strong>C3</strong></td>
+<td><strong>Catálogo completo</strong></td>
+<td>Marcas · Modelos · Unidades · Presentaciones · Tipos de Precio · Productos por agotarse</td>
+<td>Ya hay algo en uso que justifica enriquecer el catálogo</td>
+</tr>
+<tr>
+<td><strong>C4</strong></td>
+<td><strong>Compras</strong></td>
+<td>Proveedores · Órdenes de Compra y Servicio · Notas de Pedido y Compra · Facturas de compra · Guías de Ingreso · Liquidación de Compra</td>
+<td>Módulo entero, independiente del riesgo de ventas</td>
+</tr>
+<tr>
+<td><strong>C5</strong></td>
+<td><strong>Guías de Remisión</strong></td>
+<td>GRE con su canal REST propio</td>
+<td><strong>Deliberadamente al final:</strong> es una segunda integración completa (R-06) y la menos necesaria para el primer cliente que paga</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Multiempresa se mantiene desde C1</strong>, pero solo en el modelo de datos (<code>empresa_id</code> en todas las tablas). La interfaz de gestión de varias empresas puede esperar. Agregar la columna después es carísimo; agregar la pantalla después es trivial.</p>
+<h3 id="63-que-valida-cada-corte">6.3 Qué valida cada corte</h3>
+<p>C1 no es un prototipo desechable: es <strong>el corte que responde las preguntas caras</strong>. Al terminarlo ya sabes si la firma XAdES quedó bien, si la homologación avanza, cuánto cuesta realmente la infraestructura y si el desacople por cola funciona como se diseñó. Todas esas respuestas llegan antes de haber invertido en 23 submódulos.</p>
+<h3 id="64-orden-de-magnitud">6.4 Orden de magnitud</h3>
+<p>Con una persona asistida por IA, C1 es cuestión de semanas y el conjunto C1–C5 es cuestión de <strong>varios trimestres</strong>, no de semanas. No es una estimación formal —eso corresponde al PRD y al plan de proyecto— pero sirve para una cosa importante: <strong>decidir con qué corte se sale a buscar el primer cliente</strong>, en vez de esperar a tenerlo todo.</p>
+<h2 id="7-relacion-con-el-proceso-coe-qe">7. Relación con el proceso COE QE</h2>
+<p>Este documento <strong>no es un PRD</strong>. El skill <code>dte-coe-qe</code> exige un PRD en estado "Aprobado" como precondición bloqueante, y no lo tenemos: no se ejecutó la Etapa 1 de descubrimiento (AS-IS, Personas, Journeys, Escenarios, TO-BE).</p>
+<p>Decisión tomada: se avanza con el DTE en estado <strong>"Preliminar"</strong>, declarando explícitamente la desviación. El DTE no podrá pasar a "Aprobado" hasta que exista el PRD y una bitácora de peer review. Ver la nota de desviación en el §1 del DTE.</p>
+<p>Razón: el alcance está acotado por un sistema de referencia ya en operación, lo que reduce —sin eliminar— el riesgo de construir sobre requisitos no validados.</p>
+  </div>
+  <footer>
+    02-alcance-modulos · Estado: <span class="badge badge-aprobado">Aprobado</span> · Última actualización: 06/08/2026
+    <br>Confidencial — uso interno · Proceso COE QE · Wirbi S.A.C
+  </footer>
+</div>
+</body>
+</html>

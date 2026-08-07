@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>03-estructura-repositorio — Ondexia — Estructura de repositorio y convenciones de nombres</title>
+<link rel="stylesheet" href="assets/coe-qe.css">
+</head>
+<body>
+<div class="barra-superior">
+  <div class="breadcrumb">COE QE · <strong>03-estructura-repositorio</strong></div>
+  <a href="index.html">← Volver al índice</a>
+</div>
+<div class="contenedor">
+  <div class="documento">
+<h1 id="ondexia-estructura-de-repositorio-y-convenciones-de-nombres">Ondexia — Estructura de repositorio y convenciones de nombres</h1>
+<p>Estado: <strong>implementado (v2)</strong> · Fecha: 2026-08-06 · Deriva de <a href="DTE-ONX-001_sistema_gestion_comercial.html">DTE-ONX-001</a> §3</p>
+<blockquote>
+<p><strong>v2 — actualizado a la estructura real creada.</strong> Se adoptó la convención con punto (<code>ondexia.api</code>) en lugar de la propuesta con guion. Decisión del propietario; este documento la registra como vigente y se rige por ella.</p>
+</blockquote>
+<h2 id="1-monorepo-no-varios-repositorios">1. Monorepo, no varios repositorios</h2>
+<p><strong>Decisión: un solo repositorio <code>ondexia</code>.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Criterio</th>
+<th>Monorepo</th>
+<th>Varios repos</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Repositorios que crear y configurar</td>
+<td>1</td>
+<td>6</td>
+</tr>
+<tr>
+<td>Archivos de workflow</td>
+<td><strong>1</strong></td>
+<td>6 como mínimo</td>
+</tr>
+<tr>
+<td>Configuración de OIDC y secretos</td>
+<td>1 rol, 1 secreto</td>
+<td>1 rol con 6 relaciones de confianza, 6 secretos</td>
+</tr>
+<tr>
+<td>Cambio que toca API y frontend</td>
+<td>Un commit atómico</td>
+<td>3 PR coordinados, con ventana de incoherencia</td>
+</tr>
+<tr>
+<td>Contrato <code>openapi.yaml</code> compartido</td>
+<td>Un archivo</td>
+<td><strong>Paquete versionado con su propio pipeline de publicación</strong></td>
+</tr>
+<tr>
+<td>Sobrecarga para <strong>un solo desarrollador (R-13)</strong></td>
+<td>Mínima</td>
+<td>Multiplicada por seis</td>
+</tr>
+</tbody>
+</table>
+<h3 id="11-por-que-separar-en-repositorios-aumenta-la-complejidad-del-cicd">1.1 Por qué separar en repositorios <em>aumenta</em> la complejidad del CI/CD</h3>
+<p>Es la confusión más común, y conviene dejarla escrita porque la intuición apunta al revés.</p>
+<p><strong>El costo del monorepo es un filtro de rutas — o ni eso.</strong> En este proyecto ni siquiera se usan: un solo workflow construye lo que exista y se salta lo que no.</p>
+<p><strong>El costo de varios repositorios es estructural</strong>, y se concentra en un punto: <code>ondexia.contracts</code>. El <code>openapi.yaml</code> y los catálogos de SUNAT los consumen <code>ondexia.api</code>, <code>ondexia.web</code> y <code>ondexia.facturacion</code>. En un monorepo eso es <strong>un archivo que los tres leen</strong>. Separados en repositorios, hay exactamente dos caminos:</p>
+<ol>
+<li><strong>Publicarlo como paquete versionado</strong> (npm y Maven) con su propio pipeline de release, y actualizar la dependencia en tres repositorios cada vez que cambia un campo. Es un pipeline extra que existe solo por haber separado.</li>
+<li><strong>Copiarlo a mano</strong> en cada repositorio — que es garantizar que se desincronicen, justo el error que el contrato existe para evitar.</li>
+</ol>
+<p>Caso concreto: agregar un campo a la factura. En monorepo es <strong>un commit</strong> que toca contrato, backend y frontend, y el CI verifica los tres juntos. Separado son tres PR en orden — contrato, publicar, backend, frontend — con el sistema incoherente mientras tanto, y sin ningún CI capaz de verificar el conjunto.</p>
+<h3 id="12-cuando-varios-repositorios-si-serian-correctos">1.2 Cuándo varios repositorios sí serían correctos</h3>
+<ul>
+<li>Equipos distintos con cadencias de release independientes</li>
+<li>Necesidades de control de acceso distintas (por ejemplo, landing pública y API privada)</li>
+<li>Productos genuinamente independientes que no comparten contratos</li>
+</ul>
+<p>Ninguna aplica hoy. <strong>El único candidato defendible a salir es <code>ondexia.landing</code></strong>: no comparte contratos con nadie, tiene otro público y podría editarlo alguien de marketing sin acceso al resto. Aun así, mientras lo mantengas tú, separarlo agrega un repositorio y un workflow a cambio de nada.</p>
+<h3 id="13-la-simplificacion-que-si-aplica">1.3 La simplificación que sí aplica</h3>
+<p>La complejidad del CI/CD no la causa el monorepo: la causa <strong>tener cinco desplegables</strong>, y ese número no cambia con la estrategia de repositorios. Lo que sí se puede simplificar es el pipeline, y ahí se fue al mínimo (§9).</p>
+<h2 id="2-convencion-de-nombres">2. Convención de nombres</h2>
+<table>
+<thead>
+<tr>
+<th>Regla</th>
+<th>Valor</th>
+<th>Razón</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Formato de carpetas</td>
+<td><strong><code>ondexia.&lt;modulo&gt;</code></strong> (punto como separador)</td>
+<td>Convención adoptada. Aplicarla de forma uniforme importa más que cuál se eligió</td>
+</tr>
+<tr>
+<td>Traducción en fronteras</td>
+<td>El punto <strong>no se propaga</strong> a <code>artifactId</code>, paquetes npm, buckets S3 ni ids de CDK</td>
+<td>Esos ecosistemas usan guion. <code>apps/ondexia.web</code> contiene el paquete npm <code>ondexia-web</code>; <code>apps/ondexia.api</code> produce el artefacto <code>ondexia-api</code>. La carpeta y el identificador técnico no tienen por qué coincidir, pero la equivalencia debe ser mecánica: <strong>punto en carpeta ⇄ guion en identificador</strong></td>
+</tr>
+<tr>
+<td>Idioma</td>
+<td><strong>Inglés para lo técnico, español para lo del dominio</strong></td>
+<td><code>api</code>, <code>infra</code>, <code>contracts</code> son técnicos. <code>facturacion</code>, <code>comprobante</code>, <code>guia-remision</code> son términos fiscales peruanos que <strong>no se traducen</strong>: "boleta de venta" no tiene equivalente en inglés, y traducirla introduce ambigüedad en un dominio normado</td>
+</tr>
+<tr>
+<td>Paquetes Java</td>
+<td><code>com.ondexia.&lt;modulo&gt;</code></td>
+<td>Convención de dominio invertido sobre <code>ondexia.com</code></td>
+</tr>
+<tr>
+<td>Tablas y columnas</td>
+<td><code>snake_case</code> en español</td>
+<td>Ya fijado en el DTE §5</td>
+</tr>
+</tbody>
+</table>
+<p>La regla del idioma es la que más se rompe sola. El criterio operativo: <strong>si el término aparece en una resolución de SUNAT, va en español</strong>; si es un concepto de ingeniería, va en inglés.</p>
+<h2 id="3-estructura-propuesta">3. Estructura propuesta</h2>
+<pre><code>ondexia/
+├── .github/workflows/          CI/CD (ver §9)
+├── apps/
+│   ├── ondexia.api/            Spring Boot · núcleo comercial          [vacío]
+│   ├── ondexia.facturacion/    Lambdas Emisor + Poller · SUNAT     [FALTA CREAR]
+│   ├── ondexia.web/            Angular · la aplicación             ✅ inicializado
+│   ├── ondexia.landing/        Astro · marketing                       [vacío]
+│   └── ondexia.portal/         Portal público de comprobantes          [vacío]
+├── ondexia.contracts/          OpenAPI + catálogos SUNAT                [vacío]
+├── ondexia.infra/              AWS CDK (TypeScript)                     [vacío]
+├── ondexia.docs/               Documentación del proceso COE QE    ✅
+├── ondexia.tools/              Scripts y utilidades                     [vacío]
+├── ia-skills/                  Skills COE QE · repo aparte, excluido del control de versiones
+└── .gitignore
+</code></pre>
+<blockquote>
+<p><strong><code>ondexia.facturacion</code> falta y no es opcional.</strong> Es el componente Emisor de DT-13 — el que aísla la firma digital, los certificados y la comunicación con SUNAT del núcleo comercial. Sin esa carpeta, la lógica de facturación termina dentro de <code>ondexia.api</code>, que es exactamente el acoplamiento que la arquitectura evita, y la migración proveedor → SUNAT directo (DTE §7.1) deja de ser barata.</p>
+</blockquote>
+<h3 id="por-que-cada-frontera-existe">Por qué cada frontera existe</h3>
+<table>
+<thead>
+<tr>
+<th>Carpeta</th>
+<th>Corresponde a</th>
+<th>Frontera que respeta</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>apps/ondexia.api</code></td>
+<td>API Core del DTE §3.3</td>
+<td><strong>Nunca abre conexión hacia SUNAT.</strong> Publica en SQS y responde</td>
+</tr>
+<tr>
+<td><code>apps/ondexia.facturacion</code></td>
+<td>Emisor + Poller</td>
+<td><strong>No conoce reglas de negocio.</strong> Es la única que toca certificados y SUNAT (DT-13)</td>
+</tr>
+<tr>
+<td><code>apps/ondexia.web</code></td>
+<td>App Angular</td>
+<td>No firma, no habla con SUNAT</td>
+</tr>
+<tr>
+<td><code>apps/ondexia.landing</code></td>
+<td>Landing Astro</td>
+<td>Estática pura, sin acceso a datos</td>
+</tr>
+<tr>
+<td><code>apps/ondexia.portal</code></td>
+<td>Portal público</td>
+<td><strong>Sin autenticación, aislado.</strong> No consulta la base transaccional</td>
+</tr>
+<tr>
+<td><code>ondexia.infra</code></td>
+<td>Toda la infraestructura</td>
+<td>Fuente única de la topología. Nada se crea a mano en la consola</td>
+</tr>
+</tbody>
+</table>
+<p>La separación <code>ondexia.api</code> / <code>ondexia.facturacion</code> no es organización cosmética: <strong>es el boundary de DT-13 hecho carpeta.</strong> Que sean dos módulos desplegables distintos es lo que permite cambiar de proveedor de emisión a SUNAT directo (§7.1 del DTE) sin tocar el núcleo comercial.</p>
+<h2 id="4-backend-java-multi-modulo-maven">4. Backend Java — multi-módulo Maven</h2>
+<p><code>ondexia.api</code> y <code>ondexia.facturacion</code> comparten el modelo de dominio y las entidades JPA. Duplicarlo sería garantizar que se desincronicen.</p>
+<pre><code>apps/
+├── pom.xml                    parent, gestiona versiones
+├── ondexia.domain/            entidades JPA, enums, catálogos SUNAT
+│   └── com.ondexia.domain
+├── ondexia.api/               API Core
+│   └── com.ondexia.api
+└── ondexia.facturacion/       Emisor + Poller
+    └── com.ondexia.facturacion
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Módulo</th>
+<th><code>artifactId</code></th>
+<th>Depende de</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Padre</td>
+<td><code>ondexia-parent</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>Dominio</td>
+<td><code>ondexia-domain</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>API Core</td>
+<td><code>ondexia-api</code></td>
+<td><code>ondexia-domain</code></td>
+</tr>
+<tr>
+<td>Facturación</td>
+<td><code>ondexia-facturacion</code></td>
+<td><code>ondexia-domain</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>domain</code> no depende de nadie.</strong> Si empieza a importar de <code>api</code>, la separación se perdió y conviene detenerse a corregirlo.</p>
+<h2 id="5-contratos-el-detalle-que-mas-rinde-con-un-solo-desarrollador">5. Contratos — el detalle que más rinde con un solo desarrollador</h2>
+<p><code>contracts/openapi.yaml</code> como fuente única del contrato HTTP, y <strong>el cliente Angular se genera desde ahí</strong>, no se escribe a mano.</p>
+<p>Razón concreta: trabajando solo, escribes el backend y el frontend en momentos distintos. Un campo renombrado en el API y no propagado al front es un error que aparece en tiempo de ejecución, semanas después. Generando el cliente, aparece en tiempo de compilación, el mismo día.</p>
+<p>Aplica igual a los <strong>catálogos de SUNAT</strong> (tipos de documento, unidades de medida, monedas, motivos de nota de crédito): viven en <code>contracts/catalogos/</code> como datos versionados, y tanto el backend como el frontend los consumen del mismo lugar. SUNAT los actualiza, y tener dos copias significa tener una desactualizada.</p>
+<h2 id="6-estrategia-de-ramas-gitflow">6. Estrategia de ramas — GitFlow</h2>
+<p><strong>Decisión: GitFlow.</strong> Es la preferencia adoptada para el proyecto.</p>
+<h3 id="61-por-que-encaja-en-este-producto">6.1 Por qué encaja en este producto</h3>
+<p>GitFlow suele considerarse pesado para equipos pequeños, pero aquí resuelve un problema real: <strong>Ondexia emite documentos con valor tributario</strong>. Una versión defectuosa en producción no produce una pantalla rota, produce comprobantes inválidos ante SUNAT. La separación estricta entre lo que está integrándose y lo que está emitiendo es exactamente la garantía que hace falta.</p>
+<p>Además calza sin fricción con los dos entornos ya definidos (DTE §10.3):</p>
+<table>
+<thead>
+<tr>
+<th>Rama</th>
+<th>Entorno</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>main</code></td>
+<td>Producción</td>
+<td><strong>Lo que está emitiendo comprobantes reales ahora mismo</strong></td>
+</tr>
+<tr>
+<td><code>develop</code></td>
+<td><code>dev</code></td>
+<td>Integración continua contra la beta de SUNAT</td>
+</tr>
+</tbody>
+</table>
+<p>Esa correspondencia es la que da valor: <code>main</code> deja de ser "la última versión" y pasa a ser "la versión con la que hay comprobantes emitidos", que es una afirmación con consecuencias legales.</p>
+<h3 id="62-ramas">6.2 Ramas</h3>
+<table>
+<thead>
+<tr>
+<th>Rama</th>
+<th>Nace de</th>
+<th>Se fusiona en</th>
+<th>Para qué</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>main</code></td>
+<td>—</td>
+<td>—</td>
+<td>Producción. <strong>Solo recibe merges de <code>release/*</code> y <code>hotfix/*</code>.</strong> Nunca commits directos</td>
+</tr>
+<tr>
+<td><code>develop</code></td>
+<td><code>main</code></td>
+<td>—</td>
+<td>Integración. Base de todo trabajo nuevo</td>
+</tr>
+<tr>
+<td><code>feature/*</code></td>
+<td><code>develop</code></td>
+<td><code>develop</code></td>
+<td>Una funcionalidad o historia</td>
+</tr>
+<tr>
+<td><code>release/*</code></td>
+<td><code>develop</code></td>
+<td><code>main</code> <strong>y</strong> <code>develop</code></td>
+<td>Estabilización antes de producción</td>
+</tr>
+<tr>
+<td><code>hotfix/*</code></td>
+<td><code>main</code></td>
+<td><code>main</code> <strong>y</strong> <code>develop</code></td>
+<td>Corrección urgente en producción</td>
+</tr>
+</tbody>
+</table>
+<p><strong>La doble fusión de <code>release/*</code> y <code>hotfix/*</code> no es opcional.</strong> Si un hotfix entra a <code>main</code> y no vuelve a <code>develop</code>, la corrección se pierde en el siguiente release — el error clásico de GitFlow, y el más caro de diagnosticar.</p>
+<h3 id="63-convencion-de-nombres">6.3 Convención de nombres</h3>
+<pre><code>feature/c1-emision-boleta
+feature/c1-portal-publico
+release/0.1.0
+hotfix/0.1.1-firma-xades
+</code></pre>
+<p>Las ramas <code>feature/*</code> se nombran con el <strong>corte vertical al que pertenecen</strong> (C1…C5 del alcance §6). Así el historial deja ver a qué entrega corresponde cada trabajo sin consultar un tablero aparte.</p>
+<h3 id="64-versionado-y-etiquetas">6.4 Versionado y etiquetas</h3>
+<p>Etiqueta en <code>main</code> con versión semántica en cada fusión de <code>release/*</code> o <code>hotfix/*</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Etiqueta</th>
+<th>Cuándo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>v0.1.0</code></td>
+<td>Cierre del corte C1 — primera boleta emitida de extremo a extremo</td>
+</tr>
+<tr>
+<td><code>v0.2.0</code></td>
+<td>Cierre de C2 — ventas legalmente operables</td>
+</tr>
+<tr>
+<td><code>v0.1.1</code></td>
+<td>Hotfix sobre C1</td>
+</tr>
+</tbody>
+</table>
+<p>La etiqueta es la que permite responder la pregunta que va a llegar tarde o temprano: <em>¿con qué versión del sistema se emitió este comprobante?</em> Conviene que el número de versión quede registrado junto al comprobante emitido.</p>
+<h3 id="65-correspondencia-con-el-pipeline">6.5 Correspondencia con el pipeline</h3>
+<table>
+<thead>
+<tr>
+<th>Evento</th>
+<th>Consecuencia</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Push a <code>feature/*</code> o PR</td>
+<td>CI: construir y probar</td>
+</tr>
+<tr>
+<td>Merge a <code>develop</code></td>
+<td>CI + despliegue automático a <code>dev</code> (desde Fase 1)</td>
+</tr>
+<tr>
+<td>Merge a <code>main</code></td>
+<td>CI + despliegue a producción <strong>con aprobación manual</strong> (DTE §10.2)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="66-que-parte-de-gitflow-rinde-mas-aqui">6.6 Qué parte de GitFlow rinde más aquí</h3>
+<p>Con un solo desarrollador (R-13), el valor no se reparte parejo:</p>
+<ul>
+<li><strong><code>develop</code> / <code>main</code> separados y <code>hotfix/*</code></strong> — alto valor. Son los que protegen la producción fiscal.</li>
+<li><strong><code>release/*</code></strong> — valor medio. Da el espacio para estabilizar y probar contra la beta antes de emitir en serio.</li>
+<li><strong><code>feature/*</code> por tarea</strong> — valor bajo en lo mecánico, alto como disciplina de historial. Mantenerlas cortas evita que se conviertan en ramas de larga vida que luego cuesta integrar.</li>
+</ul>
+<p>Lo que <strong>no</strong> conviene relajar es la regla de que <code>main</code> nunca recibe un commit directo. Es la única barrera entre un cambio a medio terminar y un comprobante inválido.</p>
+<h2 id="7-lo-que-no-va-en-el-repositorio">7. Lo que NO va en el repositorio</h2>
+<table>
+<thead>
+<tr>
+<th>Nunca</th>
+<th>Dónde va</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Certificados <code>.pfx</code></td>
+<td>Secrets Manager</td>
+</tr>
+<tr>
+<td>Credenciales SOL</td>
+<td>Secrets Manager</td>
+</tr>
+<tr>
+<td>Endpoints de SUNAT por entorno</td>
+<td>SSM Parameter Store</td>
+</tr>
+<tr>
+<td>Volcados de base de datos con datos reales</td>
+<td>En ningún lado fuera de AWS</td>
+</tr>
+</tbody>
+</table>
+<p><code>.gitignore</code> debe incluir <code>*.pfx</code>, <code>*.p12</code>, <code>*.jks</code>, <code>.env</code> y <code>*.dump</code> <strong>desde el primer commit</strong>. Un certificado que entra al historial de Git obliga a reescribirlo o a revocar el certificado.</p>
+<h2 id="8-decisiones-de-control-de-versiones-tomadas">8. Decisiones de control de versiones tomadas</h2>
+<table>
+<thead>
+<tr>
+<th>Tema</th>
+<th>Decisión</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Proveedor</td>
+<td><strong>GitHub</strong></td>
+</tr>
+<tr>
+<td>Estrategia de ramas</td>
+<td><strong>GitFlow</strong> — <code>main</code> + <code>develop</code> + <code>feature/*</code> / <code>release/*</code> / <code>hotfix/*</code> (ver §6)</td>
+</tr>
+<tr>
+<td><code>ia-skills</code></td>
+<td><strong>Excluido del repositorio.</strong> Tiene su propio remoto (<code>wirbidotcom/ia-skills</code>). Dejarlo dentro creaba un <em>gitlink</em> huérfano sin <code>.gitmodules</code>, que rompe el clonado. Para vincularlo formalmente: <code>git submodule add git@github.com:wirbidotcom/ia-skills.git ia-skills</code></td>
+</tr>
+<tr>
+<td>Carpetas vacías</td>
+<td>Marcadas con <code>.gitkeep</code> — Git no versiona directorios vacíos</td>
+</tr>
+</tbody>
+</table>
+<h2 id="9-cicd">9. CI/CD</h2>
+<p><strong>Dos archivos. Eso es todo el pipeline.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Workflow</th>
+<th>Dispara con</th>
+<th>Estado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ci.yml</code></td>
+<td>Push a <code>main</code>, <code>develop</code> y ramas de trabajo; PR hacia <code>main</code> o <code>develop</code></td>
+<td><strong>Activo</strong> — un job que construye y prueba lo que exista</td>
+</tr>
+<tr>
+<td><code>deploy.yml</code></td>
+<td>Solo manual (<code>workflow_dispatch</code>)</td>
+<td><strong>Inactivo hasta Fase 1</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="90-decisiones-de-simplicidad">9.0 Decisiones de simplicidad</h3>
+<p><strong>Sin filtros de rutas.</strong> Construir todo en cada commit cuesta minutos y evita la clase de error que aparece cuando frontend y backend se compilan por separado. Los filtros se agregan el día que el build moleste por lento, no antes.</p>
+<p><strong>Sin workflows por módulo.</strong> Un solo job con pasos que <strong>se saltan solos</strong> mientras el módulo no exista (<code>if: hashFiles(...) != ''</code>). El pipeline está listo desde hoy sin fallar en rojo por lo que aún no se ha escrito.</p>
+<p><strong>Sin paso separado de análisis de dependencias.</strong> El OWASP Dependency-Check se declara como plugin del <code>pom.xml</code> enlazado a la fase <code>verify</code>. Así corre igual en CI y en la máquina local, con un paso menos en el workflow. El control de seguridad se mantiene; lo que desaparece es la duplicación.</p>
+<p><strong>Sin publicación de artefactos en CI.</strong> Mientras no haya despliegue (Fase 0), guardar el <code>dist/</code> no sirve para nada.</p>
+<h3 id="91-por-que-el-despliegue-esta-inactivo">9.1 Por qué el despliegue está inactivo</h3>
+<p>No hay infraestructura desplegada (DTE §10.3, Fase 0). Un workflow de despliegue que apunta a nada solo produce fallos rojos que enseñan a ignorar el tablero. Se activa el trigger automático cuando exista la Fase 1.</p>
+<h3 id="92-autenticacion-sin-claves-de-larga-vida">9.2 Autenticación sin claves de larga vida</h3>
+<p><code>deploy.yml</code> usa <strong>OIDC</strong>: GitHub emite un token de identidad y AWS lo canjea por credenciales temporales contra un rol que confía en este repositorio. No hay <code>AWS_SECRET_ACCESS_KEY</code> guardada en ningún lado.</p>
+<p>Requiere, al llegar la Fase 1:</p>
+<ol>
+<li>Proveedor de identidad OIDC de GitHub en la cuenta AWS.</li>
+<li>Rol con política de confianza restringida <strong>a este repositorio y a la rama <code>main</code></strong> — sin esa restricción, cualquier repositorio de la organización podría asumirlo.</li>
+<li>Secreto <code>AWS_DEPLOY_ROLE_ARN</code> en GitHub con el ARN del rol.</li>
+</ol>
+<h3 id="93-aprobacion-manual-de-produccion">9.3 Aprobación manual de producción</h3>
+<p>El DTE §10.2 exige aprobación manual antes de producción. Se implementa con <strong>GitHub Environments</strong>: el entorno <code>prod</code> se configura con revisor requerido. Aunque el revisor seas tú (R-13), es la pausa deliberada que evita desplegar una versión rota que emita comprobantes con valor legal.</p>
+<h3 id="94-analisis-de-dependencias">9.4 Análisis de dependencias</h3>
+<p>OWASP Dependency-Check se configura en el <code>pom.xml</code> enlazado a <code>verify</code>, de modo que corre tanto en CI como en local. Es <strong>bloqueante</strong>, no informativo: en un sistema que firma comprobantes con valor tributario, una dependencia con CVE conocido es un defecto, no una advertencia.</p>
+<h2 id="10-nota-operativa-el-repositorio-vive-en-onedrive">10. Nota operativa — el repositorio vive en OneDrive</h2>
+<p>La carpeta está bajo sincronización de OneDrive. Git y OneDrive compiten por los mismos archivos: la sincronización puede bloquear objetos de <code>.git</code> durante una operación y corromper el índice.</p>
+<p>Recomendado: <strong>mover el repositorio fuera de la carpeta sincronizada</strong> (por ejemplo <code>C:\dev\ondexia</code>). El respaldo lo da GitHub, no OneDrive, y tener ambos duplica el riesgo sin agregar seguridad.</p>
+  </div>
+  <footer>
+    03-estructura-repositorio · Estado: <span class="badge badge-aprobado">Aprobado</span> · Última actualización: 06/08/2026
+    <br>Confidencial — uso interno · Proceso COE QE · Wirbi S.A.C
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,54 @@
+{
+  "DTE-ONX-001": {
+    "codigo": "DTE-ONX-001",
+    "archivo_md": "DTE-ONX-001_sistema_gestion_comercial.md",
+    "archivo_html": "DTE-ONX-001_sistema_gestion_comercial.html",
+    "titulo": "DTE-ONX-001 — Documento Técnico de Especificación",
+    "estado": "Aprobado",
+    "fecha": "06/08/2026",
+    "fase_id": "fase-otros",
+    "fase_nombre": "Otros documentos",
+    "fase_subtitulo": "Sin clasificación",
+    "fase_orden": 99,
+    "orden_desarrollo": 999
+  },
+  "01-dominios": {
+    "codigo": "01-dominios",
+    "archivo_md": "01-dominios.md",
+    "archivo_html": "01-dominios.html",
+    "titulo": "Ondexia — Esquema de dominios y DNS",
+    "estado": "Aprobado",
+    "fecha": "06/08/2026",
+    "fase_id": "fase-otros",
+    "fase_nombre": "Otros documentos",
+    "fase_subtitulo": "Sin clasificación",
+    "fase_orden": 99,
+    "orden_desarrollo": 999
+  },
+  "02-alcance-modulos": {
+    "codigo": "02-alcance-modulos",
+    "archivo_md": "02-alcance-modulos.md",
+    "archivo_html": "02-alcance-modulos.html",
+    "titulo": "Ondexia — Alcance funcional V1",
+    "estado": "Aprobado",
+    "fecha": "06/08/2026",
+    "fase_id": "fase-otros",
+    "fase_nombre": "Otros documentos",
+    "fase_subtitulo": "Sin clasificación",
+    "fase_orden": 99,
+    "orden_desarrollo": 999
+  },
+  "03-estructura-repositorio": {
+    "codigo": "03-estructura-repositorio",
+    "archivo_md": "03-estructura-repositorio.md",
+    "archivo_html": "03-estructura-repositorio.html",
+    "titulo": "Ondexia — Estructura de repositorio y convenciones de nombres",
+    "estado": "Aprobado",
+    "fecha": "06/08/2026",
+    "fase_id": "fase-otros",
+    "fase_nombre": "Otros documentos",
+    "fase_subtitulo": "Sin clasificación",
+    "fase_orden": 99,
+    "orden_desarrollo": 999
+  }
+}
