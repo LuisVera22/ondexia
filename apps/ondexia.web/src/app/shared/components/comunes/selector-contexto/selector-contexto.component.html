@@ -1,0 +1,80 @@
+<div class="flex items-center gap-2 text-sm">
+  <!-- Empresa -->
+  <div class="relative">
+    @if (empresaEsSeleccionable) {
+    <button
+      type="button"
+      (click)="alternar('empresa')"
+      class="inline-flex max-w-[190px] items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+    >
+      <span class="truncate font-medium">{{ empresaActiva?.nombre || 'Seleccionar empresa' }}</span>
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
+        <path d="m5 7.5 5 5 5-5" />
+      </svg>
+    </button>
+
+    @if (desplegado === 'empresa') {
+    <div class="absolute right-0 z-50 mt-1.5 w-64 rounded-lg border border-gray-200 bg-white py-1.5 shadow-theme-lg dark:border-gray-700 dark:bg-gray-900">
+      @for (opcion of empresas; track opcion.id) {
+      <button
+        type="button"
+        (click)="elegirEmpresa(opcion)"
+        class="flex w-full flex-col items-start px-4 py-2.5 text-left transition hover:bg-gray-50 dark:hover:bg-white/[0.04]"
+        [class.bg-brand-25]="opcion.id === empresaActiva?.id"
+      >
+        <span class="text-sm text-gray-800 dark:text-white/90">{{ opcion.nombre }}</span>
+        @if (opcion.detalle) {
+        <span class="text-xs text-gray-500 dark:text-gray-400">{{ opcion.detalle }}</span>
+        }
+      </button>
+      }
+    </div>
+    } } @else {
+    <span
+      class="inline-flex max-w-[190px] items-center rounded-lg px-2 py-2 font-medium text-gray-700 dark:text-gray-300"
+      [title]="empresaActiva?.detalle || ''"
+    >
+      <span class="truncate">{{ empresaActiva?.nombre }}</span>
+    </span>
+    }
+  </div>
+
+  <span class="text-gray-300 dark:text-gray-600">·</span>
+
+  <!-- Establecimiento -->
+  <div class="relative">
+    @if (establecimientoEsSeleccionable) {
+    <button
+      type="button"
+      (click)="alternar('establecimiento')"
+      class="inline-flex max-w-[170px] items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+    >
+      <span class="truncate">{{ establecimientoActivo?.nombre || 'Establecimiento' }}</span>
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
+        <path d="m5 7.5 5 5 5-5" />
+      </svg>
+    </button>
+
+    @if (desplegado === 'establecimiento') {
+    <div class="absolute right-0 z-50 mt-1.5 w-60 rounded-lg border border-gray-200 bg-white py-1.5 shadow-theme-lg dark:border-gray-700 dark:bg-gray-900">
+      @for (opcion of establecimientos; track opcion.id) {
+      <button
+        type="button"
+        (click)="elegirEstablecimiento(opcion)"
+        class="flex w-full flex-col items-start px-4 py-2.5 text-left transition hover:bg-gray-50 dark:hover:bg-white/[0.04]"
+        [class.bg-brand-25]="opcion.id === establecimientoActivo?.id"
+      >
+        <span class="text-sm text-gray-800 dark:text-white/90">{{ opcion.nombre }}</span>
+        @if (opcion.detalle) {
+        <span class="text-xs text-gray-500 dark:text-gray-400">{{ opcion.detalle }}</span>
+        }
+      </button>
+      }
+    </div>
+    } } @else {
+    <span class="inline-flex max-w-[170px] items-center px-2 py-2 text-gray-600 dark:text-gray-400">
+      <span class="truncate">{{ establecimientoActivo?.nombre }}</span>
+    </span>
+    }
+  </div>
+</div>
