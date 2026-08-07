@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { AppLayoutComponent } from './shared/layout/app-layout/app-layout.component';
 import { PanelComponent } from './pages/panel/panel.component';
 import { EcommerceComponent } from './pages/dashboard/ecommerce/ecommerce.component';
-import { ProfileComponent } from './pages/profile/profile.component';
+import { PerfilComponent } from './pages/perfil/perfil.component';
 import { NotFoundComponent } from './pages/other-page/not-found/not-found.component';
 import { IngresarComponent } from './pages/acceso/ingresar/ingresar.component';
 import { RecuperarComponent } from './pages/acceso/recuperar/recuperar.component';
@@ -92,7 +92,7 @@ export const routes: Routes = [
       },
       {
         path: 'perfil',
-        component: ProfileComponent,
+        component: PerfilComponent,
         title: `Mi perfil | ${TITULO}`,
       },
 
