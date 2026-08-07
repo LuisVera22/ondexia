@@ -183,11 +183,34 @@ export class AppSidebarComponent {
     this.subscription.unsubscribe();
   }
 
+  /** Ruta actual sin parámetros de consulta ni fragmento. */
+  private get rutaActual(): string {
+    return this.router.url.split('?')[0].split('#')[0];
+  }
+
+  /**
+   * El Panel se compara de forma exacta: su ruta es '/' y por prefijo
+   * coincidiría con todas las demás, dejándolo siempre marcado.
+   */
   isActive(path: string): boolean {
+    const actual = this.rutaActual;
     if (path === '/') {
-      return this.router.url === '/';
+      return actual === '/';
     }
-    return this.router.url === path || this.router.url.startsWith(path + '/');
+    return actual === path || actual.startsWith(path + '/');
+  }
+
+  /**
+   * Un módulo se marca por contener la ruta actual, no por estar desplegado.
+   * Conflatir ambas cosas hace que abrir Compras estando en Productos ilumine
+   * Compras y apague Almacén, que es justo al revés de lo que el usuario
+   * necesita saber.
+   */
+  contieneRutaActiva(nav: NavItem): boolean {
+    if (nav.path) {
+      return this.isActive(nav.path);
+    }
+    return (nav.subItems ?? []).some((sub) => this.isActive(sub.path));
   }
 
   toggleSubmenu(section: string, index: number) {
