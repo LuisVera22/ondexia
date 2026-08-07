@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
 
 /**
  * Preferencias de emisión e impresión de comprobantes.
@@ -11,10 +12,15 @@ import { PageBreadcrumbComponent } from '../../../shared/components/common/page-
  */
 @Component({
   selector: 'app-comprobantes',
-  imports: [PageBreadcrumbComponent, ReactiveFormsModule],
+  imports: [PageBreadcrumbComponent, ReactiveFormsModule, DesplegableComponent],
   templateUrl: './comprobantes.component.html',
 })
 export class ComprobantesComponent {
+  readonly opcionesMoneda: OpcionDesplegable[] = [
+    { valor: 'PEN', etiqueta: 'Soles', detalle: 'PEN' },
+    { valor: 'USD', etiqueta: 'Dólares', detalle: 'USD' },
+  ];
+
   private readonly constructorFormulario = inject(FormBuilder);
 
   guardado = false;

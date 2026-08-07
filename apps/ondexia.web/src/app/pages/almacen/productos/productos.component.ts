@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { TablaDatosComponent, ColumnaTabla, OrdenTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
+import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
 
 /**
  * Listado de productos.
@@ -13,7 +14,7 @@ import { TablaDatosComponent, ColumnaTabla, OrdenTabla } from '../../../shared/c
  */
 @Component({
   selector: 'app-productos',
-  imports: [PageBreadcrumbComponent, TablaDatosComponent, FormsModule],
+  imports: [PageBreadcrumbComponent, TablaDatosComponent, FormsModule, DesplegableComponent],
   templateUrl: './productos.component.html',
 })
 export class ProductosComponent {
@@ -28,6 +29,19 @@ export class ProductosComponent {
   readonly tamanoPagina = 10;
 
   marcas = ['Pacasmayo', 'Aceros Arequipa', 'Sider Perú', 'Sin marca'];
+
+  get opcionesMarca(): OpcionDesplegable[] {
+    return [
+      { valor: '', etiqueta: 'Todas' },
+      ...this.marcas.map((m) => ({ valor: m, etiqueta: m })),
+    ];
+  }
+
+  readonly opcionesEstado: OpcionDesplegable[] = [
+    { valor: '', etiqueta: 'Todos' },
+    { valor: 'Activo', etiqueta: 'Activo' },
+    { valor: 'Descontinuado', etiqueta: 'Descontinuado' },
+  ];
 
   columnas: ColumnaTabla[] = [
     { campo: 'codigo', titulo: 'Código', ordenable: true, ancho: 'w-32' },

@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
 
 /**
  * Ficha de cliente.
@@ -12,10 +13,23 @@ import { PageBreadcrumbComponent } from '../../../shared/components/common/page-
  */
 @Component({
   selector: 'app-ficha-cliente',
-  imports: [PageBreadcrumbComponent, ReactiveFormsModule, RouterModule],
+  imports: [PageBreadcrumbComponent, ReactiveFormsModule, RouterModule, DesplegableComponent],
   templateUrl: './ficha-cliente.component.html',
 })
 export class FichaClienteComponent {
+  readonly opcionesTipoDocumento: OpcionDesplegable[] = [
+    { valor: 'RUC', etiqueta: 'RUC' },
+    { valor: 'DNI', etiqueta: 'DNI' },
+    { valor: 'CE', etiqueta: 'Carné de extranjería' },
+    { valor: 'PAS', etiqueta: 'Pasaporte' },
+  ];
+
+  readonly opcionesTipoPrecio: OpcionDesplegable[] = [
+    { valor: 'Público', etiqueta: 'Público' },
+    { valor: 'Mayorista', etiqueta: 'Mayorista' },
+    { valor: 'Distribuidor', etiqueta: 'Distribuidor' },
+  ];
+
   private readonly ruta = inject(ActivatedRoute);
   private readonly constructorFormulario = inject(FormBuilder);
 

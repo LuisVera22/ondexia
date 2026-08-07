@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DesplegableComponent, OpcionDesplegable } from '../desplegable/desplegable.component';
 
 /**
  * Códigos del catálogo SUNAT nº 12 — tipo de operación del inventario.
@@ -88,7 +89,7 @@ const OPERACIONES: Record<CodigoOperacion, string> = {
  */
 @Component({
   selector: 'app-kardex',
-  imports: [FormsModule],
+  imports: [FormsModule, DesplegableComponent],
   templateUrl: './kardex.component.html',
 })
 export class KardexComponent {
@@ -102,8 +103,24 @@ export class KardexComponent {
   hasta = '';
 
   readonly tamanosPagina = TAMANOS_PAGINA;
+  readonly opcionesTamano: OpcionDesplegable[] = TAMANOS_PAGINA.map((t) => ({
+    valor: String(t),
+    etiqueta: String(t),
+  }));
+
   pagina = 1;
   tamanoPagina = 25;
+
+  get opcionesAlmacen(): OpcionDesplegable[] {
+    return [
+      { valor: '', etiqueta: 'Todos', detalle: 'Saldo consolidado' },
+      ...this.almacenes.map((a) => ({ valor: a, etiqueta: a })),
+    ];
+  }
+
+  get tamanoPaginaTexto(): string {
+    return String(this.tamanoPagina);
+  }
 
   get simboloMoneda(): string {
     return this.moneda === 'USD' ? '$' : 'S/';

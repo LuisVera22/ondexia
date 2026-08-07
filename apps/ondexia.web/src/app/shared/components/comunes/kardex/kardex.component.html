@@ -7,13 +7,8 @@
         <label for="kardexAlmacen" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">
           Almacén
         </label>
-        <select id="kardexAlmacen" [(ngModel)]="almacenFiltro" (ngModelChange)="reiniciarPagina()"
-          class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
-          <option value="">Todos (saldo consolidado)</option>
-          @for (almacen of almacenes; track almacen) {
-          <option [value]="almacen">{{ almacen }}</option>
-          }
-        </select>
+        <app-desplegable idCampo="kardexAlmacen" [opciones]="opcionesAlmacen"
+          [(ngModel)]="almacenFiltro" (ngModelChange)="reiniciarPagina()" />
       </div>
       }
 
@@ -192,13 +187,11 @@
       @if (total > tamanosPagina[0]) {
       <label class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
         <span class="hidden sm:inline">Por página</span>
-        <select [value]="tamanoPagina" (change)="cambiarTamano($any($event.target).value)"
-          aria-label="Movimientos por página"
-          class="h-8 rounded-lg border border-gray-300 bg-transparent px-2 text-sm text-gray-700 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300">
-          @for (tamano of tamanosPagina; track tamano) {
-          <option [value]="tamano">{{ tamano }}</option>
-          }
-        </select>
+        <div class="w-20">
+          <app-desplegable [opciones]="opcionesTamano" [ngModel]="tamanoPaginaTexto"
+            (ngModelChange)="cambiarTamano($event)" alto="compacto"
+            etiquetaAccesible="Movimientos por página" />
+        </div>
       </label>
       }
     </div>

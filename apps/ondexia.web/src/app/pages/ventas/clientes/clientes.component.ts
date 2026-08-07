@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { TablaDatosComponent, ColumnaTabla, OrdenTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
+import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
 
 /**
  * Listado de clientes.
@@ -13,10 +14,16 @@ import { TablaDatosComponent, ColumnaTabla, OrdenTabla } from '../../../shared/c
  */
 @Component({
   selector: 'app-clientes',
-  imports: [PageBreadcrumbComponent, TablaDatosComponent, FormsModule],
+  imports: [PageBreadcrumbComponent, TablaDatosComponent, FormsModule, DesplegableComponent],
   templateUrl: './clientes.component.html',
 })
 export class ClientesComponent {
+  readonly opcionesTipo: OpcionDesplegable[] = [
+    { valor: '', etiqueta: 'Todos' },
+    { valor: 'RUC', etiqueta: 'RUC' },
+    { valor: 'DNI', etiqueta: 'DNI' },
+  ];
+
   private readonly router = inject(Router);
 
   termino = '';

@@ -13,13 +13,8 @@
           <label for="tipoDocumento" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             Tipo de documento <span class="text-error-500">*</span>
           </label>
-          <select id="tipoDocumento" formControlName="tipoDocumento"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
-            <option value="RUC">RUC</option>
-            <option value="DNI">DNI</option>
-            <option value="CE">Carné de extranjería</option>
-            <option value="PAS">Pasaporte</option>
-          </select>
+          <app-desplegable idCampo="tipoDocumento" formControlName="tipoDocumento"
+            [opciones]="opcionesTipoDocumento" alto="formulario" />
         </div>
 
         <div>
@@ -91,12 +86,8 @@
           <label for="tipoPrecio" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             Tipo de precio
           </label>
-          <select id="tipoPrecio" formControlName="tipoPrecio"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
-            <option value="Público">Público</option>
-            <option value="Mayorista">Mayorista</option>
-            <option value="Distribuidor">Distribuidor</option>
-          </select>
+          <app-desplegable idCampo="tipoPrecio" formControlName="tipoPrecio"
+            [opciones]="opcionesTipoPrecio" alto="formulario" />
           <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
             Determina qué precio se aplica por defecto al emitir.
           </p>

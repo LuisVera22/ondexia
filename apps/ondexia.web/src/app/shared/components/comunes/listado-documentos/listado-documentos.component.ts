@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { PageBreadcrumbComponent } from '../../common/page-breadcrumb/page-breadcrumb.component';
 import { TablaDatosComponent, ColumnaTabla, OrdenTabla } from '../tabla-datos/tabla-datos.component';
 import { EstadoComprobanteComponent, EstadoComprobante } from '../estado-comprobante/estado-comprobante.component';
+import { DesplegableComponent, OpcionDesplegable } from '../desplegable/desplegable.component';
 
 export interface RegistroDocumento extends Record<string, unknown> {
   id: number;
@@ -47,6 +48,7 @@ export interface ConfiguracionListado {
     PageBreadcrumbComponent,
     TablaDatosComponent,
     EstadoComprobanteComponent,
+    DesplegableComponent,
   ],
   templateUrl: './listado-documentos.component.html',
 })
@@ -55,6 +57,16 @@ export class ListadoDocumentosComponent {
 
   @Input({ required: true }) configuracion!: ConfiguracionListado;
   @Input() documentos: RegistroDocumento[] = [];
+
+  readonly opcionesEstado: OpcionDesplegable[] = [
+    { valor: '', etiqueta: 'Todos' },
+    { valor: 'BORRADOR', etiqueta: 'Borrador' },
+    { valor: 'ENVIADO', etiqueta: 'Enviado' },
+    { valor: 'ACEPTADO', etiqueta: 'Aceptado' },
+    { valor: 'OBSERVADO', etiqueta: 'Observado' },
+    { valor: 'RECHAZADO', etiqueta: 'Rechazado' },
+    { valor: 'ANULADO', etiqueta: 'Anulado' },
+  ];
 
   termino = '';
   estadoFiltro = '';

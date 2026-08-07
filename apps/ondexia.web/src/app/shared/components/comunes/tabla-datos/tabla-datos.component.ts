@@ -9,7 +9,9 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { PaginaVaciaComponent } from '../pagina-vacia/pagina-vacia.component';
+import { DesplegableComponent, OpcionDesplegable } from '../desplegable/desplegable.component';
 
 export type AlineacionColumna = 'izquierda' | 'centro' | 'derecha';
 
@@ -51,7 +53,7 @@ const TAMANOS_PAGINA = [10, 25, 50, 100];
  */
 @Component({
   selector: 'app-tabla-datos',
-  imports: [CommonModule, PaginaVaciaComponent],
+  imports: [CommonModule, FormsModule, PaginaVaciaComponent, DesplegableComponent],
   templateUrl: './tabla-datos.component.html',
 })
 export class TablaDatosComponent implements OnChanges {
@@ -93,6 +95,11 @@ export class TablaDatosComponent implements OnChanges {
   @Output() accionVacio = new EventEmitter<void>();
 
   readonly tamanosPagina = TAMANOS_PAGINA;
+  readonly opcionesTamano: OpcionDesplegable[] = TAMANOS_PAGINA.map((t) => ({
+    valor: String(t),
+    etiqueta: String(t),
+  }));
+
   seleccionados = new Set<unknown>();
 
   /** Página vigente cuando el componente pagina por su cuenta. */
@@ -116,6 +123,10 @@ export class TablaDatosComponent implements OnChanges {
 
   get tamanoVigente(): number {
     return this.tamanoElegido ?? this.tamanoPagina;
+  }
+
+  get tamanoVigenteTexto(): string {
+    return String(this.tamanoVigente);
   }
 
   get paginaVigente(): number {

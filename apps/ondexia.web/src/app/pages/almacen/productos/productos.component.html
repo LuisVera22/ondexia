@@ -25,23 +25,12 @@
 
       <div>
         <label for="marca" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Marca</label>
-        <select id="marca" [(ngModel)]="marcaFiltro"
-          class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
-          <option value="">Todas</option>
-          @for (marca of marcas; track marca) {
-          <option [value]="marca">{{ marca }}</option>
-          }
-        </select>
+        <app-desplegable idCampo="marca" [opciones]="opcionesMarca" [(ngModel)]="marcaFiltro" />
       </div>
 
       <div>
         <label for="estado" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Estado</label>
-        <select id="estado" [(ngModel)]="estadoFiltro"
-          class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
-          <option value="">Todos</option>
-          <option value="Activo">Activo</option>
-          <option value="Descontinuado">Descontinuado</option>
-        </select>
+        <app-desplegable idCampo="estado" [opciones]="opcionesEstado" [(ngModel)]="estadoFiltro" />
       </div>
     </div>
 

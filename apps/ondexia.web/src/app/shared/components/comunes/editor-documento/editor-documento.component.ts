@@ -5,6 +5,7 @@ import { PageBreadcrumbComponent } from '../../common/page-breadcrumb/page-bread
 import { BuscadorEntidadComponent, OpcionEntidad } from '../buscador-entidad/buscador-entidad.component';
 import { EditorLineasComponent, LineaDocumento, TotalesDocumento } from '../editor-lineas/editor-lineas.component';
 import { ConfirmacionComponent } from '../confirmacion/confirmacion.component';
+import { DesplegableComponent, OpcionDesplegable } from '../desplegable/desplegable.component';
 
 /** Naturaleza del tercero según el documento: cliente en ventas, proveedor en compras. */
 export type TipoTercero = 'cliente' | 'proveedor';
@@ -69,10 +70,40 @@ export interface ConfiguracionDocumento {
     BuscadorEntidadComponent,
     EditorLineasComponent,
     ConfirmacionComponent,
+    DesplegableComponent,
   ],
   templateUrl: './editor-documento.component.html',
 })
 export class EditorDocumentoComponent {
+  readonly opcionesMoneda: OpcionDesplegable[] = [
+    { valor: 'PEN', etiqueta: 'Soles', detalle: 'S/' },
+    { valor: 'USD', etiqueta: 'Dólares', detalle: '$' },
+  ];
+
+  readonly opcionesFormaPago: OpcionDesplegable[] = [
+    { valor: 'Contado', etiqueta: 'Contado' },
+    { valor: 'Crédito', etiqueta: 'Crédito' },
+  ];
+
+  /** Códigos del catálogo SUNAT nº 20 — motivo de traslado. */
+  readonly opcionesMotivoTraslado: OpcionDesplegable[] = [
+    { valor: '01', etiqueta: 'Venta', detalle: '01' },
+    { valor: '02', etiqueta: 'Compra', detalle: '02' },
+    { valor: '04', etiqueta: 'Traslado entre establecimientos de la misma empresa', detalle: '04' },
+    { valor: '08', etiqueta: 'Importación', detalle: '08' },
+    { valor: '09', etiqueta: 'Exportación', detalle: '09' },
+    { valor: '13', etiqueta: 'Otros', detalle: '13' },
+  ];
+
+  /** Los motivos de nota de crédito y débito llegan en la configuración. */
+  get opcionesMotivo(): OpcionDesplegable[] {
+    return (this.configuracion.motivos ?? []).map((m) => ({
+      valor: m.codigo,
+      etiqueta: m.nombre,
+      detalle: m.codigo,
+    }));
+  }
+
   @Input({ required: true }) configuracion!: ConfiguracionDocumento;
 
   terceroSeleccionado: OpcionEntidad | null = null;
