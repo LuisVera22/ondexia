@@ -113,6 +113,7 @@ export class AppSidebarComponent {
       name: "Kit de plantilla",
       subItems: [
         { name: "Componentes de Ondexia", path: "/kit/componentes" },
+        { name: "Panel de la plantilla", path: "/kit/panel-plantilla" },
         { name: "Formularios", path: "/kit/formularios" },
         { name: "Tablas", path: "/kit/tablas" },
         { name: "Alertas", path: "/kit/alertas" },
