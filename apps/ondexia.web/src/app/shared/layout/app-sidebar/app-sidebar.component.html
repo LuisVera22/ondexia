@@ -85,8 +85,8 @@
                 <button
                   (click)="toggleSubmenu('main',i)"
                   class="menu-item group cursor-pointer"
-                  [class.menu-item-active]="openSubmenu === 'main-' + i"
-                  [class.menu-item-inactive]="openSubmenu !== 'main-' + i"
+                  [class.menu-item-active]="contieneRutaActiva(nav)"
+                  [class.menu-item-inactive]="!contieneRutaActiva(nav)"
                   [ngClass]="{
                     'xl:justify-center': !(
                       (isExpanded$ | async) || (isHovered$ | async)
@@ -97,8 +97,8 @@
                 >
                   <span
                     class="menu-item-icon-size"
-                    [class.menu-item-icon-active]="openSubmenu === 'main-' + i"
-                    [class.menu-item-icon-inactive]="openSubmenu !== 'main-' + i"
+                    [class.menu-item-icon-active]="contieneRutaActiva(nav)"
+                    [class.menu-item-icon-inactive]="!contieneRutaActiva(nav)"
                     [innerHTML]="nav.icon | safeHtml"
                   >
                   </span>
@@ -164,7 +164,6 @@
                     <li>
                       <a
                         [routerLink]="subItem.path"
-                        routerLinkActive=""
                         (click)="onSubmenuClick()"
                         class="menu-dropdown-item"
                         [ngClass]="{
@@ -214,9 +213,11 @@
                 @if (nav.path) {
                 <a
                   [routerLink]="nav.path"
-                  routerLinkActive="menu-item-active"
                   class="menu-item group"
-                  [ngClass]="{ 'menu-item-inactive': !isActive(nav.path) }"
+                  [ngClass]="{
+                    'menu-item-active': isActive(nav.path),
+                    'menu-item-inactive': !isActive(nav.path)
+                  }"
                 >
                   <span
                     class="menu-item-icon-size"
@@ -290,8 +291,8 @@
                   (click)="toggleSubmenu('others',i)"
                   class="menu-item group cursor-pointer"
                   [ngClass]="{
-                     'menu-item-active': openSubmenu === 'others-' + i,
-                     'menu-item-inactive': openSubmenu !== 'others-' + i,
+                     'menu-item-active': contieneRutaActiva(nav),
+                     'menu-item-inactive': !contieneRutaActiva(nav),
                     'xl:justify-center': !(
                       (isExpanded$ | async) || (isHovered$ | async)
                     ),
@@ -302,8 +303,8 @@
                   <span
                     class="menu-item-icon-size"
                     [ngClass]="{
-                      'menu-item-icon-active': openSubmenu === 'others-' + i,
-                      'menu-item-icon-inactive': openSubmenu !== 'others-' + i,
+                      'menu-item-icon-active': contieneRutaActiva(nav),
+                      'menu-item-icon-inactive': !contieneRutaActiva(nav),
                     }"
                     [innerHTML]="nav.icon | safeHtml"
                   >
@@ -370,7 +371,6 @@
                     <li>
                       <a
                         [routerLink]="subItem.path"
-                        routerLinkActive=""
                         (click)="onSubmenuClick()"
                         class="menu-dropdown-item"
                         [ngClass]="{
@@ -420,9 +420,11 @@
                 @if (nav.path) {
                 <a
                   [routerLink]="nav.path"
-                  routerLinkActive="menu-item-active"
                   class="menu-item group"
-                  [ngClass]="{ 'menu-item-inactive': !isActive(nav.path) }"
+                  [ngClass]="{
+                    'menu-item-active': isActive(nav.path),
+                    'menu-item-inactive': !isActive(nav.path)
+                  }"
                 >
                   <span
                     class="menu-item-icon-size"
