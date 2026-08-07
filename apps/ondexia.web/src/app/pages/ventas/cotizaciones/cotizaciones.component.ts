@@ -24,6 +24,7 @@ export class CotizacionesComponent {
     textoNuevo: 'Nueva cotización',
     esComprobanteElectronico: false,
     etiquetaTercero: 'Cliente',
+    rutaDetalle: '/ventas/comprobantes',
     vacioTitulo: 'Aún no hay cotizaciones',
     vacioDescripcion: 'Una cotización permite proponer precios sin consecuencias fiscales.',
   };

@@ -24,6 +24,7 @@ export class NotasCreditoComponent {
     textoNuevo: '',
     esComprobanteElectronico: true,
     etiquetaTercero: 'Cliente',
+    rutaDetalle: '/ventas/comprobantes',
     vacioTitulo: 'Aún no hay notas de crédito',
     vacioDescripcion: 'Las notas de crédito anulan o corrigen un comprobante ya emitido.',
     nota: 'La nota de crédito se emite desde el detalle del comprobante que se quiere anular o corregir, con la acción «Emitir nota de crédito». Así no se referencia mal el documento de origen.',

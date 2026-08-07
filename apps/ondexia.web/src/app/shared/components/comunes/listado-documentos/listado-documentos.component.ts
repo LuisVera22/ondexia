@@ -28,6 +28,8 @@ export interface ConfiguracionListado {
   vacioDescripcion: string;
   /** Aviso permanente sobre el flujo correcto, cuando lo hay. */
   nota?: string;
+  /** Ruta base del detalle. Vacía cuando el documento no tiene vista de detalle. */
+  rutaDetalle?: string;
 }
 
 /**
@@ -103,6 +105,9 @@ export class ListadoDocumentosComponent {
   }
 
   abrirDetalle(registro: Record<string, unknown>): void {
-    this.router.navigate(['/ventas/comprobantes', registro['id']]);
+    if (!this.configuracion.rutaDetalle) {
+      return;
+    }
+    this.router.navigate([this.configuracion.rutaDetalle, registro['id']]);
   }
 }
