@@ -24,6 +24,7 @@ export class PreventasComponent {
     textoNuevo: 'Nueva preventa',
     esComprobanteElectronico: false,
     etiquetaTercero: 'Cliente',
+    rutaDetalle: '/ventas/comprobantes',
     vacioTitulo: 'Aún no hay notas de preventa',
     vacioDescripcion: 'La preventa reserva la venta antes de emitir el comprobante definitivo.',
   };

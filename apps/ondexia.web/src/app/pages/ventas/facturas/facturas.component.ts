@@ -23,6 +23,7 @@ export class FacturasComponent {
     textoNuevo: 'Emitir factura',
     esComprobanteElectronico: true,
     etiquetaTercero: 'Cliente',
+    rutaDetalle: '/ventas/comprobantes',
     vacioTitulo: 'Aún no hay facturas emitidas',
     vacioDescripcion: 'La factura se emite a clientes con RUC y se envía a SUNAT.',
   };

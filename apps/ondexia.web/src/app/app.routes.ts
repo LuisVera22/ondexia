@@ -42,6 +42,18 @@ import { DetalleComprobanteComponent } from './pages/ventas/comprobantes/detalle
 import { ComunicacionBajaComponent } from './pages/ventas/comunicacion-baja/comunicacion-baja.component';
 import { ResumenDiarioComponent } from './pages/ventas/resumen-diario/resumen-diario.component';
 import { FormasPagoComponent } from './pages/ventas/formas-pago/formas-pago.component';
+import { NotasPedidoComponent } from './pages/compras/notas-pedido/notas-pedido.component';
+import { NuevaNotaPedidoComponent } from './pages/compras/notas-pedido/nueva-nota-pedido.component';
+import { OrdenesCompraComponent } from './pages/compras/ordenes-compra/ordenes-compra.component';
+import { NuevaOrdenCompraComponent } from './pages/compras/ordenes-compra/nueva-orden-compra.component';
+import { OrdenesServicioComponent } from './pages/compras/ordenes-servicio/ordenes-servicio.component';
+import { NuevaOrdenServicioComponent } from './pages/compras/ordenes-servicio/nueva-orden-servicio.component';
+import { NotasCompraComponent } from './pages/compras/notas-compra/notas-compra.component';
+import { NuevaNotaCompraComponent } from './pages/compras/notas-compra/nueva-nota-compra.component';
+import { FacturasCompraComponent } from './pages/compras/facturas/facturas.component';
+import { RegistrarFacturaCompraComponent } from './pages/compras/facturas/registrar-factura-compra.component';
+import { LiquidacionesComponent } from './pages/compras/liquidaciones/liquidaciones.component';
+import { EmitirLiquidacionComponent } from './pages/compras/liquidaciones/emitir-liquidacion.component';
 
 // Páginas de demostración de la plantilla. Se conservan bajo /kit como
 // referencia visual mientras se construyen las vistas reales, y se eliminan
@@ -108,13 +120,18 @@ export const routes: Routes = [
       { path: 'almacen/almacenes', component: AlmacenesComponent, title: `Almacenes | ${TITULO}` },
 
       // ── Compras ──────────────────────────────────────────────────────────
-      pendiente('compras/facturas', 'Facturas de compra', 'Compras', 'Etapa 5'),
-      pendiente('compras/notas-pedido', 'Notas de pedido', 'Compras', 'Etapa 5'),
-      pendiente('compras/liquidaciones', 'Liquidaciones de compra', 'Compras', 'Etapa 5'),
-      pendiente('compras/notas-compra', 'Notas de compra', 'Compras', 'Etapa 5'),
-      pendiente('compras/ordenes-compra', 'Órdenes de compra', 'Compras', 'Etapa 5'),
-      pendiente('compras/ordenes-compra/nueva', 'Nueva orden de compra', 'Compras', 'Etapa 5'),
-      pendiente('compras/ordenes-servicio', 'Órdenes de servicio', 'Compras', 'Etapa 5'),
+      { path: 'compras/notas-pedido', component: NotasPedidoComponent, title: `Notas de pedido | ${TITULO}` },
+      { path: 'compras/notas-pedido/nueva', component: NuevaNotaPedidoComponent, title: `Nueva nota de pedido | ${TITULO}` },
+      { path: 'compras/ordenes-compra', component: OrdenesCompraComponent, title: `Órdenes de compra | ${TITULO}` },
+      { path: 'compras/ordenes-compra/nueva', component: NuevaOrdenCompraComponent, title: `Nueva orden de compra | ${TITULO}` },
+      { path: 'compras/ordenes-servicio', component: OrdenesServicioComponent, title: `Órdenes de servicio | ${TITULO}` },
+      { path: 'compras/ordenes-servicio/nueva', component: NuevaOrdenServicioComponent, title: `Nueva orden de servicio | ${TITULO}` },
+      { path: 'compras/notas-compra', component: NotasCompraComponent, title: `Notas de compra | ${TITULO}` },
+      { path: 'compras/notas-compra/nueva', component: NuevaNotaCompraComponent, title: `Nueva nota de compra | ${TITULO}` },
+      { path: 'compras/facturas', component: FacturasCompraComponent, title: `Facturas de compra | ${TITULO}` },
+      { path: 'compras/facturas/nueva', component: RegistrarFacturaCompraComponent, title: `Registrar factura de compra | ${TITULO}` },
+      { path: 'compras/liquidaciones', component: LiquidacionesComponent, title: `Liquidaciones de compra | ${TITULO}` },
+      { path: 'compras/liquidaciones/nueva', component: EmitirLiquidacionComponent, title: `Emitir liquidación de compra | ${TITULO}` },
       { path: 'compras/proveedores', component: ProveedoresComponent, title: `Proveedores | ${TITULO}` },
       { path: 'compras/proveedores/:id', component: FichaProveedorComponent, title: `Ficha de proveedor | ${TITULO}` },
 

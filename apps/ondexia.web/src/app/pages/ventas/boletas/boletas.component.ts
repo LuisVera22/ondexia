@@ -24,6 +24,7 @@ export class BoletasComponent {
     textoNuevo: 'Emitir boleta',
     esComprobanteElectronico: true,
     etiquetaTercero: 'Cliente',
+    rutaDetalle: '/ventas/comprobantes',
     vacioTitulo: 'Aún no hay boletas emitidas',
     vacioDescripcion: 'La boleta se emite al consumidor final y se declara mediante el resumen diario.',
     nota: 'Las boletas se declaran ante SUNAT mediante el resumen diario, no una por una. Hasta enviarse el resumen del día permanecen en estado pendiente.',
