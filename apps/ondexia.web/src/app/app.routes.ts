@@ -8,6 +8,15 @@ import { IngresarComponent } from './pages/acceso/ingresar/ingresar.component';
 import { RecuperarComponent } from './pages/acceso/recuperar/recuperar.component';
 import { SinPermisosComponent } from './pages/acceso/sin-permisos/sin-permisos.component';
 import { KitOndexiaComponent } from './pages/kit-ondexia/kit-ondexia.component';
+import { EmpresaComponent } from './pages/configuracion/empresa/empresa.component';
+import { IdentidadComponent } from './pages/configuracion/identidad/identidad.component';
+import { EstablecimientosComponent } from './pages/configuracion/establecimientos/establecimientos.component';
+import { AlmacenesComponent } from './pages/configuracion/almacenes/almacenes.component';
+import { SeriesComponent } from './pages/configuracion/series/series.component';
+import { UsuariosComponent } from './pages/configuracion/usuarios/usuarios.component';
+import { RolesComponent } from './pages/configuracion/roles/roles.component';
+import { ComprobantesComponent } from './pages/configuracion/comprobantes/comprobantes.component';
+import { SuscripcionComponent } from './pages/configuracion/suscripcion/suscripcion.component';
 
 // Páginas de demostración de la plantilla. Se conservan bajo /kit como
 // referencia visual mientras se construyen las vistas reales, y se eliminan
@@ -71,7 +80,7 @@ export const routes: Routes = [
       pendiente('almacen/marcas', 'Marcas', 'Almacén', 'Etapa 2'),
       pendiente('almacen/modelos', 'Modelos', 'Almacén', 'Etapa 2'),
       pendiente('almacen/unidades', 'Unidades de medida', 'Almacén', 'Etapa 2'),
-      pendiente('almacen/almacenes', 'Almacenes', 'Almacén', 'Etapa 1'),
+      { path: 'almacen/almacenes', component: AlmacenesComponent, title: `Almacenes | ${TITULO}` },
 
       // ── Compras ──────────────────────────────────────────────────────────
       pendiente('compras/facturas', 'Facturas de compra', 'Compras', 'Etapa 5'),
@@ -101,14 +110,14 @@ export const routes: Routes = [
       pendiente('ventas/comprobantes/:id', 'Detalle de comprobante', 'Ventas', 'Etapa 4'),
 
       // ── Configuración ────────────────────────────────────────────────────
-      pendiente('configuracion/empresa', 'Datos de la empresa', 'Configuración', 'Etapa 1'),
-      pendiente('configuracion/identidad', 'Identidad visual', 'Configuración', 'Etapa 1'),
-      pendiente('configuracion/establecimientos', 'Establecimientos', 'Configuración', 'Etapa 1'),
-      pendiente('configuracion/series', 'Series y correlativos', 'Configuración', 'Etapa 1'),
-      pendiente('configuracion/usuarios', 'Usuarios', 'Configuración', 'Etapa 1'),
-      pendiente('configuracion/roles', 'Roles y permisos', 'Configuración', 'Etapa 1'),
-      pendiente('configuracion/comprobantes', 'Configuración de comprobantes', 'Configuración', 'Etapa 1'),
-      pendiente('configuracion/suscripcion', 'Suscripción y consumo', 'Configuración', 'Etapa 1'),
+      { path: 'configuracion/empresa', component: EmpresaComponent, title: `Datos de la empresa | ${TITULO}` },
+      { path: 'configuracion/identidad', component: IdentidadComponent, title: `Identidad visual | ${TITULO}` },
+      { path: 'configuracion/establecimientos', component: EstablecimientosComponent, title: `Establecimientos | ${TITULO}` },
+      { path: 'configuracion/series', component: SeriesComponent, title: `Series y correlativos | ${TITULO}` },
+      { path: 'configuracion/usuarios', component: UsuariosComponent, title: `Usuarios | ${TITULO}` },
+      { path: 'configuracion/roles', component: RolesComponent, title: `Roles y permisos | ${TITULO}` },
+      { path: 'configuracion/comprobantes', component: ComprobantesComponent, title: `Configuración de comprobantes | ${TITULO}` },
+      { path: 'configuracion/suscripcion', component: SuscripcionComponent, title: `Suscripción y consumo | ${TITULO}` },
 
       // ── Estados del sistema ──────────────────────────────────────────────
       {
