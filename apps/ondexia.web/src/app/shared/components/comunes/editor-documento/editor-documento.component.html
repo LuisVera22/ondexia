@@ -1,0 +1,171 @@
+<div>
+  <app-page-breadcrumb [pageTitle]="configuracion.titulo" />
+
+  <div class="space-y-5">
+    <!-- Cabecera del documento -->
+    <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <h3 class="font-medium text-gray-800 dark:text-white/90">Datos del documento</h3>
+
+        @if (configuracion.esComprobanteElectronico && configuracion.serie) {
+        <span class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm tabular-nums text-gray-600 dark:border-gray-700 dark:text-gray-300">
+          {{ configuracion.serie }}-{{ configuracion.siguienteNumero }}
+          <span class="ml-1 text-xs text-gray-400">(provisional)</span>
+        </span>
+        }
+      </div>
+
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div class="lg:col-span-2">
+          <app-buscador-entidad
+            [etiqueta]="configuracion.etiquetaTercero"
+            [marcador]="'Buscar por nombre o documento…'"
+            [opciones]="opcionesTercero"
+            [requerido]="true"
+            [error]="errorTercero"
+            (buscar)="buscarTercero($event)"
+            (seleccionar)="elegirTercero($event)"
+          />
+
+          @if (terceroSeleccionado) {
+          <div class="mt-2 flex items-center justify-between gap-3 rounded-lg bg-gray-50 px-3.5 py-2.5 dark:bg-white/[0.04]">
+            <span class="min-w-0">
+              <span class="block truncate text-sm text-gray-800 dark:text-white/90">{{ terceroSeleccionado.titulo }}</span>
+              <span class="block text-xs text-gray-500 dark:text-gray-400">{{ terceroSeleccionado.detalle }}</span>
+            </span>
+            <button type="button" (click)="terceroSeleccionado = null"
+              class="shrink-0 text-xs text-gray-500 transition hover:text-error-500 dark:text-gray-400">
+              Cambiar
+            </button>
+          </div>
+          }
+        </div>
+
+        <div>
+          <label for="fechaEmision" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Fecha de emisión
+          </label>
+          <input id="fechaEmision" type="date" [(ngModel)]="fechaEmision"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+        </div>
+
+        @if (configuracion.usaVencimiento) {
+        <div>
+          <label for="fechaVencimiento" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Válido hasta
+          </label>
+          <input id="fechaVencimiento" type="date" [(ngModel)]="fechaVencimiento"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+        </div>
+        }
+
+        <div>
+          <label for="moneda" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Moneda</label>
+          <select id="moneda" [(ngModel)]="moneda"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+            <option value="PEN">Soles (S/)</option>
+            <option value="USD">Dólares ($)</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="formaPago" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Forma de pago</label>
+          <select id="formaPago" [(ngModel)]="formaPago"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+            <option value="Contado">Contado</option>
+            <option value="Crédito">Crédito</option>
+          </select>
+        </div>
+
+        <!-- Referencia y motivo: notas de crédito y débito -->
+        @if (configuracion.usaReferencia) {
+        <div>
+          <label for="referencia" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Documento que modifica <span class="text-error-500">*</span>
+          </label>
+          <input id="referencia" type="text" [(ngModel)]="documentoReferencia" placeholder="F001-000123"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+          @if (intentoEnvio && !documentoReferencia) {
+          <p class="mt-1.5 text-xs text-error-500">Indique el comprobante que se está modificando.</p>
+          }
+        </div>
+
+        <div class="lg:col-span-2">
+          <label for="motivo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Motivo <span class="text-error-500">*</span>
+          </label>
+          <select id="motivo" [(ngModel)]="motivoSeleccionado"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90">
+            <option value="">Seleccione el motivo</option>
+            @for (motivo of configuracion.motivos ?? []; track motivo.codigo) {
+            <option [value]="motivo.codigo">{{ motivo.codigo }} — {{ motivo.nombre }}</option>
+            }
+          </select>
+          @if (intentoEnvio && !motivoSeleccionado) {
+          <p class="mt-1.5 text-xs text-error-500">El motivo es obligatorio y viaja en el comprobante.</p>
+          }
+        </div>
+        }
+      </div>
+    </section>
+
+    <!-- Búsqueda de producto -->
+    <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <app-buscador-entidad
+        etiqueta="Agregar producto"
+        marcador="Buscar por nombre o código y presionar Enter…"
+        [opciones]="opcionesProducto"
+        (buscar)="buscarProducto($event)"
+        (seleccionar)="agregarProducto($event)"
+      />
+    </section>
+
+    <!-- Detalle -->
+    <app-editor-lineas
+      [lineas]="lineas"
+      [moneda]="moneda"
+      (lineasCambio)="lineas = $event"
+      (totalesCambio)="totales = $event"
+    />
+
+    <!-- Observaciones -->
+    <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <label for="observaciones" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+        Observaciones
+      </label>
+      <textarea id="observaciones" [(ngModel)]="observaciones" rows="2"
+        placeholder="Texto adicional que se imprime en el documento"
+        class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"></textarea>
+    </section>
+
+    <!-- Acciones -->
+    <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <a [routerLink]="configuracion.rutaListado"
+        class="rounded-lg border border-gray-300 px-5 py-3 text-center text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+        Cancelar
+      </a>
+
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        @if (configuracion.esComprobanteElectronico) {
+        <p class="text-xs text-gray-500 dark:text-gray-400 sm:max-w-xs sm:text-right">
+          Al emitir, el comprobante se envía a SUNAT y ya no podrá editarse.
+        </p>
+        }
+
+        <button type="button" (click)="intentarAccion()" [disabled]="!puedeEmitir && intentoEnvio"
+          class="rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-50">
+          {{ configuracion.textoAccion }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <app-confirmacion
+    [abierto]="confirmacionAbierta"
+    titulo="Confirmar emisión"
+    [mensaje]="configuracion.advertenciaAccion ?? ''"
+    [textoConfirmar]="configuracion.textoAccion"
+    (confirmar)="ejecutar()"
+    (cancelar)="confirmacionAbierta = false"
+  />
+</div>
