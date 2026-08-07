@@ -50,6 +50,9 @@ interface FilaKardex extends MovimientoKardex {
   fechaIso: string;
 }
 
+/** Opciones de tamaño de página, las mismas que en el resto de tablas. */
+const TAMANOS_PAGINA = [10, 25, 50, 100];
+
 const OPERACIONES: Record<CodigoOperacion, string> = {
   '01': 'Inventario inicial',
   '02': 'Compra',
@@ -98,6 +101,10 @@ export class KardexComponent {
   desde = '';
   hasta = '';
 
+  readonly tamanosPagina = TAMANOS_PAGINA;
+  pagina = 1;
+  tamanoPagina = 25;
+
   get simboloMoneda(): string {
     return this.moneda === 'USD' ? '$' : 'S/';
   }
@@ -106,14 +113,19 @@ export class KardexComponent {
     return Boolean(this.almacenFiltro || this.desde || this.hasta);
   }
 
-  get hayRangoDeFechas(): boolean {
-    return Boolean(this.desde || this.hasta);
-  }
-
   limpiarFiltros(): void {
     this.almacenFiltro = '';
     this.desde = '';
     this.hasta = '';
+    this.pagina = 1;
+  }
+
+  /**
+   * Al cambiar un filtro hay que volver a la primera página: quedarse en la
+   * cuarta con tres resultados mostraría una tabla vacía sin explicación.
+   */
+  reiniciarPagina(): void {
+    this.pagina = 1;
   }
 
   /**
@@ -165,12 +177,58 @@ export class KardexComponent {
     });
   }
 
+  /** Filas del rango consultado, ya valorizadas sobre el histórico completo. */
+  private get filasDelRango(): FilaKardex[] {
+    return this.valorizadas.filter(
+      (f) => (!this.desde || f.fechaIso >= this.desde) && (!this.hasta || f.fechaIso <= this.hasta)
+    );
+  }
+
+  get total(): number {
+    return this.filasDelRango.length;
+  }
+
+  get totalPaginas(): number {
+    return Math.max(1, Math.ceil(this.total / this.tamanoPagina));
+  }
+
+  get paginaVigente(): number {
+    return Math.min(this.pagina, this.totalPaginas);
+  }
+
+  get hayVariasPaginas(): boolean {
+    return this.totalPaginas > 1;
+  }
+
+  /** Filas que se pintan: solo la página vigente del rango consultado. */
+  get filas(): FilaKardex[] {
+    return this.filasDelRango.slice(this.inicioPagina, this.inicioPagina + this.tamanoPagina);
+  }
+
+  private get inicioPagina(): number {
+    return (this.paginaVigente - 1) * this.tamanoPagina;
+  }
+
+  get rangoDesde(): number {
+    return this.total === 0 ? 0 : this.inicioPagina + 1;
+  }
+
+  get rangoHasta(): number {
+    return Math.min(this.inicioPagina + this.tamanoPagina, this.total);
+  }
+
   /**
-   * Última fila anterior al rango consultado: es el saldo con que abre el
-   * período. Sin ella, un kardex filtrado por fechas arrancaría en cero y
-   * mostraría existencias que no coinciden con las reales.
+   * Saldo con que abre lo que se está viendo. Es imprescindible: el saldo del
+   * kardex es acumulado, y una página que arranca en su primer movimiento sin
+   * decir de dónde viene el saldo muestra existencias que no cuadran con nada.
+   *
+   * En páginas posteriores es el saldo que arrastra la anterior; en la primera
+   * es el saldo previo al rango de fechas consultado.
    */
-  get saldoInicial(): FilaKardex | null {
+  get saldoArrastrado(): FilaKardex | null {
+    if (this.inicioPagina > 0) {
+      return this.filasDelRango[this.inicioPagina - 1];
+    }
     if (!this.desde) {
       return null;
     }
@@ -178,27 +236,53 @@ export class KardexComponent {
     return anteriores.length > 0 ? anteriores[anteriores.length - 1] : null;
   }
 
-  /** Filas del rango consultado, ya valorizadas sobre el histórico completo. */
-  get filas(): FilaKardex[] {
-    return this.valorizadas.filter(
-      (f) => (!this.desde || f.fechaIso >= this.desde) && (!this.hasta || f.fechaIso <= this.hasta)
-    );
+  get etiquetaSaldoArrastrado(): string {
+    return this.inicioPagina > 0
+      ? 'Saldo que arrastra la página anterior'
+      : 'Saldo al inicio del período consultado';
   }
 
+  /** El saldo final es el del rango completo, no el de la página vigente. */
   get saldoFinal(): FilaKardex | null {
-    const filas = this.filas;
-    if (filas.length > 0) {
-      return filas[filas.length - 1];
+    const rango = this.filasDelRango;
+    if (rango.length > 0) {
+      return rango[rango.length - 1];
     }
-    return this.saldoInicial;
+    return this.saldoArrastrado;
   }
 
   get totalEntradas(): number {
-    return this.filas.filter((f) => f.tipo === 'entrada').reduce((s, f) => s + f.cantidad, 0);
+    return this.filasDelRango
+      .filter((f) => f.tipo === 'entrada')
+      .reduce((s, f) => s + f.cantidad, 0);
   }
 
   get totalSalidas(): number {
-    return this.filas.filter((f) => f.tipo === 'salida').reduce((s, f) => s + f.cantidad, 0);
+    return this.filasDelRango.filter((f) => f.tipo === 'salida').reduce((s, f) => s + f.cantidad, 0);
+  }
+
+  irAPagina(numero: number): void {
+    if (numero < 1 || numero > this.totalPaginas) {
+      return;
+    }
+    this.pagina = numero;
+  }
+
+  cambiarTamano(valor: string): void {
+    this.tamanoPagina = Number(valor);
+    this.pagina = 1;
+  }
+
+  /** Ventana de páginas alrededor de la actual, para no imprimir cientos. */
+  get paginasVisibles(): number[] {
+    const total = this.totalPaginas;
+    const inicio = Math.max(1, Math.min(this.paginaVigente - 2, total - 4));
+    const fin = Math.min(total, inicio + 4);
+    const paginas: number[] = [];
+    for (let i = inicio; i <= fin; i++) {
+      paginas.push(i);
+    }
+    return paginas;
   }
 
   formato(valor: number): string {
