@@ -28,6 +28,20 @@ import { ClientesComponent } from './pages/ventas/clientes/clientes.component';
 import { FichaClienteComponent } from './pages/ventas/clientes/ficha-cliente.component';
 import { ProveedoresComponent } from './pages/compras/proveedores/proveedores.component';
 import { FichaProveedorComponent } from './pages/compras/proveedores/ficha-proveedor.component';
+import { CotizacionesComponent } from './pages/ventas/cotizaciones/cotizaciones.component';
+import { NuevaCotizacionComponent } from './pages/ventas/cotizaciones/nueva-cotizacion.component';
+import { PreventasComponent } from './pages/ventas/preventas/preventas.component';
+import { NuevaPreventaComponent } from './pages/ventas/preventas/nueva-preventa.component';
+import { FacturasComponent } from './pages/ventas/facturas/facturas.component';
+import { EmitirFacturaComponent } from './pages/ventas/facturas/emitir-factura.component';
+import { BoletasComponent } from './pages/ventas/boletas/boletas.component';
+import { EmitirBoletaComponent } from './pages/ventas/boletas/emitir-boleta.component';
+import { NotasCreditoComponent } from './pages/ventas/notas-credito/notas-credito.component';
+import { EmitirNotaCreditoComponent } from './pages/ventas/notas-credito/emitir-nota-credito.component';
+import { DetalleComprobanteComponent } from './pages/ventas/comprobantes/detalle-comprobante.component';
+import { ComunicacionBajaComponent } from './pages/ventas/comunicacion-baja/comunicacion-baja.component';
+import { ResumenDiarioComponent } from './pages/ventas/resumen-diario/resumen-diario.component';
+import { FormasPagoComponent } from './pages/ventas/formas-pago/formas-pago.component';
 
 // Páginas de demostración de la plantilla. Se conservan bajo /kit como
 // referencia visual mientras se construyen las vistas reales, y se eliminan
@@ -107,18 +121,20 @@ export const routes: Routes = [
       // ── Ventas ───────────────────────────────────────────────────────────
       { path: 'ventas/clientes', component: ClientesComponent, title: `Clientes | ${TITULO}` },
       { path: 'ventas/clientes/:id', component: FichaClienteComponent, title: `Ficha de cliente | ${TITULO}` },
-      pendiente('ventas/cotizaciones', 'Cotizaciones', 'Ventas', 'Etapa 4'),
-      pendiente('ventas/cotizaciones/nueva', 'Nueva cotización', 'Ventas', 'Etapa 4'),
-      pendiente('ventas/facturas', 'Facturas', 'Ventas', 'Etapa 4'),
-      pendiente('ventas/facturas/nueva', 'Emitir factura', 'Ventas', 'Etapa 4'),
-      pendiente('ventas/boletas', 'Boletas', 'Ventas', 'Etapa 4'),
-      pendiente('ventas/boletas/nueva', 'Emitir boleta', 'Ventas', 'Etapa 4'),
-      pendiente('ventas/notas-credito', 'Notas de crédito', 'Ventas', 'Etapa 4'),
-      pendiente('ventas/preventas', 'Notas de preventa', 'Ventas', 'Etapa 4'),
-      pendiente('ventas/comunicacion-baja', 'Comunicación de baja', 'Ventas', 'Etapa 4'),
-      pendiente('ventas/resumen-diario', 'Resumen diario', 'Ventas', 'Etapa 4'),
-      pendiente('ventas/formas-pago', 'Formas de pago', 'Ventas', 'Etapa 4'),
-      pendiente('ventas/comprobantes/:id', 'Detalle de comprobante', 'Ventas', 'Etapa 4'),
+      { path: 'ventas/cotizaciones', component: CotizacionesComponent, title: `Cotizaciones | ${TITULO}` },
+      { path: 'ventas/cotizaciones/nueva', component: NuevaCotizacionComponent, title: `Nueva cotización | ${TITULO}` },
+      { path: 'ventas/facturas', component: FacturasComponent, title: `Facturas | ${TITULO}` },
+      { path: 'ventas/facturas/nueva', component: EmitirFacturaComponent, title: `Emitir factura | ${TITULO}` },
+      { path: 'ventas/boletas', component: BoletasComponent, title: `Boletas | ${TITULO}` },
+      { path: 'ventas/boletas/nueva', component: EmitirBoletaComponent, title: `Emitir boleta | ${TITULO}` },
+      { path: 'ventas/notas-credito', component: NotasCreditoComponent, title: `Notas de crédito | ${TITULO}` },
+      { path: 'ventas/notas-credito/nueva', component: EmitirNotaCreditoComponent, title: `Emitir nota de crédito | ${TITULO}` },
+      { path: 'ventas/preventas', component: PreventasComponent, title: `Notas de preventa | ${TITULO}` },
+      { path: 'ventas/preventas/nueva', component: NuevaPreventaComponent, title: `Nueva nota de preventa | ${TITULO}` },
+      { path: 'ventas/comunicacion-baja', component: ComunicacionBajaComponent, title: `Comunicación de baja | ${TITULO}` },
+      { path: 'ventas/resumen-diario', component: ResumenDiarioComponent, title: `Resumen diario | ${TITULO}` },
+      { path: 'ventas/formas-pago', component: FormasPagoComponent, title: `Formas de pago | ${TITULO}` },
+      { path: 'ventas/comprobantes/:id', component: DetalleComprobanteComponent, title: `Detalle de comprobante | ${TITULO}` },
 
       // ── Configuración ────────────────────────────────────────────────────
       { path: 'configuracion/empresa', component: EmpresaComponent, title: `Datos de la empresa | ${TITULO}` },
