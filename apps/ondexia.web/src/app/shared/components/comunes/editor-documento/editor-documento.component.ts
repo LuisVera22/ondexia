@@ -39,6 +39,13 @@ export interface ConfiguracionDocumento {
   usaReferencia: boolean;
   /** Motivo del catálogo SUNAT, obligatorio en notas de crédito. */
   motivos?: { codigo: string; nombre: string }[];
+
+  /**
+   * Sección de traslado: punto de partida, llegada y transportista.
+   * Solo la guía de remisión la usa, y con ella el detalle pasa a modo
+   * de solo cantidades: una guía traslada mercadería, no la vende.
+   */
+  usaTraslado?: boolean;
 }
 
 /**
@@ -76,6 +83,14 @@ export class EditorDocumentoComponent {
   observaciones = '';
   motivoSeleccionado = '';
   documentoReferencia = '';
+
+  // Datos de traslado, solo para guía de remisión
+  motivoTraslado = '';
+  puntoPartida = '';
+  puntoLlegada = '';
+  transportista = '';
+  placaVehiculo = '';
+  pesoTotal = 0;
 
   lineas: LineaDocumento[] = [];
   totales: TotalesDocumento | null = null;
@@ -185,7 +200,10 @@ export class EditorDocumentoComponent {
 
   get puedeEmitir(): boolean {
     const referenciaOk = !this.configuracion.usaReferencia || Boolean(this.documentoReferencia && this.motivoSeleccionado);
-    return this.terceroEsValido && this.lineas.length > 0 && referenciaOk;
+    const trasladoOk =
+      !this.configuracion.usaTraslado ||
+      Boolean(this.motivoTraslado && this.puntoPartida && this.puntoLlegada);
+    return this.terceroEsValido && this.lineas.length > 0 && referenciaOk && trasladoOk;
   }
 
   intentarAccion(): void {

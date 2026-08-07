@@ -42,6 +42,11 @@ import { DetalleComprobanteComponent } from './pages/ventas/comprobantes/detalle
 import { ComunicacionBajaComponent } from './pages/ventas/comunicacion-baja/comunicacion-baja.component';
 import { ResumenDiarioComponent } from './pages/ventas/resumen-diario/resumen-diario.component';
 import { FormasPagoComponent } from './pages/ventas/formas-pago/formas-pago.component';
+import { GuiasIngresoComponent } from './pages/almacen/guias-ingreso/guias-ingreso.component';
+import { NuevaGuiaIngresoComponent } from './pages/almacen/guias-ingreso/nueva-guia-ingreso.component';
+import { GuiasRemisionComponent } from './pages/almacen/guias-remision/guias-remision.component';
+import { EmitirGuiaRemisionComponent } from './pages/almacen/guias-remision/emitir-guia-remision.component';
+import { PorAgotarseComponent } from './pages/almacen/por-agotarse/por-agotarse.component';
 import { NotasPedidoComponent } from './pages/compras/notas-pedido/notas-pedido.component';
 import { NuevaNotaPedidoComponent } from './pages/compras/notas-pedido/nueva-nota-pedido.component';
 import { OrdenesCompraComponent } from './pages/compras/ordenes-compra/ordenes-compra.component';
@@ -109,10 +114,11 @@ export const routes: Routes = [
       { path: 'almacen/productos', component: ProductosComponent, title: `Productos | ${TITULO}` },
       { path: 'almacen/productos/:id', component: FichaProductoComponent, title: `Ficha de producto | ${TITULO}` },
       { path: 'almacen/presentaciones', component: PresentacionesComponent, title: `Presentaciones | ${TITULO}` },
-      pendiente('almacen/por-agotarse', 'Productos por agotarse', 'Almacén', 'Etapa 6'),
-      pendiente('almacen/guias-remision', 'Guías de remisión', 'Almacén', 'Etapa 6'),
-      pendiente('almacen/guias-remision/nueva', 'Emitir guía de remisión', 'Almacén', 'Etapa 6'),
-      pendiente('almacen/guias-ingreso', 'Guías de ingreso', 'Almacén', 'Etapa 6'),
+      { path: 'almacen/por-agotarse', component: PorAgotarseComponent, title: `Productos por agotarse | ${TITULO}` },
+      { path: 'almacen/guias-remision', component: GuiasRemisionComponent, title: `Guías de remisión | ${TITULO}` },
+      { path: 'almacen/guias-remision/nueva', component: EmitirGuiaRemisionComponent, title: `Emitir guía de remisión | ${TITULO}` },
+      { path: 'almacen/guias-ingreso', component: GuiasIngresoComponent, title: `Guías de ingreso | ${TITULO}` },
+      { path: 'almacen/guias-ingreso/nueva', component: NuevaGuiaIngresoComponent, title: `Nueva guía de ingreso | ${TITULO}` },
       { path: 'almacen/tipos-precio', component: TiposPrecioComponent, title: `Tipos de precio | ${TITULO}` },
       { path: 'almacen/marcas', component: MarcasComponent, title: `Marcas | ${TITULO}` },
       { path: 'almacen/modelos', component: ModelosComponent, title: `Modelos | ${TITULO}` },
