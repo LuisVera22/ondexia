@@ -24,6 +24,10 @@ import { TiposPrecioComponent } from './pages/almacen/tipos-precio/tipos-precio.
 import { PresentacionesComponent } from './pages/almacen/presentaciones/presentaciones.component';
 import { ProductosComponent } from './pages/almacen/productos/productos.component';
 import { FichaProductoComponent } from './pages/almacen/ficha-producto/ficha-producto.component';
+import { ClientesComponent } from './pages/ventas/clientes/clientes.component';
+import { FichaClienteComponent } from './pages/ventas/clientes/ficha-cliente.component';
+import { ProveedoresComponent } from './pages/compras/proveedores/proveedores.component';
+import { FichaProveedorComponent } from './pages/compras/proveedores/ficha-proveedor.component';
 
 // Páginas de demostración de la plantilla. Se conservan bajo /kit como
 // referencia visual mientras se construyen las vistas reales, y se eliminan
@@ -97,12 +101,12 @@ export const routes: Routes = [
       pendiente('compras/ordenes-compra', 'Órdenes de compra', 'Compras', 'Etapa 5'),
       pendiente('compras/ordenes-compra/nueva', 'Nueva orden de compra', 'Compras', 'Etapa 5'),
       pendiente('compras/ordenes-servicio', 'Órdenes de servicio', 'Compras', 'Etapa 5'),
-      pendiente('compras/proveedores', 'Proveedores', 'Compras', 'Etapa 3'),
-      pendiente('compras/proveedores/:id', 'Ficha de proveedor', 'Compras', 'Etapa 3'),
+      { path: 'compras/proveedores', component: ProveedoresComponent, title: `Proveedores | ${TITULO}` },
+      { path: 'compras/proveedores/:id', component: FichaProveedorComponent, title: `Ficha de proveedor | ${TITULO}` },
 
       // ── Ventas ───────────────────────────────────────────────────────────
-      pendiente('ventas/clientes', 'Clientes', 'Ventas', 'Etapa 3'),
-      pendiente('ventas/clientes/:id', 'Ficha de cliente', 'Ventas', 'Etapa 3'),
+      { path: 'ventas/clientes', component: ClientesComponent, title: `Clientes | ${TITULO}` },
+      { path: 'ventas/clientes/:id', component: FichaClienteComponent, title: `Ficha de cliente | ${TITULO}` },
       pendiente('ventas/cotizaciones', 'Cotizaciones', 'Ventas', 'Etapa 4'),
       pendiente('ventas/cotizaciones/nueva', 'Nueva cotización', 'Ventas', 'Etapa 4'),
       pendiente('ventas/facturas', 'Facturas', 'Ventas', 'Etapa 4'),
