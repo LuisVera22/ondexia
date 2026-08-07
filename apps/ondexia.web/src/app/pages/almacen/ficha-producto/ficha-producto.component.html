@@ -20,7 +20,8 @@
           { clave: 'general', nombre: 'Datos generales' },
           { clave: 'presentaciones', nombre: 'Presentaciones' },
           { clave: 'precios', nombre: 'Precios' },
-          { clave: 'existencias', nombre: 'Existencias' }
+          { clave: 'existencias', nombre: 'Existencias' },
+          { clave: 'kardex', nombre: 'Kardex' }
         ]; track item.clave) {
         <button
           type="button"
@@ -244,6 +245,15 @@
         </div>
         }
       </div>
+      }
+
+      <!-- Kardex -->
+      @if (pestana === 'kardex') {
+      <app-kardex
+        [movimientos]="movimientos"
+        [unidad]="formulario.controls.unidad.value"
+        [almacenes]="nombresAlmacenes"
+      />
       }
     </div>
 
