@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 import { AppLayoutComponent } from './shared/layout/app-layout/app-layout.component';
+import { PanelComponent } from './pages/panel/panel.component';
 import { EcommerceComponent } from './pages/dashboard/ecommerce/ecommerce.component';
 import { ProfileComponent } from './pages/profile/profile.component';
-import { EnConstruccionComponent } from './pages/en-construccion/en-construccion.component';
 import { NotFoundComponent } from './pages/other-page/not-found/not-found.component';
 import { IngresarComponent } from './pages/acceso/ingresar/ingresar.component';
 import { RecuperarComponent } from './pages/acceso/recuperar/recuperar.component';
@@ -79,20 +79,6 @@ import { CalenderComponent } from './pages/calender/calender.component';
 
 const TITULO = 'Ondexia';
 
-/**
- * Construye una ruta pendiente que apunta al marcador de posición.
- * Todas las vistas del menú son navegables desde la Etapa 0 aunque su
- * pantalla real todavía no exista.
- */
-function pendiente(path: string, titulo: string, modulo: string, etapa: string) {
-  return {
-    path,
-    component: EnConstruccionComponent,
-    title: `${titulo} | ${TITULO}`,
-    data: { titulo, modulo, etapa },
-  };
-}
-
 export const routes: Routes = [
   {
     path: '',
@@ -100,7 +86,7 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        component: EcommerceComponent,
+        component: PanelComponent,
         pathMatch: 'full',
         title: `Panel principal | ${TITULO}`,
       },
@@ -177,6 +163,7 @@ export const routes: Routes = [
       },
 
       // ── Kit de la plantilla (referencia interna, se elimina al publicar) ──
+      { path: 'kit/panel-plantilla', component: EcommerceComponent, title: `Kit · Panel de la plantilla | ${TITULO}` },
       { path: 'kit/componentes', component: KitOndexiaComponent, title: `Kit · Componentes de Ondexia | ${TITULO}` },
       { path: 'kit/calendario', component: CalenderComponent, title: `Kit · Calendario | ${TITULO}` },
       { path: 'kit/formularios', component: FormElementsComponent, title: `Kit · Formularios | ${TITULO}` },
