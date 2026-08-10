@@ -188,7 +188,7 @@
           <mxGeometry x="770" y="880" width="600" height="80" as="geometry" />
         </mxCell>
 
-        <mxCell id="v1n5" value="Los PDF no se almacenan.&#10;Se generan al pedirlos, desde los datos: un PDF de&#10;cotización es una proyección, no un documento en sí.&#10;Guardarlo solo añade espacio que crece sin techo y un&#10;papel que se desincroniza del registro al corregir un dato.&#10;En el bucket vive únicamente lo que sube el usuario.&#10;&#10;Con SUNAT cambia: el XML firmado y el CDR no se&#10;pueden regenerar. Ver la página «Objetivo»." style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#026AA2;fillColor=#F0F9FF;strokeColor=#B9E6FE;spacing=8;" vertex="1" parent="1">
+        <mxCell id="v1n5" value="Regla de almacenamiento&#10;Solo se guarda lo que Ondexia produce y no puede&#10;regenerar, o lo que devuelve SUNAT. Todo lo demás se&#10;genera al pedirlo.&#10;&#10;En la v1 eso deja el bucket con una sola cosa: los logos&#10;e imágenes de marca. No son documentos del cliente,&#10;son insumos que el generador de PDF necesita para&#10;componer.&#10;&#10;Sin adjuntos. Ondexia no es un repositorio documental.&#10;&#10;Con SUNAT entran el XML firmado y el CDR, que no se&#10;pueden regenerar. Ver la página «Objetivo»." style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#026AA2;fillColor=#F0F9FF;strokeColor=#B9E6FE;spacing=8;" vertex="1" parent="1">
           <mxGeometry x="1080" y="700" width="290" height="130" as="geometry" />
         </mxCell>
 
