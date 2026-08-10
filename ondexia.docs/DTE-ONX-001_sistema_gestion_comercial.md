@@ -8,7 +8,7 @@
 | Campo | Valor |
 |---|---|
 | Código | DTE-ONX-001 |
-| Versión | 0.8 |
+| Versión | 0.9 |
 | Estado | **Preliminar** |
 | Fecha | 2026-08-10 |
 | Producto | Ondexia — Almacén, Compras, Ventas + Facturación Electrónica SUNAT |
@@ -262,6 +262,18 @@ Dos precisiones sobre el criterio:
 | Consecuencias | Integración nativa con API Gateway (authorizer sin código), MFA incluido. **Contra:** la personalización de la interfaz de login es limitada, y salir de Cognito es costoso — los usuarios se exportan, los hashes de contraseña no, así que migrar obliga a restablecer credenciales a todos. Mitigado porque `cognito_sub` es la única clave foránea y la tabla `usuario` es la fuente de verdad. La pertenencia a empresa y los permisos finos **no** viven en Cognito: viven en la base (ver §5.2 y §8.1) |
 | Corrección 0.8 | La versión 0.7 afirmaba «50 000 usuarios activos gratis». **AWS modificó el modelo de capa gratuita**; ese número ya no aplica. Verificar el nivel vigente antes de usarlo en cualquier proyección. Al volumen previsto el costo sigue siendo despreciable, pero el dato concreto estaba caduco |
 
+**Decisión técnica DT-16: Infraestructura como código — Terraform en vez de CDK**
+
+| Campo | Valor |
+|---|---|
+| Opciones evaluadas | A) AWS CDK en TypeScript · B) Terraform · C) SAM / CloudFormation a mano |
+| Criterio de elección | Legibilidad del cambio antes de aplicarlo, modos de fallo con un solo operador |
+| **Decisión** | **B — Terraform** |
+| Sustituye a | La decisión de las versiones 0.1 a 0.8, que fijaba CDK |
+| Sustento | El `plan` de Terraform enumera exactamente qué se crea, modifica y destruye antes de tocar nada, y eso pesa más cuando no hay un segundo par de ojos. CDK sintetiza CloudFormation, y los fallos de CloudFormation —pilas atascadas en `UPDATE_ROLLBACK_FAILED`, recursos huérfanos tras un rollback fallido— exigen intervención manual que con R-13 no tiene quien la cubra |
+| Consecuencias | **A favor:** estado explícito y auditable; cobertura de recursos que CloudFormation tarda en incorporar. **En contra:** empaquetar el artefacto de Lambda deja de ser automático y pasa a ser un paso del pipeline; se pierde `cdk-nag` y hay que sustituirlo por `tfsec` o `checkov` (§8.3); **el estado pasa a ser un activo crítico** — vive en S3 cifrado y versionado, y perderlo obliga a importar los recursos a mano |
+| Verificación | `fmt`, `init` y `validate` pasan sobre `ondexia.infra/` y su `bootstrap/`. **No se ha ejecutado `plan` ni `apply` contra una cuenta real** |
+
 **Decisión técnica DT-06: Firma digital XAdES**
 
 | Campo | Valor |
@@ -295,7 +307,7 @@ Dos precisiones sobre el criterio:
 | Identidad | Cognito |
 | Firma | Apache Santuario (XAdES-BES) |
 | PDF | OpenPDF o JasperReports en Lambda dedicada |
-| IaC | AWS CDK en TypeScript |
+| IaC | **Terraform** (ver DT-16) |
 | Observabilidad | CloudWatch Logs · X-Ray · alarmas sobre la DLQ |
 
 ### 4.6 Perfil de costo
@@ -805,7 +817,7 @@ exista: migrar identidades en producción es caro.
 | Fallas criptográficas | TLS 1.2+ obligatorio, cifrado en reposo con KMS, certificados fuera del código |
 | Inyección | JPA con consultas parametrizadas. Prohibida la concatenación de SQL |
 | Diseño inseguro | Token opaco en el portal público (no enumerable), documentos inmutables |
-| Configuración incorrecta | CDK como fuente única, `cdk-nag` en el pipeline, sin bucket público |
+| Configuración incorrecta | Terraform como fuente única, análisis estático (`tfsec` o `checkov`) en el pipeline, sin bucket público |
 | Componentes vulnerables | Dependabot + OWASP Dependency-Check bloqueante en CI |
 | Fallas de identificación | MFA disponible, política de contraseñas de Cognito, bloqueo por intentos |
 | Integridad de datos | **Firma XAdES es la integridad del comprobante.** S3 con versionado y Object Lock |
@@ -834,7 +846,7 @@ Ley 29733 y su reglamento aplican: se tratan nombre, documento de identidad y do
 | NFR-04 `[PROPUESTO]` | Cero correlativos duplicados o con salto | `SELECT FOR UPDATE` transaccional (F-02) + constraint UNIQUE como última defensa |
 | NFR-05 `[PROPUESTO]` | Una caída de SUNAT no interrumpe la venta | Desacople por SQS (DT-13). El sistema acumula y drena al restablecerse |
 | NFR-06 `[PROPUESTO]` | Aislamiento total entre empresas | RLS + `empresa_id` obligatorio + prueba automatizada de fuga entre inquilinos en CI |
-| NFR-07 `[PROPUESTO]` | RPO ≤ 5 min · RTO ≤ 4 h | RDS con PITR (respaldo continuo); S3 con versionado; infraestructura reproducible por CDK. **Sin Multi-AZ por R-12:** el RTO depende de restaurar, no de conmutar |
+| NFR-07 `[PROPUESTO]` | RPO ≤ 5 min · RTO ≤ 4 h | RDS con PITR (respaldo continuo); S3 con versionado; infraestructura reproducible por Terraform. **Sin Multi-AZ por R-12:** el RTO depende de restaurar, no de conmutar |
 | NFR-08 `[PROPUESTO]` | Portal público resiste escaneo automatizado | Token de 128 bits + WAF con límite por IP + `noindex` |
 | NFR-09 `[PROPUESTO]` | Trazabilidad completa de todo comprobante | Bitácora append-only + CloudTrail + correlation-id propagado por X-Ray |
 
@@ -859,7 +871,7 @@ La aprobación manual antes de producción no es burocracia: un despliegue defec
 
 ### 10.3 Plan de despliegue por fases (R-12)
 
-**Principio: la arquitectura no cambia entre fases, solo cambia dónde corre.** Como toda la infraestructura se define en CDK, pasar de una fase a la siguiente es cambiar parámetros de configuración, no reescribir. Eso es lo que hace seguro empezar en la fase más barata.
+**Principio: la arquitectura no cambia entre fases, solo cambia dónde corre.** Como toda la infraestructura se define en Terraform, pasar de una fase a la siguiente es cambiar parámetros de configuración, no reescribir. Eso es lo que hace seguro empezar en la fase más barata.
 
 #### Fase 0 — Desarrollo local · **USD 0/mes**
 
@@ -904,7 +916,7 @@ La arquitectura descrita en §3 y §4.6: VPC, RDS `db.t4g.micro`, instancia NAT 
 | Métrica | Objetivo | Mecanismo |
 |---|---|---|
 | RPO | ≤ 5 min | RDS PITR (respaldo continuo, retención 7 días) |
-| RTO | ≤ 4 h | Infraestructura reproducible por CDK + restauración de snapshot. Sin conmutación automática (R-12) |
+| RTO | ≤ 4 h | Infraestructura reproducible por Terraform + restauración de snapshot. Sin conmutación automática (R-12) |
 | Retención fiscal | 5 años | S3 Object Lock sobre XML y CDR |
 | Bus factor | **1 (R-13)** | **Riesgo aceptado y no mitigable con tecnología.** Los paliativos son documentales: este DTE, la IaC versionada, decisiones con sustento escrito y `README` de arranque reproducible. Si el proyecto adquiere valor comercial, la mitigación real es incorporar una segunda persona |
 
@@ -983,6 +995,7 @@ Sustitutos admisibles, en orden de valor:
 | 0.5 | 2026-08-06 | R-13 (equipo unipersonal). §7.1 reabre DT-12 con recomendación de proveedor de emisión. §12.1 sustitutos del peer review. Bus factor 1 asumido | — |
 | 0.6 | 2026-08-06 | Corrección de versiones desactualizadas (Angular 19→22, PostgreSQL 16→17/18, Java y Spring Boot despinneados). §4.3 nueva: política de versiones por criterio, no por número | — |
 | 0.7 | 2026-08-06 | Versiones confirmadas: Angular 22, Java 21 LTS, Spring Boot sobre Java 21, PostgreSQL en RDS | — |
+| 0.9 | 2026-08-10 | DT-16 nueva: Terraform sustituye a AWS CDK. Se escribe la v1 completa en `ondexia.infra/`. Referencias a CDK actualizadas en §4.5, §8.3, §9 y §10.3 | — |
 | 0.8 | 2026-08-10 | §4.6 corregido: faltaban WAF, IP pública IPv4 y el escalado de secretos por empresa; el piso pasa de ~24 a ~40 USD/mes. La capa gratuita cambió a créditos. §4.7 nueva: costo de la v1 (~15). §4.8 nueva: consecuencias de la Lambda sin NAT. §5.2 ampliado con `cuenta`, `cuenta_administrador`, alcance por sucursal y `permisos_version`. §5.8 nueva: política de almacenamiento por reproducibilidad. §8.1 reescrito: contexto no confiable, grupos de usuarios separados, trampa de RLS con Lambda. DT-05 corregida (dato de capa gratuita caduco) | — |
 
 ---

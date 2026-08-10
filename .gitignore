@@ -42,9 +42,23 @@ target/
 !.mvn/wrapper/maven-wrapper.jar
 .mvn/timing.properties
 
-# === AWS CDK ===
-cdk.out/
-cdk.context.json
+# === Terraform ===
+# El lockfile .terraform.lock.hcl SI se versiona: fija las versiones y los
+# hashes de los proveedores, que es lo que hace reproducible un despliegue.
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+.terraformrc
+terraform.rc
+# Variables locales con valores propios de una maquina. Los de entornos/ si van.
+terraform.tfvars
+*.auto.tfvars
+# Artefactos generados al empaquetar la Lambda.
+ondexia.infra/.artefactos/
 
 # === Entornos y herramientas ===
 .venv/
