@@ -51,6 +51,12 @@ cdk.context.json
 __pycache__/
 *.pyc
 
+# === draw.io ===
+# Archivos de bloqueo que crea la aplicacion de escritorio mientras el
+# diagrama esta abierto. Son temporales y no describen nada.
+.$*.dtmp
+*.bkp
+
 # === Editores ===
 .vscode/*
 !.vscode/extensions.json
