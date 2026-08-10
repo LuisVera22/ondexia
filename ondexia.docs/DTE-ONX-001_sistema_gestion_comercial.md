@@ -8,9 +8,9 @@
 | Campo | Valor |
 |---|---|
 | Código | DTE-ONX-001 |
-| Versión | 0.7 |
+| Versión | 0.8 |
 | Estado | **Preliminar** |
-| Fecha | 2026-08-06 |
+| Fecha | 2026-08-10 |
 | Producto | Ondexia — Almacén, Compras, Ventas + Facturación Electrónica SUNAT |
 | Fase COE QE | Fase 2 · Etapa 2 · Actividad 1 |
 | Tech Lead | Desarrollador único (R-13) |
@@ -78,6 +78,11 @@
 Razón de fondo: **SUNAT se cae, y con frecuencia**. Si la emisión fuera síncrona dentro de la transacción de venta, cada caída de SUNAT sería una caída de Ondexia. Con la cola de por medio, la venta se registra y el comprobante se emite cuando SUNAT responda.
 
 ### 3.2 Diagrama de componentes
+
+> El diagrama de infraestructura vive en [`arquitectura-aws.drawio`](arquitectura-aws.drawio),
+> con dos páginas: la **v1** que se despliega ahora y la **arquitectura objetivo** con SUNAT.
+> El diagrama de abajo describe componentes lógicos y se mantiene por separado; si divergen,
+> manda el `.drawio`.
 
 ```coeqe-flow
 direction: TB
@@ -254,7 +259,8 @@ Dos precisiones sobre el criterio:
 | Opciones evaluadas | A) Cognito · B) Keycloak autogestionado · C) Auth0 |
 | Criterio de elección | Costo, multiempresa (R-04), MFA |
 | **Decisión** | **A — Cognito con dominio propio `auth.ondexia.com`** |
-| Consecuencias | Integración nativa con API Gateway (authorizer sin código), MFA incluido, 50 000 usuarios activos gratis. **Contra:** la personalización de la interfaz de login es limitada, y la migración fuera de Cognito es costosa. La pertenencia a empresa y los permisos finos **no** viven en Cognito: viven en la base (ver §5.2) |
+| Consecuencias | Integración nativa con API Gateway (authorizer sin código), MFA incluido. **Contra:** la personalización de la interfaz de login es limitada, y salir de Cognito es costoso — los usuarios se exportan, los hashes de contraseña no, así que migrar obliga a restablecer credenciales a todos. Mitigado porque `cognito_sub` es la única clave foránea y la tabla `usuario` es la fuente de verdad. La pertenencia a empresa y los permisos finos **no** viven en Cognito: viven en la base (ver §5.2 y §8.1) |
+| Corrección 0.8 | La versión 0.7 afirmaba «50 000 usuarios activos gratis». **AWS modificó el modelo de capa gratuita**; ese número ya no aplica. Verificar el nivel vigente antes de usarlo en cualquier proyección. Al volumen previsto el costo sigue siendo despreciable, pero el dato concreto estaba caduco |
 
 **Decisión técnica DT-06: Firma digital XAdES**
 
@@ -311,12 +317,91 @@ Estimación de orden de magnitud en `us-east-1`, volumen inicial bajo. **Verific
 | SQS | 0 | 0 — 1 M/mes siempre gratis |
 | CloudFront | 0 | 0 — nivel siempre gratuito |
 | Cognito | 0 | 0 al volumen previsto |
-| Secrets Manager (2 secretos) | ~0.8 | ~0.8 |
+| Secrets Manager (**1 secreto por empresa**) | ~0.4 × empresas | ~0.4 × empresas |
+| **WAF** (1 Web ACL + 3 reglas) | ~8 | ~8 |
+| **IP pública IPv4 de la NAT** | ~3.65 | ~3.65 |
 | Route 53 (2 zonas) + dominio | ~1.6 | ~1.6 |
 | CloudWatch | ~0.5 | ~2 |
-| **Total aproximado USD/mes** | **~6** | **~24** |
+| **Total aproximado USD/mes** | **~30** | **~40** |
 
-Contra el diseño original (Aurora Serverless v2 + RDS Proxy + NAT Gateway), el piso baja de ~96 a ~24 USD/mes.
+Contra el diseño original (Aurora Serverless v2 + RDS Proxy + NAT Gateway), el piso baja de ~96 a ~40 USD/mes.
+
+**Tres partidas se corrigieron en la versión 0.8** — la tabla anterior daba ~24 y las omitía:
+
+- **WAF.** Protege el portal público (R-03) y no estaba costeado. Verificado en la tarifa
+  vigente: 5 USD por Web ACL, 1 USD por regla, 0.60 USD por millón de solicitudes. Es la
+  segunda partida fija después de RDS. **Es aplazable**: hasta que el portal tenga tráfico
+  que merezca ser atacado, se puede vivir sin él.
+- **IP pública IPv4.** La tabla contaba solo el cómputo de la instancia NAT. AWS cobra
+  todas las IPv4 públicas a 0.005 USD/hora sin franja gratuita, y la NAT necesita una por
+  definición: su razón de ser es dar una IP estable a SUNAT.
+- **Los secretos escalan por empresa.** `secret_arn_certificado` es por RUC (§5.2), no dos
+  en total. Son 0.40 USD por cada cliente que entra. Con 100 empresas son 40 USD/mes.
+  Alternativa a evaluar cuando pese: Parameter Store avanzado a 0.05 USD por parámetro,
+  a cambio de perder la rotación gestionada — irrelevante para un certificado que se
+  renueva a mano una vez al año.
+
+**La capa gratuita cambió y la columna «Año 1» ya no aplica a cuentas nuevas.** AWS
+sustituyó los 12 meses clásicos por un plan de **créditos: hasta 200 USD a consumir en
+6 meses**, y la cuenta del plan gratuito **se cierra sola** al agotarse los créditos o al
+vencer el periodo. RDS no figura entre los servicios siempre gratuitos. Para un producto
+con clientes de pago hay que **pasar al plan de pago antes del vencimiento**, no cuando
+llegue: una cuenta que se autocierra con datos tributarios dentro no es una opción.
+
+---
+
+### 4.7 Perfil de costo de la v1
+
+La v1 —un cliente, dos usuarios, **sin integración SUNAT**— no despliega la mitad de la
+arquitectura, y con ella desaparece la mitad del costo.
+
+| Concepto | USD/mes |
+|---|---|
+| RDS `db.t4g.micro` + 20 GB, una zona | ~14 |
+| CloudWatch Logs, retención 30 días | ~0.50 |
+| Route 53, 1 zona | ~0.60 |
+| S3, buckets estáticos y de marca | ~0.30 |
+| API Gateway HTTP API | ~0.05 |
+| CloudFront, Lambda, Cognito, ACM, endpoint S3 de puerta de enlace | 0 |
+| **Total aproximado USD/mes** | **~15** |
+
+**RDS es el 90 % de la factura.** Tres palancas, de menor a mayor incomodidad:
+
+1. **Sin RDS en desarrollo.** PostgreSQL en contenedor local; RDS solo en producción.
+   Una segunda instancia duplica la factura exacta. Es el ahorro mayor y no cuesta nada.
+2. **Parada programada fuera de horario.** Baja a ~8 USD, con dos peros: AWS reinicia sola
+   cualquier instancia detenida más de 7 días, y cualquier corte a deshora es un problema
+   de servicio ante un cliente que paga.
+3. **Instancia reservada a un año**, cuando la permanencia esté confirmada.
+
+**Lo que no cambia con el volumen.** El piso es fijo y el costo marginal por comprobante es
+cero. A 5 000 comprobantes/mes son 0.008 USD por comprobante; a 50 000, 0.0008. Es lo que
+hace defendible «comprobantes ilimitados» como argumento comercial — y lo que convierte
+DT-12 en una decisión de margen, no de arquitectura.
+
+**Controles obligatorios antes del primer despliegue** (además de los de §4.6): presupuesto
+de AWS Budgets con alerta al 80 % de un tope de 30 USD.
+
+---
+
+### 4.8 Consecuencias de una Lambda sin salida a internet
+
+En la v1 no hay instancia NAT, porque nada necesita salir. Eso no es gratis: **una Lambda en
+subred privada sin NAT no alcanza internet ni las APIs de AWS.** De ahí salen tres
+decisiones que hay que respetar o el ahorro se evapora.
+
+**El endpoint de S3 es obligatorio y es gratuito.** Sin un endpoint de puerta de enlace, la
+Lambda no puede leer ni escribir en S3. Se crea explícitamente y no cuesta nada.
+
+**Las credenciales de la base van como variables de entorno cifradas con KMS**, no en
+Parameter Store ni en Secrets Manager. Lambda las descifra antes de ejecutar el código, sin
+tráfico de red. Llamar a esos servicios desde subred privada exigiría un **endpoint de
+interfaz a ~0.01 USD/hora (~7.30 USD/mes)** — más caro que la instancia NAT que se evitó.
+
+**La administración de usuarios la hace el SPA contra Cognito, no el backend.** Crear o
+desactivar un usuario es una operación de identidad, no de negocio, y hacerla desde la
+Lambda obligaría al mismo endpoint de interfaz. Aplica igual a cualquier servicio externo
+que se sume después: enviar correo por SES desde la Lambda reabre el problema.
 
 Controles para que no se dispare:
 
@@ -343,8 +428,10 @@ Controles para que no se dispare:
 |---|---|---|
 | `empresa` | `id`, `ruc` (UNIQUE), `razon_social`, `nombre_comercial`, `domicilio_fiscal`, `secret_arn_certificado`, `usuario_sol`, `modo_sunat` (beta/prod) | `ruc` único global. `secret_arn_certificado` es una referencia, **nunca el certificado** |
 | `sucursal` | `empresa_id`, `codigo`, `direccion`, `ubigeo` | UNIQUE(`empresa_id`,`codigo`) |
-| `usuario` | `cognito_sub` (UNIQUE), `email`, `nombre`, `activo` | Global, no por empresa |
-| `usuario_empresa` | `usuario_id`, `empresa_id`, `rol_id` | UNIQUE(`usuario_id`,`empresa_id`). Habilita que un contador opere varios RUC |
+| `cuenta` | `id`, `nombre`, `plan`, `estado_suscripcion`, `permisos_version` | La **suscripción cuelga de la cuenta, no de la empresa**: una cuenta puede tener varios RUC. `permisos_version` se incrementa al tocar cualquier rol y permite cachear permisos en memoria del contenedor sin servirlos rancios |
+| `usuario` | `cuenta_id`, `cognito_sub` (UNIQUE), `email`, `nombre`, `activo` | Pertenece a una cuenta. `cognito_sub` es la **única** referencia al proveedor de identidad |
+| `cuenta_administrador` | `cuenta_id`, `usuario_id` | Quien factura, crea empresas, asigna usuarios y gestiona roles. **Constraint: no puede quedar vacía.** No se modela como rol de la matriz por tres razones: existe antes que cualquier empresa, gobierna la facturación —que no es un módulo—, y necesita ese invariante que la matriz no puede expresar |
+| `usuario_empresa` | `usuario_id`, `empresa_id`, `rol_id`, `sucursal_id` (NULL = todas) | UNIQUE(`usuario_id`,`empresa_id`,`sucursal_id`). El alcance por sucursal es lo que permite «Ventas solo en Miraflores»: quien atiende un local no debe poder cambiarse a otro, porque eso decide la serie del comprobante y qué almacén descarga |
 | `rol` / `permiso` / `rol_permiso` | `codigo`, `modulo`, `accion` | Permiso por módulo **y acción**: registrar ≠ aprobar ≠ anular |
 | `auditoria` | `empresa_id`, `usuario_id`, `entidad`, `entidad_id`, `accion`, `datos_antes` (JSONB), `datos_despues`, `ip`, `creado_en` | Índice en (`empresa_id`,`entidad`,`entidad_id`). **Append-only**, sin UPDATE ni DELETE |
 
@@ -428,6 +515,60 @@ edge DET -> MOV "descarga stock"
 edge DOC -> CPE "1 a 1"
 edge SER -> DOC "asigna numero"
 ```
+
+---
+
+### 5.8 Política de almacenamiento
+
+El criterio **no es quién produjo el archivo, sino si se puede reconstruir** y si sus bytes
+exactos tienen valor probatorio. Un PDF de kardex lo produce Ondexia y no vale nada
+guardarlo.
+
+| | Qué es | Qué se hace | Ejemplos |
+|---|---|---|---|
+| **A** | Reproducible sin pérdida desde los datos | **No se almacena** | PDF de cotización, nota de preventa, orden de compra y de servicio, kardex, reportes, listados, y la representación impresa de cualquier comprobante — SUNAT considera auténtico el XML, no el papel |
+| **B** | Su valor está en los bytes exactos | **Inmutable, retención legal** | XML firmado del comprobante, del resumen diario y de la comunicación de baja |
+| **C** | Lo produjo un tercero | **Inmutable, retención legal** | CDR de SUNAT, ticket del resumen diario, y el XML y CDR de comprobantes **recibidos** de proveedores |
+| **D** | Insumo para reproducir la categoría A | **Versionado, nunca sobrescrito** | Logo e imágenes de marca por empresa |
+
+**La prueba, en tres preguntas.** ¿Se reconstruye byte a byte desde los datos? No se guarda.
+¿Su valor está en la firma, o lo produjo alguien ajeno? Inmutable. ¿Sirve para reconstruir
+algo de la categoría A? Versionado. Lo que no cae en ninguna, no entra.
+
+**Por qué B no admite excepción.** La firma XAdES cubre bytes exactos. Volver a serializar
+los mismos datos cambia el orden de los atributos, los espacios en blanco o los prefijos de
+espacios de nombres; la firma deja de validar y lo que queda no es el documento que SUNAT
+aceptó, sino otro parecido. El CDR ni siquiera es nuestro.
+
+**Por qué D tampoco es mutable.** Si un cliente reemplaza su logo y se regenera el PDF de
+una cotización del año pasado, se reescribe la historia en silencio: sale un documento que
+nunca existió así. Cada documento registra **con qué versión de logo se compuso**.
+
+**La consecuencia que alcanza al modelo, no al almacenamiento.** Renunciar a guardar el
+archivo obliga a congelar el registro: si se envía una cotización y después alguien edita
+sus líneas, regenerar produce un papel distinto del que recibió el cliente. **O se congela
+el archivo, o se congela el registro.** Ondexia elige lo segundo, que es más limpio y más
+barato, y eso extiende el principio de §5.1 —los documentos emitidos son inmutables— a
+**todo documento entregado a un tercero**: corregirlo genera una versión nueva, la anterior
+queda como estaba.
+
+**Sin adjuntos.** Ondexia no es un repositorio documental. Aceptar archivos ajenos —el
+escaneo de la factura del proveedor es la petición que aparecerá en Compras— arrastra
+custodia, retención, análisis antivírico y responsabilidad sobre contenido que no
+producimos. Los comprobantes electrónicos recibidos son otra cosa: son documentos
+tributarios con estructura conocida que el sistema valida, y entran por la categoría C.
+
+**El único archivo que se acepta subir es el logo, y trae un riesgo real.** Un SVG puede
+contener JavaScript; servido desde el origen de la aplicación es XSS almacenado, con el
+vector «suba su logo». Tres controles: aceptar solo PNG y JPG **verificando los bytes de
+cabecera**, no la extensión ni el `Content-Type` que pone el cliente; si algún día se admite
+SVG, sanearlo en el servidor eliminando `script`, `foreignObject` y atributos `on*`; y en
+todo caso **servir estos archivos desde `cdn.ondexia.com`**, nunca desde el origen de la
+aplicación ni con el bucket público (dominios §3).
+
+**Optimización para más adelante.** B y C se escriben una vez y se leen casi nunca —solo en
+una fiscalización—. Cuando el volumen lo justifique, una regla de ciclo de vida hacia una
+clase de acceso infrecuente recorta el costo. Hoy son céntimos.
 
 ---
 
@@ -601,10 +742,50 @@ Lo que hace viable esa migración sin castigo es que **la arquitectura ya la con
 
 ### 8.1 Autenticación y autorización
 
-- Cognito emite JWT; API Gateway lo valida antes de invocar la Lambda.
-- El token porta `cognito_sub`; **la empresa activa y los permisos se resuelven en la base**, no en el token. Un token no debe poder ampliar su propio alcance.
-- Autorización por `(modulo, accion)`. Anular un comprobante es un permiso propio, separado de emitirlo.
+**La autenticación se compra; la autorización se construye.** Son problemas distintos y la
+respuesta es opuesta. Autenticar bien —hash de contraseñas, recuperación con token de un
+solo uso, límite de intentos, defensa contra relleno de credenciales, prevención de
+enumeración de cuentas, TOTP, rotación de refresh tokens— es meses de trabajo cuyo modo de
+fallo es **silencioso**: funciona perfectamente hasta el día en que alguien entra. Autorizar
+es lógica de dominio y nadie puede escribirla por nosotros.
+
+- Cognito emite JWT; **API Gateway lo valida de forma nativa**, sin autorizador Lambda. Un
+  autorizador propio añadiría un arranque en frío a cada petición y código que mantener,
+  y no haría falta: los permisos finos no se resuelven ahí.
+- El token porta **identidad y nada más**. La empresa activa y los permisos se resuelven en
+  la base **en cada petición**. Un JWT es válido hasta que caduca, y revocar «anular
+  comprobante» no puede esperar a la renovación. Además, ~50 submódulos × 3-5 acciones son
+  unos 200 permisos: no caben en una cabecera que viaja en cada llamada.
+- Autorización por `(modulo, accion)`. Anular un comprobante es un permiso propio, separado
+  de emitirlo. **Denegar por defecto**, comprobado en el endpoint. Que el menú del frontend
+  oculte lo que no corresponde es comodidad, no seguridad: la API se puede llamar sin pasar
+  por el SPA.
+- **El contexto que envía el cliente no se cree nunca.** El frontend manda «empresa activa»;
+  el servidor verifica en cada petición que ese usuario tiene asignación a esa empresa. No
+  es celo de manual: la empresa determina **con qué certificado digital se firma**, y un
+  `empresa_id` falsificado no sería solo ver datos ajenos, sería emitir un comprobante
+  firmado con el certificado de otro RUC.
 - Row Level Security de PostgreSQL como segunda barrera del aislamiento multiempresa.
+
+**Quién puede moverse entre empresas.** El administrador de la cuenta es el único que
+**concede** el acceso; cualquier usuario puede **tener** varias empresas si se lo
+asignaron. Separarlo así evita el caso que rompe la regla estricta: un contador en planilla
+que lleva tres RUC del mismo grupo necesita las tres empresas sin heredar la facturación ni
+la gestión de usuarios. El selector de empresa aparece cuando hay más de una asignación, no
+cuando el usuario es administrador.
+
+**Grupos de usuarios separados.** El personal de Ondexia —back-office, soporte— vive en un
+grupo de usuarios de Cognito **distinto** del de los inquilinos. Con un grupo compartido, un
+usuario nuestro y uno de un cliente se diferencian solo por un claim, y un error al
+comprobarlo expone a todos los clientes. Con grupos separados ese error deja de ser
+posible. **Crear el grupo del personal desde el principio**, aunque el back-office no
+exista: migrar identidades en producción es caro.
+
+> **Trampa de RLS con Lambda — la más peligrosa del diseño.**
+> RLS necesita una variable de sesión con el inquilino actual, y Lambda **reutiliza
+> conexiones** entre invocaciones. Si se fija y no se restablece, la petición del cliente B
+> puede ejecutarse bajo el inquilino del cliente A: exactamente la fuga que RLS venía a
+> evitar. Se fija **dentro de la transacción**, siempre, y nunca se asume que quedó limpia.
 
 ### 8.2 Certificados digitales
 
@@ -802,6 +983,7 @@ Sustitutos admisibles, en orden de valor:
 | 0.5 | 2026-08-06 | R-13 (equipo unipersonal). §7.1 reabre DT-12 con recomendación de proveedor de emisión. §12.1 sustitutos del peer review. Bus factor 1 asumido | — |
 | 0.6 | 2026-08-06 | Corrección de versiones desactualizadas (Angular 19→22, PostgreSQL 16→17/18, Java y Spring Boot despinneados). §4.3 nueva: política de versiones por criterio, no por número | — |
 | 0.7 | 2026-08-06 | Versiones confirmadas: Angular 22, Java 21 LTS, Spring Boot sobre Java 21, PostgreSQL en RDS | — |
+| 0.8 | 2026-08-10 | §4.6 corregido: faltaban WAF, IP pública IPv4 y el escalado de secretos por empresa; el piso pasa de ~24 a ~40 USD/mes. La capa gratuita cambió a créditos. §4.7 nueva: costo de la v1 (~15). §4.8 nueva: consecuencias de la Lambda sin NAT. §5.2 ampliado con `cuenta`, `cuenta_administrador`, alcance por sucursal y `permisos_version`. §5.8 nueva: política de almacenamiento por reproducibilidad. §8.1 reescrito: contexto no confiable, grupos de usuarios separados, trampa de RLS con Lambda. DT-05 corregida (dato de capa gratuita caduco) | — |
 
 ---
 
