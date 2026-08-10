@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { TablaDatosComponent, ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { EstadoComprobanteComponent, EstadoComprobante } from '../../../shared/components/comunes/estado-comprobante/estado-comprobante.component';
 
@@ -25,7 +25,7 @@ interface Resumen extends Record<string, unknown> {
  */
 @Component({
   selector: 'app-resumen-diario',
-  imports: [PageBreadcrumbComponent, TablaDatosComponent, EstadoComprobanteComponent],
+  imports: [EncabezadoPaginaComponent, TablaDatosComponent, EstadoComprobanteComponent],
   templateUrl: './resumen-diario.component.html',
 })
 export class ResumenDiarioComponent {

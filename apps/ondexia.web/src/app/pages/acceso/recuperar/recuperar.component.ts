@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { AuthPageLayoutComponent } from '../../../shared/layout/auth-page-layout/auth-page-layout.component';
+import { MarcoAccesoComponent } from '../../../shared/layout/marco-acceso/marco-acceso.component';
 
 /**
  * Recuperación de contraseña.
@@ -12,7 +12,7 @@ import { AuthPageLayoutComponent } from '../../../shared/layout/auth-page-layout
  */
 @Component({
   selector: 'app-recuperar',
-  imports: [AuthPageLayoutComponent, ReactiveFormsModule, RouterModule],
+  imports: [MarcoAccesoComponent, ReactiveFormsModule, RouterModule],
   templateUrl: './recuperar.component.html',
 })
 export class RecuperarComponent {

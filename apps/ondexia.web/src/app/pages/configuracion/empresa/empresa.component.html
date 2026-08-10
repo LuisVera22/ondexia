@@ -1,5 +1,5 @@
 <div>
-  <app-page-breadcrumb pageTitle="Datos de la empresa" />
+  <app-encabezado-pagina titulo="Datos de la empresa" />
 
   @if (guardado) {
   <div class="mb-5 flex items-start gap-3 rounded-xl border border-success-200 bg-success-50 p-4 dark:border-success-500/30 dark:bg-success-500/10">
@@ -30,7 +30,7 @@
             type="text"
             formControlName="ruc"
             maxlength="11"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm tabular-nums text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 dark:border-gray-700 dark:text-white/90 dark:disabled:bg-white/[0.03]"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm tabular-nums text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 dark:border-gray-700 dark:text-white/90 dark:disabled:bg-white/[0.03]"
           />
           @if (tieneComprobantesEmitidos) {
           <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
@@ -47,7 +47,7 @@
             id="razonSocial"
             type="text"
             formControlName="razonSocial"
-            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-theme-xs focus:outline-hidden focus:ring-3 dark:text-white/90"
+            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:outline-hidden focus:ring-3 dark:text-white/90"
             [class]="controles.razonSocial.touched && controles.razonSocial.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.razonSocial.touched && controles.razonSocial.invalid) {
@@ -63,7 +63,7 @@
             id="nombreComercial"
             type="text"
             formControlName="nombreComercial"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
           />
         </div>
       </div>
@@ -85,26 +85,26 @@
             id="domicilioFiscal"
             type="text"
             formControlName="domicilioFiscal"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
           />
         </div>
 
         <div>
           <label for="departamento" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Departamento</label>
           <input id="departamento" type="text" formControlName="departamento"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
         </div>
 
         <div>
           <label for="provincia" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Provincia</label>
           <input id="provincia" type="text" formControlName="provincia"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
         </div>
 
         <div>
           <label for="distrito" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Distrito</label>
           <input id="distrito" type="text" formControlName="distrito"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
         </div>
 
         <div>
@@ -112,7 +112,7 @@
             Ubigeo <span class="text-error-500">*</span>
           </label>
           <input id="ubigeo" type="text" formControlName="ubigeo" maxlength="6"
-            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm tabular-nums text-gray-800 shadow-theme-xs focus:outline-hidden focus:ring-3 dark:text-white/90"
+            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm tabular-nums text-gray-800 shadow-apoyo focus:outline-hidden focus:ring-3 dark:text-white/90"
             [class]="controles.ubigeo.touched && controles.ubigeo.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'" />
           @if (controles.ubigeo.touched && controles.ubigeo.invalid) {
           <p class="mt-1.5 text-xs text-error-500">El ubigeo debe tener 6 dígitos.</p>
@@ -131,7 +131,7 @@
         <div>
           <label for="telefono" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Teléfono</label>
           <input id="telefono" type="tel" formControlName="telefono"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
         </div>
 
         <div>
@@ -139,7 +139,7 @@
             Correo de facturación
           </label>
           <input id="correo" type="email" formControlName="correo"
-            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-theme-xs focus:outline-hidden focus:ring-3 dark:text-white/90"
+            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:outline-hidden focus:ring-3 dark:text-white/90"
             [class]="controles.correo.touched && controles.correo.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'" />
           @if (controles.correo.touched && controles.correo.invalid) {
           <p class="mt-1.5 text-xs text-error-500">El correo no tiene un formato válido.</p>

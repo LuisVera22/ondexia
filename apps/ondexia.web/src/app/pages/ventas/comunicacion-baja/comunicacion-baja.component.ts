@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { TablaDatosComponent, ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
 
@@ -16,7 +16,7 @@ import { ConfirmacionComponent } from '../../../shared/components/comunes/confir
  */
 @Component({
   selector: 'app-comunicacion-baja',
-  imports: [PageBreadcrumbComponent, TablaDatosComponent, ConfirmacionComponent, FormsModule],
+  imports: [EncabezadoPaginaComponent, TablaDatosComponent, ConfirmacionComponent, FormsModule],
   templateUrl: './comunicacion-baja.component.html',
 })
 export class ComunicacionBajaComponent {

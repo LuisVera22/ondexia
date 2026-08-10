@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 
 /**
  * Acceso denegado por permisos insuficientes.
@@ -11,7 +11,7 @@ import { PageBreadcrumbComponent } from '../../../shared/components/common/page-
  */
 @Component({
   selector: 'app-sin-permisos',
-  imports: [RouterModule, PageBreadcrumbComponent],
+  imports: [RouterModule, EncabezadoPaginaComponent],
   templateUrl: './sin-permisos.component.html',
 })
 export class SinPermisosComponent {}

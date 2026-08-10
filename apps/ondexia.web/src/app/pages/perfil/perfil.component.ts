@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { EncabezadoPaginaComponent } from '../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 
 /**
  * Mi perfil.
@@ -13,7 +13,7 @@ import { PageBreadcrumbComponent } from '../../shared/components/common/page-bre
  */
 @Component({
   selector: 'app-perfil',
-  imports: [PageBreadcrumbComponent, ReactiveFormsModule, FormsModule],
+  imports: [EncabezadoPaginaComponent, ReactiveFormsModule, FormsModule],
   templateUrl: './perfil.component.html',
 })
 export class PerfilComponent {

@@ -1,5 +1,5 @@
 <div>
-  <app-page-breadcrumb pageTitle="Panel principal" />
+  <app-encabezado-pagina titulo="Panel principal" />
 
   <!-- Requiere atención -->
   @if (hayPendientes) {
@@ -9,7 +9,7 @@
     <div class="grid grid-cols-1 gap-3 md:grid-cols-3">
       @for (pendiente of pendientes; track pendiente.titulo) {
       <a [routerLink]="pendiente.ruta"
-        class="flex items-start gap-3 rounded-2xl border p-4 transition hover:shadow-theme-xs"
+        class="flex items-start gap-3 rounded-2xl border p-4 transition hover:shadow-apoyo"
         [class]="clasesSeveridad(pendiente.severidad)">
         <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold tabular-nums"
           [class]="clasesCantidad(pendiente.severidad)">

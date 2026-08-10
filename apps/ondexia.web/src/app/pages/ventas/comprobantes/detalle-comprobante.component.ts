@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { EstadoComprobanteComponent, EstadoComprobante } from '../../../shared/components/comunes/estado-comprobante/estado-comprobante.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
 
@@ -23,7 +23,7 @@ interface EventoTrazabilidad {
  */
 @Component({
   selector: 'app-detalle-comprobante',
-  imports: [PageBreadcrumbComponent, EstadoComprobanteComponent, ConfirmacionComponent, RouterModule],
+  imports: [EncabezadoPaginaComponent, EstadoComprobanteComponent, ConfirmacionComponent, RouterModule],
   templateUrl: './detalle-comprobante.component.html',
 })
 export class DetalleComprobanteComponent {

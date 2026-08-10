@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
 
 /**
@@ -12,7 +12,7 @@ import { DesplegableComponent, OpcionDesplegable } from '../../../shared/compone
  */
 @Component({
   selector: 'app-comprobantes',
-  imports: [PageBreadcrumbComponent, ReactiveFormsModule, DesplegableComponent],
+  imports: [EncabezadoPaginaComponent, ReactiveFormsModule, DesplegableComponent],
   templateUrl: './comprobantes.component.html',
 })
 export class ComprobantesComponent {

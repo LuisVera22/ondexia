@@ -1,0 +1,28 @@
+<div class="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-6 py-16 text-center dark:bg-gray-900">
+  <a routerLink="/" class="mb-10" aria-label="Ondexia">
+    <img class="dark:hidden" src="/images/logo/logo.svg" alt="Ondexia" width="150" height="40" />
+    <img class="hidden dark:block" src="/images/logo/logo-dark.svg" alt="Ondexia" width="150" height="40" />
+  </a>
+
+  <p class="text-6xl font-semibold tabular-nums text-brand-500">404</p>
+
+  <h1 class="mt-4 text-2xl font-semibold text-gray-800 dark:text-white/90">
+    Esta página no existe
+  </h1>
+
+  <p class="mt-2 max-w-md text-gray-500 dark:text-gray-400">
+    La dirección no corresponde a ninguna vista del sistema. Puede que el enlace
+    esté roto o que la dirección se haya escrito mal.
+  </p>
+
+  <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+    <a routerLink="/"
+      class="flex h-11 items-center rounded-lg bg-brand-500 px-5 font-medium text-white transition hover:bg-brand-600">
+      Ir al panel
+    </a>
+    <a routerLink="/ventas/facturas"
+      class="flex h-11 items-center rounded-lg border border-gray-300 px-5 font-medium text-gray-700 transition hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+      Ver comprobantes
+    </a>
+  </div>
+</div>

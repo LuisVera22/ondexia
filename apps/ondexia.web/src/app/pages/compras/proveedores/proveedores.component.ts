@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { TablaDatosComponent, ColumnaTabla, OrdenTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 
 /**
@@ -16,7 +16,7 @@ import { TablaDatosComponent, ColumnaTabla, OrdenTabla } from '../../../shared/c
  */
 @Component({
   selector: 'app-proveedores',
-  imports: [PageBreadcrumbComponent, TablaDatosComponent, FormsModule],
+  imports: [EncabezadoPaginaComponent, TablaDatosComponent, FormsModule],
   templateUrl: './proveedores.component.html',
 })
 export class ProveedoresComponent {

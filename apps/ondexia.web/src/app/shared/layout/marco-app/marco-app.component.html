@@ -1,0 +1,21 @@
+<!--
+  El estado del menú viaja como clase `menu-colapsado`, y de ella cuelgan el
+  ancho del menú y el margen del contenido, definidos juntos en la capa de
+  componentes de styles.css. Ver allí por qué no se resuelve con utilidades.
+-->
+<div class="marco min-h-screen" [class.menu-colapsado]="!menu.anchoCompleto()">
+  <app-menu-lateral />
+
+  <div class="marco-contenido flex min-h-screen flex-col">
+    <app-barra-superior />
+
+    <!--
+      El ancho se limita a 1536 px: una tabla de comprobantes estirada a un
+      monitor ultraancho obliga a recorrer con la vista media pantalla para
+      relacionar el número de una fila con su importe.
+    -->
+    <main class="mx-auto w-full max-w-(--breakpoint-2xl) flex-1 p-4 md:p-6">
+      <router-outlet />
+    </main>
+  </div>
+</div>

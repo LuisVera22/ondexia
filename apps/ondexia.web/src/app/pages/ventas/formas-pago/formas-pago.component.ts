@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { TablaDatosComponent, ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
 
@@ -11,7 +11,7 @@ import { ConfirmacionComponent } from '../../../shared/components/comunes/confir
  */
 @Component({
   selector: 'app-formas-pago',
-  imports: [PageBreadcrumbComponent, TablaDatosComponent, ConfirmacionComponent],
+  imports: [EncabezadoPaginaComponent, TablaDatosComponent, ConfirmacionComponent],
   templateUrl: './formas-pago.component.html',
 })
 export class FormasPagoComponent {

@@ -1,7 +1,7 @@
 import { Component, Input, inject } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { PageBreadcrumbComponent } from '../../common/page-breadcrumb/page-breadcrumb.component';
+import { EncabezadoPaginaComponent } from '../../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { TablaDatosComponent, ColumnaTabla, OrdenTabla } from '../tabla-datos/tabla-datos.component';
 import { EstadoComprobanteComponent, EstadoComprobante } from '../estado-comprobante/estado-comprobante.component';
 import { DesplegableComponent, OpcionDesplegable } from '../desplegable/desplegable.component';
@@ -45,7 +45,7 @@ export interface ConfiguracionListado {
   imports: [
     FormsModule,
     RouterModule,
-    PageBreadcrumbComponent,
+    EncabezadoPaginaComponent,
     TablaDatosComponent,
     EstadoComprobanteComponent,
     DesplegableComponent,
