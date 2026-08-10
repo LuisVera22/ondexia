@@ -47,7 +47,7 @@ La complejidad del CI/CD no la causa el monorepo: la causa **tener cinco despleg
 | Regla | Valor | Razón |
 |---|---|---|
 | Formato de carpetas | **`ondexia.<modulo>`** (punto como separador) | Convención adoptada. Aplicarla de forma uniforme importa más que cuál se eligió |
-| Traducción en fronteras | El punto **no se propaga** a `artifactId`, paquetes npm, buckets S3 ni ids de CDK | Esos ecosistemas usan guion. `apps/ondexia.web` contiene el paquete npm `ondexia-web`; `apps/ondexia.api` produce el artefacto `ondexia-api`. La carpeta y el identificador técnico no tienen por qué coincidir, pero la equivalencia debe ser mecánica: **punto en carpeta ⇄ guion en identificador** |
+| Traducción en fronteras | El punto **no se propaga** a `artifactId`, paquetes npm, buckets S3 ni nombres de recurso de Terraform | Esos ecosistemas usan guion. `apps/ondexia.web` contiene el paquete npm `ondexia-web`; `apps/ondexia.api` produce el artefacto `ondexia-api`. La carpeta y el identificador técnico no tienen por qué coincidir, pero la equivalencia debe ser mecánica: **punto en carpeta ⇄ guion en identificador** |
 | Idioma | **Inglés para lo técnico, español para lo del dominio** | `api`, `infra`, `contracts` son técnicos. `facturacion`, `comprobante`, `guia-remision` son términos fiscales peruanos que **no se traducen**: "boleta de venta" no tiene equivalente en inglés, y traducirla introduce ambigüedad en un dominio normado |
 | Paquetes Java | `com.ondexia.<modulo>` | Convención de dominio invertido sobre `ondexia.com` |
 | Tablas y columnas | `snake_case` en español | Ya fijado en el DTE §5 |
@@ -66,7 +66,7 @@ ondexia/
 │   ├── ondexia.landing/        Astro · marketing                       [vacío]
 │   └── ondexia.portal/         Portal público de comprobantes          [vacío]
 ├── ondexia.contracts/          OpenAPI + catálogos SUNAT                [vacío]
-├── ondexia.infra/              AWS CDK (TypeScript)                     [vacío]
+├── ondexia.infra/              Terraform                                [v1 escrita]
 ├── ondexia.docs/               Documentación del proceso COE QE    ✅
 ├── ondexia.tools/              Scripts y utilidades                     [vacío]
 ├── ia-skills/                  Skills COE QE · repo aparte, excluido del control de versiones
