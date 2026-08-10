@@ -1,0 +1,369 @@
+<mxfile host="Electron" pages="2">
+  <diagram name="v1 — primera version" id="ondexia-arq-v1">
+    <mxGraphModel dx="1030" dy="722" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="t-titulo" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=middle;fontSize=16;fontStyle=1;fontColor=#232F3E;" value="Ondexia  ·  v1  ·  un cliente, dos usuarios, sin integración SUNAT" vertex="1">
+          <mxGeometry height="30" width="700" x="150" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="grp-aws" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#232F3E;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=12;spacingTop=6;fontSize=13;fontStyle=1;fontColor=#232F3E;" value="AWS  ·  us-east-1" vertex="1">
+          <mxGeometry height="690" width="900" x="150" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="grp-vpc" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#8C4FFF;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=12;spacingTop=6;fontSize=12;fontStyle=1;fontColor=#8C4FFF;" value="VPC  ·  sin salida a internet" vertex="1">
+          <mxGeometry height="240" width="460" x="560" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="grp-priv" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F9FC;strokeColor=#00A4A6;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontSize=11;fontColor=#00A4A6;" value="Subred privada" vertex="1">
+          <mxGeometry height="175" width="420" x="580" y="515" as="geometry" />
+        </mxCell>
+        <mxCell id="act" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=11;" value="Usuario de la empresa&#xa;(2 usuarios)" vertex="1">
+          <mxGeometry height="60" width="30" x="55" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="r53" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#8C4FFF;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.route_53;" value="Route 53&#xa;1 zona alojada" vertex="1">
+          <mxGeometry height="50" width="50" x="205" y="285" as="geometry" />
+        </mxCell>
+        <mxCell id="cf-app" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#8C4FFF;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudfront;" value="CloudFront&#xa;app.ondexia.com" vertex="1">
+          <mxGeometry height="50" width="50" x="345" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="s3-app" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.bucket;" value="S3&#xa;SPA Angular" vertex="1">
+          <mxGeometry height="48" width="46" x="487" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="cf-land" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#8C4FFF;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudfront;" value="CloudFront&#xa;ondexia.com" vertex="1">
+          <mxGeometry height="50" width="50" x="345" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="s3-land" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.bucket;" value="S3&#xa;Landing Astro" vertex="1">
+          <mxGeometry height="48" width="46" x="487" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="cognito" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#DD344C;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cognito;" value="Cognito&#xa;grupo de inquilinos" vertex="1">
+          <mxGeometry height="50" width="50" x="660" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="apigw" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.api_gateway;" value="API Gateway HTTP&#xa;api.ondexia.com" vertex="1">
+          <mxGeometry height="50" width="50" x="620" y="335" as="geometry" />
+        </mxCell>
+        <mxCell id="s3-docs" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.bucket;" value="S3&#xa;PDF generados" vertex="1">
+          <mxGeometry height="48" width="46" x="877" y="286" as="geometry" />
+        </mxCell>
+        <mxCell id="cw" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudwatch_2;" value="CloudWatch Logs&#xa;retención 30 días" vertex="1">
+          <mxGeometry height="50" width="50" x="205" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="lambda" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#ED7100;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" value="Lambda API&#xa;Spring Boot + SnapStart" vertex="1">
+          <mxGeometry height="50" width="50" x="620" y="555" as="geometry" />
+        </mxCell>
+        <mxCell id="rds" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#C925D1;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.rds;" value="RDS PostgreSQL&#xa;db.t4g.micro  ·  1 zona" vertex="1">
+          <mxGeometry height="50" width="50" x="790" y="555" as="geometry" />
+        </mxCell>
+        <mxCell id="vpce" parent="1" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#8C4FFF;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.endpoints;" value="Endpoint S3&#xa;puerta de enlace  ·  0 USD" vertex="1">
+          <mxGeometry height="50" width="50" x="930" y="555" as="geometry" />
+        </mxCell>
+        <mxCell id="v1e1" edge="1" parent="1" source="act" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="r53">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="v1e1l" connectable="0" parent="v1e1" style="edgeLabel;html=1;fontSize=10;" value="DNS" vertex="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="v1e2" edge="1" parent="1" source="r53" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="cf-app">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="v1e3" edge="1" parent="1" source="r53" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="cf-land">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="v1e4" edge="1" parent="1" source="cf-app" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="s3-app">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="v1e4l" connectable="0" parent="v1e4" style="edgeLabel;html=1;fontSize=10;" value="OAC" vertex="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="v1e5" edge="1" parent="1" source="cf-land" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="s3-land">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="v1e6" edge="1" parent="1" source="act" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" target="cognito">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="120" y="235" />
+              <mxPoint x="120" y="100" />
+              <mxPoint x="685" y="100" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="v1e6l" connectable="0" parent="v1e6" style="edgeLabel;html=1;fontSize=10;" value="login OIDC + PKCE  ·  y alta de usuarios" vertex="1">
+          <mxGeometry relative="1" x="0.35" as="geometry" />
+        </mxCell>
+        <mxCell id="v1e7" edge="1" parent="1" source="act" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="apigw">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="120" y="310" />
+              <mxPoint x="120" y="360" />
+              <mxPoint x="685" y="360" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="v1e7l" connectable="0" parent="v1e7" style="edgeLabel;html=1;fontSize=10;" value="HTTPS  ·  JWT" vertex="1">
+          <mxGeometry relative="1" x="-0.5" as="geometry" />
+        </mxCell>
+        <mxCell id="v1e8" edge="1" parent="1" source="apigw" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;" target="cognito">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="v1e8l" connectable="0" parent="v1e8" style="edgeLabel;html=1;fontSize=10;" value="valida el JWT&#xa;authorizer nativo" vertex="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="v1e9" edge="1" parent="1" source="apigw" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="lambda">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="v1e10" edge="1" parent="1" source="lambda" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="rds">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="v1e10l" connectable="0" parent="v1e10" style="edgeLabel;html=1;fontSize=10;" value="RLS por inquilino" vertex="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="v1e11" edge="1" parent="1" source="lambda" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="vpce">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="645" y="665" />
+              <mxPoint x="955" y="665" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="v1e12" edge="1" parent="1" source="vpce" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="s3-docs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="v1e13" edge="1" parent="1" source="lambda" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;" target="cw">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="645" y="730" />
+              <mxPoint x="230" y="730" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="fuera" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F9FAFB;strokeColor=#98A2B3;dashed=1;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontSize=11;fontColor=#475467;" value="Fuera del alcance de la v1&#xa;&#xa;·  SUNAT  —  canales CPE y GRE&#xa;·  Instancia NAT + IP fija&#xa;·  Secrets Manager  —  certificado digital&#xa;·  SQS + EventBridge  —  cola de emisión&#xa;·  WAF + portal público ver.ondexia.com&#xa;·  Back-office admin.ondexia.com&#xa;   con grupo de usuarios propio&#xa;&#xa;Todo esto entra al decidir DT-12.&#xa;Ver la página «Objetivo»." vertex="1">
+          <mxGeometry height="270" width="290" x="1080" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="coste" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F6FEF9;strokeColor=#6CE9A6;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontSize=11;fontColor=#05603A;" value="Coste estimado&#xa;&#xa;RDS db.t4g.micro + 20 GB      ~14&#xa;CloudWatch                                ~0.50&#xa;Route 53, 1 zona                       ~0.60&#xa;S3, 3 buckets                            ~0.30&#xa;API Gateway                              ~0.05&#xa;CloudFront, Lambda, Cognito         0&#xa;&#xa;Total                                        ~15 USD/mes&#xa;&#xa;No calificamos a la capa gratuita clásica:&#xa;100 USD de crédito hasta el 23-10-2026." vertex="1">
+          <mxGeometry height="250" width="290" x="1080" y="430" as="geometry" />
+        </mxCell>
+        <mxCell id="v1n1" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#026AA2;fillColor=#F0F9FF;strokeColor=#B9E6FE;spacing=8;" value="Sin salida a internet, y es deliberado.&#xa;La Lambda vive en subred privada sin NAT porque nada en la v1 necesita salir. Alcanza S3 por un&#xa;endpoint de puerta de enlace, que no cuesta nada. Un endpoint de interfaz —el que haría falta para&#xa;llegar a Parameter Store o a la API de Cognito— cuesta ~7.30 USD al mes, más que la NAT que quitamos." vertex="1">
+          <mxGeometry height="80" width="600" x="150" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="v1n2" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#026AA2;fillColor=#F0F9FF;strokeColor=#B9E6FE;spacing=8;" value="El SPA administra los usuarios contra Cognito, no el backend.&#xa;Crear el segundo usuario es una operación de identidad, no de negocio. Si la hiciera la Lambda&#xa;necesitaría salir a internet, y eso obligaría a pagar el endpoint de interfaz o a reponer la NAT.&#xa;Las credenciales de la base viajan como variables de entorno cifradas con KMS por el mismo motivo." vertex="1">
+          <mxGeometry height="80" width="600" x="770" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="v1n3" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#912018;fillColor=#FEF3F2;strokeColor=#FECDCA;spacing=8;fontStyle=1;" value="Región por reconciliar.&#xa;La documentación dice us-east-1 y la consola está en us-east-2 (Ohio). Hay que decidirlo antes de&#xa;crear el primer recurso: los recursos de una región no se ven desde otra, y mover una RDS con datos&#xa;después es una migración." vertex="1">
+          <mxGeometry height="80" width="600" x="150" y="880" as="geometry" />
+        </mxCell>
+        <mxCell id="v1n4" parent="1" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#7A2E0E;fillColor=#FFFAEB;strokeColor=#FEDF89;spacing=8;" value="Controles obligatorios antes del primer despliegue.&#xa;Presupuesto de AWS Budgets con alerta al 80 % de un tope de 30 USD. Concurrencia reservada de 20 en&#xa;la Lambda y HikariCP con maximum-pool-size 2, que sustituye al RDS Proxy. Retención de logs a 30 días.&#xa;Sin RDS en desarrollo: Postgres en Docker local, o la factura se duplica exacta." vertex="1">
+          <mxGeometry height="80" width="600" x="770" y="880" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="Objetivo — con SUNAT" id="ondexia-arq-objetivo">
+    <mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="grp-aws" value="AWS  ·  us-east-1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#232F3E;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=12;spacingTop=6;fontSize=13;fontStyle=1;fontColor=#232F3E;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="150" y="50" width="1050" height="800" as="geometry" />
+        </mxCell>
+        <mxCell id="grp-vpc" value="VPC" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#8C4FFF;strokeWidth=2;verticalAlign=top;align=left;spacingLeft=12;spacingTop=6;fontSize=12;fontStyle=1;fontColor=#8C4FFF;dashed=0;" vertex="1" parent="1">
+          <mxGeometry x="560" y="390" width="600" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="grp-priv" value="Subred privada  ·  sin ruta a internet" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F9FC;strokeColor=#00A4A6;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontSize=11;fontColor=#00A4A6;" vertex="1" parent="1">
+          <mxGeometry x="580" y="440" width="440" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="grp-pub" value="Subred pública" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F6FBEF;strokeColor=#7AA116;dashed=1;verticalAlign=top;align=left;spacingLeft=10;spacingTop=4;fontSize=11;fontColor=#7AA116;" vertex="1" parent="1">
+          <mxGeometry x="1040" y="440" width="100" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="act-cliente" value="Usuario de&#xa;la empresa" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="50" y="190" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="act-publico" value="Receptor del&#xa;comprobante&#xa;(anónimo)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="50" y="470" width="30" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="r53" value="Route 53" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#8C4FFF;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.route_53;" vertex="1" parent="1">
+          <mxGeometry x="195" y="300" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="cf-app" value="CloudFront&#xa;app.ondexia.com" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#8C4FFF;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudfront;" vertex="1" parent="1">
+          <mxGeometry x="310" y="110" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s3-app" value="S3&#xa;SPA Angular" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.bucket;" vertex="1" parent="1">
+          <mxGeometry x="452" y="110" width="46" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="cf-land" value="CloudFront&#xa;ondexia.com" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#8C4FFF;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudfront;" vertex="1" parent="1">
+          <mxGeometry x="310" y="215" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s3-land" value="S3&#xa;Landing Astro" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.bucket;" vertex="1" parent="1">
+          <mxGeometry x="452" y="215" width="46" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="waf" value="WAF&#xa;límite por IP" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#DD344C;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.waf;" vertex="1" parent="1">
+          <mxGeometry x="195" y="470" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="cf-portal" value="CloudFront&#xa;ver.ondexia.com" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#8C4FFF;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudfront;" vertex="1" parent="1">
+          <mxGeometry x="310" y="470" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="s3-portal" value="S3&#xa;Portal público" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.bucket;" vertex="1" parent="1">
+          <mxGeometry x="452" y="470" width="46" height="48" as="geometry" />
+        </mxCell>
+        <mxCell id="cognito" value="Cognito&#xa;autenticación" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#DD344C;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cognito;" vertex="1" parent="1">
+          <mxGeometry x="600" y="120" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="apigw" value="API Gateway&#xa;api.ondexia.com" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.api_gateway;" vertex="1" parent="1">
+          <mxGeometry x="600" y="290" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="secrets" value="Secrets Manager&#xa;certificado digital" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#DD344C;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.secrets_manager;" vertex="1" parent="1">
+          <mxGeometry x="900" y="120" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="lambda-api" value="Lambda&#xa;API  ·  Spring Boot" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#ED7100;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" vertex="1" parent="1">
+          <mxGeometry x="610" y="490" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="lambda-sunat" value="Lambda&#xa;envío a SUNAT" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#ED7100;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" vertex="1" parent="1">
+          <mxGeometry x="770" y="490" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="rds" value="RDS PostgreSQL&#xa;db.t4g.micro" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#C925D1;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.rds;" vertex="1" parent="1">
+          <mxGeometry x="925" y="490" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="nat" value="Instancia NAT&#xa;t4g.nano  ·  IP fija" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#ED7100;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.ec2;" vertex="1" parent="1">
+          <mxGeometry x="1065" y="490" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sqs" value="SQS&#xa;cola de emisión" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.sqs;" vertex="1" parent="1">
+          <mxGeometry x="390" y="720" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="events" value="EventBridge&#xa;Resumen Diario" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.eventbridge;" vertex="1" parent="1">
+          <mxGeometry x="230" y="720" width="50" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="sunat" value="SUNAT&#xa;&#xa;CPE  ·  SOAP&#xa;GRE  ·  REST + OAuth2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF7E6;strokeColor=#B54708;strokeWidth=2;fontSize=11;fontStyle=1;fontColor=#7A2E0E;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="480" width="130" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="act-cliente" target="r53">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e1l" value="DNS" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="r53" target="cf-app">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="r53" target="cf-land">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="cf-app" target="s3-app">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4l" value="OAC" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="cf-land" target="s3-land">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="act-publico" target="waf">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="waf" target="cf-portal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="cf-portal" target="s3-portal">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" edge="1" parent="1" source="act-cliente" target="cognito">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="130" y="145" />
+              <mxPoint x="130" y="90" />
+              <mxPoint x="625" y="90" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e9l" value="Login  ·  OIDC + PKCE" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e9">
+          <mxGeometry relative="1" x="0.2" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="act-cliente" target="apigw">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="110" y="220" />
+              <mxPoint x="110" y="315" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e10l" value="HTTPS  ·  JWT" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e10">
+          <mxGeometry relative="1" x="-0.4" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;fontSize=10;" edge="1" parent="1" source="apigw" target="cognito">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11l" value="valida el JWT&#xa;(authorizer nativo)" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="apigw" target="lambda-api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;fontSize=10;" edge="1" parent="1" source="lambda-api" target="rds">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="635" y="610" />
+              <mxPoint x="950" y="610" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e13l" value="permisos y datos  ·  RLS por inquilino" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;" edge="1" parent="1" source="lambda-sunat" target="secrets">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14l" value="firma XAdES" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="lambda-api" target="sqs">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="635" y="690" />
+              <mxPoint x="415" y="690" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e15l" value="encola" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="sqs" target="lambda-sunat">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="415" y="800" />
+              <mxPoint x="795" y="800" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="events" target="sqs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="lambda-sunat" target="nat">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeWidth=2;strokeColor=#B54708;" edge="1" parent="1" source="nat" target="sunat">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;" edge="1" parent="1" source="lambda-sunat" target="rds">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n1" value="No hay autorizador Lambda.&#xa;API Gateway valida el JWT de Cognito de forma nativa: es&#xa;configuración, no código. Un autorizador propio añadiría un&#xa;arranque en frío a cada petición y algo más que mantener.&#xa;(DTE §7 — DT de identidad)" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#026AA2;fillColor=#F0F9FF;strokeColor=#B9E6FE;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="680" y="250" width="330" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="n2" value="El token porta identidad, nada más.&#xa;La empresa activa y los permisos por submódulo se resuelven&#xa;en la base en cada petición: un JWT es válido hasta que caduca,&#xa;y revocar «anular comprobante» no puede esperar. (§8.1)" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#026AA2;fillColor=#F0F9FF;strokeColor=#B9E6FE;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="170" y="600" width="330" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n3" value="Egreso por IP fija.&#xa;SUNAT exige un origen estable. Instancia NAT en lugar de NAT&#xa;Gateway: mismo efecto por una fracción del coste al volumen&#xa;previsto, a cambio de no ser gestionada." style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#7A2E0E;fillColor=#FFFAEB;strokeColor=#FEDF89;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1010" y="700" width="360" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n4" value="El envío a SUNAT no bloquea al usuario.&#xa;Emitir encola; el resultado llega después. El Resumen Diario es&#xa;asíncrono por diseño: devuelve un ticket, no un CDR, y hay que&#xa;consultarlo aparte. (R-06)" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#026AA2;fillColor=#F0F9FF;strokeColor=#B9E6FE;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="560" y="700" width="360" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n5" value="Única superficie anónima del sistema.&#xa;Distribución, WAF y bucket propios. No consulta la base&#xa;transaccional: lee una proyección con solo lo publicable, así&#xa;que un fallo de autorización no expondría nada más. (R-03)" style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#026AA2;fillColor=#F0F9FF;strokeColor=#B9E6FE;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="170" y="545" width="330" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n6" value="Falta por decidir — DT-12&#xa;Si la emisión ante SUNAT se hace propia (este diagrama) o a&#xa;través de un proveedor. Con proveedor desaparecen la instancia&#xa;NAT, Secrets Manager y la firma XAdES, y aparece un coste por&#xa;comprobante." style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#912018;fillColor=#FEF3F2;strokeColor=#FECDCA;spacing=8;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="1240" y="600" width="140" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="n7" value="Pendiente: back-office en app aparte (admin.ondexia.com)&#xa;con grupo de usuarios de Cognito separado del de los inquilinos." style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#475467;fillColor=#F9FAFB;strokeColor=#D0D5DD;spacing=8;dashed=1;" vertex="1" parent="1">
+          <mxGeometry x="560" y="70" width="330" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -53,7 +53,7 @@
           <mxGeometry x="660" y="285" width="50" height="50" as="geometry" />
         </mxCell>
 
-        <mxCell id="s3-docs" value="S3&#10;PDF generados" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.bucket;" vertex="1" parent="1">
+        <mxCell id="s3-docs" value="S3&#10;logos e imágenes&#10;por empresa" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.bucket;" vertex="1" parent="1">
           <mxGeometry x="877" y="286" width="46" height="48" as="geometry" />
         </mxCell>
 
@@ -186,6 +186,10 @@
 
         <mxCell id="v1n4" value="Controles obligatorios antes del primer despliegue.&#10;Presupuesto de AWS Budgets con alerta al 80 % de un tope de 30 USD. Concurrencia reservada de 20 en&#10;la Lambda y HikariCP con maximum-pool-size 2, que sustituye al RDS Proxy. Retención de logs a 30 días.&#10;Sin RDS en desarrollo: Postgres en Docker local, o la factura se duplica exacta." style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#7A2E0E;fillColor=#FFFAEB;strokeColor=#FEDF89;spacing=8;" vertex="1" parent="1">
           <mxGeometry x="770" y="880" width="600" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="v1n5" value="Los PDF no se almacenan.&#10;Se generan al pedirlos, desde los datos: un PDF de&#10;cotización es una proyección, no un documento en sí.&#10;Guardarlo solo añade espacio que crece sin techo y un&#10;papel que se desincroniza del registro al corregir un dato.&#10;En el bucket vive únicamente lo que sube el usuario.&#10;&#10;Con SUNAT cambia: el XML firmado y el CDR no se&#10;pueden regenerar. Ver la página «Objetivo»." style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#026AA2;fillColor=#F0F9FF;strokeColor=#B9E6FE;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="1080" y="700" width="290" height="130" as="geometry" />
         </mxCell>
 
       </root>
@@ -447,6 +451,25 @@
 
         <mxCell id="n7" value="Pendiente: back-office en app aparte (admin.ondexia.com)&#10;con grupo de usuarios de Cognito separado del de los inquilinos." style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#475467;fillColor=#F9FAFB;strokeColor=#D0D5DD;spacing=8;dashed=1;" vertex="1" parent="1">
           <mxGeometry x="560" y="70" width="330" height="40" as="geometry" />
+        </mxCell>
+
+        <mxCell id="s3-cpe" value="S3&#10;XML firmado + CDR&#10;inmutable" style="sketch=0;outlineConnect=0;fontColor=#232F3E;gradientColor=none;fillColor=#7AA116;strokeColor=none;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;aspect=fixed;shape=mxgraph.aws4.bucket;" vertex="1" parent="1">
+          <mxGeometry x="1092" y="120" width="46" height="48" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" edge="1" parent="1" source="lambda-sunat" target="s3-cpe">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1115" y="515" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e21l" value="conserva" style="edgeLabel;html=1;fontSize=10;" vertex="1" connectable="0" parent="e21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="n8" value="Lo único que hay que guardar como archivo.&#10;El PDF se genera al pedirlo, desde los datos. El XML firmado no: la firma XAdES cubre bytes exactos, y&#10;volver a serializar los mismos datos cambia el orden de atributos o los prefijos de espacios de nombres,&#10;la firma deja de validar y ya no tienes el documento que SUNAT aceptó. El CDR es de un tercero y menos&#10;aún se reconstruye. Ambos son inmutables y con retención larga — verificar el plazo vigente." style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#026AA2;fillColor=#F0F9FF;strokeColor=#B9E6FE;spacing=8;" vertex="1" parent="1">
+          <mxGeometry x="440" y="800" width="620" height="85" as="geometry" />
         </mxCell>
 
       </root>
