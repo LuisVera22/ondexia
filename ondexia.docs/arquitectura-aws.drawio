@@ -180,7 +180,7 @@
           <mxGeometry x="770" y="780" width="600" height="80" as="geometry" />
         </mxCell>
 
-        <mxCell id="v1n3" value="Región por reconciliar.&#10;La documentación dice us-east-1 y la consola está en us-east-2 (Ohio). Hay que decidirlo antes de&#10;crear el primer recurso: los recursos de una región no se ven desde otra, y mover una RDS con datos&#10;después es una migración." style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#912018;fillColor=#FEF3F2;strokeColor=#FECDCA;spacing=8;fontStyle=1;" vertex="1" parent="1">
+        <mxCell id="v1n3" value="Todo esto está escrito en Terraform, en ondexia.infra/ (DT-16).&#10;El estado vive en un bucket de S3 cifrado y versionado que crea ondexia.infra/bootstrap/, una sola vez.&#10;Ese estado es el mapa entre el código y lo que existe en AWS: perderlo obliga a importar los recursos&#10;uno por uno. La región quedó fijada en us-east-1 el 2026-08-10." style="text;html=1;whiteSpace=wrap;align=left;verticalAlign=top;fontSize=10;fontColor=#026AA2;fillColor=#F0F9FF;strokeColor=#B9E6FE;spacing=8;" vertex="1" parent="1">
           <mxGeometry x="150" y="880" width="600" height="80" as="geometry" />
         </mxCell>
 
