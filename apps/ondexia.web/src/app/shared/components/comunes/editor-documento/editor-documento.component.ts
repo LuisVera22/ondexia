@@ -1,7 +1,7 @@
 import { Component, Input, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { PageBreadcrumbComponent } from '../../common/page-breadcrumb/page-breadcrumb.component';
+import { EncabezadoPaginaComponent } from '../../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { BuscadorEntidadComponent, OpcionEntidad } from '../buscador-entidad/buscador-entidad.component';
 import { EditorLineasComponent, LineaDocumento, TotalesDocumento } from '../editor-lineas/editor-lineas.component';
 import { ConfirmacionComponent } from '../confirmacion/confirmacion.component';
@@ -66,7 +66,7 @@ export interface ConfiguracionDocumento {
   imports: [
     FormsModule,
     RouterModule,
-    PageBreadcrumbComponent,
+    EncabezadoPaginaComponent,
     BuscadorEntidadComponent,
     EditorLineasComponent,
     ConfirmacionComponent,

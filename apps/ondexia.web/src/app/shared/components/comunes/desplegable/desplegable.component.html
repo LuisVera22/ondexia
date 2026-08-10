@@ -1,17 +1,21 @@
 <div class="relative">
+  <!--
+    El borde y la altura son clases propias conmutadas con `[class.x]`, no
+    utilidades dentro de un `[class]="…"`: Tailwind no detecta las clases que
+    solo viven en una expresión y la regla nunca llega a generarse. Ver
+    styles.css.
+  -->
   <button #disparador type="button" [id]="idCampo || null" [disabled]="deshabilitado"
+    [class.abierto]="abierto()" [class.compacto]="alto === 'compacto'" [class.formulario]="alto === 'formulario'"
     (click)="alternar()" (keydown)="alTeclear($event)"
     role="combobox" aria-haspopup="listbox"
     [attr.aria-expanded]="abierto()"
     [attr.aria-controls]="idBase + '-panel'"
     [attr.aria-activedescendant]="abierto() ? idOpcionResaltada : null"
     [attr.aria-label]="etiquetaAccesible || null"
-    class="flex w-full items-center justify-between gap-2 rounded-lg border bg-transparent text-left text-sm transition focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:cursor-not-allowed disabled:opacity-50"
-    [class]="alturas[alto] + ' ' + (abierto()
-      ? 'border-brand-300 ring-3 ring-brand-500/20 dark:border-brand-500'
-      : 'border-gray-300 hover:border-gray-400 dark:border-gray-700 dark:hover:border-gray-600')">
-    <span class="truncate"
-      [class]="haySeleccion ? 'text-gray-800 dark:text-white/90' : 'text-gray-400 dark:text-gray-500'">
+    class="campo-desplegable flex w-full items-center justify-between gap-2 rounded-lg border bg-transparent text-left text-sm transition focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:cursor-not-allowed disabled:opacity-50">
+    <span class="truncate" [class.text-gray-400]="!haySeleccion"
+      [class.text-gray-800]="haySeleccion" [class.dark:text-white/90]="haySeleccion">
       {{ textoVisible }}
     </span>
 
@@ -26,18 +30,15 @@
   @if (abierto()) {
   <div [id]="idBase + '-panel'" role="listbox" [style]="posicion()"
     [attr.aria-label]="etiquetaAccesible || null"
-    class="z-9999 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-theme-lg dark:border-gray-700 dark:bg-gray-900">
+    class="z-9999 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-flotante dark:border-gray-700 dark:bg-gray-900">
     @for (opcion of opciones; track opcion.valor; let i = $index) {
     <div [id]="idOpcion(i)" role="option"
       [attr.aria-selected]="opcion.valor === seleccionada?.valor"
       [attr.aria-disabled]="opcion.deshabilitada || null"
+      [class.resaltada]="i === resaltada() && !opcion.deshabilitada"
+      [class.inhabilitada]="opcion.deshabilitada"
       (click)="elegir(opcion)" (mouseenter)="resaltada.set(i)"
-      class="flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-sm transition"
-      [class]="opcion.deshabilitada
-        ? 'cursor-not-allowed text-gray-300 dark:text-gray-600'
-        : (i === resaltada()
-            ? 'bg-brand-50 text-gray-800 dark:bg-white/[0.06] dark:text-white/90'
-            : 'text-gray-700 dark:text-gray-300')">
+      class="opcion-desplegable flex cursor-pointer items-center justify-between gap-2 px-3 py-2 text-sm transition">
       <span class="min-w-0">
         <span class="block truncate"
           [class.font-medium]="opcion.valor === seleccionada?.valor">{{ opcion.etiqueta }}</span>

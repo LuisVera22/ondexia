@@ -84,12 +84,6 @@ export class DesplegableComponent implements ControlValueAccessor, OnDestroy {
    */
   @Input() alto: AltoDesplegable = 'normal';
 
-  readonly alturas: Record<AltoDesplegable, string> = {
-    compacto: 'h-8 px-2',
-    normal: 'h-10 px-3',
-    formulario: 'h-11 px-4',
-  };
-
   @ViewChild('disparador') disparador?: ElementRef<HTMLButtonElement>;
 
   abierto = signal(false);

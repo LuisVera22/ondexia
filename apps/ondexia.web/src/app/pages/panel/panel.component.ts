@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { EncabezadoPaginaComponent } from '../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { EstadoComprobanteComponent, EstadoComprobante } from '../../shared/components/comunes/estado-comprobante/estado-comprobante.component';
 
 interface Indicador {
@@ -32,7 +32,7 @@ interface Pendiente {
  */
 @Component({
   selector: 'app-panel',
-  imports: [PageBreadcrumbComponent, EstadoComprobanteComponent, RouterModule],
+  imports: [EncabezadoPaginaComponent, EstadoComprobanteComponent, RouterModule],
   templateUrl: './panel.component.html',
 })
 export class PanelComponent {

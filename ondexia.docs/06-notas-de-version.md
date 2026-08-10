@@ -7,7 +7,7 @@ Fecha: 2026-08-07 · Rama: `release/0.1.0` → `main`
 ### Qué incluye
 
 Las **73 rutas** de la versión 1.0 navegables de principio a fin, con la
-identidad visual de la plantilla TailAdmin adaptada a Ondexia.
+identidad visual propia de Ondexia. (La plantilla de partida se retiró por completo el 2026-08-10; ver la nota de esa versión.)
 
 | Módulo | Contenido |
 |---|---|

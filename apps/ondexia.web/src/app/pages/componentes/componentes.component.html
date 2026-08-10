@@ -1,0 +1,122 @@
+<div>
+  <app-encabezado-pagina titulo="Componentes de Ondexia" />
+
+  <div class="space-y-6">
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+      Catálogo de los siete componentes transversales construidos en la Etapa 0.
+      Referencia interna: se elimina antes de publicar.
+    </p>
+
+    <!-- selector-contexto -->
+    <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <h3 class="mb-1 font-medium text-gray-800 dark:text-white/90">selector-contexto</h3>
+      <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        Empresa y establecimiento activos. Con una sola opción se muestra como texto fijo.
+      </p>
+      <app-selector-contexto
+        [empresas]="empresas"
+        [establecimientos]="establecimientos"
+        [empresaActiva]="empresaActiva"
+        [establecimientoActivo]="establecimientoActivo"
+        (cambiarEmpresa)="empresaActiva = $event"
+        (cambiarEstablecimiento)="establecimientoActivo = $event"
+      />
+    </section>
+
+    <!-- estado-comprobante -->
+    <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <h3 class="mb-1 font-medium text-gray-800 dark:text-white/90">estado-comprobante</h3>
+      <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        Borrador es el único con borde punteado: se reconoce como editable sin leer el texto.
+      </p>
+      <div class="flex flex-wrap gap-2">
+        @for (estado of estados; track estado) {
+        <app-estado-comprobante [estado]="estado" />
+        }
+      </div>
+    </section>
+
+    <!-- buscador-entidad -->
+    <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <h3 class="mb-1 font-medium text-gray-800 dark:text-white/90">buscador-entidad</h3>
+      <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        Escriba para desplegar. Se recorre con las flechas y se confirma con Enter.
+      </p>
+      <div class="max-w-md">
+        <app-buscador-entidad
+          etiqueta="Producto"
+          marcador="Buscar por nombre o código…"
+          [opciones]="opcionesProducto"
+        />
+      </div>
+    </section>
+
+    <!-- tabla-datos -->
+    <section>
+      <h3 class="mb-1 font-medium text-gray-800 dark:text-white/90">tabla-datos</h3>
+      <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        Ordenamiento, selección múltiple y paginación. Los importes van a la derecha.
+      </p>
+      <app-tabla-datos
+        [columnas]="columnas"
+        [registros]="registros"
+        [orden]="orden"
+        [seleccionable]="true"
+        [pagina]="pagina"
+        [tamanoPagina]="20"
+        [totalRegistros]="registros.length"
+        (ordenarPor)="alOrdenar($event)"
+        (cambiarPagina)="alCambiarPagina($event)"
+      />
+    </section>
+
+    <!-- pagina-vacia -->
+    <section class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+      <div class="border-b border-gray-200 p-5 dark:border-gray-800">
+        <h3 class="mb-1 font-medium text-gray-800 dark:text-white/90">pagina-vacia</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          El estado vacío explica qué es la sección y ofrece la acción para empezar.
+        </p>
+      </div>
+      <app-pagina-vacia
+        titulo="Aún no hay productos registrados"
+        descripcion="Los productos son la base de cotizaciones, comprobantes y control de existencias."
+        textoAccion="Registrar producto"
+      />
+    </section>
+
+    <!-- editor-lineas -->
+    <section>
+      <h3 class="mb-1 font-medium text-gray-800 dark:text-white/90">editor-lineas</h3>
+      <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        El componente P3. Cambie cantidades o afectación y los totales se recalculan.
+      </p>
+      <app-editor-lineas [lineas]="lineas" [tasaIgv]="0.18" moneda="PEN" />
+    </section>
+
+    <!-- confirmacion -->
+    <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <h3 class="mb-1 font-medium text-gray-800 dark:text-white/90">confirmacion</h3>
+      <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        Solo para acciones irreversibles. Usarlo en todo entrena a aceptar sin leer.
+      </p>
+      <button
+        type="button"
+        (click)="confirmacionAbierta = true"
+        class="rounded-lg bg-error-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-error-600"
+      >
+        Anular comprobante
+      </button>
+
+      <app-confirmacion
+        [abierto]="confirmacionAbierta"
+        [peligrosa]="true"
+        titulo="¿Anular la factura F001-000123?"
+        mensaje="Se comunicará la baja a SUNAT. El comprobante dejará de tener validez y la acción no se puede revertir."
+        textoConfirmar="Anular comprobante"
+        (confirmar)="confirmacionAbierta = false"
+        (cancelar)="confirmacionAbierta = false"
+      />
+    </section>
+  </div>
+</div>

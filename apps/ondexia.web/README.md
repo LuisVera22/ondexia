@@ -1,137 +1,106 @@
-# Free Angular Tailwind Admin Dashboard Template - TailAdmin Angular
+# ondexia.web
 
-TailAdmin Angular is a **free and open-source admin dashboard template** built with **Angular** and **Tailwind CSS**. It provides developers with everything they need to create a feature-rich, data-driven **back-end, dashboard, or admin panel** for any type of web project.
+Aplicación web de Ondexia: gestión comercial y facturación electrónica para
+empresas peruanas. Angular con Tailwind CSS, sin backend por ahora — las vistas
+trabajan con datos de ejemplo hasta que exista `ondexia.api`.
 
-![TailAdmin Angular Admin Dashboard](./angular-tailwind.png)
+## Requisitos
 
+- Node.js 20 o superior
+- npm 10 o superior
 
-With TailAdmin Angular, you’ll get access to a complete set of **dashboard UI components, elements, and ready-to-use pages** to build a modern, high-quality admin panel. Whether it’s for a **complex web application** or a **lightweight project**, TailAdmin Angular is designed to speed up development of any kind of dashboards and admin panels.
-
-TailAdmin leverages the **powerful ecosystem of Angular 20+**, along with **TypeScript** and the utility-first styling of **Tailwind CSS v4**. Combined, they make TailAdmin Angular a perfect foundation to launch your dashboard or admin panel quickly and effectively.
-
-TailAdmin Angular comes with essential UI components and layouts for building **feature-rich, data-driven dashboards** and **admin panels**. TailAdmin Angular is built on:
-
-* **Angular 20+**
-* **TypeScript**
-* **Tailwind CSS v4**
-
-### Quick Links
-
-- ✨ [Visit Website](https://tailadmin.com/)
-- 🚀 [Angular Demo](https://angular-demo.tailadmin.com/)
-- 📄 [Documentation](https://tailadmin.com/docs)
-- ⬇️ [Download](https://tailadmin.com/download)
-- 🖌️ [Figma Design File (Free Edition)](https://www.figma.com/community/file/1463141366275764364)
-- ⚡ [Get PRO Version](https://tailadmin.com/pricing)
----
-
-## Feature Comparison
-
-| Feature | Free Version | Pro Version 🌟 |
-|---------|--------------|----------------|
-| **Dashboards** | 1 Unique Dashboard | 7 Unique Dashboards: Analytics, Ecommerce, Marketing, SaaS, CRM, Stocks, Logistics and more (more coming soon) 📈 |
-| **UI Elements and Components** | 100+ UI elements and components | Included in 500+ components and UI elements |
-| **Design Files** | Basic Figma design files | Complete Figma design system file |
-| **Support** | Community support| Email support |
-
-### Other Versions
-
-- [Next.js Version](https://github.com/TailAdmin/free-nextjs-admin-dashboard)
-- [React.js Version](https://github.com/TailAdmin/free-react-tailwind-admin-dashboard)
-- [Vue.js Version](https://github.com/TailAdmin/vue-tailwind-admin-dashboard)
-- [Angular Version](https://github.com/TailAdmin/free-angular-tailwind-dashboard)
-- [Laravel Version](https://github.com/TailAdmin/tailadmin-laravel)
-
-## Installation
-
-### Prerequisites
-
-Before you start, make sure you have:
-
-* **Node.js 20.x or later** (Node.js 20.x recommended)
-* **Angular CLI** installed globally:
-
-```bash
-npm install -g @angular/cli
-```
-
----
-
-### Cloning the Repository
-
-Clone the repository:
-
-```bash
-git clone https://github.com/TailAdmin/free-angular-admin-dashboard.git
-```
-
----
-
-### Install Dependencies
+## Puesta en marcha
 
 ```bash
 npm install
-# or
-yarn install
 ```
-
----
-
-### Start Development Server
 
 ```bash
 npm start
 ```
 
-Then open:
-👉 `http://localhost:4200`
+Queda servida en `http://localhost:4200`.
 
----
+## Compilar para producción
 
-## Angualr.js Tailwind Components
+```bash
+npm run build
+```
 
-TailAdmin Angular ships with a rich set of **ready-to-use dashboard features**:
+## Organización del código
 
-* **Ecommerce Dashboard** with essential elements
-* Modern, accessible **sidebar navigation**
-* **Data visualization** with charts and graphs
-* **User profile management** and a **custom 404 page**
-* **Tables** and **charts** (line, bar, etc.)
-* **Authentication forms** and reusable input components
-* **UI elements**: alerts, dropdowns, modals, buttons, and more
-* Built-in **Dark Mode** 🕶️
-* and many more
+```
+src/
+├── app/
+│   ├── pages/                  una carpeta por módulo del sistema
+│   │   ├── acceso/             ingresar, recuperar contraseña, sin permisos
+│   │   ├── almacen/            productos, existencias, guías, kardex
+│   │   ├── compras/            proveedores, órdenes, facturas de compra
+│   │   ├── ventas/             clientes, comprobantes, notas de crédito
+│   │   ├── configuracion/      empresa, series, usuarios, roles, suscripción
+│   │   ├── componentes/        galería de los componentes transversales
+│   │   ├── panel/              panel principal
+│   │   └── no-encontrado/      404
+│   └── shared/
+│       ├── components/comunes/ los componentes que comparten las vistas
+│       ├── layout/             marcos de la aplicación y del acceso
+│       ├── services/           contexto, tema, menú, modales
+│       └── pipe/
+├── styles.css                  el tema: color, tipografía, sombras
+└── index.html
+```
 
+### Componentes transversales
 
-## Changelog
+Las setenta vistas no repiten estructura: la comparten. Antes de crear una
+pantalla nueva conviene mirar si encaja en uno de estos, porque duplicarlos es
+el error más caro que admite este frontend.
 
-### v1.1.1 (2026-05-23)
-- **New Feature**: Added **AI Settings** page to configure models, keys, and token limits.
-- **New Feature**: Added **Maps** page with MapLibre GL, Leaflet, and iframe styles.
-- **New Feature**: Added **Vector Maps** page powered by AmCharts 5 geodata (World & USA).
-- **New Feature**: Added **Radar Charts** page with 3 unique formats.
-- **New Feature**: Added **Radial Progress Charts** page featuring 4 custom layout templates.
-- **Enhancement**: Introduced new **Bar Charts Five & Six** and **Pie Charts Four & Five**.
-- **Bug Fix**: Resolved dropdown menu z-index stacking context overlapping issue in AI Chat history.
-- **Enhancement**: Resolved spacing gaps under map card containers.
+| Componente            | Qué resuelve                                              | Vistas |
+|-----------------------|-----------------------------------------------------------|--------|
+| `tabla-datos`         | Listado con orden, paginación, selección y estado vacío    | ~30    |
+| `editor-documento`    | Cabecera, detalle de líneas y totales de un documento      | 14     |
+| `listado-documentos`  | Listado de comprobantes con filtros y estado ante SUNAT    | 13     |
+| `desplegable`         | Selector con estilo propio, accesible por teclado          | 19     |
+| `editor-lineas`       | Detalle con cantidades, afectación al IGV y totales        | —      |
+| `buscador-entidad`    | Búsqueda de cliente, proveedor o producto                  | —      |
+| `kardex`              | Movimientos valorizados por promedio ponderado             | —      |
+| `confirmacion`        | Diálogo previo a una acción irreversible                   | 13     |
+| `encabezado-pagina`   | Título y ruta de navegación                                | 29     |
+| `selector-contexto`   | Empresa y establecimiento activos                          | —      |
 
-### Version 1.1.0 - [April 28, 2026]
-- Added **AI Dashboard** with token usage and revenue tracking.
-- Added **Sales Dashboard** with retention and multi-channel analytics.
-- Added **Finance Dashboard** with cashflow and balance management.
-- Introduced **6 New Layout variations** for improved UI flexibility.
-- Integrated **Advanced Data Visualization** with 7+ new chart types.
+Ver todos en marcha: `/componentes`.
 
-### v1.0.3 (2026-03-15)
+## Convenciones
 
-- **update**: update Angular dependencies to version 21.2.x.
+**El código está en español**, incluidos nombres de clases, métodos y rutas.
+El dominio es tributario peruano y traducir «comprobante» o «afectación» a
+inglés para volver a traducirlos al hablar con el usuario solo añade ruido.
+Las excepciones son las que impone el marco de trabajo: `ngOnInit`, `@Input`,
+y la clase `dark` que espera el variante de Tailwind.
 
-### v1.0.2 (2025-12-30)
+**Los colores viven solo en `styles.css`.** Las vistas usan tokens semánticos
+—`brand`, `success`, `error`, `warning`, `gray`, `blue-light`— y nunca valores
+literales. `success` y `error` cargan significado contable, así que no se usan
+por decoración.
 
-- **Upgrade**: Successfully upgraded project to **Angular 21**.
-- **New Feature**: Implementing **Dynamic API Keys** management.
-  - Added functionalities to **Add**, **Edit**, **Delete**, and **Regenerate** API Keys.
-- **Enhancement**: Integrated **Flatpickr** date range picker in `StatisticsChartComponent`.
-- **Bug Fix**: Resolved `NG0100` ExpressionChangedAfterItHasBeenCheckedError in `PieChartTwoComponent`.
-- **Bug Fix**: Fixed `NG8113` warning in `AddApiKeyModalComponent` by removing unused imports.
-- **Cleanup**: Removed unused imports and optimized code across various components.
+**Los importes se redondean a dos decimales al calcularlos**, no al mostrarlos.
+SUNAT valida que la suma de las líneas cuadre con el total declarado, y
+redondear solo en pantalla produce comprobantes rechazados.
+
+**Las cifras van alineadas a la derecha y con `tabular-nums`**, para que la coma
+decimal quede en la misma columna y se puedan comparar de un vistazo.
+
+## Estado
+
+Frontend con datos de ejemplo. No hay sesión, ni persistencia, ni envío a
+SUNAT: los formularios validan y calculan, pero nada se guarda. Lo pendiente
+está en `ondexia.docs/06-notas-de-version.md`.
+
+## Terceros
+
+- **Angular** y **Tailwind CSS** — licencia MIT.
+- **Outfit**, la tipografía, servida desde `public/fonts/` bajo SIL Open Font
+  License 1.1. La licencia va junto a los archivos, en `public/fonts/OFL.txt`.
+
+Los iconos son propios, en SVG dentro del código: trazo de 1.6 y caja de 24.

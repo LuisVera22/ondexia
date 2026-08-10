@@ -24,7 +24,7 @@
       [placeholder]="marcador"
       [disabled]="deshabilitado"
       autocomplete="off"
-      class="h-11 w-full rounded-lg border bg-transparent py-2.5 pl-11 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 disabled:cursor-not-allowed disabled:bg-gray-50 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
+      class="h-11 w-full rounded-lg border bg-transparent py-2.5 pl-11 pr-4 text-sm text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:outline-hidden focus:ring-3 disabled:cursor-not-allowed disabled:bg-gray-50 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30"
       [class]="
         error
           ? 'border-error-500 focus:border-error-300 focus:ring-error-500/20 dark:border-error-500'
@@ -48,7 +48,7 @@
 
   @if (desplegado) {
   <div
-    class="absolute z-50 mt-1.5 max-h-72 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white py-1.5 shadow-theme-lg dark:border-gray-700 dark:bg-gray-900"
+    class="absolute z-50 mt-1.5 max-h-72 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white py-1.5 shadow-flotante dark:border-gray-700 dark:bg-gray-900"
   >
     @if (cargando) {
     <p class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">Buscando…</p>

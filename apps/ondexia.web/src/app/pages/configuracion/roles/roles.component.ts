@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 
 /** Acciones base, disponibles en todo submódulo. */
 type AccionBase = 'consultar' | 'editar' | 'eliminar';
@@ -63,7 +63,7 @@ const sub = (
  */
 @Component({
   selector: 'app-roles',
-  imports: [PageBreadcrumbComponent],
+  imports: [EncabezadoPaginaComponent],
   templateUrl: './roles.component.html',
 })
 export class RolesComponent {

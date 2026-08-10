@@ -1,13 +1,12 @@
 import { Routes } from '@angular/router';
-import { AppLayoutComponent } from './shared/layout/app-layout/app-layout.component';
+import { MarcoAppComponent } from './shared/layout/marco-app/marco-app.component';
 import { PanelComponent } from './pages/panel/panel.component';
-import { EcommerceComponent } from './pages/dashboard/ecommerce/ecommerce.component';
 import { PerfilComponent } from './pages/perfil/perfil.component';
-import { NotFoundComponent } from './pages/other-page/not-found/not-found.component';
+import { NoEncontradoComponent } from './pages/no-encontrado/no-encontrado.component';
 import { IngresarComponent } from './pages/acceso/ingresar/ingresar.component';
 import { RecuperarComponent } from './pages/acceso/recuperar/recuperar.component';
 import { SinPermisosComponent } from './pages/acceso/sin-permisos/sin-permisos.component';
-import { KitOndexiaComponent } from './pages/kit-ondexia/kit-ondexia.component';
+import { ComponentesComponent } from './pages/componentes/componentes.component';
 import { EmpresaComponent } from './pages/configuracion/empresa/empresa.component';
 import { IdentidadComponent } from './pages/configuracion/identidad/identidad.component';
 import { EstablecimientosComponent } from './pages/configuracion/establecimientos/establecimientos.component';
@@ -63,26 +62,13 @@ import { EmitirLiquidacionComponent } from './pages/compras/liquidaciones/emitir
 // Páginas de demostración de la plantilla. Se conservan bajo /kit como
 // referencia visual mientras se construyen las vistas reales, y se eliminan
 // antes de publicar.
-import { FormElementsComponent } from './pages/forms/form-elements/form-elements.component';
-import { BasicTablesComponent } from './pages/tables/basic-tables/basic-tables.component';
-import { BlankComponent } from './pages/blank/blank.component';
-import { InvoicesComponent } from './pages/invoices/invoices.component';
-import { LineChartComponent } from './pages/charts/line-chart/line-chart.component';
-import { BarChartComponent } from './pages/charts/bar-chart/bar-chart.component';
-import { AlertsComponent } from './pages/ui-elements/alerts/alerts.component';
-import { AvatarElementComponent } from './pages/ui-elements/avatar-element/avatar-element.component';
-import { BadgesComponent } from './pages/ui-elements/badges/badges.component';
-import { ButtonsComponent } from './pages/ui-elements/buttons/buttons.component';
-import { ImagesComponent } from './pages/ui-elements/images/images.component';
-import { VideosComponent } from './pages/ui-elements/videos/videos.component';
-import { CalenderComponent } from './pages/calender/calender.component';
 
 const TITULO = 'Ondexia';
 
 export const routes: Routes = [
   {
     path: '',
-    component: AppLayoutComponent,
+    component: MarcoAppComponent,
     children: [
       {
         path: '',
@@ -162,22 +148,8 @@ export const routes: Routes = [
         title: `Sin permisos | ${TITULO}`,
       },
 
-      // ── Kit de la plantilla (referencia interna, se elimina al publicar) ──
-      { path: 'kit/panel-plantilla', component: EcommerceComponent, title: `Kit · Panel de la plantilla | ${TITULO}` },
-      { path: 'kit/componentes', component: KitOndexiaComponent, title: `Kit · Componentes de Ondexia | ${TITULO}` },
-      { path: 'kit/calendario', component: CalenderComponent, title: `Kit · Calendario | ${TITULO}` },
-      { path: 'kit/formularios', component: FormElementsComponent, title: `Kit · Formularios | ${TITULO}` },
-      { path: 'kit/tablas', component: BasicTablesComponent, title: `Kit · Tablas | ${TITULO}` },
-      { path: 'kit/pagina-vacia', component: BlankComponent, title: `Kit · Página vacía | ${TITULO}` },
-      { path: 'kit/comprobante', component: InvoicesComponent, title: `Kit · Comprobante | ${TITULO}` },
-      { path: 'kit/grafico-lineas', component: LineChartComponent, title: `Kit · Gráfico de líneas | ${TITULO}` },
-      { path: 'kit/grafico-barras', component: BarChartComponent, title: `Kit · Gráfico de barras | ${TITULO}` },
-      { path: 'kit/alertas', component: AlertsComponent, title: `Kit · Alertas | ${TITULO}` },
-      { path: 'kit/avatares', component: AvatarElementComponent, title: `Kit · Avatares | ${TITULO}` },
-      { path: 'kit/insignias', component: BadgesComponent, title: `Kit · Insignias | ${TITULO}` },
-      { path: 'kit/botones', component: ButtonsComponent, title: `Kit · Botones | ${TITULO}` },
-      { path: 'kit/imagenes', component: ImagesComponent, title: `Kit · Imágenes | ${TITULO}` },
-      { path: 'kit/videos', component: VideosComponent, title: `Kit · Videos | ${TITULO}` },
+      // ── Referencia interna ───────────────────────────────────────────────
+      { path: 'componentes', component: ComponentesComponent, title: `Componentes | ${TITULO}` },
     ],
   },
 
@@ -195,7 +167,7 @@ export const routes: Routes = [
 
   {
     path: '**',
-    component: NotFoundComponent,
+    component: NoEncontradoComponent,
     title: `Página no encontrada | ${TITULO}`,
   },
 ];

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { TablaDatosComponent, ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
 
@@ -27,7 +27,7 @@ interface ProductoPorAgotarse extends Record<string, unknown> {
  */
 @Component({
   selector: 'app-por-agotarse',
-  imports: [PageBreadcrumbComponent, TablaDatosComponent, FormsModule, RouterModule, DesplegableComponent],
+  imports: [EncabezadoPaginaComponent, TablaDatosComponent, FormsModule, RouterModule, DesplegableComponent],
   templateUrl: './por-agotarse.component.html',
 })
 export class PorAgotarseComponent {

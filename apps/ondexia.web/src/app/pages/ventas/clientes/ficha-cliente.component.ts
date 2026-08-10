@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
 
 /**
@@ -13,7 +13,7 @@ import { DesplegableComponent, OpcionDesplegable } from '../../../shared/compone
  */
 @Component({
   selector: 'app-ficha-cliente',
-  imports: [PageBreadcrumbComponent, ReactiveFormsModule, RouterModule, DesplegableComponent],
+  imports: [EncabezadoPaginaComponent, ReactiveFormsModule, RouterModule, DesplegableComponent],
   templateUrl: './ficha-cliente.component.html',
 })
 export class FichaClienteComponent {

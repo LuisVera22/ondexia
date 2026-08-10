@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { KardexComponent, MovimientoKardex } from '../../../shared/components/comunes/kardex/kardex.component';
 import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
 
@@ -17,7 +17,7 @@ type Pestana = 'general' | 'presentaciones' | 'precios' | 'existencias' | 'karde
  */
 @Component({
   selector: 'app-ficha-producto',
-  imports: [PageBreadcrumbComponent, ReactiveFormsModule, RouterModule, KardexComponent, DesplegableComponent],
+  imports: [EncabezadoPaginaComponent, ReactiveFormsModule, RouterModule, KardexComponent, DesplegableComponent],
   templateUrl: './ficha-producto.component.html',
 })
 export class FichaProductoComponent {
