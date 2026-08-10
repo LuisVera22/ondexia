@@ -23,6 +23,19 @@ dist/
 *.tsbuildinfo
 coverage/
 
+# === pnpm ===
+# El lockfile SÍ va al repositorio: es lo que garantiza que tu máquina y el CI
+# instalen exactamente las mismas versiones. Lo mismo pnpm-workspace.yaml, que
+# es configuración del monorepo. Aquí solo se excluye lo regenerable.
+.pnpm-store/
+.pnpm-debug.log*
+
+# Un solo gestor de paquetes. Dos lockfiles conviviendo permiten que el CI
+# instale un árbol de dependencias distinto al local sin que nadie lo note,
+# y eso solo se descubre cuando falla el despliegue.
+package-lock.json
+yarn.lock
+
 # === Java / Maven ===
 target/
 *.class
