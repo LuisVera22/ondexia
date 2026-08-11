@@ -137,7 +137,20 @@ El wrapper vive aquí y no se comparte con el frontend: son dos gestores de depe
 
 **`domain` no depende de nadie.** Si empieza a importar de `api`, la separación se perdió y conviene detenerse a corregirlo.
 
-### 4.1 Arquitectura interna — monolito modular con hexagonal pragmática
+### 4.1 Arquitectura interna
+
+> **Sustituido el 2026-08-11 por [08 · Arquitectura del backend](08-arquitectura-backend.md).**
+> Se adoptó **hexagonal con DDD táctico**: dominio puro sin JPA en su propio
+> módulo Maven, adaptadores en `infrastructure`, y corte por dominio de negocio
+> dentro de cada capa.
+>
+> Lo que sigue describe la decisión anterior y se conserva por trazabilidad. El
+> motivo del cambio está en el §9 del documento nuevo, y merece leerse: el
+> problema no fue la decisión sino que **lo documentado y lo construido no
+> coincidían**.
+
+<details>
+<summary>Decisión anterior — monolito modular con hexagonal pragmática (obsoleta)</summary>
 
 **El corte principal es por dominio, no por capa técnica.** Existe `almacen` y existe `ventas`, y dentro de cada uno están sus capas:
 
@@ -154,6 +167,8 @@ El corte contrario —un paquete `service` con sesenta clases— no deja ninguna
 **Las entidades llevan anotaciones de JPA, y la palabra «pragmática» es deliberada.** La versión estricta exige un dominio POJO puro con entidades de persistencia aparte y un mapeador por agregado: son unas setenta clases duplicadas y sus mapeadores, a cambio de una independencia del motor que este proyecto no va a ejercer. No vamos a cambiar de PostgreSQL, y RLS —decisión de aislamiento del DTE §5.1— ya nos ata a él a propósito.
 
 Lo que sí se conserva de hexagonal es lo que rinde: **el dominio no conoce HTTP ni Spring Web ni seguridad**, y las dependencias apuntan hacia adentro.
+
+</details>
 
 ### 4.2 Nomenclatura en el código
 

@@ -82,6 +82,7 @@ Empieza por el DTE; el resto deriva de él.
 | [05 · Plan de vistas](ondexia.docs/05-plan-vistas-v1.md) | Las 73 pantallas |
 | [06 · Notas de versión](ondexia.docs/06-notas-de-version.md) | Qué cambió y cuándo |
 | [07 · Plan de Configuración](ondexia.docs/07-plan-backend-configuracion.md) | **En qué se está trabajando ahora** |
+| [08 · Arquitectura del backend](ondexia.docs/08-arquitectura-backend.md) | **Dónde va cada cosa, y por qué** |
 
 > `ondexia.docs/html/` contiene una versión HTML **desactualizada** (v0.7) y su
 > generador se perdió. Manda siempre el Markdown.
