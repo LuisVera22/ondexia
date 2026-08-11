@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "ondexia-web",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["start", "--prefix", "apps/ondexia.web"],
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "apps/frontend/ondexia.web", "start"],
       "port": 4200,
       "autoPort": true
     }

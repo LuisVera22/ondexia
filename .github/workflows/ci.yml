@@ -21,9 +21,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # pnpm antes que setup-node: el runner no lo trae, y setup-node necesita
+      # que exista para poder cachear su almacén.
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: pnpm
+          cache-dependency-path: apps/frontend/ondexia.web/pnpm-lock.yaml
 
       - uses: actions/setup-java@v4
         with:
@@ -36,12 +42,17 @@ jobs:
       # todavía no se ha escrito.
 
       - name: Frontend
-        if: hashFiles('apps/ondexia.web/package.json') != ''
-        working-directory: apps/ondexia.web
+        if: hashFiles('apps/frontend/ondexia.web/package.json') != ''
+        working-directory: apps/frontend/ondexia.web
+        # pnpm, no npm: el proyecto migró y `package-lock.json` ya no existe,
+        # así que `npm ci` fallaba en cada ejecución. `--frozen-lockfile` es el
+        # equivalente de `npm ci` — se niega a instalar si el lockfile no
+        # concuerda con el package.json, en vez de resolverlo por su cuenta y
+        # construir con versiones distintas a las de tu máquina.
         run: |
-          npm ci
-          npm run build
-          npm run test:ci
+          pnpm install --frozen-lockfile
+          pnpm run build
+          pnpm run test:ci
 
       - name: Backend
         if: hashFiles('apps/backend/pom.xml') != ''
@@ -53,9 +64,23 @@ jobs:
         # Docker.
         run: ./mvnw -B verify
 
+      # DT-16 sustituyó AWS CDK por Terraform. Este paso buscaba
+      # ondexia.infra/package.json y ejecutaba `cdk synth`: no se disparaba
+      # nunca y no validaba nada.
+      - uses: hashicorp/setup-terraform@v3
+        if: hashFiles('ondexia.infra/versions.tf') != ''
+        with:
+          terraform_version: '1.15.8'
+
       - name: Infraestructura
-        if: hashFiles('ondexia.infra/package.json') != ''
+        if: hashFiles('ondexia.infra/versions.tf') != ''
         working-directory: ondexia.infra
+        # -backend=false: no se contacta con S3 ni hacen falta credenciales de
+        # AWS. Comprueba la sintaxis, los tipos y las referencias entre
+        # recursos, que es lo que puede romperse en un commit. Lo que NO
+        # comprueba es si los recursos existen o si la cuenta los admite; para
+        # eso hace falta un `plan`, y un `plan` en CI exige credenciales.
         run: |
-          npm ci
-          npx cdk synth
+          terraform fmt -check -recursive
+          terraform init -backend=false
+          terraform validate

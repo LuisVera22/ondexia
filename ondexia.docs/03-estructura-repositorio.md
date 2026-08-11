@@ -47,7 +47,7 @@ La complejidad del CI/CD no la causa el monorepo: la causa **tener cinco despleg
 | Regla | Valor | Razón |
 |---|---|---|
 | Formato de carpetas | **`ondexia.<modulo>`** (punto como separador) | Convención adoptada. Aplicarla de forma uniforme importa más que cuál se eligió |
-| Traducción en fronteras | El punto **no se propaga** a `artifactId`, paquetes npm, buckets S3 ni nombres de recurso de Terraform | Esos ecosistemas usan guion. `apps/ondexia.web` contiene el paquete npm `ondexia-web`; `apps/backend/ondexia.api` produce el artefacto `ondexia-api`. La carpeta y el identificador técnico no tienen por qué coincidir, pero la equivalencia debe ser mecánica: **punto en carpeta ⇄ guion en identificador** |
+| Traducción en fronteras | El punto **no se propaga** a `artifactId`, paquetes npm, buckets S3 ni nombres de recurso de Terraform | Esos ecosistemas usan guion. `apps/frontend/ondexia.web` contiene el paquete npm `ondexia-web`; `apps/backend/ondexia.api` produce el artefacto `ondexia-api`. La carpeta y el identificador técnico no tienen por qué coincidir, pero la equivalencia debe ser mecánica: **punto en carpeta ⇄ guion en identificador** |
 | Idioma | **Inglés para lo técnico, español para lo del dominio** | `api`, `infra`, `contracts` son técnicos. `facturacion`, `comprobante`, `guia-remision` son términos fiscales peruanos que **no se traducen**: "boleta de venta" no tiene equivalente en inglés, y traducirla introduce ambigüedad en un dominio normado |
 | Paquetes Java | `com.ondexia.<modulo>` | Convención de dominio invertido sobre `ondexia.com` |
 | Tablas y columnas | `snake_case` en español | Ya fijado en el DTE §5 |
@@ -65,9 +65,10 @@ ondexia/
 │   │   ├── ondexia.domain/     Entidades JPA · dominio compartido   ✅
 │   │   ├── ondexia.api/        Spring Boot · núcleo comercial       ✅ esqueleto
 │   │   └── ondexia.facturacion/ Lambdas Emisor + Poller · SUNAT  [FALTA CREAR]
-│   ├── ondexia.web/            Angular · la aplicación             ✅ inicializado
-│   ├── ondexia.landing/        Astro · marketing                       [vacío]
-│   └── ondexia.portal/         Portal público de comprobantes          [vacío]
+│   └── frontend/               Tres proyectos independientes, un build cada uno
+│       ├── ondexia.web/        Angular · la aplicación             ✅ inicializado
+│       ├── ondexia.landing/    Astro · marketing                       [vacío]
+│       └── ondexia.portal/     Portal público de comprobantes          [vacío]
 ├── ondexia.contracts/          OpenAPI + catálogos SUNAT      ✅ openapi.yaml
 ├── ondexia.infra/              Terraform                                [v1 escrita]
 ├── ondexia.docs/               Documentación del proceso COE QE    ✅
@@ -84,12 +85,24 @@ ondexia/
 |---|---|---|
 | `apps/backend/ondexia.api` | API Core del DTE §3.3 | **Nunca abre conexión hacia SUNAT.** Publica en SQS y responde |
 | `apps/backend/ondexia.facturacion` | Emisor + Poller | **No conoce reglas de negocio.** Es la única que toca certificados y SUNAT (DT-13) |
-| `apps/ondexia.web` | App Angular | No firma, no habla con SUNAT |
-| `apps/ondexia.landing` | Landing Astro | Estática pura, sin acceso a datos |
-| `apps/ondexia.portal` | Portal público | **Sin autenticación, aislado.** No consulta la base transaccional |
+| `apps/frontend/ondexia.web` | App Angular | No firma, no habla con SUNAT |
+| `apps/frontend/ondexia.landing` | Landing Astro | Estática pura, sin acceso a datos |
+| `apps/frontend/ondexia.portal` | Portal público | **Sin autenticación, aislado.** No consulta la base transaccional |
 | `ondexia.infra` | Toda la infraestructura | Fuente única de la topología. Nada se crea a mano en la consola |
 
 La separación `ondexia.api` / `ondexia.facturacion` no es organización cosmética: **es el boundary de DT-13 hecho carpeta.** Que sean dos módulos desplegables distintos es lo que permite cambiar de proveedor de emisión a SUNAT directo (§7.1 del DTE) sin tocar el núcleo comercial.
+
+### `backend/` y `frontend/` no son la misma clase de carpeta
+
+Conviene no dejar que la simetría del nombre engañe.
+
+**`backend/` agrupa un build.** Los tres módulos Java comparten un `pom.xml` padre, un wrapper y un reactor: `./mvnw test` construye los tres juntos, con versiones de dependencias gestionadas en un solo sitio. Sin la carpeta, ese padre quedaba en la raíz de `apps/` pareciendo gobernar también a Angular y Astro.
+
+**`frontend/` agrupa por afinidad.** Los tres proyectos no comparten nada hoy: Angular, Astro y el portal son tres `package.json`, tres builds, tres despliegues y tres distribuciones de CloudFront. La carpeta ordena la vista y no hace más que eso.
+
+Donde la agrupación se volvería técnica es si `frontend/` acaba llevando un **workspace de pnpm**: un solo `pnpm install`, un lockfile, un almacén compartido y la configuración de TypeScript y linting en un sitio. Sería el equivalente del `pom.xml` padre. **Decisión abierta** — tiene sentido plantearla cuando exista el segundo proyecto real, no antes: con un solo `package.json`, un workspace es una capa sin nada que resolver.
+
+> Ojo con §1.2: `ondexia.landing` sigue siendo el único candidato defendible a salir a su propio repositorio. Un workspace de pnpm lo ataría a los otros dos y encarecería esa salida. No es un impedimento, pero sí un costo a contar el día que se decida.
 
 ## 4. Backend Java — multi-módulo Maven
 
