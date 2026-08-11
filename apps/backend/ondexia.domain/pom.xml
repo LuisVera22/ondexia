@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Nucleo del dominio: entidades, enumerados, catalogos SUNAT y los puertos de
-  persistencia.
+  El dominio de Ondexia. Reglas de negocio y nada mas.
 
-  Existe como modulo aparte porque ondexia-api y ondexia-facturacion comparten
-  el modelo: el Emisor necesita leer el documento de venta que el nucleo
-  comercial escribio. Duplicarlo seria garantizar que se desincronicen
-  (doc 03 §4).
+  ══════════════════════════════════════════════════════════════════════════
+  ESTE MODULO NO TIENE NINGUNA DEPENDENCIA DE PRODUCCION, Y ES DELIBERADO.
+  ══════════════════════════════════════════════════════════════════════════
 
-  REGLA: este modulo no depende de ningun otro modulo de Ondexia. Si algun dia
-  necesita importar de com.ondexia.api, la separacion se perdio y hay que
-  detenerse a corregirlo, no a agregar la dependencia.
+  Sin JPA, sin Spring, sin Bean Validation. Asi la pureza del dominio no es una
+  convencion que alguien tenga que recordar: `jakarta.persistence` no esta en el
+  classpath, de modo que una entidad con @Entity aqui **no compila**.
 
-  Tampoco depende de Spring Web, ni de seguridad, ni de nada que hable HTTP.
-  Solo persistencia y validacion.
+  Antes de anadir una dependencia, la pregunta es si el negocio la necesita para
+  existir. La respuesta casi siempre es no: las reglas se comprueban en el
+  constructor, no con anotaciones que solo actuan si alguien invoca al validador.
+
+  Existe como modulo aparte porque ondexia-facturacion tambien lo necesita — el
+  Emisor lee el mismo Comprobante que escribe el nucleo comercial (DT-13). Esa
+  es la razon del modulo; la pureza del compilador es un beneficio anadido.
+
+  Ver ondexia.docs/08-arquitectura-backend.md
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -29,24 +34,12 @@
   <artifactId>ondexia-domain</artifactId>
   <name>Ondexia — dominio</name>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-data-jpa</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-validation</artifactId>
-    </dependency>
-  </dependencies>
-
   <build>
     <plugins>
       <!--
-        Este modulo es una biblioteca, no un ejecutable. Sin esto, el plugin de
-        Spring Boot lo reempaqueta como jar ejecutable y ondexia-api no puede
-        usarlo como dependencia: las clases quedan dentro de BOOT-INF/ y el
-        compilador no las ve.
+        Es una biblioteca, no un ejecutable. Sin esto el plugin de Spring Boot
+        lo reempaqueta como jar ejecutable, las clases quedan bajo BOOT-INF/ y
+        ondexia-api no las ve.
       -->
       <plugin>
         <groupId>org.springframework.boot</groupId>

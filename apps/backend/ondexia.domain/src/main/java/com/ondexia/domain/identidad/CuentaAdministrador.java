@@ -1,59 +1,52 @@
 package com.ondexia.domain.identidad;
 
-import com.ondexia.domain.comun.EntidadBase;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
- * Quien gobierna la cuenta: factura, crea empresas, asigna usuarios y gestiona
- * roles.
+ * Quien gobierna la cuenta: factura, crea empresas, asigna usuarios.
  *
- * <p><strong>Por que no es un rol mas de la matriz.</strong> Tres razones, y
- * cada una por si sola basta:
+ * <p><strong>No es un rol de la matriz de permisos</strong>, por tres razones y
+ * cada una basta: existe antes que cualquier empresa (y la matriz se evalúa
+ * sobre el par usuario-empresa); gobierna la facturación de la suscripción, que
+ * no es un módulo; y necesita el invariante «no puede quedar vacía», que la
+ * matriz no puede expresar.
  *
- * <ol>
- *   <li>Existe <em>antes</em> que cualquier empresa. La matriz de permisos se
- *       evalua sobre el par (usuario, empresa), y al crear la cuenta todavia no
- *       hay ninguna empresa contra la que evaluar.</li>
- *   <li>Gobierna la facturacion de la suscripcion, que no es un modulo del
- *       sistema y por tanto no tiene entrada {@code (modulo, accion)}.</li>
- *   <li>Necesita el invariante «no puede quedar vacia», que la matriz no puede
- *       expresar: quitar el ultimo permiso de un rol es legitimo; quitar el
- *       ultimo administrador deja la cuenta sin quien la gobierne, y sin nadie
- *       capaz de arreglarlo desde dentro.</li>
- * </ol>
- *
- * <p>Ese invariante se defiende en la base con un disparador, no solo en el
- * servicio. Dos administradores renunciando a la vez en transacciones paralelas
- * pasarian ambos la comprobacion en Java —cada uno ve al otro todavia
- * presente— y la cuenta quedaria huerfana.
+ * <p>Ese invariante lo defiende un disparador en la base, no este código: dos
+ * administradores renunciando en transacciones paralelas pasarían ambos la
+ * comprobación en Java. Ver la migración V1.
  */
-@Entity
-@Table(name = "cuenta_administrador")
-public class CuentaAdministrador extends EntidadBase {
+public class CuentaAdministrador {
 
-    @Column(name = "cuenta_id", nullable = false, updatable = false)
-    private UUID cuentaId;
+    private final UUID id;
+    private final UUID cuentaId;
+    private final UUID usuarioId;
 
-    @Column(name = "usuario_id", nullable = false, updatable = false)
-    private UUID usuarioId;
-
-    protected CuentaAdministrador() {
-        // Requerido por JPA.
+    public CuentaAdministrador(UUID id, UUID cuentaId, UUID usuarioId) {
+        this.id = Objects.requireNonNull(id, "id");
+        this.cuentaId = Objects.requireNonNull(cuentaId, "cuentaId");
+        this.usuarioId = Objects.requireNonNull(usuarioId, "usuarioId");
     }
 
-    public CuentaAdministrador(UUID cuentaId, UUID usuarioId) {
-        this.cuentaId = cuentaId;
-        this.usuarioId = usuarioId;
+    public UUID id() {
+        return id;
     }
 
-    public UUID getCuentaId() {
+    public UUID cuentaId() {
         return cuentaId;
     }
 
-    public UUID getUsuarioId() {
+    public UUID usuarioId() {
         return usuarioId;
+    }
+
+    @Override
+    public boolean equals(Object otro) {
+        return otro instanceof CuentaAdministrador otra && id.equals(otra.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }

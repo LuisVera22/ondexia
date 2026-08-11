@@ -1,54 +1,46 @@
 /**
- * Nucleo del dominio de Ondexia: entidades, enumerados, catalogos SUNAT y los
- * puertos de persistencia.
+ * El dominio de Ondexia: reglas de negocio, sin tecnología.
  *
- * <h2>Como se organiza el backend</h2>
+ * <h2>Este paquete no depende de nada</h2>
  *
- * Monolito modular con hexagonal pragmatica. El corte principal es
- * <strong>por dominio</strong>, no por capa tecnica: existe {@code almacen} y
- * existe {@code ventas}, y dentro de cada uno estan sus capas. Al reves —un
- * paquete {@code service} con sesenta clases— no hay ninguna frontera que
- * impida que Ventas llame directo al repositorio de Almacen, y a los 23
- * submodulos del alcance eso es un monolito enredado.
+ * Ni JPA, ni Spring, ni Bean Validation. No es disciplina: el módulo Maven
+ * {@code ondexia-domain} no declara esas dependencias, así que una entidad con
+ * {@code @Entity} aquí <strong>no compila</strong>.
+ *
+ * <p>Las reglas se comprueban en el constructor, no con anotaciones que solo
+ * actúan si alguien invoca al validador. {@code new Ruc("2010000000")} lanza:
+ * no existe un RUC inválido en memoria, y por eso ningún método aguas abajo
+ * necesita volver a comprobarlo.
+ *
+ * <h2>Por qué es un módulo aparte</h2>
+ *
+ * Porque {@code ondexia-facturacion} también lo necesita: el Emisor lee el
+ * mismo {@code Comprobante} que escribe el núcleo comercial (DT-13). La
+ * frontera de módulo existe donde hay una necesidad real de compartir, no
+ * porque la arquitectura hexagonal se dibuje con varias cajas.
+ *
+ * <h2>Qué hay dentro</h2>
  *
  * <pre>
- *   ondexia-domain                       ondexia-api
- *   com.ondexia.domain.&lt;dominio&gt;         com.ondexia.api.&lt;dominio&gt;
- *     entidades, enums, puertos            aplicacion/     casos de uso
- *                                          infraestructura/ adaptadores
- *                                          web/            controladores y DTO
+ *   comun/      value objects (Ruc, Ubigeo), contexto de operación, errores
+ *   identidad/  cuenta, empresa, usuario, roles y permisos
+ *   auditoria/  la bitácora
+ *   almacen/    (pendiente)
+ *   ventas/     (pendiente)
  * </pre>
  *
- * La capa de dominio vive aqui, en un modulo Maven aparte, porque
- * {@code ondexia-facturacion} tambien la necesita: el Emisor lee el documento
- * de venta que el nucleo comercial escribio. Las otras tres capas viven en
- * {@code ondexia-api} y no se comparten.
+ * <p>Cada dominio contiene sus agregados <strong>y sus puertos de salida</strong>
+ * —los {@code *Repositorio}—, porque el puerto expresa lo que el dominio
+ * necesita para existir. Ponerlos en la capa de aplicación obligaría al dominio
+ * a depender de ella para nombrar su propio puerto.
  *
- * <h2>Por que las entidades llevan anotaciones de JPA</h2>
+ * <h2>Los errores no llevan código HTTP</h2>
  *
- * Es hexagonal <em>pragmatica</em>, y la palabra importa. La version estricta
- * exige que el dominio sea POJO puro, con entidades de persistencia aparte y un
- * mapeador por agregado. Eso duplica unas setenta clases de modelo y obliga a
- * mantener los mapeadores a mano, a cambio de una independencia de la que este
- * proyecto no va a hacer uso: no vamos a cambiar de PostgreSQL, y RLS —que es
- * una decision de aislamiento multiempresa (DTE §5.1)— ya nos ata al motor a
- * proposito.
+ * Deliberado. {@code ondexia-facturacion} consume de una cola, no atiende
+ * peticiones web: si las excepciones trajeran un estado HTTP dentro, ese módulo
+ * heredaría un concepto que no significa nada en su contexto. Cada adaptador
+ * decide cómo se representa el error en su medio.
  *
- * Lo que si se conserva de hexagonal es lo que rinde: <strong>el dominio no
- * conoce HTTP ni Spring Web ni seguridad</strong>, y las dependencias apuntan
- * hacia adentro. Este modulo no depende de ningun otro modulo de Ondexia. Si
- * empieza a importar de {@code com.ondexia.api}, la separacion se perdio.
- *
- * <h2>Nomenclatura</h2>
- *
- * Sustantivo del dominio en espanol, sufijo tecnico en ingles:
- * {@code UsuarioRepository}, {@code ProductoService},
- * {@code EmitirBoletaUseCase}. Los metodos de negocio van en espanol
- * ({@code calcularCostoPromedio}); los derivados de Spring Data van en ingles
- * porque el framework <em>parsea</em> el nombre para construir la consulta —
- * {@code findByEmpresaIdAndCodigo} no se puede llamar de otra forma sin
- * escribir la consulta a mano.
- *
- * Tablas y columnas en {@code snake_case} espanol, como fija el DTE §5.
+ * <p>Ver {@code ondexia.docs/08-arquitectura-backend.md}.
  */
 package com.ondexia.domain;

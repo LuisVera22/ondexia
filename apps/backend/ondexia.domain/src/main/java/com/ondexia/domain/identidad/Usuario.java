@@ -1,120 +1,115 @@
 package com.ondexia.domain.identidad;
 
-import com.ondexia.domain.comun.EntidadBase;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import com.ondexia.domain.comun.error.Conflicto;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
  * Persona que usa el sistema. Pertenece a una cuenta.
  *
- * <p><strong>Esta tabla es la fuente de verdad, no Cognito.</strong> Cognito
- * autentica y nada mas; la pertenencia a cuenta, el estado y los permisos viven
- * aqui. Esa separacion es lo que hace reversible la decision DT-05: salir de
- * Cognito cuesta restablecer contrasenas, no reconstruir el modelo de usuarios.
+ * <p><strong>Esta es la fuente de verdad, no Cognito.</strong> Cognito autentica
+ * y nada más; pertenencia, estado y permisos viven aquí. Esa separación es lo
+ * que hace reversible DT-05: salir de Cognito cuesta restablecer contraseñas,
+ * no reconstruir el modelo de usuarios.
  *
- * <p>No hay contrasena en esta tabla, y no debe haberla nunca. Guardar hashes
- * en dos sitios es garantizar que uno de los dos quede obsoleto.
+ * <p>No hay contraseña en esta clase, y no debe haberla nunca.
  */
-@Entity
-@Table(name = "usuario")
-public class Usuario extends EntidadBase {
+public class Usuario {
 
-    @Column(name = "cuenta_id", nullable = false, updatable = false)
-    private UUID cuentaId;
-
-    /**
-     * El {@code sub} del token de Cognito: la <strong>unica</strong> referencia
-     * al proveedor de identidad en todo el modelo.
-     *
-     * <p>Se usa el {@code sub} y no el correo porque el correo cambia y el
-     * {@code sub} es inmutable. Un usuario que actualiza su direccion no puede
-     * convertirse en otro usuario distinto.
-     *
-     * <p>Admite nulo: el administrador de la cuenta puede dar de alta a alguien
-     * antes de que esa persona complete su registro en Cognito. Queda vinculado
-     * en el primer inicio de sesion.
-     */
-    @Column(name = "cognito_sub", unique = true, length = 64)
+    private final UUID id;
+    private final UUID cuentaId;
     private String cognitoSub;
-
-    @Email
-    @NotBlank
-    @Column(name = "email", nullable = false, length = 254)
     private String email;
-
-    @NotBlank
-    @Column(name = "nombre", nullable = false, length = 150)
     private String nombre;
-
-    /**
-     * Un usuario desactivado no entra, aunque su token siga vigente.
-     *
-     * <p>Se comprueba en cada peticion. Es la unica forma de revocar el acceso
-     * antes de que caduque el JWT — Cognito no ofrece revocacion inmediata del
-     * token de acceso.
-     */
-    @Column(name = "activo", nullable = false)
     private boolean activo;
 
-    protected Usuario() {
-        // Requerido por JPA.
-    }
-
-    public Usuario(UUID cuentaId, String email, String nombre) {
-        this.cuentaId = cuentaId;
+    public Usuario(UUID id, UUID cuentaId, String email, String nombre) {
+        this.id = Objects.requireNonNull(id, "id");
+        this.cuentaId = Objects.requireNonNull(cuentaId, "cuentaId");
         this.email = email;
         this.nombre = nombre;
         this.activo = true;
     }
 
-    public UUID getCuentaId() {
+    public Usuario(UUID id, UUID cuentaId, String cognitoSub, String email, String nombre,
+            boolean activo) {
+        this.id = id;
+        this.cuentaId = cuentaId;
+        this.cognitoSub = cognitoSub;
+        this.email = email;
+        this.nombre = nombre;
+        this.activo = activo;
+    }
+
+    public UUID id() {
+        return id;
+    }
+
+    public UUID cuentaId() {
         return cuentaId;
     }
 
-    public String getCognitoSub() {
+    /**
+     * El {@code sub} del token: la única referencia al proveedor de identidad en
+     * todo el modelo. Se usa el {@code sub} y no el correo porque el correo
+     * cambia y el {@code sub} es inmutable.
+     *
+     * <p>Admite nulo: el administrador puede dar de alta a alguien antes de que
+     * complete su registro. Se vincula en el primer acceso.
+     */
+    public String cognitoSub() {
         return cognitoSub;
     }
 
-    /**
-     * Vincula la identidad de Cognito en el primer inicio de sesion.
-     *
-     * <p>Solo se permite una vez. Reasignar el {@code sub} de un usuario ya
-     * vinculado significaria que otra persona hereda su historial de auditoria,
-     * que es precisamente lo que la auditoria existe para impedir.
-     */
-    public void vincularIdentidad(String cognitoSub) {
-        if (this.cognitoSub != null) {
-            throw new IllegalStateException(
-                    "El usuario " + getId() + " ya esta vinculado a una identidad de Cognito");
-        }
-        this.cognitoSub = cognitoSub;
-    }
-
-    public String getEmail() {
+    public String email() {
         return email;
     }
 
-    public String getNombre() {
+    public String nombre() {
         return nombre;
-    }
-
-    public void renombrar(String nombre) {
-        this.nombre = nombre;
     }
 
     public boolean estaActivo() {
         return activo;
     }
 
+    /**
+     * Vincula la identidad en el primer acceso. Solo una vez: reasignar el
+     * {@code sub} de un usuario ya vinculado haría que otra persona heredara su
+     * historial de auditoría, que es lo que la auditoría existe para impedir.
+     */
+    public void vincularIdentidad(String cognitoSub) {
+        if (this.cognitoSub != null) {
+            throw new Conflicto("identidad_ya_vinculada",
+                    "El usuario ya está vinculado a una identidad de Cognito.");
+        }
+        this.cognitoSub = cognitoSub;
+    }
+
+    public void renombrar(String nombre) {
+        this.nombre = nombre;
+    }
+
+    /**
+     * Un usuario desactivado no entra aunque su token siga vigente. Es la única
+     * forma de revocar el acceso antes de que caduque el JWT — Cognito no
+     * revoca un token de acceso ya emitido.
+     */
     public void desactivar() {
         this.activo = false;
     }
 
     public void activar() {
         this.activo = true;
+    }
+
+    @Override
+    public boolean equals(Object otro) {
+        return otro instanceof Usuario otro2 && id.equals(otro2.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }

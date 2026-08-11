@@ -1,94 +1,95 @@
 package com.ondexia.domain.identidad;
 
-import com.ondexia.domain.comun.EntidadBase;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import com.ondexia.domain.comun.Ubigeo;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
  * Establecimiento anexo de una empresa.
  *
- * <p>No es organizacion cosmetica: la sucursal decide <strong>que serie</strong>
- * lleva el comprobante y <strong>que almacen</strong> se descarga. Por eso el
- * alcance de un usuario puede acotarse a una sucursal concreta — ver
- * {@link UsuarioEmpresa}.
+ * <p>No es organización cosmética: la sucursal decide <strong>qué serie</strong>
+ * lleva el comprobante y <strong>qué almacén</strong> se descarga. Por eso el
+ * alcance de un usuario puede acotarse a una.
  *
- * <p>El {@code codigo} es el del establecimiento anexo ante SUNAT, no un
- * numero interno. Aparece en el comprobante y SUNAT lo valida contra su
- * registro.
+ * <p>El {@code codigo} es el del establecimiento anexo ante SUNAT, no un número
+ * interno: aparece en el comprobante y SUNAT lo valida contra su registro.
  */
-@Entity
-@Table(name = "sucursal")
-public class Sucursal extends EntidadBase {
+public class Sucursal {
 
-    @Column(name = "empresa_id", nullable = false, updatable = false)
-    private UUID empresaId;
+    private final UUID id;
+    private final UUID empresaId;
+    private final String codigo;
 
-    @NotBlank
-    @Column(name = "codigo", nullable = false, length = 10)
-    private String codigo;
-
-    @NotBlank
-    @Column(name = "nombre", nullable = false, length = 200)
     private String nombre;
-
-    @NotBlank
-    @Column(name = "direccion", nullable = false, length = 400)
     private String direccion;
+    private Ubigeo ubigeo;
+    private boolean activa;
 
-    @Pattern(regexp = "\\d{6}", message = "El ubigeo debe tener 6 digitos")
-    @Column(name = "ubigeo", length = 6)
-    private String ubigeo;
-
-    @Column(name = "activo", nullable = false)
-    private boolean activo;
-
-    protected Sucursal() {
-        // Requerido por JPA.
+    public Sucursal(UUID id, UUID empresaId, String codigo, String nombre, String direccion) {
+        this.id = Objects.requireNonNull(id, "id");
+        this.empresaId = Objects.requireNonNull(empresaId, "empresaId");
+        this.codigo = Objects.requireNonNull(codigo, "codigo");
+        this.nombre = nombre;
+        this.direccion = direccion;
+        this.activa = true;
     }
 
-    public Sucursal(UUID empresaId, String codigo, String nombre, String direccion) {
+    public Sucursal(UUID id, UUID empresaId, String codigo, String nombre, String direccion,
+            Ubigeo ubigeo, boolean activa) {
+        this.id = id;
         this.empresaId = empresaId;
         this.codigo = codigo;
         this.nombre = nombre;
         this.direccion = direccion;
-        this.activo = true;
+        this.ubigeo = ubigeo;
+        this.activa = activa;
     }
 
-    public UUID getEmpresaId() {
+    public UUID id() {
+        return id;
+    }
+
+    public UUID empresaId() {
         return empresaId;
     }
 
-    public String getCodigo() {
+    public String codigo() {
         return codigo;
     }
 
-    public String getNombre() {
+    public String nombre() {
         return nombre;
     }
 
-    public String getDireccion() {
+    public String direccion() {
         return direccion;
     }
 
-    public String getUbigeo() {
+    public Ubigeo ubigeo() {
         return ubigeo;
     }
 
     public boolean estaActiva() {
-        return activo;
+        return activa;
     }
 
-    public void actualizar(String nombre, String direccion, String ubigeo) {
+    public void actualizar(String nombre, String direccion, Ubigeo ubigeo) {
         this.nombre = nombre;
         this.direccion = direccion;
         this.ubigeo = ubigeo;
     }
 
     public void desactivar() {
-        this.activo = false;
+        this.activa = false;
+    }
+
+    @Override
+    public boolean equals(Object otro) {
+        return otro instanceof Sucursal otra && id.equals(otra.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }

@@ -1,86 +1,70 @@
 package com.ondexia.domain.identidad;
 
-import com.ondexia.domain.comun.EntidadBase;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * El cliente que contrata Ondexia.
  *
- * <p><strong>La suscripcion cuelga de la cuenta, no de la empresa.</strong> Un
- * mismo contribuyente puede operar varios RUC —es lo normal en grupos
- * familiares y en cadenas—, y facturarle una suscripcion por cada uno seria
- * cobrarle varias veces por el mismo servicio. La cuenta es la unidad
- * comercial; la empresa es la unidad fiscal.
+ * <p>La suscripción cuelga de la cuenta, no de la empresa: un contribuyente
+ * puede operar varios RUC —normal en grupos familiares y cadenas— y cobrarle
+ * una suscripción por cada uno sería cobrarle varias veces por lo mismo. La
+ * cuenta es la unidad comercial; la empresa, la unidad fiscal.
  */
-@Entity
-@Table(name = "cuenta")
-public class Cuenta extends EntidadBase {
+public class Cuenta {
 
-    @NotBlank
-    @Column(name = "nombre", nullable = false, length = 200)
+    private final UUID id;
     private String nombre;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "plan", nullable = false, length = 30)
     private PlanSuscripcion plan;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "estado_suscripcion", nullable = false, length = 30)
     private EstadoSuscripcion estadoSuscripcion;
-
-    /**
-     * Se incrementa al tocar cualquier rol o asignacion de permisos de esta
-     * cuenta.
-     *
-     * <p>Existe para poder cachear los permisos en la memoria del contenedor de
-     * Lambda sin servirlos rancios. Sin este numero hay dos opciones, ambas
-     * malas: consultar los ~200 permisos en cada peticion, o cachearlos y que
-     * un permiso revocado siga funcionando hasta que el contenedor muera —que
-     * puede ser horas. Con la version en la clave del cache, revocar un permiso
-     * invalida la entrada de inmediato y sin coordinacion entre contenedores.
-     *
-     * <p>Ver {@code EvaluadorPermisos} en {@code ondexia-api}.
-     */
-    @Column(name = "permisos_version", nullable = false)
     private long permisosVersion;
 
-    protected Cuenta() {
-        // Requerido por JPA.
-    }
-
-    public Cuenta(String nombre, PlanSuscripcion plan, EstadoSuscripcion estadoSuscripcion) {
+    public Cuenta(UUID id, String nombre, PlanSuscripcion plan, EstadoSuscripcion estado) {
+        this.id = Objects.requireNonNull(id, "id");
         this.nombre = nombre;
         this.plan = plan;
-        this.estadoSuscripcion = estadoSuscripcion;
+        this.estadoSuscripcion = estado;
         this.permisosVersion = 1L;
     }
 
-    public String getNombre() {
+    public Cuenta(UUID id, String nombre, PlanSuscripcion plan, EstadoSuscripcion estado,
+            long permisosVersion) {
+        this(id, nombre, plan, estado);
+        this.permisosVersion = permisosVersion;
+    }
+
+    public UUID id() {
+        return id;
+    }
+
+    public String nombre() {
         return nombre;
+    }
+
+    public PlanSuscripcion plan() {
+        return plan;
+    }
+
+    public EstadoSuscripcion estadoSuscripcion() {
+        return estadoSuscripcion;
+    }
+
+    /**
+     * Se incrementa al tocar cualquier rol de la cuenta.
+     *
+     * <p>Permite cachear los permisos en memoria del contenedor de Lambda sin
+     * servirlos rancios: con la versión en la clave del caché, revocar un
+     * permiso invalida la entrada de inmediato y sin coordinación entre
+     * contenedores.
+     */
+    public long permisosVersion() {
+        return permisosVersion;
     }
 
     public void renombrar(String nombre) {
         this.nombre = nombre;
     }
 
-    public PlanSuscripcion getPlan() {
-        return plan;
-    }
-
-    public EstadoSuscripcion getEstadoSuscripcion() {
-        return estadoSuscripcion;
-    }
-
-    public long getPermisosVersion() {
-        return permisosVersion;
-    }
-
-    /** La invoca quien modifica roles o asignaciones. Ver el campo. */
     public void invalidarCachePermisos() {
         this.permisosVersion++;
     }
@@ -88,12 +72,22 @@ public class Cuenta extends EntidadBase {
     /**
      * Una cuenta suspendida o cancelada no opera.
      *
-     * <p>Se comprueba en cada peticion, no solo al iniciar sesion: un JWT es
-     * valido hasta que caduca, y cortar el servicio no puede esperar a la
-     * renovacion del token.
+     * <p>Se comprueba en cada petición, no solo al iniciar sesión: un JWT es
+     * válido hasta que caduca, y cortar el servicio no puede esperar a la
+     * renovación del token.
      */
     public boolean estaOperativa() {
         return estadoSuscripcion == EstadoSuscripcion.ACTIVA
                 || estadoSuscripcion == EstadoSuscripcion.EN_PRUEBA;
+    }
+
+    @Override
+    public boolean equals(Object otro) {
+        return otro instanceof Cuenta otra && id.equals(otra.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }
