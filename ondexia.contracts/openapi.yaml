@@ -1,0 +1,139 @@
+# GENERADO AUTOMATICAMENTE — no editar a mano.
+#
+# Lo escribe ExportarContratoIT en cada ejecucion de la suite, a partir de los
+# controladores de ondexia-api. Si este archivo aparece modificado en git status,
+# es porque la API cambio: revisa el diff antes de confirmar, porque de aqui se
+# genera el cliente Angular.
+#
+# Regenerar:  cd apps && ./mvnw test
+#
+# El -am de "-pl ondexia.api -am" no es opcional si acotas el modulo: sin el,
+# Maven no construye ondexia-domain y la resolucion falla.
+openapi: 3.1.0
+info:
+  title: Ondexia — API Core
+  description: |-
+    Nucleo comercial: almacen, compras, ventas y configuracion.
+
+    Esta API no habla con SUNAT. La emision de comprobantes se publica en una cola y la atiende ondexia-facturacion (DTE §3.3).
+  version: 0.1.0
+servers:
+- url: http://localhost
+  description: Generated server url
+security:
+- jwt: []
+tags:
+- name: Contexto
+  description: "Identidad, empresas accesibles y permisos efectivos"
+paths:
+  /salud:
+    get:
+      tags:
+      - salud-controller
+      summary: Sonda de vida
+      description: Responde si el proceso esta en pie. No comprueba dependencias.
+      operationId: consultar
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Salud"
+      security: []
+  /api/v1/contexto:
+    get:
+      tags:
+      - Contexto
+      summary: Contexto del usuario autenticado
+      description: |-
+        Devuelve la identidad, las empresas a las que tiene acceso y los permisos del rol en la empresa activa.
+
+        La empresa activa se indica con la cabecera X-Empresa-Id. Si se omite y el usuario solo tiene una, se toma esa. Si tiene varias y no la indica, la respuesta trae la lista para que elija y el conjunto de permisos vacio.
+      operationId: consultar_1
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaContexto"
+components:
+  schemas:
+    Salud:
+      type: object
+      properties:
+        estado:
+          type: string
+        version:
+          type: string
+    CuentaResumen:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        esAdministrador:
+          type: boolean
+    EmpresaResumen:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        ruc:
+          type: string
+        razonSocial:
+          type: string
+        nombreComercial:
+          type: string
+        modoSunat:
+          type: string
+        rol:
+          type: string
+        sucursalId:
+          type: string
+          format: uuid
+        sucursalNombre:
+          type: string
+    RespuestaContexto:
+      type: object
+      properties:
+        usuario:
+          $ref: "#/components/schemas/UsuarioResumen"
+        cuenta:
+          $ref: "#/components/schemas/CuentaResumen"
+        empresaActiva:
+          $ref: "#/components/schemas/EmpresaResumen"
+        empresas:
+          type: array
+          items:
+            $ref: "#/components/schemas/EmpresaResumen"
+        permisos:
+          type: array
+          items:
+            type: string
+    UsuarioResumen:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        nombre:
+          type: string
+        email:
+          type: string
+  parameters:
+    EmpresaActiva:
+      name: X-Empresa-Id
+      in: header
+      description: "Empresa sobre la que opera la peticion. Es una peticion, no una\
+        \ afirmacion: el servidor comprueba que el usuario tenga esa asignacion. Se\
+        \ puede omitir cuando el usuario solo tiene una empresa."
+      required: false
+  securitySchemes:
+    jwt:
+      type: http
+      description: Token de acceso emitido por el grupo de usuarios de Cognito.
+      scheme: bearer
+      bearerFormat: JWT

@@ -1,0 +1,113 @@
+spring:
+  application:
+    name: ondexia-api
+
+  # El perfil por defecto es 'local'. Es deliberado: en local uno se olvida de
+  # ponerlo, en un despliegue no — la variable SPRING_PROFILES_ACTIVE la fija
+  # Terraform. Si el defecto fuera 'prod', un arranque local sin perfil buscaria
+  # Cognito y fallaria de forma poco clara.
+  profiles:
+    default: local
+
+  datasource:
+    url: ${BD_URL:jdbc:postgresql://localhost:5432/ondexia}
+    username: ${BD_USUARIO:ondexia}
+    password: ${BD_CLAVE:ondexia}
+    hikari:
+      # Dos conexiones por contenedor. No es tacaneria: la Lambda tiene
+      # concurrencia reservada de 20 (ondexia.infra/variables.tf), asi que el
+      # techo son 40 conexiones simultaneas — dentro de lo que aguanta una
+      # db.t4g.micro. Ese calculo es lo que sustituye al RDS Proxy y ahorra su
+      # costo fijo; si se sube este numero hay que rehacerlo.
+      maximum-pool-size: ${BD_POOL_MAX:2}
+      minimum-idle: 1
+      # Mas corto que el tiempo de espera de API Gateway (29 s). Si la base no
+      # da conexion, conviene fallar con un error nuestro y legible antes de que
+      # la pasarela corte por su cuenta con un 504 opaco.
+      connection-timeout: 5000
+      # Por debajo del tiempo que RDS mantiene una conexion ociosa. Una conexion
+      # que el servidor ya cerro y el pool cree viva produce fallos
+      # intermitentes imposibles de reproducir.
+      max-lifetime: 600000
+
+  jpa:
+    hibernate:
+      # 'validate' y nunca 'update'. El esquema lo define Flyway; Hibernate solo
+      # comprueba que las entidades y las tablas coinciden. Con 'update',
+      # Hibernate corregiria la base por su cuenta segun lo que entienda del
+      # modelo, y en una base con datos fiscales eso no es una comodidad, es una
+      # migracion no revisada ejecutandose en produccion.
+      ddl-auto: validate
+    open-in-view: false
+    # open-in-view apagado a proposito. Encendido, la sesion de persistencia
+    # sigue abierta mientras se serializa la respuesta, con lo que una
+    # asociacion perezosa se carga sola durante el renderizado — una consulta
+    # extra por elemento, disparada desde la capa web, invisible en el codigo.
+    properties:
+      hibernate:
+        jdbc:
+          # Zona horaria fija para el driver. Sin esto, las marcas de tiempo se
+          # interpretan con la zona de la maquina, y la de Lambda es UTC
+          # mientras que la del portatil es la de Lima.
+          time_zone: UTC
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    # Sin 'clean'. Es un borrado completo del esquema a un comando de distancia,
+    # y no existe ninguna razon para tenerlo disponible en un sistema con datos
+    # fiscales.
+    clean-disabled: true
+    validate-on-migrate: true
+
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  # La API vive detras de API Gateway. Sin esto, cualquier respuesta de error
+  # generada por el contenedor delataria la version de Tomcat.
+  error:
+    whitelabel:
+      enabled: false
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Solo health. 'env', 'configprops' y 'beans' exponen configuracion
+        # interna, y 'heapdump' entrega la memoria del proceso entera — con
+        # tokens y credenciales dentro.
+        include: health
+  endpoint:
+    health:
+      # Los detalles de salud dicen que dependencia esta caida y con que error.
+      # Es informacion util para nosotros y reconocimiento gratuito para
+      # cualquiera. Se muestra solo a peticiones autorizadas.
+      show-details: when-authorized
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    # Ordenado: el contrato generado debe ser estable entre ejecuciones, o cada
+    # regeneracion produce un diff enorme que oculta el cambio real.
+    operations-sorter: alpha
+    tags-sorter: alpha
+
+ondexia:
+  version: ${ONDEXIA_VERSION:0.1.0-SNAPSHOT}
+  cors:
+    origenes: ${CORS_ORIGENES:http://localhost:4200}
+
+logging:
+  level:
+    com.ondexia: INFO

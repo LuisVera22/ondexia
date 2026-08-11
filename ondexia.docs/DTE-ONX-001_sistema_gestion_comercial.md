@@ -8,9 +8,9 @@
 | Campo | Valor |
 |---|---|
 | Código | DTE-ONX-001 |
-| Versión | 0.9 |
+| Versión | 0.10 |
 | Estado | **Preliminar** |
-| Fecha | 2026-08-10 |
+| Fecha | 2026-08-11 |
 | Producto | Ondexia — Almacén, Compras, Ventas + Facturación Electrónica SUNAT |
 | Fase COE QE | Fase 2 · Etapa 2 · Actividad 1 |
 | Tech Lead | Desarrollador único (R-13) |
@@ -273,6 +273,27 @@ Dos precisiones sobre el criterio:
 | Sustento | El `plan` de Terraform enumera exactamente qué se crea, modifica y destruye antes de tocar nada, y eso pesa más cuando no hay un segundo par de ojos. CDK sintetiza CloudFormation, y los fallos de CloudFormation —pilas atascadas en `UPDATE_ROLLBACK_FAILED`, recursos huérfanos tras un rollback fallido— exigen intervención manual que con R-13 no tiene quien la cubra |
 | Consecuencias | **A favor:** estado explícito y auditable; cobertura de recursos que CloudFormation tarda en incorporar. **En contra:** empaquetar el artefacto de Lambda deja de ser automático y pasa a ser un paso del pipeline; se pierde `cdk-nag` y hay que sustituirlo por `tfsec` o `checkov` (§8.3); **el estado pasa a ser un activo crítico** — vive en S3 cifrado y versionado, y perderlo obliga a importar los recursos a mano |
 | Verificación | `fmt`, `init` y `validate` pasan sobre `ondexia.infra/` y su `bootstrap/`. **No se ha ejecutado `plan` ni `apply` contra una cuenta real** |
+
+**Decisión técnica DT-17: Arquitectura interna del backend**
+
+| Campo | Valor |
+|---|---|
+| Opciones evaluadas | A) Monolito modular con hexagonal pragmática · B) Hexagonal estricta con dominio POJO puro · C) Capas clásicas de Spring agrupadas por tipo técnico |
+| Criterio de elección | Que la estructura siga siendo legible a los 23 submódulos del alcance, con un solo desarrollador (R-13) |
+| **Decisión** | **A — paquete por dominio; dentro de cada uno, `dominio` / `aplicacion` / `infraestructura` / `web`** |
+| Sustento | C es lo más rápido de arrancar y no sobrevive al alcance: un paquete `service` con sesenta clases no deja ninguna frontera que impida que Ventas llame directo al repositorio de Almacén. B duplica unas setenta clases de modelo y sus mapeadores a cambio de una independencia del motor que no vamos a ejercer — RLS (§5.1) ya nos ata a PostgreSQL a propósito |
+| Consecuencias | Las entidades llevan anotaciones de JPA y viven en `ondexia-domain`, compartidas con el motor de facturación. **Lo que sí se conserva de hexagonal es que el dominio no conoce HTTP, Spring Web ni seguridad**, y que las dependencias apuntan hacia adentro. **Deuda:** si algún día hiciera falta un modelo de dominio independiente de la persistencia, el cambio es caro |
+| Detalle | Ver `03-estructura-repositorio.md` §4.1 a §4.3 |
+
+**Decisión técnica DT-18: Versión de Spring Boot — la rama 4.0**
+
+| Campo | Valor |
+|---|---|
+| Opciones evaluadas | A) Spring Boot 4.0.7 · B) Spring Boot 4.1.0 · C) Spring Boot 3.5.x |
+| **Decisión** | **A — 4.0.7** |
+| Sustento | C queda fuera del soporte abierto en breve. B se publicó sin ningún parche detrás, y el ecosistema —springdoc, integraciones de pruebas— suele ir semanas por detrás de cada versión menor. 4.0.7 es la misma mayor con siete parches de rodaje |
+| Consecuencias | **Spring Boot 4 reorganizó los módulos y buena parte de los ejemplos publicados ya no compilan.** Lo verificado en este proyecto: `spring-boot-starter-aop` desapareció (ahora `-aspectj`); `flyway-core` a secas **no trae autoconfiguración y no migra nada** — hay que usar `spring-boot-starter-flyway`; `@EntityScan` se movió a `org.springframework.boot.persistence.autoconfigure`; y `@AutoConfigureMockMvc` salió de `spring-boot-starter-test` a `spring-boot-starter-webmvc-test`. Ninguno de los cuatro da un error legible: dos fallan como «símbolo no encontrado» y el de Flyway aparece mucho después, como un `missing table` de la validación de esquema de Hibernate |
+| Verificación | Suite de 15 pruebas de integración contra PostgreSQL 17 real, en verde |
 
 **Decisión técnica DT-06: Firma digital XAdES**
 
@@ -799,6 +820,39 @@ exista: migrar identidades en producción es caro.
 > puede ejecutarse bajo el inquilino del cliente A: exactamente la fuga que RLS venía a
 > evitar. Se fija **dentro de la transacción**, siempre, y nunca se asume que quedó limpia.
 
+**Implementado (0.9).** `GestorTransaccionesConAislamiento` sustituye al gestor de transacciones estándar, de modo que **toda** transacción de la aplicación pasa por él: el aislamiento no depende de que nadie recuerde anotar nada. Fija la variable con `set_config(..., true)` —válida solo dentro de la transacción y revertida por el motor al confirmar o deshacer—, así que la limpieza no la hace nuestro código y no se puede olvidar. Las políticas usan `nullif(current_setting(...), '')::uuid`: sin contexto, ninguna fila pasa. **Falla cerrado.**
+
+> **Segunda trampa de RLS, descubierta al probarlo — y peor que la primera.**
+>
+> **Un rol con `SUPERUSER` o `BYPASSRLS` no está sujeto a ninguna política**, y
+> `FORCE ROW LEVEL SECURITY` tampoco le alcanza: `FORCE` solo afecta al *propietario* de la
+> tabla, no al superusuario. El resultado es el peor estado posible de un control de
+> seguridad — las políticas existen, `pg_policies` las lista, el código es correcto, y no
+> filtran absolutamente nada. Sin error y sin aviso.
+>
+> No es hipotético: la imagen oficial de PostgreSQL crea `POSTGRES_USER` como superusuario,
+> así que el entorno de desarrollo por omisión *tiene* el problema. Y no se arregla
+> degradándolo, porque PostgreSQL lo prohíbe: *«the bootstrap superuser must have the
+> SUPERUSER attribute»*.
+>
+> **Consecuencia de diseño:** la aplicación se conecta siempre con un rol propio que es
+> dueño de su base pero no del clúster. En local lo crea un script de `initdb`; en RDS el
+> usuario maestro ya cumple. Y `ComprobacionAislamiento` **aborta el arranque** si detecta
+> un rol que puede saltarse las políticas — un despliegue mal configurado no levanta, en
+> lugar de levantar pareciendo protegido.
+>
+> Esto se detectó porque las pruebas de aislamiento fallaron. Sin ellas habría llegado a
+> producción sin síntoma alguno. Es el argumento más concreto de este documento a favor de
+> probar los controles de seguridad en vez de darlos por implementados.
+
+**Qué queda fuera de RLS, y por qué.** `empresa`, `sucursal` y `usuario_empresa` no llevan
+política: son las tablas que hay que leer **para saber** cuál es la empresa activa, así que
+una política que dependa de esa misma respuesta las dejaría vacías siempre. Su control
+compensatorio es que solo se consultan filtrando por el `usuario_id` que sale del token
+—nunca por un valor que mande el cliente— y esa consulta vive en un único sitio,
+`ResolutorContexto`. La aplicación avisa en cada arranque si aparecen otras tablas con
+`empresa_id` sin política.
+
 ### 8.2 Certificados digitales
 
 | Control | Implementación |
@@ -939,6 +993,10 @@ Lo que **no** se diseña ahora, con su razón:
 | DT-D9 | **Base de datos sin Multi-AZ ni réplica** | R-12: Multi-AZ duplica el costo de la instancia | Al primer cliente con compromiso contractual de disponibilidad |
 | DT-D10 | **Instancia NAT como punto único de falla** | R-12: ahorra ~29 USD/mes frente al NAT Gateway | Cuando la facturación detenida por caída del NAT tenga costo mayor que el ahorro |
 | DT-D11 | Sin RDS Proxy; pool controlado por concurrencia reservada | R-12: ~22 USD/mes que a este volumen no se justifican | Si el agotamiento de conexiones aparece en producción |
+| DT-D12 | **El contexto de la petición cuesta ~4 consultas** (usuario, cuenta, administrador, asignaciones) | Escribir una consulta única acopla cuatro conceptos antes de saber cómo evolucionan | Cuando el p95 de la API se acerque al NFR-01. Se resuelve con una vista o una consulta con `join`, sin tocar nada más |
+| DT-D13 | **La clave del rol de aplicación de PostgreSQL no rota sola** | El rol se crea en el aprovisionamiento; rotar exige un `ALTER ROLE` fuera de las migraciones | Antes del primer cliente real. La salida limpia es autenticación IAM de RDS, que elimina la clave |
+| DT-D14 | El emisor de tokens del perfil `local` es código de producción condicionado | Sin él la Fase 0 (§10.3) no es viable: no hay forma de autenticar sin Cognito desplegado | Cuando exista el pool de `dev`. Mitigado: la clave se genera en cada arranque y nunca sale de memoria, y el arranque se aborta si detecta ejecución en Lambda |
+| DT-D15 | Sin `tfsec`/`checkov` en CI; el CI todavía no construye el backend | DT-16 retiró `cdk-nag` y no se sustituyó; el workflow sigue apuntando a `npm ci` con el `package-lock.json` ya retirado | Inmediato — el pipeline está en rojo por construcción |
 
 ---
 
@@ -995,6 +1053,7 @@ Sustitutos admisibles, en orden de valor:
 | 0.5 | 2026-08-06 | R-13 (equipo unipersonal). §7.1 reabre DT-12 con recomendación de proveedor de emisión. §12.1 sustitutos del peer review. Bus factor 1 asumido | — |
 | 0.6 | 2026-08-06 | Corrección de versiones desactualizadas (Angular 19→22, PostgreSQL 16→17/18, Java y Spring Boot despinneados). §4.3 nueva: política de versiones por criterio, no por número | — |
 | 0.7 | 2026-08-06 | Versiones confirmadas: Angular 22, Java 21 LTS, Spring Boot sobre Java 21, PostgreSQL en RDS | — |
+| 0.10 | 2026-08-11 | Esqueleto del backend construido y verificado. DT-17 nueva (arquitectura interna: monolito modular con hexagonal pragmática) y DT-18 nueva (Spring Boot 4.0.7, con las cuatro reorganizaciones de módulos que rompen los ejemplos publicados). §8.1: **segunda trampa de RLS** — un rol superusuario se salta todas las políticas y `FORCE` no le alcanza; detectada porque las pruebas de aislamiento fallaron, mitigada con un rol dedicado y una comprobación que aborta el arranque. Se documenta qué tablas quedan fuera de RLS y por qué. Deudas DT-D12 a DT-D15 | — |
 | 0.9 | 2026-08-10 | DT-16 nueva: Terraform sustituye a AWS CDK. Se escribe la v1 completa en `ondexia.infra/`. Referencias a CDK actualizadas en §4.5, §8.3, §9 y §10.3 | — |
 | 0.8 | 2026-08-10 | §4.6 corregido: faltaban WAF, IP pública IPv4 y el escalado de secretos por empresa; el piso pasa de ~24 a ~40 USD/mes. La capa gratuita cambió a créditos. §4.7 nueva: costo de la v1 (~15). §4.8 nueva: consecuencias de la Lambda sin NAT. §5.2 ampliado con `cuenta`, `cuenta_administrador`, alcance por sucursal y `permisos_version`. §5.8 nueva: política de almacenamiento por reproducibilidad. §8.1 reescrito: contexto no confiable, grupos de usuarios separados, trampa de RLS con Lambda. DT-05 corregida (dato de capa gratuita caduco) | — |
 

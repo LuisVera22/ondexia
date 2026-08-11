@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  API Core: reglas de negocio, correlativos, stock, persistencia.
+
+  El boundary que importa (DTE §3.3): este modulo NUNCA abre una conexion hacia
+  SUNAT. Publica en SQS y responde. Toda comunicacion con el exterior fiscal
+  pasa por ondexia-facturacion, que es el unico que toca certificados.
+
+  Si algun dia aparece aqui una dependencia de firma XML o un cliente SOAP de
+  SUNAT, la arquitectura se rompio.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.ondexia</groupId>
+    <artifactId>ondexia-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>ondexia-api</artifactId>
+  <name>Ondexia — API Core</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.ondexia</groupId>
+      <artifactId>ondexia-domain</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <!--
+      Servidor de recursos OAuth2: valida el JWT que emite Cognito comprobando
+      la firma contra el JWKS del pool. No hay cliente OAuth2 aqui — el SPA hace
+      el login y esta API solo verifica (DTE §8.1).
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+    <!--
+      No se declara ningun starter de AOP. La autorizacion con @PreAuthorize y
+      las transacciones con @Transactional usan proxies de Spring AOP, que
+      vienen en spring-context. AspectJ (spring-boot-starter-aspectj, que en
+      Spring Boot 4 sustituye al desaparecido spring-boot-starter-aop) solo
+      haria falta para tejer aspectos sobre llamadas internas de la misma clase,
+      y nada aqui lo necesita.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <!--
+      Migraciones versionadas. El esquema se define aqui y solo aqui: Hibernate
+      corre con ddl-auto=validate, de modo que si una entidad y su tabla
+      divergen la aplicacion no arranca, en vez de "arreglar" la base sola.
+
+      Es el STARTER de Spring Boot y no flyway-core a secas. En Spring Boot 4 la
+      autoconfiguracion vive en el modulo spring-boot-flyway, que el starter
+      arrastra y la libreria suelta no: con flyway-core solo, la aplicacion
+      compila, arranca y no migra nada — y el fallo aparece mucho despues, como
+      un «missing table» de la validacion de esquema de Hibernate.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-flyway</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-database-postgresql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!--
+      Contrato en direccion codigo -> OpenAPI: springdoc exporta el openapi.yaml
+      durante el build y de ahi se genera el cliente Angular. Una sola fuente
+      que escribir, y es imposible que el contrato mienta sobre el codigo.
+    -->
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    </dependency>
+
+    <!--
+      Spring Boot 4 partio el soporte de pruebas en un modulo por tecnologia.
+      spring-boot-starter-test ya no arrastra @AutoConfigureMockMvc ni el resto
+      de la infraestructura web: hay que pedir el modulo de webmvc aparte.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webmvc-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.security</groupId>
+      <artifactId>spring-security-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!--
+      Las pruebas de integracion corren contra PostgreSQL real, no contra H2.
+      No es purismo: RLS, JSONB, NUMERIC(18,6) y las funciones de ventana del
+      kardex no existen o no se comportan igual en H2, y son exactamente las
+      piezas que hay que probar.
+    -->
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <!--
+        Se llama testcontainers-postgresql y no postgresql: la version 2.0
+        renombro todos los modulos con prefijo. Los ejemplos que circulan usan
+        el nombre viejo, que ya no resuelve.
+      -->
+      <artifactId>testcontainers-postgresql</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+</project>

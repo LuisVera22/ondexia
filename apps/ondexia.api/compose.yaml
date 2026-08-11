@@ -1,0 +1,48 @@
+# PostgreSQL local — Fase 0 del DTE §10.3.
+#
+# Se levanta con:  docker compose up -d
+#
+# La version debe ser la MISMA que la de RDS (ondexia.infra/datos.tf) y la misma
+# que usan las pruebas con Testcontainers. No es formalismo: este esquema depende
+# de UNIQUE NULLS NOT DISTINCT (PostgreSQL 15+) y de Row Level Security con
+# FORCE. Desarrollar contra una version distinta de la que corre en produccion
+# es como se descubren esas diferencias en el peor momento.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: ondexia-postgres
+    environment:
+      # Estas credenciales son las del SUPERUSUARIO BOOTSTRAP, y no las usa la
+      # aplicacion. El rol y la base de datos de Ondexia los crea
+      # docker/initdb/10-rol-aplicacion.sql, que explica por que hacen falta dos
+      # roles: un superusuario se salta Row Level Security, y al bootstrap no se
+      # le puede quitar ese atributo.
+      #
+      # La aplicacion se conecta como 'ondexia' a la base 'ondexia' — ver
+      # application.yml.
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      # Sin esto, la imagen inicializa el cluster con la configuracion regional
+      # del anfitrion, y el orden alfabetico cambia entre maquinas — con lo que
+      # una consulta ORDER BY devuelve resultados distintos en tu portatil y en
+      # CI. Es una fuente clasica de pruebas que fallan solo en un sitio.
+      POSTGRES_INITDB_ARGS: "--locale=C.UTF-8 --encoding=UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ondexia-datos:/var/lib/postgresql/data
+      # Scripts de inicializacion. Solo se ejecutan la primera vez, cuando el
+      # volumen esta vacio: si ya inicializaste la base antes de anadir esto,
+      # hay que borrar el volumen (docker compose down -v) o aplicar el ALTER a
+      # mano.
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ondexia"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  ondexia-datos:

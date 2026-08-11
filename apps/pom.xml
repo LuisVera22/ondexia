@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Padre del backend de Ondexia.
+
+  Hereda de spring-boot-starter-parent solo para tomar su gestion de versiones:
+  fija de una vez las de Hibernate, Jackson, Flyway, el driver de PostgreSQL y
+  un centenar mas. Alinearlas a mano es trabajo permanente y una de las fuentes
+  clasicas de fallos que solo aparecen en tiempo de ejecucion.
+
+  Este pom no produce codigo. Declara los modulos, las versiones de lo que el
+  BOM no cubre, y los plugins comunes.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.0.7</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>com.ondexia</groupId>
+  <artifactId>ondexia-parent</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>Ondexia — backend</name>
+  <description>Sistema de gestion comercial con facturacion electronica SUNAT</description>
+
+  <!--
+    La carpeta lleva punto (ondexia.domain) y el artefacto lleva guion
+    (ondexia-domain). Es la traduccion en frontera que fija
+    ondexia.docs/03-estructura-repositorio.md §2: punto en carpeta, guion en
+    identificador tecnico.
+  -->
+  <modules>
+    <module>ondexia.domain</module>
+    <module>ondexia.api</module>
+  </modules>
+
+  <properties>
+    <!--
+      Java 21 y no uno mas nuevo. La restriccion vinculante no es que LTS
+      publico Oracle, sino que runtime ofrece Lambda con SnapStart, que es
+      requisito duro de DT-02. Ver DTE §4.3.
+    -->
+    <java.version>21</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <springdoc.version>3.0.3</springdoc.version>
+    <testcontainers.version>2.0.5</testcontainers.version>
+
+    <!--
+      OWASP Dependency-Check enlazado a la fase verify, no como paso aparte del
+      workflow: asi corre igual en CI y en local (doc 03 §9.0). Es bloqueante
+      por decision de §9.4 — en un sistema que firma comprobantes con valor
+      tributario, un CVE conocido es un defecto, no un aviso.
+    -->
+    <dependency-check.version>12.1.0</dependency-check.version>
+    <dependency-check.failBuildOnCVSS>7</dependency-check.failBuildOnCVSS>
+    <!-- Se apaga en local con -Ddependency-check.skip=true; en CI nunca. -->
+    <dependency-check.skip>false</dependency-check.skip>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.ondexia</groupId>
+        <artifactId>ondexia-domain</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        <version>${springdoc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-bom</artifactId>
+        <version>${testcontainers.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!-- En todos los modulos: las pruebas no son opcionales en ninguno. -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.owasp</groupId>
+          <artifactId>dependency-check-maven</artifactId>
+          <version>${dependency-check.version}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <!--
+            Los nombres de parametro sobreviven a la compilacion. Spring los
+            necesita para resolver @PathVariable y @RequestParam sin repetir el
+            nombre en la anotacion, y sin esto fallan en runtime, no al
+            compilar.
+          -->
+          <parameters>true</parameters>
+          <!--
+            Los avisos del compilador se tratan como errores. Se excluyen tres
+            categorias que no senalan defectos nuestros:
+              serial      — las entidades JPA no son Serializable y no tienen
+                            por que declarar serialVersionUID.
+              processing  — la genera el procesador de anotaciones de Hibernate,
+                            no nuestro codigo.
+              this-escape — se dispara en toda clase con constructor que llama a
+                            un metodo sobreescribible; en las entidades JPA es
+                            ruido constante.
+          -->
+          <compilerArgs>
+            <arg>-Xlint:all,-serial,-processing,-this-escape</arg>
+            <arg>-Werror</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!--
+            Surefire por omision solo recoge *Test, *Tests y Test*. Las pruebas
+            de integracion se llaman *IT para distinguirlas de un vistazo —
+            necesitan Docker y tardan mas—, y sin esta linea no se ejecutaria
+            ninguna: el build pasaria en verde habiendo corrido cero pruebas,
+            que es el peor modo de fallo posible en una suite.
+
+            No se usa failsafe, que seria lo canonico, porque separar las
+            pruebas en dos fases obliga a recordar cual comando corre cuales.
+            Con un solo desarrollador, que `./mvnw test` ejecute todo vale mas
+            que la pureza de la separacion.
+          -->
+          <includes>
+            <include>**/*Test.java</include>
+            <include>**/*Tests.java</include>
+            <include>**/*IT.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <failBuildOnCVSS>${dependency-check.failBuildOnCVSS}</failBuildOnCVSS>
+          <skip>${dependency-check.skip}</skip>
+          <!-- Analizadores de ecosistemas que este proyecto no usa. -->
+          <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+          <nodeAnalyzerEnabled>false</nodeAnalyzerEnabled>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

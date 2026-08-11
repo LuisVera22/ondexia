@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Nucleo del dominio: entidades, enumerados, catalogos SUNAT y los puertos de
+  persistencia.
+
+  Existe como modulo aparte porque ondexia-api y ondexia-facturacion comparten
+  el modelo: el Emisor necesita leer el documento de venta que el nucleo
+  comercial escribio. Duplicarlo seria garantizar que se desincronicen
+  (doc 03 §4).
+
+  REGLA: este modulo no depende de ningun otro modulo de Ondexia. Si algun dia
+  necesita importar de com.ondexia.api, la separacion se perdio y hay que
+  detenerse a corregirlo, no a agregar la dependencia.
+
+  Tampoco depende de Spring Web, ni de seguridad, ni de nada que hable HTTP.
+  Solo persistencia y validacion.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.ondexia</groupId>
+    <artifactId>ondexia-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>ondexia-domain</artifactId>
+  <name>Ondexia — dominio</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <!--
+        Este modulo es una biblioteca, no un ejecutable. Sin esto, el plugin de
+        Spring Boot lo reempaqueta como jar ejecutable y ondexia-api no puede
+        usarlo como dependencia: las clases quedan dentro de BOOT-INF/ y el
+        compilador no las ve.
+      -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

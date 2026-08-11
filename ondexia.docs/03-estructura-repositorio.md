@@ -60,12 +60,14 @@ La regla del idioma es la que más se rompe sola. El criterio operativo: **si el
 ondexia/
 ├── .github/workflows/          CI/CD (ver §9)
 ├── apps/
-│   ├── ondexia.api/            Spring Boot · núcleo comercial          [vacío]
+│   ├── pom.xml, mvnw           Padre Maven + wrapper (Maven 3.9.16)  ✅
+│   ├── ondexia.domain/         Entidades JPA · dominio compartido    ✅
+│   ├── ondexia.api/            Spring Boot · núcleo comercial        ✅ esqueleto
 │   ├── ondexia.facturacion/    Lambdas Emisor + Poller · SUNAT     [FALTA CREAR]
 │   ├── ondexia.web/            Angular · la aplicación             ✅ inicializado
 │   ├── ondexia.landing/        Astro · marketing                       [vacío]
 │   └── ondexia.portal/         Portal público de comprobantes          [vacío]
-├── ondexia.contracts/          OpenAPI + catálogos SUNAT                [vacío]
+├── ondexia.contracts/          OpenAPI + catálogos SUNAT      ✅ openapi.yaml
 ├── ondexia.infra/              Terraform                                [v1 escrita]
 ├── ondexia.docs/               Documentación del proceso COE QE    ✅
 ├── ondexia.tools/              Scripts y utilidades                     [vacío]
@@ -111,6 +113,43 @@ apps/
 | Facturación | `ondexia-facturacion` | `ondexia-domain` |
 
 **`domain` no depende de nadie.** Si empieza a importar de `api`, la separación se perdió y conviene detenerse a corregirlo.
+
+### 4.1 Arquitectura interna — monolito modular con hexagonal pragmática
+
+**El corte principal es por dominio, no por capa técnica.** Existe `almacen` y existe `ventas`, y dentro de cada uno están sus capas:
+
+```
+ondexia-domain                      ondexia-api
+com.ondexia.domain.<dominio>        com.ondexia.api.<dominio>
+  entidades, enums, puertos           aplicacion/      casos de uso
+                                      infraestructura/ adaptadores
+                                      web/             controladores y DTO
+```
+
+El corte contrario —un paquete `service` con sesenta clases— no deja ninguna frontera que impida que Ventas llame directo al repositorio de Almacén, y a los 23 submódulos del alcance eso es un monolito enredado.
+
+**Las entidades llevan anotaciones de JPA, y la palabra «pragmática» es deliberada.** La versión estricta exige un dominio POJO puro con entidades de persistencia aparte y un mapeador por agregado: son unas setenta clases duplicadas y sus mapeadores, a cambio de una independencia del motor que este proyecto no va a ejercer. No vamos a cambiar de PostgreSQL, y RLS —decisión de aislamiento del DTE §5.1— ya nos ata a él a propósito.
+
+Lo que sí se conserva de hexagonal es lo que rinde: **el dominio no conoce HTTP ni Spring Web ni seguridad**, y las dependencias apuntan hacia adentro.
+
+### 4.2 Nomenclatura en el código
+
+Sustantivo del dominio en **español**, sufijo técnico en **inglés**:
+
+| | Ejemplo |
+|---|---|
+| Clases | `ProductoRepository`, `ProductoService`, `EmitirBoletaUseCase` |
+| Paquetes | `com.ondexia.almacen.producto` |
+| Métodos de negocio | `calcularCostoPromedio`, `habilitarProduccion` |
+| Tablas y columnas | `snake_case` español (DTE §5) |
+
+**La excepción la impone el framework, no el gusto.** Spring Data *analiza* el nombre del método para construir la consulta: `findByEmpresaIdAndCodigo` genera el `WHERE`, y `buscarPorEmpresaIdYCodigo` no genera nada — falla al arrancar el contexto. Esos métodos van en inglés y está anotado en `com.ondexia.domain.package-info`.
+
+### 4.3 Contrato OpenAPI — dirección código → contrato
+
+`springdoc` deriva el contrato de los controladores y `ExportarContratoIT` lo escribe en `ondexia.contracts/openapi.yaml` en cada ejecución de la suite. De ahí se genera el cliente Angular.
+
+Que lo escriba una prueba es intencionado: **el contrato no puede quedarse atrás**. Se regenera siempre, y si cambia aparece en `git status` junto al cambio que lo provocó. La alternativa —acordarse de regenerarlo— es exactamente el fallo que el contrato existe para evitar (§5).
 
 ## 5. Contratos — el detalle que más rinde con un solo desarrollador
 

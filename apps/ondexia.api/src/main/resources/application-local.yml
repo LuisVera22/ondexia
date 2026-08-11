@@ -1,0 +1,31 @@
+# Perfil de desarrollo — Fase 0 del DTE §10.3.
+#
+# Nada desplegado en AWS. PostgreSQL en contenedor (compose.yaml), la API
+# corriendo directo, y los tokens los emite la propia aplicacion.
+
+spring:
+  flyway:
+    # Se anade la carpeta de datos de ejemplo. En dev y prod no aparece, asi que
+    # esas migraciones no existen para Flyway y no hay riesgo de que se cuelen.
+    locations: classpath:db/migration,classpath:db/local
+
+  jpa:
+    properties:
+      hibernate:
+        # SQL formateado en el log de desarrollo. Apagado por defecto: encenderlo
+        # implica registrar cada consulta, y en produccion eso multiplica el
+        # volumen de CloudWatch —que se factura por GB ingerido— ademas de dejar
+        # valores de datos en los logs.
+        format_sql: true
+
+management:
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.ondexia: DEBUG
+    # Descomentar para ver el SQL que genera Hibernate:
+    # org.hibernate.SQL: DEBUG
+    # org.hibernate.orm.jdbc.bind: TRACE
