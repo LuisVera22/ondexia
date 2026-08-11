@@ -8,7 +8,7 @@
 | Campo | Valor |
 |---|---|
 | Código | DTE-ONX-001 |
-| Versión | 0.10 |
+| Versión | 0.11 |
 | Estado | **Preliminar** |
 | Fecha | 2026-08-11 |
 | Producto | Ondexia — Almacén, Compras, Ventas + Facturación Electrónica SUNAT |
@@ -919,7 +919,13 @@ Ley 29733 y su reglamento aplican: se tratan nombre, documento de identidad y do
 
 ### 10.2 Pipeline
 
-`push` → build Maven + pruebas unitarias → análisis estático + Dependency-Check → `cdk synth` + `cdk-nag` → despliegue a `dev` → pruebas de integración contra beta de SUNAT → **aprobación manual** → despliegue a `prod`.
+**CI** (automático, en cada push): build de pnpm y pruebas del frontend → build de Maven, pruebas de integración contra PostgreSQL real y Dependency-Check → `terraform fmt`, `init` y `validate`.
+
+**Despliegue** (manual, eligiendo entorno): verificar backend → construir frontend → `terraform plan` a un archivo → **aprobación manual del entorno `prod`** → `terraform apply` sobre ese plan → publicar la SPA en S3 e invalidar CloudFront → sondear `/salud`.
+
+> La versión 0.9 de este documento describía aquí `cdk synth` + `cdk-nag`. DT-16 retiró CDK y la línea quedó atrás. Corregido en 0.11.
+
+Dos detalles del orden que no son arbitrarios: **se construye y se prueba antes de tocar AWS**, para que un fallo de compilación no deje medio despliegue hecho; y **el `apply` se hace sobre el plan guardado**, no recalculándolo, porque entre el plan y el apply hay una aprobación humana y lo aplicado tiene que ser exactamente lo revisado.
 
 La aprobación manual antes de producción no es burocracia: un despliegue defectuoso del Emisor genera comprobantes inválidos con consecuencias fiscales para el cliente.
 
@@ -996,7 +1002,9 @@ Lo que **no** se diseña ahora, con su razón:
 | DT-D12 | **El contexto de la petición cuesta ~4 consultas** (usuario, cuenta, administrador, asignaciones) | Escribir una consulta única acopla cuatro conceptos antes de saber cómo evolucionan | Cuando el p95 de la API se acerque al NFR-01. Se resuelve con una vista o una consulta con `join`, sin tocar nada más |
 | DT-D13 | **La clave del rol de aplicación de PostgreSQL no rota sola** | El rol se crea en el aprovisionamiento; rotar exige un `ALTER ROLE` fuera de las migraciones | Antes del primer cliente real. La salida limpia es autenticación IAM de RDS, que elimina la clave |
 | DT-D14 | El emisor de tokens del perfil `local` es código de producción condicionado | Sin él la Fase 0 (§10.3) no es viable: no hay forma de autenticar sin Cognito desplegado | Cuando exista el pool de `dev`. Mitigado: la clave se genera en cada arranque y nunca sale de memoria, y el arranque se aborta si detecta ejecución en Lambda |
-| DT-D15 | Sin `tfsec`/`checkov` en CI; el CI todavía no construye el backend | DT-16 retiró `cdk-nag` y no se sustituyó; el workflow sigue apuntando a `npm ci` con el `package-lock.json` ya retirado | Inmediato — el pipeline está en rojo por construcción |
+| DT-D15 | **Sin análisis estático de seguridad sobre la infraestructura** | DT-16 retiró `cdk-nag` y no se ha sustituido por `tfsec` ni `checkov`. El CI comprueba sintaxis y coherencia de referencias, no configuraciones inseguras | Antes del primer `apply` contra producción |
+| DT-D16 | **El CI no ejecuta `terraform plan`** | Un `plan` en cada push exigiría credenciales de AWS y un rol de solo lectura adicional. `validate` no comprueba que AWS acepte cada combinación de argumentos ni que las cuotas den | Si un `apply` falla por algo que un `plan` habría anticipado |
+| DT-D17 | **`ondexia.api` no produce un artefacto desplegable en Lambda** | Es una aplicación web de Spring Boot; falta el adaptador que traduce el evento de API Gateway a una petición HTTP, y el empaquetado con SnapStart (DT-02). El despliegue deja entretanto una función de relleno que responde `501` | Es el siguiente trabajo si se quiere una API desplegada, y no solo desplegable |
 
 ---
 
@@ -1053,6 +1061,7 @@ Sustitutos admisibles, en orden de valor:
 | 0.5 | 2026-08-06 | R-13 (equipo unipersonal). §7.1 reabre DT-12 con recomendación de proveedor de emisión. §12.1 sustitutos del peer review. Bus factor 1 asumido | — |
 | 0.6 | 2026-08-06 | Corrección de versiones desactualizadas (Angular 19→22, PostgreSQL 16→17/18, Java y Spring Boot despinneados). §4.3 nueva: política de versiones por criterio, no por número | — |
 | 0.7 | 2026-08-06 | Versiones confirmadas: Angular 22, Java 21 LTS, Spring Boot sobre Java 21, PostgreSQL en RDS | — |
+| 0.11 | 2026-08-11 | §10.2 corregido: describía el pipeline con `cdk synth` + `cdk-nag`, que DT-16 había retirado. Se sustituye por el pipeline real, con el orden de pasos y su porqué. DT-D15 acotada a lo que sigue pendiente (análisis estático de infraestructura) tras arreglarse los tres pasos rotos del CI; DT-D16 y DT-D17 nuevas | — |
 | 0.10 | 2026-08-11 | Esqueleto del backend construido y verificado. DT-17 nueva (arquitectura interna: monolito modular con hexagonal pragmática) y DT-18 nueva (Spring Boot 4.0.7, con las cuatro reorganizaciones de módulos que rompen los ejemplos publicados). §8.1: **segunda trampa de RLS** — un rol superusuario se salta todas las políticas y `FORCE` no le alcanza; detectada porque las pruebas de aislamiento fallaron, mitigada con un rol dedicado y una comprobación que aborta el arranque. Se documenta qué tablas quedan fuera de RLS y por qué. Deudas DT-D12 a DT-D15 | — |
 | 0.9 | 2026-08-10 | DT-16 nueva: Terraform sustituye a AWS CDK. Se escribe la v1 completa en `ondexia.infra/`. Referencias a CDK actualizadas en §4.5, §8.3, §9 y §10.3 | — |
 | 0.8 | 2026-08-10 | §4.6 corregido: faltaban WAF, IP pública IPv4 y el escalado de secretos por empresa; el piso pasa de ~24 a ~40 USD/mes. La capa gratuita cambió a créditos. §4.7 nueva: costo de la v1 (~15). §4.8 nueva: consecuencias de la Lambda sin NAT. §5.2 ampliado con `cuenta`, `cuenta_administrador`, alcance por sucursal y `permisos_version`. §5.8 nueva: política de almacenamiento por reproducibilidad. §8.1 reescrito: contexto no confiable, grupos de usuarios separados, trampa de RLS con Lambda. DT-05 corregida (dato de capa gratuita caduco) | — |

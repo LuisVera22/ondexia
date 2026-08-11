@@ -52,7 +52,15 @@ cd apps/backend && ./mvnw test
 cd apps/backend && ./mvnw verify
 ```
 
-`test` levanta PostgreSQL con Testcontainers y corre las 15 pruebas de integración. `verify` añade OWASP Dependency-Check, que es **bloqueante**: en un sistema que firma comprobantes con valor tributario, un CVE conocido es un defecto, no un aviso. Para saltarlo mientras desarrollas, `-Ddependency-check.skip=true`.
+`test` levanta PostgreSQL con Testcontainers y corre las 15 pruebas de integración. `verify` añade OWASP Dependency-Check, que es **bloqueante**: en un sistema que firma comprobantes con valor tributario, un CVE conocido es un defecto, no un aviso.
+
+> **`verify` necesita una clave de API del NIST.** Desde 2023 la NVD limita con dureza a quien consulta sin clave: la primera sincronización pasa de minutos a horas, o falla por límite de peticiones. Es gratuita y se pide en [nvd.nist.gov/developers/request-an-api-key](https://nvd.nist.gov/developers/request-an-api-key).
+>
+> ```bash
+> cd apps/backend && ./mvnw verify -Ddependency-check.nvdApiKey=TU_CLAVE
+> ```
+>
+> Para el trabajo del día a día, `./mvnw test` no lo ejecuta. Y para saltarlo explícitamente, `-Ddependency-check.skip=true`.
 
 Acotar a un módulo exige `-am`, o Maven no construye sus dependencias:
 

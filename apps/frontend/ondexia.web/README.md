@@ -6,17 +6,20 @@ trabajan con datos de ejemplo hasta que exista `ondexia.api`.
 
 ## Requisitos
 
-- Node.js 20 o superior
-- npm 10 o superior
+- Node.js 22 o superior
+- **pnpm** — la versión la fija `packageManager` en `package.json`, así que
+  `corepack enable` basta para tener la correcta. No uses `npm`: no hay
+  `package-lock.json` y `npm install` generaría un árbol distinto del que se
+  construye en CI.
 
 ## Puesta en marcha
 
 ```bash
-npm install
+pnpm install --frozen-lockfile
 ```
 
 ```bash
-npm start
+pnpm start
 ```
 
 Queda servida en `http://localhost:4200`.
@@ -24,7 +27,7 @@ Queda servida en `http://localhost:4200`.
 ## Compilar para producción
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 ## Organización del código
@@ -96,6 +99,16 @@ decimal quede en la misma columna y se puedan comparar de un vistazo.
 Frontend con datos de ejemplo. No hay sesión, ni persistencia, ni envío a
 SUNAT: los formularios validan y calculan, pero nada se guarda. Lo pendiente
 está en `ondexia.docs/06-notas-de-version.md`.
+
+**El backend ya existe** (`apps/backend/ondexia.api`) pero todavía no se
+consume desde aquí. La primera conexión es `GET /api/v1/contexto`, que devuelve
+identidad, empresas accesibles y permisos efectivos — es lo que debe alimentar
+al `selector-contexto` y decidir qué entradas del menú se muestran.
+
+El contrato vive en `ondexia.contracts/openapi.yaml` y se regenera solo con la
+suite del backend. **El cliente se genera desde ahí, no se escribe a mano**: es
+la única forma de que un campo renombrado en el backend aparezca al compilar y
+no en producción semanas después.
 
 ## Terceros
 

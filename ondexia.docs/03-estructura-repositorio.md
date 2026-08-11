@@ -1,8 +1,10 @@
 # Ondexia — Estructura de repositorio y convenciones de nombres
 
-Estado: **implementado (v2)** · Fecha: 2026-08-06 · Deriva de [DTE-ONX-001](DTE-ONX-001_sistema_gestion_comercial.md) §3
+Estado: **implementado (v3)** · Fecha: 2026-08-11 · Deriva de [DTE-ONX-001](DTE-ONX-001_sistema_gestion_comercial.md) §3
 
 > **v2 — actualizado a la estructura real creada.** Se adoptó la convención con punto (`ondexia.api`) en lugar de la propuesta con guion. Decisión del propietario; este documento la registra como vigente y se rige por ella.
+>
+> **v3 (2026-08-11) — agrupación bajo `apps/backend/` y `apps/frontend/`.** El backend Java pasó a un único árbol de Maven; los tres frontends se agruparon por afinidad. Se añaden §4.1 a §4.3 (arquitectura interna, nomenclatura y dirección del contrato) y se reescribe §9, porque los tres pasos del CI estaban rotos.
 
 ## 1. Monorepo, no varios repositorios
 

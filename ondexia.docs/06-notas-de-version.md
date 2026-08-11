@@ -1,5 +1,57 @@
 # Ondexia — Notas de versión
 
+## Sin publicar
+
+Trabajo posterior a `v0.1.0`, todavía sin etiquetar. Se resume aquí porque son
+cuatro cambios grandes y quien vuelva dentro de unos meses no debería tener que
+reconstruirlos leyendo el historial.
+
+### Se retiró la plantilla de terceros · 2026-08-10
+
+El tema visual se reescribió por completo —tipografía, tokens de color,
+sombras, marcos, menú lateral— y se retiró todo rastro de la plantilla de
+partida para evitar cualquier conflicto de licencia. La interfaz no cambió de
+aspecto; cambió de origen.
+
+### Infraestructura en Terraform · 2026-08-10
+
+`ondexia.infra` con la v1 completa: VPC sin NAT, RDS `db.t4g.micro`, tres
+buckets con CloudFront, dos grupos de usuarios de Cognito, API Gateway con
+autorizador JWT nativo. **Terraform sustituye a AWS CDK** (DT-16). Cuesta
+~15 USD/mes, de los que RDS es el 90 %.
+
+`fmt`, `init` y `validate` pasan. **No se ha ejecutado `plan` ni `apply` contra
+una cuenta real.**
+
+### Esqueleto del backend · 2026-08-11
+
+Maven multi-módulo sobre Java 21 y Spring Boot 4.0.7. Aislamiento multiempresa
+con Row Level Security, autorización por `(modulo, accion)` resuelta en base en
+cada petición, catálogo de ~150 permisos y cuatro roles predefinidos.
+15 pruebas de integración contra PostgreSQL real.
+
+Hallazgo que conviene no olvidar: **un rol superusuario de PostgreSQL se salta
+todas las políticas de RLS**, y `FORCE ROW LEVEL SECURITY` no le alcanza. Se
+detectó porque las pruebas de aislamiento fallaron; sin ellas habría llegado a
+producción pareciendo protegido. La aplicación ahora se niega a arrancar si
+detecta un rol así.
+
+### Reorganización y pipelines · 2026-08-11
+
+`apps/backend/` y `apps/frontend/` agrupan lo que antes colgaba suelto. Los
+**tres pasos del CI estaban rotos** y se corrigieron; `deploy.yml` se reescribió
+entero para Terraform, porque seguía siendo de CDK.
+
+### Lo que sigue sin existir
+
+- **La aplicación no se conecta al backend.** El frontend sigue con datos de
+  ejemplo; la primera conexión es `GET /api/v1/contexto`.
+- **La API no se despliega.** `ondexia.api` es una aplicación web de Spring
+  Boot, sin el adaptador para Lambda (DT-D17).
+- **Nada se ha desplegado en AWS.**
+
+---
+
 ## v0.1.0 — Recorrido cognitivo del frontend
 
 Fecha: 2026-08-07 · Rama: `release/0.1.0` → `main`
@@ -7,7 +59,7 @@ Fecha: 2026-08-07 · Rama: `release/0.1.0` → `main`
 ### Qué incluye
 
 Las **73 rutas** de la versión 1.0 navegables de principio a fin, con la
-identidad visual propia de Ondexia. (La plantilla de partida se retiró por completo el 2026-08-10; ver la nota de esa versión.)
+identidad visual propia de Ondexia. (La plantilla de partida se retiró por completo el 2026-08-10; ver «Sin publicar», más arriba.)
 
 | Módulo | Contenido |
 |---|---|
@@ -68,7 +120,11 @@ Catálogo consultable en `/kit/componentes`.
 
 ### Antes de la siguiente versión
 
-1. Retirar el kit de la plantilla del menú y del enrutador
+1. ~~Retirar el kit de la plantilla del menú y del enrutador~~ — hecho el 2026-08-10
 2. Resolver DT-12: emisión propia ante SUNAT o vía proveedor
 3. Definir qué documentos de la cadena de compras son obligatorios (riesgo C-1)
 4. Confirmar precios de los planes tras validarlos con prospectos
+
+Los tres pendientes son **decisiones de negocio, no de ingeniería**, y siguen
+abiertos. DT-12 es el que más pesa: decide el costo por comprobante y con él el
+margen del producto.
