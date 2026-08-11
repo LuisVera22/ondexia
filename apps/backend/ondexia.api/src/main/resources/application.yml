@@ -96,6 +96,15 @@ management:
 springdoc:
   api-docs:
     path: /v3/api-docs
+    # Se emite OpenAPI 3.0 y no 3.1, que es lo que springdoc haría por omisión.
+    #
+    # No es conservadurismo: los generadores de cliente van por detrás de la
+    # especificación, y varios todavía no leen 3.1 o lo leen a medias. Como el
+    # cliente Angular se genera de este archivo (doc 03 §4.3), emitir algo que
+    # el generador no entienda deja el contrato sin su principal consumidor.
+    #
+    # Este contrato no usa nada de 3.1, así que la conversión no pierde nada.
+    version: openapi_3_0
   swagger-ui:
     path: /swagger-ui.html
     # Ordenado: el contrato generado debe ser estable entre ejecuciones, o cada

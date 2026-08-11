@@ -20,6 +20,26 @@ import org.springframework.data.jpa.repository.JpaRepository;
  */
 public interface AuditoriaRepository extends JpaRepository<Auditoria, UUID> {
 
+    /**
+     * Anotado a propósito, y no por costumbre.
+     *
+     * <p><strong>Los métodos de consulta derivados de Spring Data no son
+     * transaccionales.</strong> Solo lo son los heredados de
+     * {@code SimpleJpaRepository} —{@code findAll}, {@code findById},
+     * {@code count}—, que traen su propio {@code @Transactional}. Un método
+     * declarado aquí, sin anotar, se ejecuta fuera de toda transacción.
+     *
+     * <p>Sobre una tabla con Row Level Security eso no da error: el gestor de
+     * transacciones nunca llega a fijar el inquilino, {@code empresa_actual()}
+     * devuelve NULL y la política no deja pasar ninguna fila.
+     * <strong>Devuelve vacío.</strong> Es el fallo cerrado funcionando, pero
+     * desde fuera parece que el dato no existe.
+     *
+     * <p>En la práctica los servicios ya abren transacción, así que la ruta
+     * normal está cubierta; esto protege a quien llame al repositorio directo.
+     * Toda consulta nueva sobre una tabla con RLS debe llevarlo.
+     */
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     List<Auditoria> findByEmpresaIdAndEntidadAndEntidadIdOrderByCreadoEnDesc(
             UUID empresaId, String entidad, UUID entidadId);
 }

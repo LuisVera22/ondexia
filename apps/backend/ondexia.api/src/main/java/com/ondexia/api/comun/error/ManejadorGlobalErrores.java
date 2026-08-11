@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -76,6 +77,27 @@ public class ManejadorGlobalErrores extends ResponseEntityExceptionHandler {
         LOG.warn("acceso_denegado en {} {}", peticion.getMethod(), peticion.getRequestURI());
         return construir(HttpStatus.FORBIDDEN, "acceso_denegado",
                 "No tienes permiso para realizar esta accion", peticion);
+    }
+
+    /**
+     * Restricciones de la base: unicidad, formato, claves foráneas, disparadores.
+     *
+     * <p>Sin este manejador, registrar un RUC repetido produce un 500. La
+     * restricción de la base es la única comprobación de unicidad sin ventana de
+     * carrera (ver {@link TraductorRestricciones}), así que traducirla es
+     * aceptar que es ella quien manda.
+     *
+     * <p>Si la causa no se reconoce, se deja pasar como error no previsto en vez
+     * de inventar un mensaje: un 409 con un texto equivocado desorienta más que
+     * un 500 honesto.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail manejarIntegridad(DataIntegrityViolationException error,
+            HttpServletRequest peticion) {
+
+        return TraductorRestricciones.traducir(error)
+                .map(conflicto -> manejarAplicacion(conflicto, peticion))
+                .orElseGet(() -> manejarInesperado(error, peticion));
     }
 
     @ExceptionHandler(Exception.class)

@@ -84,6 +84,12 @@ Sin contexto, las políticas no dejan pasar ninguna fila. **Falla cerrado**: un 
 
 Al añadir una tabla transaccional, su migración debe llamar a `activar_aislamiento_empresa('nombre_tabla')`. La aplicación avisa en el log de arranque si encuentra tablas con `empresa_id` sin política.
 
+> **Toda consulta declarada sobre una tabla con RLS lleva `@Transactional(readOnly = true)`.**
+>
+> Los métodos de consulta derivados de Spring Data **no son transaccionales**: solo lo son los heredados de `SimpleJpaRepository` (`findAll`, `findById`, `count`), que traen el suyo. Un `findByEmpresaIdAndCodigo` llamado directamente corre fuera de transacción, el inquilino nunca se fija y **la consulta devuelve vacío sin dar error**.
+>
+> En la ruta normal no ocurre —los servicios son transaccionales y el repositorio se llama desde dentro—, pero el síntoma cuando ocurre («no encuentro la fila que acabo de guardar») apunta a cualquier sitio menos a su causa.
+
 ### 2. Por qué hay dos roles de base de datos en local
 
 **Un superusuario de PostgreSQL se salta todas las políticas de RLS**, y `FORCE ROW LEVEL SECURITY` tampoco le alcanza — `FORCE` solo afecta al propietario de la tabla. Con la imagen oficial, `POSTGRES_USER` es el superusuario bootstrap del clúster, y no se le puede quitar ese atributo:

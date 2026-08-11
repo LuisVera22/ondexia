@@ -52,6 +52,7 @@
 
     <springdoc.version>3.0.3</springdoc.version>
     <testcontainers.version>2.0.5</testcontainers.version>
+    <archunit.version>1.5.0</archunit.version>
 
     <!--
       OWASP Dependency-Check enlazado a la fase verify, no como paso aparte del
@@ -92,6 +93,12 @@
         <groupId>org.springdoc</groupId>
         <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
         <version>${springdoc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.tngtech.archunit</groupId>
+        <artifactId>archunit-junit5</artifactId>
+        <version>${archunit.version}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.testcontainers</groupId>

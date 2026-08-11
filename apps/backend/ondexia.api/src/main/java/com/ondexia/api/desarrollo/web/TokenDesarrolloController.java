@@ -1,4 +1,4 @@
-package com.ondexia.api.desarrollo;
+package com.ondexia.api.desarrollo.web;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import java.time.Duration;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
  * Emite un token de desarrollo. Solo con el perfil {@code local}.
  *
  * <p>Sustituye al inicio de sesion contra Cognito mientras no haya pool
- * desplegado. Ver {@link SeguridadDesarrolloConfig} para por que esto no
+ * desplegado. Ver {@link com.ondexia.api.desarrollo.SeguridadDesarrolloConfig} para por que esto no
  * debilita el diseno.
  *
  * <p>Uso:

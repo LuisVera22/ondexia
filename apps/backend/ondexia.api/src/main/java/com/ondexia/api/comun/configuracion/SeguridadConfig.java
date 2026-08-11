@@ -7,6 +7,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.annotation.AnnotationTemplateExpressionDefaults;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
@@ -54,6 +55,24 @@ public class SeguridadConfig {
 
     public SeguridadConfig(PropiedadesCors propiedadesCors) {
         this.propiedadesCors = propiedadesCors;
+    }
+
+    /**
+     * Habilita la sustitución de parámetros en las meta-anotaciones de
+     * seguridad, que es lo que hace funcionar a {@code @RequierePermiso}.
+     *
+     * <p>Sin este bean la anotación no falla: la expresión llega literal con
+     * las llaves sin sustituir, el evaluador busca un permiso llamado
+     * <code>{modulo}:{accion}</code> y deniega siempre. Es decir, **el sistema
+     * queda cerrado a cal y canto sin dar ningún error**, que es difícil de
+     * atribuir. Lo cubre una prueba en {@code PermisosAnotacionIT}.
+     *
+     * <p>Es {@code static} porque lo consume el post-procesador de seguridad de
+     * métodos, que se inicializa antes que el resto de la configuración.
+     */
+    @Bean
+    static AnnotationTemplateExpressionDefaults plantillasDeAnotacionesDeSeguridad() {
+        return new AnnotationTemplateExpressionDefaults();
     }
 
     @Bean

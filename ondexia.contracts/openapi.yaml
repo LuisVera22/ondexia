@@ -9,7 +9,7 @@
 #
 # El -am de "-pl ondexia.api -am" no es opcional si acotas el modulo: sin el,
 # Maven no construye ondexia-domain y la resolucion falla.
-openapi: 3.1.0
+openapi: 3.0.1
 info:
   title: Ondexia — API Core
   description: |-

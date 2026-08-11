@@ -50,6 +50,28 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * sin datos, que es ruidoso y se arregla; nunca con datos de mas, que es
  * silencioso y no se detecta.
  *
+ * <h2>La consecuencia que hay que tener presente al escribir consultas</h2>
+ *
+ * Si no hay transaccion, este codigo no se ejecuta, y sin el la variable no
+ * esta puesta: la consulta no ve <strong>ninguna</strong> fila. Sin error.
+ *
+ * <p>Y hay un caso concreto donde eso ocurre sin que nadie lo haya decidido:
+ * <strong>los metodos de consulta derivados de Spring Data no son
+ * transaccionales.</strong> Solo lo son los heredados de
+ * {@code SimpleJpaRepository} —{@code findAll}, {@code findById},
+ * {@code count}—, que traen su propio {@code @Transactional}. Un
+ * {@code findByEmpresaIdAndCodigo} declarado en una interfaz de repositorio y
+ * llamado directamente se ejecuta fuera de toda transaccion, y devuelve vacio.
+ *
+ * <p>En la ruta normal no pasa: los servicios llevan {@code @Transactional} y
+ * el repositorio se llama desde dentro. Pero conviene saberlo, porque el
+ * sintoma —«la consulta no encuentra la fila que acabo de guardar»— apunta a
+ * cualquier sitio menos a su causa. Se descubrio asi, escribiendo las pruebas
+ * de la bitacora.
+ *
+ * <p>Regla: toda consulta declarada sobre una tabla con RLS lleva
+ * {@code @Transactional(readOnly = true)}.
+ *
  * <h2>Que tablas cubre hoy</h2>
  *
  * Las que tienen {@code empresa_id} y no participan en resolver el propio
