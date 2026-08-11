@@ -35,8 +35,9 @@ import org.junit.jupiter.api.Test;
  */
 class ExportarContratoIT extends PruebaIntegracion {
 
-    /** Desde {@code apps/ondexia.api}, que es el directorio de trabajo del build. */
-    private static final Path DESTINO = Path.of("..", "..", "ondexia.contracts", "openapi.yaml");
+    /** Desde {@code apps/backend/ondexia.api}, el directorio de trabajo del build. */
+    private static final Path DESTINO =
+            Path.of("..", "..", "..", "ondexia.contracts", "openapi.yaml");
 
     @Test
     @DisplayName("El contrato se exporta a ondexia.contracts")
@@ -66,7 +67,7 @@ class ExportarContratoIT extends PruebaIntegracion {
                 # es porque la API cambio: revisa el diff antes de confirmar, porque de aqui se
                 # genera el cliente Angular.
                 #
-                # Regenerar:  cd apps && ./mvnw test
+                # Regenerar:  cd apps/backend && ./mvnw test
                 #
                 # El -am de "-pl ondexia.api -am" no es opcional si acotas el modulo: sin el,
                 # Maven no construye ondexia-domain y la resolucion falla.

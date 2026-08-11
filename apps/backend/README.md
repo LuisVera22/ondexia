@@ -13,11 +13,11 @@ Java 21 · Spring Boot 4.0 · PostgreSQL 17 · Maven multi-módulo.
 Necesitas **Java 21** y **Docker**. Maven no hace falta: lo trae el wrapper.
 
 ```bash
-cd apps/ondexia.api && docker compose up -d
+cd apps/backend/ondexia.api && docker compose up -d
 ```
 
 ```bash
-cd apps && ./mvnw spring-boot:run -pl ondexia.api -am
+cd apps/backend && ./mvnw spring-boot:run -pl ondexia.api -am
 ```
 
 La primera vez, el wrapper descarga Maven 3.9.16 y Flyway crea el esquema con datos de ejemplo.
@@ -45,11 +45,11 @@ Cambia el último dígito a `11` y verás cómo el mismo token devuelve otro rol
 ## Comandos
 
 ```bash
-cd apps && ./mvnw test
+cd apps/backend && ./mvnw test
 ```
 
 ```bash
-cd apps && ./mvnw verify
+cd apps/backend && ./mvnw verify
 ```
 
 `test` levanta PostgreSQL con Testcontainers y corre las 15 pruebas de integración. `verify` añade OWASP Dependency-Check, que es **bloqueante**: en un sistema que firma comprobantes con valor tributario, un CVE conocido es un defecto, no un aviso. Para saltarlo mientras desarrollas, `-Ddependency-check.skip=true`.
@@ -57,7 +57,7 @@ cd apps && ./mvnw verify
 Acotar a un módulo exige `-am`, o Maven no construye sus dependencias:
 
 ```bash
-cd apps && ./mvnw test -pl ondexia.api -am
+cd apps/backend && ./mvnw test -pl ondexia.api -am
 ```
 
 ## El contrato OpenAPI

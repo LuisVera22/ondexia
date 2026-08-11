@@ -44,9 +44,14 @@ jobs:
           npm run test:ci
 
       - name: Backend
-        if: hashFiles('apps/pom.xml') != ''
-        working-directory: apps
-        run: mvn -B verify
+        if: hashFiles('apps/backend/pom.xml') != ''
+        working-directory: apps/backend
+        # Con el wrapper, no con el `mvn` del runner: fija la versión de Maven
+        # en el repositorio, de modo que CI y la máquina de desarrollo
+        # construyen con la misma. `verify` incluye las pruebas de integración,
+        # que levantan PostgreSQL con Testcontainers — el runner de GitHub trae
+        # Docker.
+        run: ./mvnw -B verify
 
       - name: Infraestructura
         if: hashFiles('ondexia.infra/package.json') != ''

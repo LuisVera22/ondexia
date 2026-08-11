@@ -47,7 +47,7 @@ La complejidad del CI/CD no la causa el monorepo: la causa **tener cinco despleg
 | Regla | Valor | Razón |
 |---|---|---|
 | Formato de carpetas | **`ondexia.<modulo>`** (punto como separador) | Convención adoptada. Aplicarla de forma uniforme importa más que cuál se eligió |
-| Traducción en fronteras | El punto **no se propaga** a `artifactId`, paquetes npm, buckets S3 ni nombres de recurso de Terraform | Esos ecosistemas usan guion. `apps/ondexia.web` contiene el paquete npm `ondexia-web`; `apps/ondexia.api` produce el artefacto `ondexia-api`. La carpeta y el identificador técnico no tienen por qué coincidir, pero la equivalencia debe ser mecánica: **punto en carpeta ⇄ guion en identificador** |
+| Traducción en fronteras | El punto **no se propaga** a `artifactId`, paquetes npm, buckets S3 ni nombres de recurso de Terraform | Esos ecosistemas usan guion. `apps/ondexia.web` contiene el paquete npm `ondexia-web`; `apps/backend/ondexia.api` produce el artefacto `ondexia-api`. La carpeta y el identificador técnico no tienen por qué coincidir, pero la equivalencia debe ser mecánica: **punto en carpeta ⇄ guion en identificador** |
 | Idioma | **Inglés para lo técnico, español para lo del dominio** | `api`, `infra`, `contracts` son técnicos. `facturacion`, `comprobante`, `guia-remision` son términos fiscales peruanos que **no se traducen**: "boleta de venta" no tiene equivalente en inglés, y traducirla introduce ambigüedad en un dominio normado |
 | Paquetes Java | `com.ondexia.<modulo>` | Convención de dominio invertido sobre `ondexia.com` |
 | Tablas y columnas | `snake_case` en español | Ya fijado en el DTE §5 |
@@ -60,10 +60,11 @@ La regla del idioma es la que más se rompe sola. El criterio operativo: **si el
 ondexia/
 ├── .github/workflows/          CI/CD (ver §9)
 ├── apps/
-│   ├── pom.xml, mvnw           Padre Maven + wrapper (Maven 3.9.16)  ✅
-│   ├── ondexia.domain/         Entidades JPA · dominio compartido    ✅
-│   ├── ondexia.api/            Spring Boot · núcleo comercial        ✅ esqueleto
-│   ├── ondexia.facturacion/    Lambdas Emisor + Poller · SUNAT     [FALTA CREAR]
+│   ├── backend/                Todo lo Java. Un solo build de Maven
+│   │   ├── pom.xml, mvnw       Padre + wrapper (Maven 3.9.16)       ✅
+│   │   ├── ondexia.domain/     Entidades JPA · dominio compartido   ✅
+│   │   ├── ondexia.api/        Spring Boot · núcleo comercial       ✅ esqueleto
+│   │   └── ondexia.facturacion/ Lambdas Emisor + Poller · SUNAT  [FALTA CREAR]
 │   ├── ondexia.web/            Angular · la aplicación             ✅ inicializado
 │   ├── ondexia.landing/        Astro · marketing                       [vacío]
 │   └── ondexia.portal/         Portal público de comprobantes          [vacío]
@@ -81,8 +82,8 @@ ondexia/
 
 | Carpeta | Corresponde a | Frontera que respeta |
 |---|---|---|
-| `apps/ondexia.api` | API Core del DTE §3.3 | **Nunca abre conexión hacia SUNAT.** Publica en SQS y responde |
-| `apps/ondexia.facturacion` | Emisor + Poller | **No conoce reglas de negocio.** Es la única que toca certificados y SUNAT (DT-13) |
+| `apps/backend/ondexia.api` | API Core del DTE §3.3 | **Nunca abre conexión hacia SUNAT.** Publica en SQS y responde |
+| `apps/backend/ondexia.facturacion` | Emisor + Poller | **No conoce reglas de negocio.** Es la única que toca certificados y SUNAT (DT-13) |
 | `apps/ondexia.web` | App Angular | No firma, no habla con SUNAT |
 | `apps/ondexia.landing` | Landing Astro | Estática pura, sin acceso a datos |
 | `apps/ondexia.portal` | Portal público | **Sin autenticación, aislado.** No consulta la base transaccional |
@@ -95,8 +96,9 @@ La separación `ondexia.api` / `ondexia.facturacion` no es organización cosmét
 `ondexia.api` y `ondexia.facturacion` comparten el modelo de dominio y las entidades JPA. Duplicarlo sería garantizar que se desincronicen.
 
 ```
-apps/
+apps/backend/
 ├── pom.xml                    parent, gestiona versiones
+├── mvnw, mvnw.cmd, .mvn/      wrapper: fija Maven 3.9.16 en el repositorio
 ├── ondexia.domain/            entidades JPA, enums, catálogos SUNAT
 │   └── com.ondexia.domain
 ├── ondexia.api/               API Core
@@ -104,6 +106,12 @@ apps/
 └── ondexia.facturacion/       Emisor + Poller
     └── com.ondexia.facturacion
 ```
+
+**Por qué `backend/` y no directamente bajo `apps/`.** La v1 del esqueleto puso el `pom.xml` padre en la raíz de `apps/`, junto a `ondexia.web` y `ondexia.landing`. Funciona —Maven solo entra en los módulos que declara e ignora las carpetas de Angular y Astro— pero mezcla niveles: el padre de Maven parece gobernar cosas que no gobierna, y `apps/` deja de tener una lectura uniforme. Con la carpeta, `apps/` contiene cuatro desplegables al mismo nivel conceptual y uno de ellos resulta estar hecho de tres módulos.
+
+No lleva el prefijo `ondexia.` a propósito: **no es un módulo, es una agrupación**. Darle forma de módulo sugeriría que produce un artefacto, y no produce ninguno. Va en inglés por la regla de §2 — «backend» es un término de ingeniería, no del dominio fiscal.
+
+El wrapper vive aquí y no se comparte con el frontend: son dos gestores de dependencias distintos (Maven y pnpm) con dos ciclos de vida distintos.
 
 | Módulo | `artifactId` | Depende de |
 |---|---|---|
