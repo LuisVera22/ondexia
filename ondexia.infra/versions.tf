@@ -22,8 +22,20 @@ terraform {
   # mano uno por uno.
   #
   # El bucket hay que crearlo antes — ver bootstrap/ y el README.
+  #
+  # Configuracion parcial a proposito: ni `bucket` ni `key` se fijan aqui.
+  #
+  #   bucket — su nombre lleva el identificador de la cuenta, que no se conoce
+  #            al escribir el codigo.
+  #   key    — **debe llevar el entorno**. Con un valor fijo, `dev` y `prod`
+  #            compartirian estado: el segundo `apply` creeria que los recursos
+  #            del primero son suyos y los reconfiguraria o los destruiria. Es
+  #            decir, el primer despliegue de `dev` se llevaria por delante
+  #            produccion.
+  #
+  # Ambos se pasan en `terraform init -backend-config=...`. Ver el README y
+  # .github/workflows/deploy.yml.
   backend "s3" {
-    key          = "ondexia/terraform.tfstate"
     encrypt      = true
     use_lockfile = true
   }

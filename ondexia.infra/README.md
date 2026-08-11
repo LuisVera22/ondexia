@@ -24,7 +24,7 @@ terraform apply
 Después, desde esta carpeta, apuntar el backend al bucket que imprimió:
 
 ```bash
-terraform init -backend-config="bucket=ondexia-tfstate-TU_ID_DE_CUENTA" -backend-config="region=us-east-1"
+terraform init -backend-config="bucket=ondexia-tfstate-TU_ID_DE_CUENTA" -backend-config="key=ondexia/prod/terraform.tfstate" -backend-config="region=us-east-1"
 ```
 
 Y desplegar:
@@ -32,6 +32,35 @@ Y desplegar:
 ```bash
 terraform apply -var-file=entornos/prod.tfvars
 ```
+
+> **La clave del estado lleva el entorno, y no es un detalle de orden.** Ni
+> `bucket` ni `key` están fijados en `versions.tf`: es configuración parcial a
+> propósito. Con una clave fija, `dev` y `prod` compartirían estado — el segundo
+> `apply` creería que los recursos del primero son suyos y los reconfiguraría o
+> los destruiría. Dicho de otro modo: el primer despliegue de `dev` se llevaría
+> por delante producción.
+>
+> Para cambiar de entorno hay que reinicializar con la otra clave y
+> `-reconfigure`.
+
+## Despliegue desde CI
+
+Lo normal no es aplicar desde tu máquina, sino desde
+[`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml), que se
+dispara a mano eligiendo entorno. Hace lo mismo que los comandos de arriba, más
+construir el frontend y publicarlo en S3 con invalidación de CloudFront.
+
+Tiene una casilla **«Solo mostrar el plan, sin aplicar»**: es la forma de leer
+un plan contra la cuenta real sin tocar nada, que conviene usar antes del primer
+`apply` de verdad.
+
+Requisitos en GitHub:
+
+| | |
+|---|---|
+| Secreto `AWS_DEPLOY_ROLE_ARN` | ARN del rol que asume el workflow por OIDC. Su política de confianza debe restringirse **a este repositorio**, o cualquier otro de la organización podría asumirlo |
+| Entorno `prod` con revisor requerido | Es la aprobación manual que exige el DTE §10.2 |
+| Secreto `NVD_API_KEY` | Opcional pero recomendado. Sin él se omite el análisis de dependencias con un aviso |
 
 ## Qué se crea
 
@@ -76,10 +105,15 @@ responde `501`. No es adorno: permite verificar dominio, autorizador, red y
 permisos **antes** de escribir la primera línea del backend, que es cuando
 salen baratos los errores de infraestructura.
 
-Cuando exista `ondexia.api`, en `prod.tfvars`:
+`ondexia.api` ya existe, pero **todavía no produce un artefacto desplegable en
+Lambda**: es una aplicación web de Spring Boot, sin el adaptador que traduce el
+evento de API Gateway a una petición HTTP. Hasta que exista, el despliegue deja
+la función de relleno en su sitio.
+
+Cuando lo haya, en `prod.tfvars`:
 
 ```hcl
-artefacto_api = "../apps/ondexia.api/target/ondexia-api.zip"
+artefacto_api = "../apps/backend/ondexia.api/target/ondexia-api.zip"
 runtime_api   = "java21"
 handler_api   = "com.ondexia.api.Manejador::handleRequest"
 ```
@@ -106,11 +140,14 @@ Cambiarlo después es contenido, no estructura.
 
 **Sin análisis estático de seguridad en el pipeline.** El DTE §8.3 menciona
 `cdk-nag`, que no aplica a Terraform. El equivalente es `tfsec` o `checkov`, y
-hay que incorporarlo al CI.
+hay que incorporarlo al CI. Hoy el CI solo comprueba `fmt`, `init` y `validate`:
+sintaxis y coherencia de referencias, no configuraciones inseguras.
 
-**El CI todavía no despliega esto.** El workflow de `deploy` sigue preparado
-para otra cosa y hay que reescribirlo, junto con el cambio a pnpm que quedó a
-medias.
+**El CI valida pero no planifica.** `terraform validate` no comprueba que AWS
+acepte cada combinación de argumentos, ni que las cuotas den. Un `plan` en CI
+exigiría credenciales en cada push, y con OIDC eso significa un rol de solo
+lectura adicional. Mientras tanto, la casilla «solo plan» del workflow de
+despliegue cubre el caso a mano.
 
 ## Estado de verificación
 

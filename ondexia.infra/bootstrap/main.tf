@@ -118,10 +118,23 @@ output "instrucciones" {
 
     Bucket de estado creado: ${aws_s3_bucket.estado.id}
 
-    Ahora, desde ondexia.infra:
+    Ahora, desde ondexia.infra, con el entorno que vayas a desplegar:
 
       terraform init \
         -backend-config="bucket=${aws_s3_bucket.estado.id}" \
+        -backend-config="key=ondexia/prod/terraform.tfstate" \
+        -backend-config="region=${var.region}"
+
+    La clave LLEVA EL ENTORNO, y no es un detalle de orden. Con una clave fija,
+    dev y prod compartirian estado: el segundo apply creeria que los recursos
+    del primero son suyos, y el primer despliegue de dev se llevaria por delante
+    produccion.
+
+    Para cambiar de entorno hay que reinicializar con la otra clave:
+
+      terraform init -reconfigure \
+        -backend-config="bucket=${aws_s3_bucket.estado.id}" \
+        -backend-config="key=ondexia/dev/terraform.tfstate" \
         -backend-config="region=${var.region}"
 
   TEXTO

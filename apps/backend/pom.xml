@@ -61,8 +61,24 @@
     -->
     <dependency-check.version>12.1.0</dependency-check.version>
     <dependency-check.failBuildOnCVSS>7</dependency-check.failBuildOnCVSS>
-    <!-- Se apaga en local con -Ddependency-check.skip=true; en CI nunca. -->
+    <!-- Se apaga en local con -Ddependency-check.skip=true. -->
     <dependency-check.skip>false</dependency-check.skip>
+
+    <!--
+      Clave de API del NIST.
+
+      Desde 2023 la NVD limita con dureza a quien consulta sin clave: la primera
+      sincronizacion pasa de minutos a horas, o falla por limite de peticiones.
+      Sin este dato el analisis no es lento, es inviable en un pipeline.
+
+      La clave es gratuita y se pide en:
+        https://nvd.nist.gov/developers/request-an-api-key
+
+      Se declara como propiedad propia y no se confia en el nombre de propiedad
+      de usuario del plugin, que ha cambiado entre versiones. En CI se pasa con
+      -Ddependency-check.nvdApiKey=... desde un secreto.
+    -->
+    <dependency-check.nvdApiKey/>
   </properties>
 
   <dependencyManagement>
@@ -175,6 +191,13 @@
         <configuration>
           <failBuildOnCVSS>${dependency-check.failBuildOnCVSS}</failBuildOnCVSS>
           <skip>${dependency-check.skip}</skip>
+          <nvdApiKey>${dependency-check.nvdApiKey}</nvdApiKey>
+          <!--
+            La base de la NVD se descarga una vez y se reutiliza. Vive bajo el
+            repositorio local de Maven, que el CI ya cachea entre ejecuciones,
+            asi que la descarga completa ocurre una sola vez y no en cada push.
+          -->
+          <dataDirectory>${settings.localRepository}/org/owasp/dependency-check-data</dataDirectory>
           <!-- Analizadores de ecosistemas que este proyecto no usa. -->
           <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
           <nodeAnalyzerEnabled>false</nodeAnalyzerEnabled>

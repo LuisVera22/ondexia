@@ -1,11 +1,14 @@
 name: Deploy
 
-# INACTIVO HASTA FASE 1 (ver DTE §10.3).
-# Hoy no hay infraestructura desplegada, así que solo se dispara a mano.
+# INACTIVO HASTA FASE 1 (DTE §10.3): solo se dispara a mano.
 #
-# Al llegar la Fase 1, activar los triggers automáticos según GitFlow:
+# Al llegar la Fase 1, activar el disparador automático según GitFlow:
 #   push a develop -> entorno dev
 #   push a main    -> entorno prod (con aprobación manual del environment)
+#
+# Se deja manual a propósito mientras no haya nada desplegado: un workflow de
+# despliegue que apunta a nada solo produce fallos rojos que enseñan a ignorar
+# el tablero.
 #
 # on:
 #   push:
@@ -18,49 +21,218 @@ on:
         required: true
         type: choice
         options: [dev, prod]
+      solo_plan:
+        description: Solo mostrar el plan, sin aplicar
+        type: boolean
+        default: false
 
 # Sin claves de larga vida: GitHub pide un token OIDC y AWS lo canjea por
-# credenciales temporales contra un rol que confía en este repositorio.
+# credenciales temporales contra un rol que confía en este repositorio
+# (doc 03 §9.2).
 permissions:
   id-token: write
   contents: read
 
 concurrency:
-  # Evita dos despliegues simultáneos al mismo entorno.
+  # Dos `apply` simultáneos sobre el mismo estado es la forma más rápida de
+  # corromperlo. `cancel-in-progress: false` es deliberado: cancelar un apply a
+  # medias deja recursos creados que el estado no conoce.
   group: deploy-${{ inputs.entorno }}
   cancel-in-progress: false
 
+env:
+  REGION: us-east-1
+  TERRAFORM_VERSION: '1.15.8'
+
 jobs:
-  deploy:
+  desplegar:
     runs-on: ubuntu-latest
-    # El entorno `prod` debe configurarse en GitHub con revisor requerido:
-    # esa es la aprobación manual exigida por el DTE §10.2.
+    # El entorno `prod` debe configurarse en GitHub con revisor requerido: esa
+    # es la aprobación manual que exige el DTE §10.2. No es burocracia — un
+    # despliegue defectuoso genera comprobantes inválidos con consecuencias
+    # fiscales para el cliente.
     environment: ${{ inputs.entorno }}
-    timeout-minutes: 30
+    timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verificar prerrequisitos
-        run: |
-          if [ ! -d ondexia.infra ] || [ -z "$(ls -A ondexia.infra)" ]; then
-            echo "::error::ondexia.infra está vacío. La Fase 1 aún no se inicializó."
-            exit 1
-          fi
+      # ── Herramientas ───────────────────────────────────────────────────────
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+          cache-dependency-path: apps/frontend/ondexia.web/pnpm-lock.yaml
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          # Sin envoltorio: interfiere al leer la salida de `terraform output`
+          # desde los pasos siguientes.
+          terraform_wrapper: false
 
       - name: Asumir rol de despliegue
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-          aws-region: us-east-1
+          aws-region: ${{ env.REGION }}
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
+      # ── Construcción ───────────────────────────────────────────────────────
+      #
+      # Se construye ANTES de tocar la infraestructura. Si el frontend no
+      # compila, conviene enterarse antes de haber modificado nada en AWS y no
+      # con la mitad del despliegue hecha.
 
-      - name: Desplegar infraestructura
+      - name: Verificar el backend
+        working-directory: apps/backend
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        # `verify` incluye las pruebas de integración, que levantan PostgreSQL
+        # con Testcontainers. Se repiten aquí aunque el CI ya las haya corrido
+        # porque este workflow se dispara a mano desde cualquier rama: nada
+        # garantiza que este commit pasara por CI. En un sistema que emite
+        # documentos con valor tributario, esa garantía no se asume.
+        #
+        # Sobre NVD_API_KEY, ver el comentario equivalente en ci.yml.
+        run: |
+          if [ -z "$NVD_API_KEY" ]; then
+            echo "::warning title=Análisis de dependencias omitido::Falta el secreto NVD_API_KEY."
+            ./mvnw -B verify -Ddependency-check.skip=true
+          else
+            ./mvnw -B verify -Ddependency-check.nvdApiKey="$NVD_API_KEY"
+          fi
+
+      - name: Construir el frontend
+        working-directory: apps/frontend/ondexia.web
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+
+      # ── Infraestructura ────────────────────────────────────────────────────
+
+      - name: Resolver el bucket del estado
+        # El nombre lo fija bootstrap/ como ondexia-tfstate-<cuenta>, así que se
+        # deriva en vez de guardarse en una variable que puede quedar
+        # desincronizada del bucket real.
+        run: |
+          CUENTA=$(aws sts get-caller-identity --query Account --output text)
+          echo "BUCKET_ESTADO=ondexia-tfstate-${CUENTA}" >> "$GITHUB_ENV"
+
+      - name: Terraform init
+        working-directory: ondexia.infra
+        # La clave del estado LLEVA EL ENTORNO. Con una clave fija, `dev` y
+        # `prod` compartirían estado y el primer despliegue de `dev` se llevaría
+        # por delante producción. Ver el comentario en versions.tf.
+        run: |
+          terraform init \
+            -backend-config="bucket=${BUCKET_ESTADO}" \
+            -backend-config="key=ondexia/${{ inputs.entorno }}/terraform.tfstate" \
+            -backend-config="region=${REGION}"
+
+      - name: Terraform plan
         working-directory: ondexia.infra
         run: |
-          npm ci
-          npx cdk deploy --all --require-approval never \
-            --context entorno=${{ inputs.entorno }}
+          terraform plan \
+            -var-file="entornos/${{ inputs.entorno }}.tfvars" \
+            -out=plan.tfplan
+          terraform show -no-color plan.tfplan > plan.txt
+
+      - name: Publicar el plan en el resumen
+        working-directory: ondexia.infra
+        # Queda en la página de la ejecución. Con un solo operador (R-13) no hay
+        # un segundo par de ojos, así que el plan legible después del hecho es
+        # lo más parecido a una revisión que existe.
+        run: |
+          {
+            echo "## Plan · ${{ inputs.entorno }}"
+            echo '```terraform'
+            head -c 60000 plan.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Terraform apply
+        if: ${{ !inputs.solo_plan }}
+        working-directory: ondexia.infra
+        # Se aplica el plan guardado, no se recalcula. Un `apply` que vuelve a
+        # planificar puede hacer algo distinto de lo que se revisó, y entre el
+        # plan y el apply hay una aprobación humana de por medio.
+        run: terraform apply -auto-approve plan.tfplan
+
+      # ── Publicación del contenido estático ─────────────────────────────────
+      #
+      # Después del apply: los buckets y las distribuciones tienen que existir.
+
+      - name: Publicar la SPA
+        if: ${{ !inputs.solo_plan }}
+        working-directory: ondexia.infra
+        run: |
+          BUCKET=$(terraform output -json buckets | jq -r .app)
+          DISTRIBUCION=$(terraform output -json distribuciones_cloudfront | jq -r .app)
+
+          # --delete retira lo que ya no está en el build. Sin él, los ficheros
+          # con hash de versiones anteriores se acumulan para siempre.
+          aws s3 sync ../apps/frontend/ondexia.web/dist/ondexia-web/browser \
+            "s3://${BUCKET}" --delete
+
+          # index.html sin caché, el resto un año. Los nombres de los bundles
+          # llevan hash, así que son inmutables; index.html es el único que
+          # cambia de contenido con el mismo nombre, y si se cachea el usuario
+          # sigue cargando la versión anterior indefinidamente.
+          aws s3 cp "s3://${BUCKET}/index.html" "s3://${BUCKET}/index.html" \
+            --metadata-directive REPLACE \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --content-type "text/html; charset=utf-8"
+
+          aws cloudfront create-invalidation \
+            --distribution-id "${DISTRIBUCION}" \
+            --paths "/index.html" "/"
+
+      - name: Comprobar que responde
+        if: ${{ !inputs.solo_plan }}
+        working-directory: ondexia.infra
+        # Una comprobación de humo, no una suite. Responde a la única pregunta
+        # que importa justo después de desplegar: ¿está en pie lo que acabo de
+        # publicar? Sin esto, el workflow puede terminar en verde con la API
+        # caída.
+        run: |
+          API=$(terraform output -raw url_api)
+          echo "Sondeando ${API}/salud"
+
+          for intento in $(seq 1 10); do
+            CODIGO=$(curl -s -o /dev/null -w '%{http_code}' "${API}/salud" || true)
+            if [ "$CODIGO" = "200" ]; then
+              echo "La API responde."
+              exit 0
+            fi
+            echo "  intento ${intento}: HTTP ${CODIGO}"
+            sleep 10
+          done
+
+          echo "::error::La sonda de vida no respondió 200 tras 10 intentos."
+          exit 1
+
+      - name: Recordatorios
+        if: ${{ !inputs.solo_plan }}
+        working-directory: ondexia.infra
+        # Lo que Terraform no puede hacer por ti. Se imprime en cada despliegue
+        # porque son cosas que se olvidan justo cuando importan — una alarma que
+        # no avisa a nadie no se descubre hasta que hace falta.
+        run: |
+          {
+            echo "## Pendiente de hacer a mano"
+            terraform output -json recordatorios | jq -r '.[] | "- \(.)"'
+            echo ""
+            echo "| | |"
+            echo "|---|---|"
+            echo "| App | $(terraform output -raw url_app) |"
+            echo "| API | $(terraform output -raw url_api) |"
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -277,7 +277,15 @@ Lo que **no** conviene relajar es la regla de que `main` nunca recibe un commit 
 | Workflow | Dispara con | Estado |
 |---|---|---|
 | `ci.yml` | Push a `main`, `develop` y ramas de trabajo; PR hacia `main` o `develop` | **Activo** — un job que construye y prueba lo que exista |
-| `deploy.yml` | Solo manual (`workflow_dispatch`) | **Inactivo hasta Fase 1** |
+| `deploy.yml` | Solo manual (`workflow_dispatch`), con entorno a elegir | **Escrito, sin ejecutar todavía** contra una cuenta real |
+
+> **Los tres pasos del CI estuvieron rotos.** Se corrigieron el 2026-08-11, y los tres fallaban de la misma forma silenciosa: `if: hashFiles(...) != ''` hace que un paso mal apuntado **se salte solo**, con lo que el build sale en verde sin haber construido nada.
+>
+> - **Frontend** ejecutaba `npm ci` con un `package-lock.json` retirado al migrar a pnpm.
+> - **Backend** apuntaba a `apps/pom.xml`, ruta que dejó de existir al agrupar bajo `apps/backend/`.
+> - **Infraestructura** buscaba `ondexia.infra/package.json` y ejecutaba `cdk synth`; DT-16 había retirado CDK.
+>
+> La lección no es que hubiera tres errores, sino **cuál era el modo de fallo**: un paso condicionado que no se dispara no avisa. Conviene comprobar de vez en cuando que el log del CI contiene lo que se espera, y no solo que la marca esté verde.
 
 ### 9.0 Decisiones de simplicidad
 
@@ -289,9 +297,21 @@ Lo que **no** conviene relajar es la regla de que `main` nunca recibe un commit 
 
 **Sin publicación de artefactos en CI.** Mientras no haya despliegue (Fase 0), guardar el `dist/` no sirve para nada.
 
-### 9.1 Por qué el despliegue está inactivo
+### 9.1 Qué hace el despliegue
 
-No hay infraestructura desplegada (DTE §10.3, Fase 0). Un workflow de despliegue que apunta a nada solo produce fallos rojos que enseñan a ignorar el tablero. Se activa el trigger automático cuando exista la Fase 1.
+Sigue siendo manual (`workflow_dispatch`) porque no hay nada desplegado: un workflow automático que apunta a nada solo produce fallos rojos que enseñan a ignorar el tablero. El disparador por rama se activa al llegar la Fase 1.
+
+Orden de los pasos, que no es arbitrario:
+
+1. **Construir y probar antes de tocar AWS.** Si el frontend no compila o una prueba falla, conviene enterarse con la infraestructura intacta y no con medio despliegue hecho.
+2. **`terraform plan` a un archivo, y `apply` sobre ese archivo.** Un `apply` que vuelve a planificar puede hacer algo distinto de lo que se revisó, y entre uno y otro hay una aprobación humana.
+3. **El plan se publica en el resumen de la ejecución.** Con un solo operador (R-13) no hay un segundo par de ojos; el plan legible después del hecho es lo más parecido a una revisión que existe.
+4. **Publicar la SPA después del `apply`**, porque los buckets y las distribuciones tienen que existir. `index.html` sin caché y el resto con un año: los bundles llevan hash y son inmutables, `index.html` es el único que cambia de contenido conservando el nombre.
+5. **Sondear `/salud`.** Sin esta comprobación el workflow puede terminar en verde con la API caída.
+
+Hay una casilla **«solo plan»** que se detiene antes de aplicar. Es la forma de leer un plan contra la cuenta real sin tocar nada.
+
+> **La clave del estado lleva el entorno.** `versions.tf` no fija `bucket` ni `key`: se pasan en `terraform init`. Con una clave fija, `dev` y `prod` compartirían estado y el primer despliegue de `dev` reconfiguraría o destruiría producción.
 
 ### 9.2 Autenticación sin claves de larga vida
 
@@ -310,6 +330,20 @@ El DTE §10.2 exige aprobación manual antes de producción. Se implementa con *
 ### 9.4 Análisis de dependencias
 
 OWASP Dependency-Check se configura en el `pom.xml` enlazado a `verify`, de modo que corre tanto en CI como en local. Es **bloqueante**, no informativo: en un sistema que firma comprobantes con valor tributario, una dependencia con CVE conocido es un defecto, no una advertencia.
+
+**Requiere una clave de API del NIST.** Desde 2023 la NVD limita con dureza a quien consulta sin clave: la primera sincronización pasa de minutos a horas, o falla por límite de peticiones. No es que el análisis sea lento sin clave — es que es inviable dentro de un pipeline. La clave es gratuita y se pide en [nvd.nist.gov/developers/request-an-api-key](https://nvd.nist.gov/developers/request-an-api-key); se guarda como secreto `NVD_API_KEY`.
+
+Mientras el secreto no exista, el paso **se omite con un aviso visible** en lugar de dejar el build colgado hasta agotar el tiempo. Es una concesión deliberada: un control que nadie puede ejecutar acaba desactivado de todas formas, y es preferible que conste que está desactivado a que el pipeline entero se vuelva ruido que se aprende a ignorar.
+
+La base de vulnerabilidades se guarda bajo el repositorio local de Maven, que el CI ya cachea, así que la descarga completa ocurre una vez y no en cada push.
+
+### 9.5 Qué NO valida el pipeline
+
+Conviene tenerlo escrito, porque una marca verde invita a suponer lo contrario:
+
+- **Terraform solo se valida, no se planifica.** `validate` comprueba sintaxis, tipos y referencias; no comprueba que AWS acepte cada combinación de argumentos, ni que las cuotas den, ni que los identificadores de políticas gestionadas sigan vigentes. Un `plan` en CI exigiría credenciales en cada push.
+- **Sin análisis estático de seguridad sobre la infraestructura.** DT-16 retiró `cdk-nag` y no se ha incorporado `tfsec` ni `checkov` (DT-D15).
+- **El backend no se despliega todavía.** `ondexia.api` es una aplicación web de Spring Boot, sin el adaptador que traduce el evento de API Gateway a una petición HTTP. Hasta que exista, el despliegue deja la función de relleno que responde `501`.
 
 ## 10. Nota operativa — el repositorio vive en OneDrive
 

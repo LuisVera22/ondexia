@@ -16,7 +16,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # 30 y no 20: `verify` levanta un contenedor de PostgreSQL para las pruebas
+    # de integración, y la primera sincronización de la base de la NVD, cuando
+    # haya clave, no es instantánea.
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
@@ -57,12 +60,31 @@ jobs:
       - name: Backend
         if: hashFiles('apps/backend/pom.xml') != ''
         working-directory: apps/backend
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         # Con el wrapper, no con el `mvn` del runner: fija la versión de Maven
         # en el repositorio, de modo que CI y la máquina de desarrollo
         # construyen con la misma. `verify` incluye las pruebas de integración,
         # que levantan PostgreSQL con Testcontainers — el runner de GitHub trae
         # Docker.
-        run: ./mvnw -B verify
+        #
+        # OWASP Dependency-Check necesita una clave de API del NIST. Sin ella la
+        # NVD limita las peticiones hasta hacer el análisis inviable en un
+        # pipeline: la primera sincronización pasa de minutos a horas. Es
+        # gratuita — https://nvd.nist.gov/developers/request-an-api-key — y se
+        # guarda como secreto `NVD_API_KEY` del repositorio.
+        #
+        # Mientras no exista, se omite con un aviso visible en vez de dejar el
+        # build colgado hasta agotar el tiempo. Un control de seguridad que
+        # nadie puede ejecutar acaba desactivado de todas formas; mejor que
+        # conste que está desactivado.
+        run: |
+          if [ -z "$NVD_API_KEY" ]; then
+            echo "::warning title=Análisis de dependencias omitido::Falta el secreto NVD_API_KEY. OWASP Dependency-Check no se ejecutó. Pídela en https://nvd.nist.gov/developers/request-an-api-key"
+            ./mvnw -B verify -Ddependency-check.skip=true
+          else
+            ./mvnw -B verify -Ddependency-check.nvdApiKey="$NVD_API_KEY"
+          fi
 
       # DT-16 sustituyó AWS CDK por Terraform. Este paso buscaba
       # ondexia.infra/package.json y ejecutaba `cdk synth`: no se disparaba
