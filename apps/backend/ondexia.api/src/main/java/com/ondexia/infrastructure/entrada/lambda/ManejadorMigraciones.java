@@ -122,13 +122,29 @@ public class ManejadorMigraciones implements RequestHandler<Map<String, Object>,
                 .load()
                 .migrate();
 
+        /*
+         * Se localiza por el ID FIJO del usuario demo, no por su correo.
+         *
+         * V900 usa identificadores literales a proposito —lo explica en su
+         * cabecera— y eso es justo lo que hace falta aqui: el correo del
+         * ejemplo es demo@ondexia.com, que no es el buzon de nadie, asi que la
+         * primera cosa que hay que cambiar es precisamente el correo. Buscar
+         * por el campo que se va a modificar solo funcionaria la primera vez.
+         *
+         * Con el ID, la operacion es idempotente: se puede repetir para
+         * reapuntar el usuario a otra cuenta de Cognito sin volver a sembrar.
+         */
+        final String USUARIO_DEMO = "00000000-0000-4000-8000-000000000002";
+
         int vinculados;
         try (var conexion = java.sql.DriverManager.getConnection(
                         url, variable("BD_USUARIO"), variable("BD_CONTRASENA"));
                 var sentencia = conexion.prepareStatement(
-                        "update usuario set cognito_sub = ?, actualizado_en = now() where email = ?")) {
+                        "update usuario set cognito_sub = ?, email = ?, actualizado_en = now()"
+                                + " where id = ?::uuid")) {
             sentencia.setString(1, sub);
             sentencia.setString(2, email);
+            sentencia.setString(3, USUARIO_DEMO);
             vinculados = sentencia.executeUpdate();
         } catch (java.sql.SQLException e) {
             throw new IllegalStateException("No se pudo vincular el usuario con Cognito.", e);
@@ -136,8 +152,8 @@ public class ManejadorMigraciones implements RequestHandler<Map<String, Object>,
 
         if (vinculados == 0) {
             throw new IllegalStateException(
-                    "No existe ningun usuario con el correo " + email + ". "
-                            + "Revisa que la siembra haya creado los datos de ejemplo.");
+                    "No existe el usuario de ejemplo " + USUARIO_DEMO + ". "
+                            + "Revisa que la siembra haya aplicado V900.");
         }
 
         String resumen = "Semilla aplicada (%d migraciones). %s vinculado al sub %s."
