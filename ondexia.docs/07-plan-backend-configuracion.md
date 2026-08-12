@@ -206,46 +206,63 @@ boleta sin esperar a las dos siguientes.
 |---|---|
 | **`sucursal` y `usuario_empresa` siguen fuera de RLS** | Excepción documentada por el problema de arranque del contexto: son las tablas que hay que leer *para saber* cuál es la empresa activa. Al añadir `almacen` conviene revisar si la frontera sigue siendo la correcta |
 | **El contexto cuesta ~4 consultas por petición** (DT-D12) | Aceptable hoy. Se resuelve con una vista cuando el p95 lo pida |
-| **La aplicación no se despliega** (DT-D17) | `ondexia.api` no produce artefacto de Lambda. Todo este módulo se desarrolla y prueba en local, que es lo que la Fase 0 contempla |
+| ~~**La aplicación no se despliega** (DT-D17)~~ | **Resuelto.** `ondexia.api` produce un artefacto de Lambda verificado con un evento real de API Gateway. Ver §5.bis |
 | **Generador de cliente sin decidir** | Ver Entrega 0 |
 
 ---
 
-## 5.bis Estado de la reestructuración a hexagonal — 2026-08-11
+## 5.bis Reestructuración a hexagonal y adaptador de Lambda — cerrado
 
-La Entrega 0 se interrumpió a mitad para reestructurar a la arquitectura del
-[doc 08](08-arquitectura-backend.md). **El reactor no compila** mientras esto no
-termine.
+La reestructuración a la arquitectura del [doc 08](08-arquitectura-backend.md)
+está **terminada**: 32/32 pruebas en verde, incluidas las 9 reglas de ArchUnit.
+El adaptador de Lambda (DT-D17) también, así que **DT-D17 deja de ser deuda**.
 
-**Hecho:** `ondexia.domain` completo y con cero dependencias de producción.
-Value objects, agregados puros, puertos en español, errores sin HTTP.
+### Lo que se construyó para desplegar
 
-**Falta, en este orden:**
+| Pieza | Dónde |
+|---|---|
+| Adaptador de entrada | `infrastructure/entrada/lambda/ManejadorLambda` |
+| Migraciones separadas | `infrastructure/entrada/lambda/ManejadorMigraciones` |
+| Perfil de plataforma | `application-aws.yml` |
+| Empaquetado plano | `maven-shade-plugin` en `ondexia.api/pom.xml` |
+| SnapStart + alias | `ondexia.infra/api.tf` |
 
-1. **Persistencia** — `infrastructure/salida/persistencia/identidad/`
-   - Entidades JPA: `CuentaJpa` ✅, y faltan `EmpresaJpa`, `SucursalJpa`,
-     `UsuarioJpa`, `UsuarioEmpresaJpa`, `CuentaAdministradorJpa`, `RolJpa`,
-     `PermisoJpa`
-   - Una interfaz de Spring Data por entidad (7)
-   - `MapeadoresIdentidad` — un solo archivo con los métodos estáticos
-   - Un adaptador por puerto (7), cada uno con `@Transactional`
-2. **Auditoría** — `AnotacionJpa`, su repositorio y `RegistroDeAuditoriaJpa`
-   (adapta el antiguo `ServicioAuditoria`, conservando `Propagation.MANDATORY`)
-3. **Seguridad** — mover `ContextoActual` y añadir `ProveedorDeContextoHttp`;
-   `EvaluadorPermisos` pasa a delegar en el value object `Permisos`
-4. **Aplicación** — `ResolverContexto` y `ConsultarContexto`
-5. **Web** — mover controladores, `Pagina`, `CriterioPagina`,
-   `ManejadorGlobalErrores` (aquí es donde las excepciones de dominio se
-   traducen a códigos HTTP, que ya no traen dentro)
-6. **Configuración** — mover los cinco `*Config`
-7. **Borrar** `com.ondexia.api.*` entero
-8. **Pruebas** — las 32 existentes, adaptadas a los nombres nuevos, más las
-   reglas de ArchUnit del doc 08 §8
+### Cinco cosas que costaron y conviene no volver a descubrir
 
-**Después de esto, para desplegar en AWS** hace falta además el adaptador de
-Lambda (DT-D17), que no está incluido arriba: `ondexia.api` es una aplicación
-web de Spring Boot y necesita el puente que traduce el evento de API Gateway a
-una petición HTTP, más el empaquetado con SnapStart de DT-02.
+**El fat jar de Spring Boot no sirve.** Lleva los jars anidados y un cargador
+propio que sabe leerlos; el de Lambda no. De ahí el shade.
+
+**Los transformadores del shade no se escriben a mano.** Los hereda
+`spring-boot-starter-parent`, y son más correctos que los que uno escribiría:
+para `spring.factories` usa `PropertiesMergingResourceTransformer` y no
+`AppendingTransformer`, porque es un archivo de propiedades y hay que combinar
+por clave. Declararlos aparte además rompe el build: Maven fusiona los
+`<transformer>` hermanos por posición.
+
+**No excluir `org.apache.tomcat.embed:*` con comodín.** Se lleva
+`tomcat-embed-el`, que no es el servidor sino lo que Hibernate Validator usa
+para interpolar mensajes. Falla al construir el `EntityManagerFactory`, que no
+se parece en nada a la causa.
+
+**SnapStart solo actúa sobre versiones publicadas.** Estaba sin `publish`, sin
+alias y con la integración apuntando a `$LATEST`: se podía activar y no servir
+de nada.
+
+**Flyway fuera del arranque.** En Lambda «al arrancar» son N arranques en frío
+simultáneos compitiendo por el candado, dentro de peticiones de usuario con 29 s
+de límite.
+
+### Verificado, no supuesto
+
+El artefacto se invocó con un evento real de API Gateway HTTP API v2 contra el
+jar aplanado y devolvió **200** en `/salud`. El plan de `dev` da **65 recursos,
+cero errores**.
+
+De paso apareció un problema del entorno local que las pruebas no pueden ver:
+un **PostgreSQL 18 nativo de Windows** ocupaba `0.0.0.0:5432` y la aplicación
+hablaba con él en vez de con el contenedor. Testcontainers publica en un puerto
+libre al azar, así que la suite pasaba en verde mientras la aplicación local no
+arrancaba. El contenedor pasó a publicar en **5433**.
 
 ## 6. Qué queda después
 

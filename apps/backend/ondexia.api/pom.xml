@@ -23,6 +23,19 @@
   <artifactId>ondexia-api</artifactId>
   <name>Ondexia — API Core</name>
 
+  <properties>
+    <!--
+      Normalmente la deduce spring-boot-maven-plugin al reempaquetar, pero aqui
+      el reempaquetado esta desactivado. El transformador de manifiesto que
+      hereda el shade escribe ${start-class} en Main-Class, y sin definirla
+      escribiria el literal sin resolver.
+
+      A Lambda le da igual —invoca por handler, no por Main-Class— pero deja el
+      jar ejecutable con `java -jar`, que es util para depurar.
+    -->
+    <start-class>com.ondexia.OndexiaApiApplication</start-class>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.ondexia</groupId>
@@ -46,6 +59,48 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <!--
+      Puente entre el evento de API Gateway y el servlet de Spring (DT-D17).
+
+      La version 3.x es la que soporta Spring Boot 4 / Spring Framework 7; la
+      serie 2.x se quedo en Boot 3. No es un detalle de numeracion: 3.0 tambien
+      migro de Jackson 2 a Jackson 3, que es justo lo que trae Boot 4. Mezclar
+      series produce un artefacto que compila y revienta al arrancar.
+
+      Tomcat NO se excluye aqui. Se excluye en el shade (mas abajo), que es
+      donde importa: asi el artefacto de Lambda no lo lleva, pero `mvn
+      spring-boot:run` en local sigue levantando un servidor de verdad. La
+      muestra oficial de AWS lo excluye en los dos sitios porque no contempla
+      ejecucion local.
+    -->
+    <dependency>
+      <groupId>com.amazonaws.serverless</groupId>
+      <artifactId>aws-serverless-java-container-springboot4</artifactId>
+      <version>${serverless-container.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-lambda-java-core</artifactId>
+      <version>${lambda-core.version}</version>
+    </dependency>
+
+    <!--
+      Con org.crac en el classpath, Spring cierra el contexto antes de que
+      SnapStart tome la instantanea y lo reabre al restaurarla.
+
+      Sin esto, las conexiones de Hikari abiertas durante el arranque quedan
+      congeladas dentro de la imagen. Una conexion TCP no sobrevive a una
+      restauracion: al reanudar, el pool cree tener conexiones vivas contra un
+      socket que ya no existe. Hikari acabaria descartandolas al validarlas,
+      pero el sintoma mientras tanto son fallos intermitentes en la primera
+      peticion de cada instancia — el tipo de defecto que no se reproduce.
+    -->
+    <dependency>
+      <groupId>org.crac</groupId>
+      <artifactId>crac</artifactId>
+      <version>${crac.version}</version>
     </dependency>
 
     <!--
@@ -159,10 +214,117 @@
   </dependencies>
 
   <build>
+    <!--
+      Nombre fijo del artefacto: la infraestructura lo referencia por ruta
+      (ondexia.infra/entornos/dev.tfvars). Con el nombre por omision, cada
+      cambio de version obligaria a editar las tfvars.
+    -->
+    <finalName>ondexia-api</finalName>
+
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <!--
+            Se conserva el plugin por `spring-boot:run`, que es como se arranca
+            en local, pero NO se reempaqueta.
+
+            El fat jar de Spring Boot lleva los jars anidados sin descomprimir y
+            un cargador de clases propio que sabe leerlos. El cargador de Lambda
+            no sabe: solo ve clases sueltas y jars en BOOT-INF/lib que para el
+            son ficheros binarios cualesquiera. Desplegar un fat jar produce un
+            ClassNotFoundException del handler, que despista mucho porque la
+            clase esta ahi dentro.
+
+            De ahi el shade: aplana todo a un solo nivel.
+          -->
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <!-- Sin <version>: la fija el pluginManagement del padre de Spring Boot. -->
+        <configuration>
+          <createDependencyReducedPom>false</createDependencyReducedPom>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <excludes>
+                  <!--
+                    El SERVIDOR de Tomcat fuera del artefacto: en Lambda el
+                    contenedor de servlets lo pone aws-serverless-java-container.
+                    Sigue en el classpath de compilacion y de `spring-boot:run`,
+                    que es como se arranca en local.
+
+                    Ojo con el comodin: `org.apache.tomcat.embed:*` se lleva
+                    tambien tomcat-embed-el, que NO es parte del servidor.
+                    Hibernate Validator lo usa para interpolar los mensajes de
+                    las restricciones, y sin el la aplicacion no arranca:
+
+                      HV000183: Unable to initialize 'jakarta.el.ExpressionFactory'
+                      NoClassDefFoundError: jakarta/el/ELManager
+
+                    Y falla al construir el EntityManagerFactory, que no se
+                    parece en nada a «falta una libreria de Tomcat».
+                  -->
+                  <exclude>org.apache.tomcat.embed:tomcat-embed-core</exclude>
+                  <exclude>org.apache.tomcat.embed:tomcat-embed-websocket</exclude>
+                </excludes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <!--
+                      Firmas de los jars originales. Al fusionar el contenido
+                      dejan de cuadrar, y la JVM aborta con un SecurityException
+                      («Invalid signature file digest») antes de ejecutar nada.
+                    -->
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>module-info.class</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <!--
+                NO se declaran <transformers> aqui. Los hereda el
+                pluginManagement de spring-boot-starter-parent, ya completos:
+                fusionan la lista de autoconfiguraciones, los proveedores de
+                ServiceLoader, spring.handlers y spring.schemas.
+
+                Es la parte que mas se olvida al empaquetar con shade, y su
+                ausencia no rompe el build: rompe el arranque, ya en la nube.
+                Decenas de jars traen ficheros con el mismo nombre y contenido
+                distinto; sin fusionarlos, shade conserva uno y descarta el
+                resto en silencio.
+
+                Escribirlos aqui, ademas de redundante, ROMPE el build: Maven
+                fusiona los <transformer> hermanos por posicion, y el quinto de
+                esta lista acababa recibiendo el <resource> del quinto de la
+                lista heredada — «Cannot find 'resource' in class
+                ServicesResourceTransformer».
+
+                Y la version heredada es mas correcta que la que se escribiria a
+                mano: para spring.factories usa PropertiesMergingResourceTransformer
+                y no AppendingTransformer. spring.factories es un archivo de
+                propiedades, asi que dos jars que declaran la MISMA clave hay
+                que combinarlos por valor; concatenando los archivos, la segunda
+                aparicion de la clave gana y la primera se pierde.
+              -->
+
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

@@ -13,6 +13,16 @@ resource "aws_cloudwatch_log_group" "api" {
   tags = { Name = "${local.nombre}-api" }
 }
 
+# La función de migraciones se invoca pocas veces, pero su log es justo el que
+# se consulta cuando algo salió mal en un despliegue. Retención propia por si
+# conviene guardarlo más tiempo que el tráfico normal.
+resource "aws_cloudwatch_log_group" "migraciones" {
+  name              = "/aws/lambda/${local.nombre}-migraciones"
+  retention_in_days = var.retencion_logs_dias
+
+  tags = { Name = "${local.nombre}-migraciones" }
+}
+
 resource "aws_cloudwatch_log_group" "api_gateway" {
   name              = "/aws/apigateway/${local.nombre}"
   retention_in_days = var.retencion_logs_dias

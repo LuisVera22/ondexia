@@ -43,6 +43,89 @@ locals {
   hay_backend    = var.artefacto_api != ""
 }
 
+/**
+ * El artefacto NO se sube directo a Lambda: pasa por S3.
+ *
+ * El límite de la subida directa —el ZIP viajando dentro de la llamada a la
+ * API— son 50 MB. El artefacto del backend pesa unos 64 MB: Spring, Hibernate,
+ * Spring Security y las dos versiones de Jackson que conviven porque springdoc
+ * todavía arrastra la 2. Por el camino directo, `apply` falla con
+ * RequestEntityTooLargeException y no hay ningún parámetro que lo evite.
+ *
+ * Vía S3 el techo son 250 MB ya descomprimidos, así que sobra sitio. De regalo,
+ * el bucket versionado guarda cada artefacto desplegado, que es lo que permite
+ * volver atrás sin recompilar.
+ */
+resource "aws_s3_bucket" "artefactos" {
+  bucket = "${local.nombre}-artefactos-${local.sufijo}"
+  tags   = { Name = "${local.nombre}-artefactos" }
+}
+
+resource "aws_s3_bucket_public_access_block" "artefactos" {
+  bucket                  = aws_s3_bucket.artefactos.id
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "artefactos" {
+  bucket = aws_s3_bucket.artefactos.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+resource "aws_s3_bucket_versioning" "artefactos" {
+  bucket = aws_s3_bucket.artefactos.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# Cada despliegue deja un artefacto de ~64 MB. Sin caducidad, el bucket crece
+# sin parar y se paga por almacenamiento algo que nadie va a mirar.
+resource "aws_s3_bucket_lifecycle_configuration" "artefactos" {
+  bucket = aws_s3_bucket.artefactos.id
+
+  rule {
+    id     = "retirar-artefactos-antiguos"
+    status = "Enabled"
+
+    filter {}
+
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 1
+    }
+  }
+}
+
+resource "aws_s3_object" "api" {
+  bucket = aws_s3_bucket.artefactos.id
+
+  /**
+   * La clave lleva el hash del contenido dentro.
+   *
+   * Con una clave fija, subir un artefacto nuevo cambia el objeto pero Lambda
+   * sigue viendo la misma s3_key y no se entera: el despliegue «funciona» y
+   * sigue corriendo el código viejo. Con el hash en el nombre, un artefacto
+   * distinto es un objeto distinto, y la función se actualiza de verdad.
+   */
+  key    = "api/${filemd5(local.ruta_artefacto)}.zip"
+  source = local.ruta_artefacto
+  etag   = filemd5(local.ruta_artefacto)
+
+  tags = { Name = "${local.nombre}-artefacto-api" }
+}
+
 # ── Permisos ───────────────────────────────────────────────────────────────
 
 data "aws_iam_policy_document" "asumir_lambda" {
@@ -68,10 +151,17 @@ resource "aws_iam_role_policy_attachment" "api_vpc" {
 }
 
 data "aws_iam_policy_document" "api" {
+  # El rol lo comparten la API y la función de migraciones, así que necesita
+  # escribir en los dos grupos. Sin el segundo, las migraciones se ejecutan pero
+  # no dejan rastro — y el registro de una migración es exactamente lo que se
+  # busca cuando un despliegue va mal.
   statement {
-    sid       = "Logs"
-    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
-    resources = ["${aws_cloudwatch_log_group.api.arn}:*"]
+    sid     = "Logs"
+    actions = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = [
+      "${aws_cloudwatch_log_group.api.arn}:*",
+      "${aws_cloudwatch_log_group.migraciones.arn}:*",
+    ]
   }
 
   # Solo el bucket de marca, y solo sus objetos. La Lambda no tiene por qué
@@ -101,7 +191,8 @@ resource "aws_lambda_function" "api" {
   function_name = "${local.nombre}-api"
   role          = aws_iam_role.api.arn
 
-  filename         = local.ruta_artefacto
+  s3_bucket        = aws_s3_bucket.artefactos.id
+  s3_key           = aws_s3_object.api.key
   source_code_hash = filebase64sha256(local.ruta_artefacto)
 
   runtime = local.hay_backend ? var.runtime_api : "nodejs22.x"
@@ -111,6 +202,36 @@ resource "aws_lambda_function" "api" {
   timeout     = 30
 
   reserved_concurrent_executions = var.concurrencia_reservada_api
+
+  /**
+   * SnapStart: la razón por la que este backend puede ser Spring Boot.
+   *
+   * Lambda toma una instantánea de la memoria DESPUÉS de la fase de
+   * inicialización —con el contexto de Spring ya construido— y la restaura en
+   * cada arranque en frío en lugar de reconstruirlo. Sin esto, un arranque en
+   * frío de Spring Boot ronda los segundos; con esto, las centenas de
+   * milisegundos.
+   *
+   * Dos condiciones que no son evidentes y que estaban sin cumplir:
+   *
+   *   1. Solo actúa sobre VERSIONES PUBLICADAS. Con la integración apuntando a
+   *      $LATEST, se puede activar SnapStart y no servir de nada. De ahí
+   *      `publish = true` y el alias de más abajo.
+   *   2. Es incompatible con imágenes de contenedor. Es lo que decide que este
+   *      artefacto sea un ZIP y no una imagen.
+   *
+   * Solo para el backend real: la función de relleno corre sobre Node, donde
+   * SnapStart no aplica y declararlo sería un error de la API.
+   */
+  dynamic "snap_start" {
+    for_each = local.hay_backend ? [1] : []
+
+    content {
+      apply_on = "PublishedVersions"
+    }
+  }
+
+  publish = true
 
   vpc_config {
     subnet_ids         = aws_subnet.privada[*].id
@@ -132,16 +253,35 @@ resource "aws_lambda_function" "api" {
    */
   environment {
     variables = {
-      SPRING_PROFILES_ACTIVE = var.entorno
-      BD_HOST                = aws_db_instance.principal.address
-      BD_PUERTO              = tostring(aws_db_instance.principal.port)
-      BD_NOMBRE              = aws_db_instance.principal.db_name
-      BD_USUARIO             = aws_db_instance.principal.username
-      BD_CONTRASENA          = random_password.bd.result
-      COGNITO_POOL_ID        = aws_cognito_user_pool.inquilinos.id
-      COGNITO_CLIENTE_ID     = aws_cognito_user_pool_client.spa.id
-      BUCKET_MARCA           = aws_s3_bucket.marca.id
-      CDN_MARCA              = var.gestionar_dns ? "https://cdn.${var.dominio}" : "https://${aws_cloudfront_distribution.marca.domain_name}"
+      /**
+       * Dos perfiles, no uno.
+       *
+       * 'aws' trae lo que depende de la PLATAFORMA —cómo se compone la URL de
+       * la base, que Flyway no migre al arrancar, de dónde sale el emisor de
+       * los tokens— y vale igual en dev que en prod. El nombre del entorno
+       * queda para lo que de verdad cambia entre ellos.
+       *
+       * Sin el perfil 'aws', application.yml usa su valor por omisión de
+       * BD_URL, que apunta a localhost. En Lambda eso no falla al arrancar:
+       * falla al primer intento de conexión, con un tiempo de espera agotado
+       * que no dice nada de la causa.
+       */
+      SPRING_PROFILES_ACTIVE = "aws,${var.entorno}"
+
+      # El SPA llama desde su propio origen. La pasarela ya hace CORS, pero
+      # Spring tiene su propia configuración y por omisión apunta a
+      # localhost:4200, que en la nube no es nadie.
+      CORS_ORIGENES = var.gestionar_dns ? "https://app.${var.dominio}" : "https://${aws_cloudfront_distribution.sitio["app"].domain_name}"
+
+      BD_HOST            = aws_db_instance.principal.address
+      BD_PUERTO          = tostring(aws_db_instance.principal.port)
+      BD_NOMBRE          = aws_db_instance.principal.db_name
+      BD_USUARIO         = aws_db_instance.principal.username
+      BD_CONTRASENA      = random_password.bd.result
+      COGNITO_POOL_ID    = aws_cognito_user_pool.inquilinos.id
+      COGNITO_CLIENTE_ID = aws_cognito_user_pool_client.spa.id
+      BUCKET_MARCA       = aws_s3_bucket.marca.id
+      CDN_MARCA          = var.gestionar_dns ? "https://cdn.${var.dominio}" : "https://${aws_cloudfront_distribution.marca.domain_name}"
     }
   }
 
@@ -151,6 +291,80 @@ resource "aws_lambda_function" "api" {
   ]
 
   tags = { Name = "${local.nombre}-api" }
+}
+
+/**
+ * El alias es lo que se invoca. Nunca $LATEST.
+ *
+ * Un alias apunta a una versión inmutable y concreta, y es la pieza que hace
+ * que SnapStart tenga efecto: la instantánea pertenece a la versión, no a la
+ * función. Apuntar la integración a $LATEST significa ejecutar el código sin
+ * instantánea — sin ningún aviso, solo arranques en frío lentos.
+ *
+ * Es además el sitio natural para un despliegue gradual el día que haga falta:
+ * un alias puede repartir el tráfico entre dos versiones.
+ */
+resource "aws_lambda_alias" "api" {
+  name             = "activo"
+  description      = "Version que sirve el trafico"
+  function_name    = aws_lambda_function.api.function_name
+  function_version = aws_lambda_function.api.version
+}
+
+# ── Migraciones ────────────────────────────────────────────────────────────
+
+/**
+ * Mismo artefacto, otro handler, otra función.
+ *
+ * Las migraciones no corren al arrancar la API — el porqué está en
+ * ManejadorMigraciones. Aquí solo importan las diferencias de configuración:
+ * más tiempo de espera (una migración sobre una tabla con datos puede tardar
+ * minutos, y los 30 s de la API se quedarían cortos), sin SnapStart (se invoca
+ * un puñado de veces al año) y sin concurrencia reservada.
+ *
+ * Se ejecuta después de cada despliegue:
+ *
+ *   aws lambda invoke --function-name NOMBRE --payload '{}' salida.json
+ *
+ * El nombre exacto lo publica el output `funcion_migraciones`.
+ */
+resource "aws_lambda_function" "migraciones" {
+  count = local.hay_backend ? 1 : 0
+
+  function_name = "${local.nombre}-migraciones"
+  role          = aws_iam_role.api.arn
+
+  s3_bucket        = aws_s3_bucket.artefactos.id
+  s3_key           = aws_s3_object.api.key
+  source_code_hash = filebase64sha256(local.ruta_artefacto)
+
+  runtime = var.runtime_api
+  handler = "com.ondexia.infrastructure.entrada.lambda.ManejadorMigraciones::handleRequest"
+
+  memory_size = 1024
+  timeout     = 600
+
+  vpc_config {
+    subnet_ids         = aws_subnet.privada[*].id
+    security_group_ids = [aws_security_group.lambda.id]
+  }
+
+  environment {
+    variables = {
+      BD_HOST       = aws_db_instance.principal.address
+      BD_PUERTO     = tostring(aws_db_instance.principal.port)
+      BD_NOMBRE     = aws_db_instance.principal.db_name
+      BD_USUARIO    = aws_db_instance.principal.username
+      BD_CONTRASENA = random_password.bd.result
+    }
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.api_vpc,
+    aws_cloudwatch_log_group.migraciones,
+  ]
+
+  tags = { Name = "${local.nombre}-migraciones" }
 }
 
 # ── API Gateway ────────────────────────────────────────────────────────────
@@ -188,9 +402,11 @@ resource "aws_apigatewayv2_authorizer" "cognito" {
 }
 
 resource "aws_apigatewayv2_integration" "api" {
-  api_id                 = aws_apigatewayv2_api.principal.id
-  integration_type       = "AWS_PROXY"
-  integration_uri        = aws_lambda_function.api.invoke_arn
+  api_id           = aws_apigatewayv2_api.principal.id
+  integration_type = "AWS_PROXY"
+  # El alias, no la función. Invocar la función a secas ejecuta $LATEST, que no
+  # lleva instantánea de SnapStart.
+  integration_uri        = aws_lambda_alias.api.invoke_arn
   payload_format_version = "2.0"
   timeout_milliseconds   = 29000
 }
@@ -245,10 +461,19 @@ resource "aws_apigatewayv2_stage" "principal" {
   }
 }
 
+/**
+ * El permiso se concede sobre el ALIAS, con `qualifier`.
+ *
+ * Un permiso sobre la función sin cualificar no cubre la invocación a través
+ * del alias: la pasarela recibiría un 500 con «not authorized to perform
+ * lambda:InvokeFunction», que despista bastante porque el rol y la política
+ * parecen correctos.
+ */
 resource "aws_lambda_permission" "api_gateway" {
   statement_id  = "AllowAPIGatewayInvoke"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.api.function_name
+  qualifier     = aws_lambda_alias.api.name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.principal.execution_arn}/*/*"
 }

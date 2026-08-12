@@ -63,10 +63,24 @@ output "base_datos" {
   }
 }
 
+output "funcion_migraciones" {
+  description = <<-TEXTO
+    Función que aplica las migraciones de Flyway. Hay que invocarla después de
+    cada despliegue que traiga migraciones nuevas — la API ya no migra al
+    arrancar:
+
+      aws lambda invoke --function-name <este valor> --payload '{}' salida.json
+
+    Vacío mientras no haya artefacto de backend desplegado.
+  TEXTO
+  value       = local.hay_backend ? aws_lambda_function.migraciones[0].function_name : ""
+}
+
 output "recordatorios" {
   description = "Lo que Terraform no puede hacer por ti."
   value = [
     "Confirmar la suscripción de correo al tema de SNS: llega un mensaje de AWS y hay que pulsar el enlace, o las alarmas no avisan a nadie.",
+    local.hay_backend ? "Invocar la funcion de migraciones (output funcion_migraciones) antes de probar la API: el esquema no existe hasta entonces." : "Sin artefacto de backend: se despliega la funcion de relleno que responde 501.",
     "Poner el MFA del grupo de personal en ON cuando el primer usuario tenga su TOTP configurado.",
     "Pasar la cuenta al plan de pago antes de que venza el periodo gratuito: el plan gratuito cierra la cuenta sola.",
     var.gestionar_dns ? "Cargar los servidores de nombres en el registrador del dominio." : "gestionar_dns esta apagado: se sirve por los dominios predeterminados de CloudFront.",

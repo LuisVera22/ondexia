@@ -21,7 +21,12 @@ retencion_logs_dias      = 30
 
 concurrencia_reservada_api = 20
 
-# Se rellenan cuando exista el backend:
-# artefacto_api = "../apps/ondexia.api/target/ondexia-api.zip"
+# Se descomentan cuando el backend se haya probado en dev. Mientras sigan
+# comentadas, prod despliega la función de relleno que responde 501.
+#
+# Las rutas y el handler ya son los definitivos: la ruta anterior apuntaba a
+# apps/ondexia.api, de antes de agrupar el backend bajo apps/backend, y el
+# handler a una clase que nunca existió.
+# artefacto_api = "../apps/backend/ondexia.api/target/ondexia-api.jar"
 # runtime_api   = "java21"
-# handler_api   = "com.ondexia.api.Manejador::handleRequest"
+# handler_api   = "com.ondexia.infrastructure.entrada.lambda.ManejadorLambda::handleRequest"

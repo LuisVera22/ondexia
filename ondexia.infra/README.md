@@ -98,25 +98,42 @@ Migrar identidades en producción es caro (DTE §8.1).
 del resto. Por eso existe el proveedor con alias `edge`, y por eso esto funciona
 igual si se decide operar desde Ohio.
 
-## Antes del backend
+## El backend
 
-`artefacto_api` está vacío, así que se despliega una función de relleno que
-responde `501`. No es adorno: permite verificar dominio, autorizador, red y
-permisos **antes** de escribir la primera línea del backend, que es cuando
-salen baratos los errores de infraestructura.
+`dev.tfvars` ya apunta al artefacto real. `prod.tfvars` sigue con la función de
+relleno que responde `501`, a la espera de que dev demuestre que el despliegue
+funciona.
 
-`ondexia.api` ya existe, pero **todavía no produce un artefacto desplegable en
-Lambda**: es una aplicación web de Spring Boot, sin el adaptador que traduce el
-evento de API Gateway a una petición HTTP. Hasta que exista, el despliegue deja
-la función de relleno en su sitio.
+Antes de aplicar hay que construirlo:
 
-Cuando lo haya, en `prod.tfvars`:
-
-```hcl
-artefacto_api = "../apps/backend/ondexia.api/target/ondexia-api.zip"
-runtime_api   = "java21"
-handler_api   = "com.ondexia.api.Manejador::handleRequest"
+```bash
+cd apps/backend && ./mvnw -pl ondexia.api -am package -DskipTests
 ```
+
+Es un `.jar`, no un `.zip`, porque un jar ya **es** un zip y Lambda lo acepta tal
+cual. Y no es el fat jar de Spring Boot: el reempaquetado está desactivado y lo
+genera `maven-shade-plugin`, porque el cargador de clases de Lambda no sabe leer
+los jars anidados de un fat jar.
+
+### Tres cosas de este despliegue que no son evidentes
+
+**El artefacto viaja por S3, no directo.** Pesa ~64 MB y el límite de la subida
+directa son 50 MB. Por el camino directo, `apply` falla con
+`RequestEntityTooLargeException` y no hay parámetro que lo arregle.
+
+**El tráfico entra por un alias, nunca por `$LATEST`.** SnapStart solo actúa
+sobre versiones publicadas: apuntar la integración a `$LATEST` deja la
+instantánea sin usar, sin ningún aviso — solo arranques en frío lentos.
+
+**Las migraciones no corren al arrancar la API.** Hay una función aparte que se
+invoca después de cada despliegue, y hasta entonces el esquema no existe:
+
+```bash
+aws lambda invoke --function-name $(terraform output -raw funcion_migraciones) --payload '{}' salida.json
+```
+
+El porqué está en `ManejadorMigraciones`: en Lambda, «al arrancar» significa
+*en cada arranque en frío*, y varios a la vez cuando llega tráfico.
 
 ## Lo que Terraform no hace por ti
 

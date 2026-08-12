@@ -29,8 +29,19 @@ services:
       # una consulta ORDER BY devuelve resultados distintos en tu portatil y en
       # CI. Es una fuente clasica de pruebas que fallan solo en un sitio.
       POSTGRES_INITDB_ARGS: "--locale=C.UTF-8 --encoding=UTF8"
+    # 5433 en el anfitrion, 5432 dentro. NO es arbitrario.
+    #
+    # Windows suele tener ya un PostgreSQL nativo como servicio, escuchando en
+    # 0.0.0.0:5432. Docker publica en '::' (IPv6), y Java resuelve 'localhost'
+    # primero por IPv4 — con lo que la aplicacion acaba hablando con el
+    # PostgreSQL nativo sin que nada avise. El sintoma es una autenticacion
+    # fallida del rol 'ondexia', que en ese servidor no existe.
+    #
+    # Es un fallo que las pruebas NO pueden detectar: Testcontainers publica en
+    # un puerto libre al azar, asi que la suite pasa en verde mientras la
+    # aplicacion local no arranca.
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - ondexia-datos:/var/lib/postgresql/data
       # Scripts de inicializacion. Solo se ejecutan la primera vez, cuando el

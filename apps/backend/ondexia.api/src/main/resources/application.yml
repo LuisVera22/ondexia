@@ -10,7 +10,9 @@ spring:
     default: local
 
   datasource:
-    url: ${BD_URL:jdbc:postgresql://localhost:5432/ondexia}
+    # Puerto 5433, no 5432: es el que publica compose.yaml en el anfitrion, y
+    # alli esta explicado por que no puede ser el 5432.
+    url: ${BD_URL:jdbc:postgresql://localhost:5433/ondexia}
     username: ${BD_USUARIO:ondexia}
     password: ${BD_CLAVE:ondexia}
     hikari:

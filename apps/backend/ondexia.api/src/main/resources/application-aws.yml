@@ -1,0 +1,50 @@
+# Perfil 'aws': lo que cambia por correr dentro de Lambda, no por el entorno.
+#
+# Se activa junto al nombre del entorno — SPRING_PROFILES_ACTIVE=aws,dev — para
+# que quede separado lo que depende de la PLATAFORMA (este archivo) de lo que
+# depende del ENTORNO (dev frente a prod). Sin esa separacion, cada ajuste de
+# Lambda habria que copiarlo en los dos.
+
+spring:
+  datasource:
+    # Terraform inyecta el host, el puerto y el nombre por separado
+    # (ondexia.infra/api.tf) porque son atributos distintos de la instancia RDS
+    # y componer la URL alli obligaria a interpolar dentro de una cadena.
+    #
+    # Ojo: application.yml define BD_URL con un valor por omision de localhost.
+    # Si esta linea no existiera, la Lambda arrancaria contra localhost:5432 y
+    # el sintoma seria un tiempo de espera de conexion, no una configuracion que
+    # falta. Es el tipo de error que cuesta media tarde.
+    url: jdbc:postgresql://${BD_HOST}:${BD_PUERTO}/${BD_NOMBRE}
+    username: ${BD_USUARIO}
+    password: ${BD_CONTRASENA}
+
+  flyway:
+    # Las migraciones NO corren al arrancar. Las ejecuta una funcion aparte,
+    # invocada tras desplegar — ver ManejadorMigraciones, que explica por que.
+    enabled: false
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Fuera del perfil 'local' no hay ningun bean JwtDecoder: lo construye
+          # Spring a partir de esta URL, descargando el JWKS del pool.
+          #
+          # AWS_REGION la pone el propio runtime de Lambda; COGNITO_POOL_ID la
+          # pone Terraform.
+          issuer-uri: https://cognito-idp.${AWS_REGION}.amazonaws.com/${COGNITO_POOL_ID}
+          # No se declara 'audiences' a proposito. La pasarela ya valida la
+          # audiencia contra el cliente del SPA (aws_apigatewayv2_authorizer), y
+          # aqui rechazaria los tokens de acceso de Cognito, que llevan
+          # 'client_id' en vez de 'aud'. Lo que si se revalida es la firma y el
+          # emisor: la pasarela puede estar bien configurada hoy y mal manana.
+
+# El arranque en frio se paga una vez por instancia; con SnapStart, casi nunca.
+# Pero el log de arranque de Spring se escribe en cada restauracion y CloudWatch
+# se factura por GB ingerido.
+logging:
+  level:
+    root: WARN
+    com.ondexia: INFO
+    org.springframework.web: WARN
