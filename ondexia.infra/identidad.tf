@@ -86,9 +86,53 @@ resource "aws_cognito_user_pool_client" "spa" {
 
   generate_secret = false
 
+  # Solo renovación. No se habilita ningún flujo que acepte la contraseña desde
+  # la aplicación: el SPA nunca la ve, porque quien la pide es la interfaz
+  # alojada de Cognito. Dejar ALLOW_USER_SRP_AUTH abierto permitiría un segundo
+  # camino de entrada que nadie usa y que habría que vigilar igual.
   explicit_auth_flows = [
-    "ALLOW_USER_SRP_AUTH",
     "ALLOW_REFRESH_TOKEN_AUTH",
+  ]
+
+  /**
+   * Flujo de código de autorización con PKCE.
+   *
+   * `code` y no `implicit`: el flujo implícito devuelve el token en el
+   * fragmento de la URL, donde acaba en el historial del navegador y en los
+   * registros de cualquier intermediario. Está desaconsejado desde 2019.
+   *
+   * PKCE lo aplica Cognito por su cuenta cuando el cliente no tiene secreto,
+   * que es este caso. Sin él, cualquiera que interceptase el código podría
+   * canjearlo; con él hace falta además el verificador, que solo conoce la
+   * pestaña que inició la sesión.
+   */
+  allowed_oauth_flows_user_pool_client = true
+  allowed_oauth_flows                  = ["code"]
+
+  # `openid` es obligatorio para recibir un id_token. `email` y `profile` son
+  # los que hacen que el token traiga el correo y el nombre — sin ellos, la
+  # pantalla de perfil no tendría qué mostrar hasta llamar a la API.
+  allowed_oauth_scopes         = ["openid", "email", "profile"]
+  supported_identity_providers = ["COGNITO"]
+
+  /**
+   * Cognito solo redirige a URLs de esta lista, comparadas de forma exacta.
+   *
+   * Es la defensa contra el robo del código: sin ella, un atacante podría
+   * lanzar el flujo con una `redirect_uri` propia y recibir él el código de
+   * autorización de la víctima.
+   *
+   * localhost está permitido a propósito para desarrollar, y es la única
+   * excepción de http que acepta Cognito. En prod conviene quitarlo.
+   */
+  callback_urls = [
+    "${local.origen_app}/acceso/retorno",
+    "http://localhost:4200/acceso/retorno",
+  ]
+
+  logout_urls = [
+    "${local.origen_app}/acceso/ingresar",
+    "http://localhost:4200/acceso/ingresar",
   ]
 
   # Una hora de token de acceso limita cuánto sobrevive uno robado. Los
@@ -113,6 +157,25 @@ resource "aws_cognito_user_pool_client" "spa" {
   # atributos que no le corresponden.
   read_attributes  = ["email", "email_verified", "name"]
   write_attributes = ["name"]
+}
+
+/**
+ * Dominio de la interfaz alojada.
+ *
+ * Es la que pide el correo y la contraseña, resuelve el segundo factor, la
+ * verificación por correo y el «olvidé mi contraseña». Nada de eso vive en
+ * nuestro código, y por tanto tampoco su mantenimiento: el pool tiene el MFA
+ * en OPTIONAL, y cada reto de esa negociación —MFA_SETUP, SOFTWARE_TOKEN_MFA,
+ * NEW_PASSWORD_REQUIRED— sería una pantalla propia que construir y probar.
+ *
+ * El prefijo es único en toda la región de AWS, de ahí el identificador de
+ * cuenta. Queda como:
+ *
+ *     https://ondexia-dev-370930247103.auth.us-east-1.amazoncognito.com
+ */
+resource "aws_cognito_user_pool_domain" "inquilinos" {
+  domain       = "${local.nombre}-${local.sufijo}"
+  user_pool_id = aws_cognito_user_pool.inquilinos.id
 }
 
 resource "aws_cognito_user_pool" "personal" {

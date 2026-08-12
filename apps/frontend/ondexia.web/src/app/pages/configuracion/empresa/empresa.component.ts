@@ -34,7 +34,7 @@ export class EmpresaComponent {
     distrito: ['San Isidro', [Validators.required]],
     ubigeo: ['150131', [Validators.required, Validators.pattern(/^\d{6}$/)]],
     telefono: ['(01) 555-1234'],
-    correo: ['facturacion@wirbi.com', [Validators.email]],
+    correo: ['facturacion@ondexia.com', [Validators.email]],
   });
 
   get controles() {

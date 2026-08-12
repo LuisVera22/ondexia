@@ -25,8 +25,8 @@ export class UsuariosComponent {
   ];
 
   registros = [
-    { id: 1, nombre: 'Luis Vera', correo: 'luis.vera@wirbi.com', rol: 'Administrador', empresas: 'Todas', estado: 'Activo' },
-    { id: 2, nombre: 'Carmen Rojas', correo: 'carmen.rojas@wirbi.com', rol: 'Ventas', empresas: 'Wirbi S.A.C.', estado: 'Activo' },
+    { id: 1, nombre: 'Luis Vera', correo: 'demo@ondexia.com', rol: 'Administrador', empresas: 'Todas', estado: 'Activo' },
+    { id: 2, nombre: 'Carmen Rojas', correo: 'carmen.rojas@ondexia.com', rol: 'Ventas', empresas: 'Wirbi S.A.C.', estado: 'Activo' },
   ];
 
   confirmacionAbierta = false;

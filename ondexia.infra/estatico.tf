@@ -19,6 +19,12 @@ locals {
   # cuenta como sufijo para no chocar con los de otro.
   sufijo = data.aws_caller_identity.actual.account_id
 
+  # Origen del SPA. Se define aquí, junto a la distribución que lo sirve, y no
+  # repetido en cada sitio que lo necesita: lo usan la configuración de CORS de
+  # la API, las URL de retorno de Cognito y las variables de entorno de la
+  # Lambda. Tres copias de la misma expresión es una que se queda atrás.
+  origen_app = var.gestionar_dns ? "https://app.${var.dominio}" : "https://${aws_cloudfront_distribution.sitio["app"].domain_name}"
+
   sitios = {
     app = {
       descripcion = "SPA de Angular"

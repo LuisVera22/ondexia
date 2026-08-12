@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { sesionGuard } from './nucleo/sesion.guard';
+import { RetornoComponent } from './pages/acceso/retorno/retorno.component';
 import { MarcoAppComponent } from './shared/layout/marco-app/marco-app.component';
 import { PanelComponent } from './pages/panel/panel.component';
 import { PerfilComponent } from './pages/perfil/perfil.component';
@@ -69,6 +71,15 @@ export const routes: Routes = [
   {
     path: '',
     component: MarcoAppComponent,
+    /*
+     * Una sola guarda en el padre protege las 58 rutas hijas. Ponerla en cada
+     * una sería la forma segura de que a la número 59 se le olvide.
+     *
+     * Es comodidad, no seguridad: quien edite el JavaScript en su navegador
+     * puede saltarla y no verá nada, porque los datos los sirve la API y esa
+     * valida el token en cada petición.
+     */
+    canActivate: [sesionGuard],
     children: [
       {
         path: '',
@@ -163,6 +174,14 @@ export const routes: Routes = [
     path: 'acceso/recuperar',
     component: RecuperarComponent,
     title: `Recuperar contraseña | ${TITULO}`,
+  },
+  {
+    // A donde vuelve Cognito con el código. La URL está declarada en
+    // callback_urls (ondexia.infra/identidad.tf) y las dos deben coincidir
+    // exactamente: Cognito las compara carácter a carácter.
+    path: 'acceso/retorno',
+    component: RetornoComponent,
+    title: `Accediendo | ${TITULO}`,
   },
 
   {

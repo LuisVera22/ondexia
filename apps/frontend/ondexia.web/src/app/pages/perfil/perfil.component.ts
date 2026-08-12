@@ -31,7 +31,7 @@ export class PerfilComponent {
   formularioDatos = this.constructorFormulario.nonNullable.group({
     nombres: ['Luis David', [Validators.required]],
     apellidos: ['Vera Vilchez', [Validators.required]],
-    correo: [{ value: 'luis.vera@wirbi.com', disabled: true }],
+    correo: [{ value: 'demo@ondexia.com', disabled: true }],
     telefono: ['987 654 321'],
   });
 

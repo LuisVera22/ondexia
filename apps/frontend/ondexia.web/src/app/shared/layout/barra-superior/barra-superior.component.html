@@ -67,10 +67,10 @@
           class="flex items-center gap-2 rounded-lg p-1 transition hover:bg-gray-50 dark:hover:bg-white/[0.03]"
         >
           <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-menudo font-semibold text-white">
-            {{ iniciales }}
+            {{ iniciales() }}
           </span>
           <span class="hidden text-dato font-medium text-gray-700 dark:text-gray-300 sm:block">
-            {{ nombreCorto }}
+            {{ nombreCorto() }}
           </span>
           <svg
             class="hidden size-4 text-gray-400 transition-transform duration-200 sm:block"
@@ -87,8 +87,8 @@
           class="absolute right-0 top-full z-40 mt-2 w-64 rounded-xl border border-gray-200 bg-white p-2 shadow-flotante dark:border-gray-700 dark:bg-gray-900"
         >
           <div class="border-b border-gray-200 px-3 pb-3 pt-1 dark:border-gray-800">
-            <p class="truncate font-medium text-gray-800 dark:text-white/90">{{ nombreCompleto }}</p>
-            <p class="truncate text-menudo text-gray-500 dark:text-gray-400">{{ usuario.correo }}</p>
+            <p class="truncate font-medium text-gray-800 dark:text-white/90">{{ nombreCompleto() }}</p>
+            <p class="truncate text-menudo text-gray-500 dark:text-gray-400">{{ correo() }}</p>
           </div>
 
           <ul class="flex flex-col gap-0.5 border-b border-gray-200 py-2 dark:border-gray-800">
@@ -122,14 +122,21 @@
             </li>
           </ul>
 
-          <a routerLink="/acceso/ingresar" (click)="cerrarMenuUsuario()" role="menuitem"
-            class="group mt-2 flex items-center gap-3 rounded-lg px-3 py-2 text-dato font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
+          <!--
+            Botón y no enlace. Cerrar sesión no es navegar: hay que borrar los
+            tokens de esta pestaña y avisar a Cognito. Sin lo segundo, su cookie
+            de sesión sobrevive y volver a «Ingresar» entra solo, sin pedir nada
+            — que en un equipo compartido significa que el siguiente usuario
+            entra como el anterior.
+          -->
+          <button type="button" (click)="cerrarSesion()" role="menuitem"
+            class="group mt-2 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-dato font-medium text-gray-700 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
             <svg class="size-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
               <path d="M15 4.75h3.5a1.75 1.75 0 0 1 1.75 1.75v11a1.75 1.75 0 0 1-1.75 1.75H15" />
               <path d="M10 8.5 6.5 12l3.5 3.5M6.5 12H16" />
             </svg>
             Cerrar sesión
-          </a>
+          </button>
         </div>
         }
       </div>

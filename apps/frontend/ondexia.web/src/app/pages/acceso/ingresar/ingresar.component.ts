@@ -1,53 +1,50 @@
-import { Component, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Component, inject, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MarcoAccesoComponent } from '../../../shared/layout/marco-acceso/marco-acceso.component';
+import { SesionService } from '../../../nucleo/sesion.service';
 
 /**
- * Inicio de sesión.
+ * Puerta de entrada. Ya no pide credenciales: las pide Cognito.
  *
- * Sin backend todavía: el envío navega al panel sin validar credenciales.
- * La validación de formato sí es real, para que el recorrido muestre cómo
- * se comporta el formulario ante datos incompletos.
+ * El formulario de correo y contraseña que había aquí se retiró al conectar el
+ * backend, y no por falta de ganas de conservarlo. El pool tiene el segundo
+ * factor en OPTIONAL, verificación de correo y recuperación de contraseña; cada
+ * una es una negociación con retos —MFA_SETUP, SOFTWARE_TOKEN_MFA,
+ * NEW_PASSWORD_REQUIRED— que habría que implementar aquí y mantener después.
+ *
+ * A cambio, la contraseña del usuario no pasa nunca por nuestro código, que es
+ * la clase de garantía que no se consigue escribiendo con cuidado.
  */
 @Component({
   selector: 'app-ingresar',
-  imports: [MarcoAccesoComponent, ReactiveFormsModule, RouterModule],
+  imports: [MarcoAccesoComponent],
   templateUrl: './ingresar.component.html',
 })
 export class IngresarComponent {
-  private readonly constructorFormulario = inject(FormBuilder);
+  private readonly sesion = inject(SesionService);
+  private readonly ruta = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-  contrasenaVisible = false;
-  enviando = false;
+  readonly enviando = signal(false);
+  readonly error = signal<string | null>(null);
 
-  formulario = this.constructorFormulario.nonNullable.group({
-    correo: ['', [Validators.required, Validators.email]],
-    contrasena: ['', [Validators.required, Validators.minLength(8)]],
-    recordarme: [false],
-  });
-
-  get correo() {
-    return this.formulario.controls.correo;
-  }
-
-  get contrasena() {
-    return this.formulario.controls.contrasena;
-  }
-
-  alternarContrasena(): void {
-    this.contrasenaVisible = !this.contrasenaVisible;
-  }
-
-  ingresar(): void {
-    if (this.formulario.invalid) {
-      // Marcar como tocado revela los mensajes de error de los campos que
-      // el usuario nunca llegó a visitar.
-      this.formulario.markAllAsTouched();
-      return;
+  constructor() {
+    // Si ya hay sesión, no tiene sentido enseñar esta pantalla.
+    if (this.sesion.autenticado()) {
+      void this.router.navigate(['/']);
     }
-    this.enviando = true;
-    this.router.navigate(['/']);
+  }
+
+  async entrar(): Promise<void> {
+    this.enviando.set(true);
+    this.error.set(null);
+
+    try {
+      // No retorna: la pestaña navega a Cognito.
+      await this.sesion.iniciar(this.ruta.snapshot.queryParamMap.get('volverA') ?? '/');
+    } catch {
+      this.enviando.set(false);
+      this.error.set('No se pudo contactar con el servicio de acceso. Inténtalo de nuevo.');
+    }
   }
 }

@@ -1,6 +1,6 @@
 output "url_app" {
   description = "Donde queda servida la SPA."
-  value       = var.gestionar_dns ? "https://app.${var.dominio}" : "https://${aws_cloudfront_distribution.sitio["app"].domain_name}"
+  value       = local.origen_app
 }
 
 output "url_landing" {
@@ -43,6 +43,28 @@ output "cognito" {
     cliente_spa     = aws_cognito_user_pool_client.spa.id
     emisor          = "https://${aws_cognito_user_pool.inquilinos.endpoint}"
     pool_personal   = aws_cognito_user_pool.personal.id
+    # Base de la interfaz alojada: de aquí cuelgan /oauth2/authorize,
+    # /oauth2/token y /logout. Es lo que el SPA escribe en su config.json.
+    dominio = "https://${aws_cognito_user_pool_domain.inquilinos.domain}.auth.${var.region}.amazoncognito.com"
+  }
+}
+
+output "configuracion_spa" {
+  description = <<-TEXTO
+    Contenido de public/config.json para este entorno. El SPA lo lee al
+    arrancar, así que el mismo artefacto vale para dev y para prod sin
+    reconstruirlo — que es justo lo que permite promocionar a producción
+    exactamente lo que se probó.
+
+    Se genera con:
+      terraform output -json configuracion_spa > ../apps/frontend/ondexia.web/dist/ondexia-web/browser/config.json
+  TEXTO
+  value = {
+    api = var.gestionar_dns ? "https://api.${var.dominio}" : aws_apigatewayv2_api.principal.api_endpoint
+    cognito = {
+      dominio   = "https://${aws_cognito_user_pool_domain.inquilinos.domain}.auth.${var.region}.amazoncognito.com"
+      clienteId = aws_cognito_user_pool_client.spa.id
+    }
   }
 }
 

@@ -1,8 +1,9 @@
-import { Component, ElementRef, HostListener, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, computed, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MenuLateralService } from '../../services/menu-lateral.service';
 import { TemaService } from '../../services/tema.service';
 import { ContextoService } from '../../services/contexto.service';
+import { SesionService } from '../../../nucleo/sesion.service';
 import { SelectorContextoComponent } from '../../components/comunes/selector-contexto/selector-contexto.component';
 
 /**
@@ -29,32 +30,53 @@ export class BarraSuperiorComponent {
   readonly tema = inject(TemaService);
   readonly contexto = inject(ContextoService);
 
+  readonly sesion = inject(SesionService);
+
   readonly menuUsuarioAbierto = signal(false);
 
   /**
-   * Datos de ejemplo mientras no exista sesión real. Al conectar el backend se
-   * reemplaza por lo que devuelva la autenticación y no cambia nada más.
+   * El usuario sale del contexto que devuelve la API, no del token.
+   *
+   * Los dos traen el nombre, pero el del contexto es el que está en NUESTRA
+   * base: si alguien corrige su nombre en el perfil, ahí se ve al instante,
+   * mientras que el del token no cambia hasta la siguiente renovación.
+   *
+   * Se recurre al token solo mientras el contexto aún no ha llegado, para que
+   * la barra no aparezca vacía durante la primera carga.
    */
-  readonly usuario = {
-    nombres: 'Luis David',
-    apellidos: 'Vera Vilchez',
-    correo: 'luis.vera@wirbi.com',
-  };
+  readonly nombreCompleto = computed(
+    () => this.contexto.usuario()?.nombre ?? this.sesion.usuario()?.nombre ?? ''
+  );
 
-  get nombreCorto(): string {
-    return `${this.usuario.nombres.split(' ')[0]} ${this.usuario.apellidos.split(' ')[0]}`;
-  }
+  readonly correo = computed(
+    () => this.contexto.usuario()?.email ?? this.sesion.usuario()?.correo ?? ''
+  );
 
-  get nombreCompleto(): string {
-    return `${this.usuario.nombres} ${this.usuario.apellidos}`;
-  }
+  readonly nombreCorto = computed(() => {
+    const partes = this.nombreCompleto().trim().split(/\s+/).filter(Boolean);
+    // Nombre y primer apellido. Los nombres peruanos suelen traer dos
+    // apellidos, y los cuatro juntos no caben en la barra.
+    return partes.slice(0, 2).join(' ');
+  });
 
   /**
    * Iniciales en lugar de fotografía: en un sistema de gestión casi nadie sube
    * una, y el avatar genérico repetido en toda la cuenta no distingue a nadie.
    */
-  get iniciales(): string {
-    return (this.usuario.nombres.charAt(0) + this.usuario.apellidos.charAt(0)).toUpperCase();
+  readonly iniciales = computed(() => {
+    const partes = this.nombreCompleto().trim().split(/\s+/).filter(Boolean);
+    if (partes.length === 0) {
+      return '·';
+    }
+    const primera = partes[0].charAt(0);
+    const segunda = partes.length > 1 ? partes[1].charAt(0) : '';
+    return (primera + segunda).toUpperCase();
+  });
+
+  /** Cierra la sesión aquí y en Cognito. Sin lo segundo, «entrar» volvería a entrar solo. */
+  cerrarSesion(): void {
+    this.contexto.limpiar();
+    this.sesion.cerrar();
   }
 
   alternarMenuUsuario(): void {

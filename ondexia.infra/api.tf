@@ -271,7 +271,7 @@ resource "aws_lambda_function" "api" {
       # El SPA llama desde su propio origen. La pasarela ya hace CORS, pero
       # Spring tiene su propia configuración y por omisión apunta a
       # localhost:4200, que en la nube no es nadie.
-      CORS_ORIGENES = var.gestionar_dns ? "https://app.${var.dominio}" : "https://${aws_cloudfront_distribution.sitio["app"].domain_name}"
+      CORS_ORIGENES = local.origen_app
 
       BD_HOST            = aws_db_instance.principal.address
       BD_PUERTO          = tostring(aws_db_instance.principal.port)
@@ -356,6 +356,8 @@ resource "aws_lambda_function" "migraciones" {
       BD_NOMBRE     = aws_db_instance.principal.db_name
       BD_USUARIO    = aws_db_instance.principal.username
       BD_CONTRASENA = random_password.bd.result
+      # Lo lee la siembra de datos de ejemplo para negarse en produccion.
+      ENTORNO = var.entorno
     }
   }
 
@@ -380,7 +382,7 @@ resource "aws_apigatewayv2_api" "principal" {
    * navegador de un usuario con sesión abierta.
    */
   cors_configuration {
-    allow_origins = var.gestionar_dns ? ["https://app.${var.dominio}"] : ["https://${aws_cloudfront_distribution.sitio["app"].domain_name}"]
+    allow_origins = [local.origen_app]
     allow_methods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
     allow_headers = ["authorization", "content-type"]
     max_age       = 3600
