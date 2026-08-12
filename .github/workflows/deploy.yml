@@ -115,7 +115,38 @@ jobs:
         working-directory: apps/frontend/ondexia.web
         run: |
           pnpm install --frozen-lockfile
+          # Caché de Angular fuera antes de construir. Una caché envenenada
+          # produce un CSS sin las utilidades de Tailwind: el build pasa en
+          # verde, el bundle es válido y la aplicación sale SIN ESTILOS. En CI
+          # el runner es limpio, pero este workflow tambien se dispara a mano.
+          rm -rf .angular/cache
           pnpm run build
+
+      - name: Comprobar que el CSS trae los estilos
+        working-directory: apps/frontend/ondexia.web
+        # El fallo que motiva esto no rompe nada que un build sepa detectar: el
+        # CSS se genera, pesa lo razonable y es sintacticamente correcto — solo
+        # que contiene el tema y ninguna utilidad. Se descubre mirando la
+        # pagina, que es tarde.
+        #
+        # Dos senales: que exista alguna utilidad, y que no quede un @theme sin
+        # compilar (Tailwind lo convierte en variables sobre :root; si sobrevive
+        # literal, es que nunca proceso el archivo).
+        run: |
+          CSS=$(ls dist/ondexia-web/browser/styles-*.css)
+          echo "Revisando ${CSS}"
+
+          if ! grep -q "display:flex" "$CSS"; then
+            echo "::error title=CSS sin utilidades::Tailwind no genero utilidades. Revisa .postcssrc.json y borra .angular/cache."
+            exit 1
+          fi
+
+          if grep -q "@theme" "$CSS"; then
+            echo "::error title=CSS sin compilar::Queda un @theme literal: Tailwind no proceso styles.css."
+            exit 1
+          fi
+
+          echo "CSS correcto: $(wc -c < "$CSS") bytes."
 
       # ── Infraestructura ────────────────────────────────────────────────────
 
