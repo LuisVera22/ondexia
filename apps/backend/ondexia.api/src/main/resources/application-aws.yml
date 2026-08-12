@@ -19,6 +19,23 @@ spring:
     username: ${BD_USUARIO}
     password: ${BD_CONTRASENA}
 
+    hikari:
+      # Lo pide el propio arranque, literalmente:
+      #
+      #   HikariDataSource (HikariPool-1) is not configured to allow pool
+      #   suspension. This will cause problems when the application is
+      #   checkpointed. Please configure allow-pool-suspension to fix this!
+      #
+      # Sin esto, la integracion de CRaC no puede vaciar el pool antes de que
+      # SnapStart tome la instantanea, y las conexiones quedan congeladas
+      # dentro. Un socket no sobrevive a una restauracion: al reanudar, el pool
+      # cree tener conexiones vivas contra algo que ya no existe.
+      #
+      # Hikari acabaria descartandolas al validarlas, asi que no es corrupcion
+      # — es latencia y errores intermitentes en la primera peticion de cada
+      # instancia restaurada. Justo el tipo de fallo que no se reproduce.
+      allow-pool-suspension: true
+
   flyway:
     # Las migraciones NO corren al arrancar. Las ejecuta una funcion aparte,
     # invocada tras desplegar — ver ManejadorMigraciones, que explica por que.

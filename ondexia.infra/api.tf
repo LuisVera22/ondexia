@@ -384,7 +384,16 @@ resource "aws_apigatewayv2_api" "principal" {
   cors_configuration {
     allow_origins = [local.origen_app]
     allow_methods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
-    allow_headers = ["authorization", "content-type"]
+    /*
+     * x-empresa-id va aquí, y no es opcional.
+     *
+     * El navegador solo deja enviar las cabeceras que la comprobación previa
+     * autoriza. Sin esta, la petición se bloquea EN EL NAVEGADOR —no llega a
+     * viajar— en cuanto el usuario elige empresa. Y como hasta ese momento la
+     * cabecera no se manda, el fallo aparecería más tarde, al cambiar de
+     * empresa, pareciendo un problema del selector.
+     */
+    allow_headers = ["authorization", "content-type", "x-empresa-id"]
     max_age       = 3600
   }
 
@@ -427,6 +436,30 @@ resource "aws_apigatewayv2_route" "todo" {
   target             = "integrations/${aws_apigatewayv2_integration.api.id}"
   authorization_type = "JWT"
   authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
+}
+
+/**
+ * La comprobación previa de CORS, sin autorizador. Ruta aparte y explícita.
+ *
+ * `ANY /{proxy+}` incluye OPTIONS, así que sin esto la comprobación previa cae
+ * en la ruta protegida. El navegador la envía **sin credenciales** —lo exige la
+ * especificación de CORS— de modo que el autorizador JWT responde 401 y el
+ * navegador cancela la petición real antes de intentarla.
+ *
+ * El síntoma es de los que engañan: la sesión se abre bien, el token es válido,
+ * y aun así toda llamada a la API falla. En los registros de la pasarela se ve
+ * el 401 sobre OPTIONS; en el navegador solo se ve un error de red sin cuerpo,
+ * porque una respuesta que no pasa CORS es ilegible para el JavaScript que la
+ * pidió.
+ *
+ * API Gateway prefiere la ruta más específica, así que esta gana sobre ANY.
+ * Responde Spring, que ya tiene configurado el origen permitido (CORS_ORIGENES).
+ */
+resource "aws_apigatewayv2_route" "preflight" {
+  api_id             = aws_apigatewayv2_api.principal.id
+  route_key          = "OPTIONS /{proxy+}"
+  target             = "integrations/${aws_apigatewayv2_integration.api.id}"
+  authorization_type = "NONE"
 }
 
 # Sonda de vida, sin token: es lo que se consulta para saber si el sistema
