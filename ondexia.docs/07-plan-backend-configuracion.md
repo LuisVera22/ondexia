@@ -211,6 +211,42 @@ boleta sin esperar a las dos siguientes.
 
 ---
 
+## 5.bis Estado de la reestructuración a hexagonal — 2026-08-11
+
+La Entrega 0 se interrumpió a mitad para reestructurar a la arquitectura del
+[doc 08](08-arquitectura-backend.md). **El reactor no compila** mientras esto no
+termine.
+
+**Hecho:** `ondexia.domain` completo y con cero dependencias de producción.
+Value objects, agregados puros, puertos en español, errores sin HTTP.
+
+**Falta, en este orden:**
+
+1. **Persistencia** — `infrastructure/salida/persistencia/identidad/`
+   - Entidades JPA: `CuentaJpa` ✅, y faltan `EmpresaJpa`, `SucursalJpa`,
+     `UsuarioJpa`, `UsuarioEmpresaJpa`, `CuentaAdministradorJpa`, `RolJpa`,
+     `PermisoJpa`
+   - Una interfaz de Spring Data por entidad (7)
+   - `MapeadoresIdentidad` — un solo archivo con los métodos estáticos
+   - Un adaptador por puerto (7), cada uno con `@Transactional`
+2. **Auditoría** — `AnotacionJpa`, su repositorio y `RegistroDeAuditoriaJpa`
+   (adapta el antiguo `ServicioAuditoria`, conservando `Propagation.MANDATORY`)
+3. **Seguridad** — mover `ContextoActual` y añadir `ProveedorDeContextoHttp`;
+   `EvaluadorPermisos` pasa a delegar en el value object `Permisos`
+4. **Aplicación** — `ResolverContexto` y `ConsultarContexto`
+5. **Web** — mover controladores, `Pagina`, `CriterioPagina`,
+   `ManejadorGlobalErrores` (aquí es donde las excepciones de dominio se
+   traducen a códigos HTTP, que ya no traen dentro)
+6. **Configuración** — mover los cinco `*Config`
+7. **Borrar** `com.ondexia.api.*` entero
+8. **Pruebas** — las 32 existentes, adaptadas a los nombres nuevos, más las
+   reglas de ArchUnit del doc 08 §8
+
+**Después de esto, para desplegar en AWS** hace falta además el adaptador de
+Lambda (DT-D17), que no está incluido arriba: `ondexia.api` es una aplicación
+web de Spring Boot y necesita el puente que traduce el evento de API Gateway a
+una petición HTTP, más el empaquetado con SnapStart de DT-02.
+
 ## 6. Qué queda después
 
 Terminado este módulo, lo que falta para C1 es: producto (mínimo), cliente,
