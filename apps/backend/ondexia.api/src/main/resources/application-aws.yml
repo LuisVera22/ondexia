@@ -24,6 +24,34 @@ spring:
     # invocada tras desplegar — ver ManejadorMigraciones, que explica por que.
     enabled: false
 
+  threads:
+    virtual:
+      # Apagados en Lambda. Dos razones, y la segunda es la que obliga.
+      #
+      # 1. No sirven de nada aqui. Un contenedor de Lambda atiende UNA peticion
+      #    a la vez; la concurrencia la da Lambda creando mas contenedores. Los
+      #    hilos virtuales existen para meter miles de tareas bloqueantes en un
+      #    proceso, que es justo lo que nunca pasa en este modelo.
+      #
+      # 2. Encendidos, la aplicacion NO ARRANCA:
+      #
+      #      UnsupportedOperationException: Virtual threads not supported on JDK <21
+      #
+      #    Y no es que falte Java 21 —el runtime es java21—. spring-core
+      #    distribuye VirtualThreadDelegate como JAR MULTI-RELEASE: una version
+      #    base que lanza esa excepcion y otra real en META-INF/versions/21/.
+      #    Las dos estan en el artefacto y el manifiesto declara
+      #    Multi-Release: true.
+      #
+      #    Pero esas reglas solo valen para JARs. Lambda descomprime el zip en
+      #    /var/task y pone el DIRECTORIO en el classpath, con lo que
+      #    META-INF/versions/21/ pasa a ser una carpeta cualquiera y la JVM
+      #    carga la version base.
+      #
+      #    Por eso el mismo artefacto arranca en local con `java -cp jar` y
+      #    revienta en Lambda: no es el codigo, es de donde se carga.
+      enabled: false
+
   security:
     oauth2:
       resourceserver:

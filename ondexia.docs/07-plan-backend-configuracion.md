@@ -252,6 +252,29 @@ de nada.
 simultáneos compitiendo por el candado, dentro de peticiones de usuario con 29 s
 de límite.
 
+### Dos más que solo aparecieron en la nube
+
+**Los JAR multi-release no funcionan en Lambda.** El artefacto arrancaba en
+local y moría en AWS con `Virtual threads not supported on JDK <21` — sobre el
+runtime `java21`. `spring-core` distribuye `VirtualThreadDelegate` como
+multi-release: una versión base que lanza esa excepción y otra real en
+`META-INF/versions/21/`. Las dos estaban en el artefacto y el manifiesto
+declaraba `Multi-Release: true`.
+
+Pero esas reglas **solo valen para JARs**. Lambda descomprime el zip en
+`/var/task` y pone el *directorio* en el classpath, así que
+`META-INF/versions/21/` pasa a ser una carpeta cualquiera. Se ve en la traza:
+`~[task/:na]`, no `~[ondexia-api.jar:...]`.
+
+Se apagaron los hilos virtuales en el perfil `aws`, que además es lo correcto:
+un contenedor de Lambda atiende una petición a la vez.
+
+**La cuenta nueva tiene un límite de concurrencia de 10, no de 1000.** Y AWS
+exige dejar 10 sin reservar, así que ninguna función puede reservar nada:
+`concurrencia_reservada_api` pasó a `-1`. La reserva era lo que sustituía al
+RDS Proxy acotando conexiones; el propio límite de 10 hace ahora ese trabajo
+(10 × 2 de Hikari = 20 conexiones). Antes de prod hay que pedir la ampliación.
+
 ### Verificado, no supuesto
 
 El artefacto se invocó con un evento real de API Gateway HTTP API v2 contra el

@@ -18,8 +18,20 @@ tope_presupuesto_usd = 15
 retencion_respaldos_dias = 1
 retencion_logs_dias      = 7
 
-# Menos techo de concurrencia: en dev nadie compite, y acota el gasto.
-concurrencia_reservada_api = 5
+# Sin reserva de concurrencia. No es lo que se queria, es lo que la cuenta
+# permite: su limite total son 10 ejecuciones simultaneas —el de una cuenta
+# nueva de AWS, no los 1000 habituales— y AWS exige dejar 10 sin reservar. Con
+# ese techo ninguna funcion puede reservar nada.
+#
+# El efecto practico es tolerable justo porque el limite es bajo: 10
+# contenedores a 2 conexiones de Hikari son 20 conexiones, dentro de lo que
+# aguanta una db.t4g.micro. Es decir, el limite de la cuenta esta haciendo de
+# tope en lugar de la reserva.
+#
+# Lo que SI se pierde es el aislamiento entre funciones: un bucle en la API
+# puede consumir las 10 y dejar sin sitio a la de migraciones. En dev se acepta;
+# antes de prod hay que pedir la ampliacion de cuota.
+concurrencia_reservada_api = -1
 
 # ── Backend ────────────────────────────────────────────────────────────────
 #

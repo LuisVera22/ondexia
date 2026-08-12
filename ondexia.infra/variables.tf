@@ -126,9 +126,28 @@ variable "concurrencia_reservada_api" {
     conexiones por contenedor, 20 contenedores son 40 conexiones, dentro de lo
     que aguanta una db.t4g.micro. Además acota el gasto ante un bucle
     accidental (DTE §4.6).
+
+    -1 significa «sin reserva»: la función usa el fondo común de la cuenta.
+
+    OJO con las cuentas nuevas de AWS. El límite de concurrencia no arranca en
+    los 1000 habituales sino en 10, y AWS exige que queden al menos 10 SIN
+    reservar. Con ese techo ninguna función puede reservar nada, y cualquier
+    valor positivo hace fallar el apply:
+
+      InvalidParameterValueException: Specified ReservedConcurrentExecutions
+      for function decreases account's UnreservedConcurrentExecution below its
+      minimum value of [10]
+
+    Se comprueba con `aws lambda get-account-settings`. Para poner un valor
+    real hay que pedir antes una ampliación de cuota a AWS.
   TEXTO
   type        = number
-  default     = 20
+  default     = -1
+
+  validation {
+    condition     = var.concurrencia_reservada_api == -1 || var.concurrencia_reservada_api >= 1
+    error_message = "Usa -1 para no reservar, o un entero >= 1. El 0 existe y significa APAGAR la funcion: rechaza toda invocacion."
+  }
 }
 
 variable "retencion_logs_dias" {

@@ -19,6 +19,10 @@ tope_presupuesto_usd = 30
 retencion_respaldos_dias = 7
 retencion_logs_dias      = 30
 
+# Este valor EXIGE haber pedido antes una ampliacion de cuota de concurrencia:
+# la cuenta arranca con un limite total de 10 y AWS obliga a dejar 10 sin
+# reservar, asi que cualquier valor positivo hace fallar el apply. Comprobar con
+# `aws lambda get-account-settings` antes de desplegar prod.
 concurrencia_reservada_api = 20
 
 # Se descomentan cuando el backend se haya probado en dev. Mientras sigan

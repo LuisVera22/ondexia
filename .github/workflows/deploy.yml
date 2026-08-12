@@ -167,6 +167,44 @@ jobs:
         # plan y el apply hay una aprobación humana de por medio.
         run: terraform apply -auto-approve plan.tfplan
 
+      # ── Migraciones ────────────────────────────────────────────────────────
+
+      - name: Aplicar las migraciones
+        if: ${{ !inputs.solo_plan }}
+        working-directory: ondexia.infra
+        # Entre el apply y el sondeo, y no es opcional.
+        #
+        # La API ya no migra al arrancar (ver ManejadorMigraciones): en Lambda
+        # «al arrancar» son N arranques en frío simultáneos peleándose por el
+        # candado de Flyway, dentro de peticiones de usuario con 29 s de límite.
+        #
+        # Sin este paso el despliegue no queda a medias: queda ROTO. Hibernate
+        # corre con ddl-auto=validate, así que sin esquema no construye el
+        # EntityManagerFactory y la aplicación no llega a levantarse. El sondeo
+        # de más abajo fallaría tras diez intentos sin explicar por qué.
+        run: |
+          FUNCION=$(terraform output -raw funcion_migraciones)
+
+          if [ -z "$FUNCION" ]; then
+            echo "Sin artefacto de backend: no hay migraciones que aplicar."
+            exit 0
+          fi
+
+          aws lambda invoke \
+            --function-name "$FUNCION" \
+            --payload '{}' \
+            --cli-binary-format raw-in-base64-out \
+            respuesta.json > invocacion.json
+
+          # Una invocación con error devuelve HTTP 200 con FunctionError dentro.
+          # Sin esta comprobación, una migración fallida pasa por buena.
+          if jq -e '.FunctionError' invocacion.json > /dev/null; then
+            echo "::error title=Migración fallida::$(cat respuesta.json)"
+            exit 1
+          fi
+
+          echo "$(cat respuesta.json)" >> "$GITHUB_STEP_SUMMARY"
+
       # ── Publicación del contenido estático ─────────────────────────────────
       #
       # Después del apply: los buckets y las distribuciones tienen que existir.
