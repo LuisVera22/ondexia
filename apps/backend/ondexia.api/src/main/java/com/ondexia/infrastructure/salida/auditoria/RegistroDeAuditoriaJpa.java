@@ -1,6 +1,8 @@
 package com.ondexia.infrastructure.salida.auditoria;
 
 import com.ondexia.domain.auditoria.Anotacion;
+import com.ondexia.infrastructure.salida.persistencia.auditoria.AnotacionJpa;
+import com.ondexia.infrastructure.salida.persistencia.auditoria.AnotacionJpaRepository;
 import com.ondexia.domain.auditoria.RegistroDeAuditoria;
 import com.ondexia.domain.comun.ContextoOperacion;
 import com.ondexia.domain.comun.ProveedorDeContexto;

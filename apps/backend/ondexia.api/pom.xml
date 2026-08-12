@@ -29,6 +29,16 @@
       <artifactId>ondexia-domain</artifactId>
     </dependency>
 
+    <!--
+      JPA se declara AQUI y no en ondexia-domain. Antes llegaba de forma
+      transitiva desde el dominio; al dejar el dominio sin dependencias, dejo de
+      llegar y hubo que ponerlo donde de verdad se usa.
+      Que eso rompiera la compilacion es la senal de que la frontera es real.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>

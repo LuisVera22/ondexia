@@ -44,11 +44,11 @@ INSERT INTO empresa (id, cuenta_id, ruc, razon_social, nombre_comercial,
                      domicilio_fiscal, ubigeo, modo_sunat, activo) VALUES
     ('00000000-0000-4000-8000-000000000010',
      '00000000-0000-4000-8000-000000000001',
-     '20100000001', 'COMERCIAL DEMO S.A.C.', 'Demo',
+     '20100000009', 'COMERCIAL DEMO S.A.C.', 'Demo',
      'Av. Siempre Viva 742, Lima', '150101', 'BETA', true),
     ('00000000-0000-4000-8000-000000000011',
      '00000000-0000-4000-8000-000000000001',
-     '20100000002', 'DISTRIBUIDORA DEMO E.I.R.L.', 'Demo Distribucion',
+     '20100000017', 'DISTRIBUIDORA DEMO E.I.R.L.', 'Demo Distribucion',
      'Jr. Union 100, Lima', '150101', 'BETA', true);
 
 INSERT INTO sucursal (id, empresa_id, codigo, nombre, direccion, ubigeo, activo) VALUES
