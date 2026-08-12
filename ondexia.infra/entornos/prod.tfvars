@@ -13,7 +13,7 @@ region  = "us-east-1"
 gestionar_dns = false
 dominio       = "ondexia.com"
 
-correo_alertas       = "luis.vera@wirbi.com"
+correo_alertas       = "luis26.ml143@gmail.com"
 tope_presupuesto_usd = 30
 
 retencion_respaldos_dias = 7

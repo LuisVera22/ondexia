@@ -11,7 +11,7 @@ region  = "us-east-1"
 # Sin dominio: se sirve por los dominios predeterminados de CloudFront.
 gestionar_dns = false
 
-correo_alertas       = "luis.vera@wirbi.com"
+correo_alertas       = "luis26.ml143@gmail.com"
 tope_presupuesto_usd = 15
 
 # Sin respaldos largos: aquí no hay nada que perder.
