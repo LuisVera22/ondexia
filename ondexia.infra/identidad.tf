@@ -86,11 +86,23 @@ resource "aws_cognito_user_pool_client" "spa" {
 
   generate_secret = false
 
-  # Solo renovación. No se habilita ningún flujo que acepte la contraseña desde
-  # la aplicación: el SPA nunca la ve, porque quien la pide es la interfaz
-  # alojada de Cognito. Dejar ALLOW_USER_SRP_AUTH abierto permitiría un segundo
-  # camino de entrada que nadie usa y que habría que vigilar igual.
+  /**
+   * SRP y renovación. Las dos hacen falta, y la primera no es evidente.
+   *
+   * Es tentador quitar SRP razonando que el SPA nunca ve la contraseña —cierto,
+   * la pide la interfaz alojada—. Pero quien comprueba esa contraseña contra el
+   * pool es la propia interfaz alojada, usando SRP y **este mismo cliente**.
+   * Sin el flujo habilitado no puede validar a nadie, y con
+   * prevent_user_existence_errors activado el fallo sale como «Incorrect
+   * username or password» aunque el usuario exista y la contraseña sea la
+   * correcta. Dos horas de buscar en el sitio equivocado.
+   *
+   * Lo que NO se habilita es ALLOW_USER_PASSWORD_AUTH, que aceptaría la
+   * contraseña en claro desde cualquier cliente. Con SRP, la contraseña no
+   * viaja: viaja una prueba de que se conoce.
+   */
   explicit_auth_flows = [
+    "ALLOW_USER_SRP_AUTH",
     "ALLOW_REFRESH_TOKEN_AUTH",
   ]
 
