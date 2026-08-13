@@ -11,6 +11,8 @@ import com.ondexia.domain.identidad.EmpresaRepositorio;
 import com.ondexia.domain.identidad.Permiso;
 import com.ondexia.domain.identidad.PermisoRepositorio;
 import com.ondexia.domain.identidad.Permisos;
+import com.ondexia.domain.identidad.Rol;
+import com.ondexia.domain.identidad.RolRepositorio;
 import com.ondexia.domain.identidad.Sucursal;
 import com.ondexia.domain.identidad.SucursalRepositorio;
 import com.ondexia.domain.identidad.Usuario;
@@ -267,6 +269,30 @@ public final class AdaptadoresIdentidad {
         @Override
         public List<Permiso> listarCatalogo() {
             return filas.findAllByOrderByModuloAscAccionAsc().stream()
+                    .map(MapeadoresIdentidad::aDominio)
+                    .toList();
+        }
+    }
+
+    @Repository
+    @Transactional(readOnly = true)
+    public static class Roles implements RolRepositorio {
+
+        private final RolJpaRepository filas;
+
+        public Roles(RolJpaRepository filas) {
+            this.filas = filas;
+        }
+
+        @Override
+        public Optional<Rol> buscarPredefinido(String codigo) {
+            return filas.findByCuentaIdIsNullAndCodigo(codigo)
+                    .map(MapeadoresIdentidad::aDominio);
+        }
+
+        @Override
+        public List<Rol> listarDisponibles(UUID cuentaId) {
+            return filas.findDisponibles(cuentaId).stream()
                     .map(MapeadoresIdentidad::aDominio)
                     .toList();
         }

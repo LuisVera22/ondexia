@@ -11,9 +11,12 @@ import com.ondexia.domain.identidad.Empresa;
 import com.ondexia.domain.identidad.EmpresaRepositorio;
 import com.ondexia.domain.identidad.EstadoSuscripcion;
 import com.ondexia.domain.identidad.PlanSuscripcion;
+import com.ondexia.domain.identidad.RolRepositorio;
 import com.ondexia.domain.identidad.Sucursal;
 import com.ondexia.domain.identidad.SucursalRepositorio;
 import com.ondexia.domain.identidad.Usuario;
+import com.ondexia.domain.identidad.UsuarioEmpresa;
+import com.ondexia.domain.identidad.UsuarioEmpresaRepositorio;
 import com.ondexia.domain.identidad.UsuarioRepositorio;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -51,20 +54,28 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class RegistrarCuenta {
 
+    /** Código del rol predefinido que recibe quien registra la cuenta (V2). */
+    private static final String ROL_ADMINISTRADOR = "ADMINISTRADOR";
+
     private final CuentaRepositorio cuentas;
     private final UsuarioRepositorio usuarios;
     private final CuentaAdministradorRepositorio administradores;
     private final EmpresaRepositorio empresas;
     private final SucursalRepositorio sucursales;
+    private final UsuarioEmpresaRepositorio asignaciones;
+    private final RolRepositorio roles;
 
     public RegistrarCuenta(CuentaRepositorio cuentas, UsuarioRepositorio usuarios,
             CuentaAdministradorRepositorio administradores, EmpresaRepositorio empresas,
-            SucursalRepositorio sucursales) {
+            SucursalRepositorio sucursales, UsuarioEmpresaRepositorio asignaciones,
+            RolRepositorio roles) {
         this.cuentas = cuentas;
         this.usuarios = usuarios;
         this.administradores = administradores;
         this.empresas = empresas;
         this.sucursales = sucursales;
+        this.asignaciones = asignaciones;
+        this.roles = roles;
     }
 
     /**
@@ -145,6 +156,32 @@ public class RegistrarCuenta {
         }
 
         sucursales.guardar(matriz);
+
+        /*
+         * La asignación a la empresa. Sin esta fila el alta parece completa y no
+         * lo está.
+         *
+         * Ser administrador de la CUENTA no da ningún permiso dentro de una
+         * empresa: son dos cosas distintas a propósito —una gobierna la
+         * suscripción, la otra el día a día— y los permisos se resuelven desde
+         * `usuario_empresa`. Sin ella, `ResolverContexto` no encuentra ninguna
+         * empresa a la que el usuario tenga acceso, no hay empresa activa, y
+         * todas las pantallas responden `sin_empresa_activa`.
+         *
+         * Es exactamente lo que ocurrió en el primer registro real: el usuario
+         * entraba al panel y no podía abrir nada.
+         *
+         * `sucursalId` va a null: alcance sobre TODAS las sucursales de la
+         * empresa. Atar al fundador a su casa matriz le impediría operar en los
+         * establecimientos que abra después.
+         */
+        var administrador = roles.buscarPredefinido(ROL_ADMINISTRADOR)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Falta el rol predefinido " + ROL_ADMINISTRADOR
+                                + ". Lo crea la migración V2; revisa que se haya aplicado."));
+
+        asignaciones.guardar(new UsuarioEmpresa(
+                UUID.randomUUID(), usuario.id(), empresa.id(), administrador.id(), null));
 
         // No se escribe en la bitácora. La tabla `auditoria` tiene RLS por
         // empresa y aquí todavía no hay contexto que fijar: la fila se

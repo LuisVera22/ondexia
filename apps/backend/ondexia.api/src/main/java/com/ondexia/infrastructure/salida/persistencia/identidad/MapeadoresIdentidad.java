@@ -6,6 +6,7 @@ import com.ondexia.domain.identidad.Cuenta;
 import com.ondexia.domain.identidad.CuentaAdministrador;
 import com.ondexia.domain.identidad.Empresa;
 import com.ondexia.domain.identidad.Permiso;
+import com.ondexia.domain.identidad.Rol;
 import com.ondexia.domain.identidad.Sucursal;
 import com.ondexia.domain.identidad.Usuario;
 import com.ondexia.domain.identidad.UsuarioEmpresa;
@@ -120,5 +121,12 @@ final class MapeadoresIdentidad {
 
     static Permiso aDominio(PermisoJpa fila) {
         return new Permiso(fila.getId(), fila.getModulo(), fila.getAccion(), fila.getDescripcion());
+    }
+
+    // ── Rol ────────────────────────────────────────────────────────────────
+
+    static Rol aDominio(RolJpa fila) {
+        return new Rol(fila.getId(), fila.getCuentaId(), fila.getCodigo(), fila.getNombre(),
+                fila.getDescripcion());
     }
 }

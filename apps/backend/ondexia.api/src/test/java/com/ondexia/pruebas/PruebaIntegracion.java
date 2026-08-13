@@ -150,6 +150,12 @@ public abstract class PruebaIntegracion {
                 .issuedAt(ahora)
                 .expiresAt(ahora.plus(Duration.ofMinutes(10)))
                 .claim("token_use", "access")
+                // El correo va dentro porque el alta lo necesita: crea la fila
+                // `usuario` a partir del token, nunca del cuerpo de la peticion.
+                // Sin esta reclamacion el registro responde 401, que es como se
+                // detecto — un 401 emitido por nuestro propio controlador y no
+                // por la cadena de seguridad, que despista bastante.
+                .claim("email", sub + "@prueba.ondexia.local")
                 .build();
         return emisorTokens.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }

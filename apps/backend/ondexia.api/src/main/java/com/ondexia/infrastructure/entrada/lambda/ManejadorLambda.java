@@ -2,6 +2,7 @@ package com.ondexia.infrastructure.entrada.lambda;
 
 import com.amazonaws.serverless.exceptions.ContainerInitializationException;
 import com.amazonaws.serverless.proxy.model.AwsProxyResponse;
+import com.amazonaws.serverless.proxy.internal.LambdaContainerHandler;
 import com.amazonaws.serverless.proxy.model.HttpApiV2ProxyRequest;
 import com.amazonaws.serverless.proxy.spring.SpringBootLambdaContainerHandler;
 import com.amazonaws.services.lambda.runtime.Context;
@@ -10,6 +11,7 @@ import com.ondexia.OndexiaApiApplication;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Adaptador de entrada para AWS Lambda (DT-D17).
@@ -51,6 +53,23 @@ public class ManejadorLambda implements RequestStreamHandler {
 
     static {
         try {
+            /*
+             * UTF-8 por omisión en las respuestas.
+             *
+             * Sin esto, el contenedor decodifica el cuerpo con ISO-8859-1
+             * siempre que el Content-Type no declare charset — y
+             * `application/problem+json`, que es lo que produce ProblemDetail,
+             * no lo declara. El resultado es mojibake en todos los mensajes de
+             * error: «La operaciÃ³n necesita una empresa activa».
+             *
+             * Solo se ve en Lambda. En local responde Tomcat, que sí aplica la
+             * configuración de `server.servlet.encoding`, así que ni las pruebas
+             * ni `spring-boot:run` lo detectan. Se descubrió leyendo un error en
+             * pantalla.
+             */
+            LambdaContainerHandler.getContainerConfig()
+                    .setDefaultContentCharset(StandardCharsets.UTF_8.name());
+
             HANDLER = SpringBootLambdaContainerHandler.getHttpApiV2ProxyHandler(
                     OndexiaApiApplication.class);
         } catch (ContainerInitializationException e) {
