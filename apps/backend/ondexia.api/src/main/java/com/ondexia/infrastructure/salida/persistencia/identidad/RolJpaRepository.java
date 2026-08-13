@@ -23,4 +23,17 @@ public interface RolJpaRepository extends JpaRepository<RolJpa, UUID> {
     @Query("select r from RolJpa r where r.cuentaId is null or r.cuentaId = :cuentaId "
             + "order by r.nombre asc")
     List<RolJpa> findDisponibles(@Param("cuentaId") UUID cuentaId);
+
+    boolean existsByCuentaIdAndCodigo(UUID cuentaId, String codigo);
+
+    /**
+     * Trae el rol con sus permisos ya cargados.
+     *
+     * <p>La colección es perezosa a propósito —el camino caliente no la necesita—
+     * así que el único sitio que sí la quiere lo dice explícitamente, en vez de
+     * volverla {@code EAGER} y hacer que cada consulta de roles arrastre
+     * doscientas filas.
+     */
+    @Query("select r from RolJpa r left join fetch r.permisos where r.id = :id")
+    Optional<RolJpa> findConPermisos(@Param("id") UUID id);
 }

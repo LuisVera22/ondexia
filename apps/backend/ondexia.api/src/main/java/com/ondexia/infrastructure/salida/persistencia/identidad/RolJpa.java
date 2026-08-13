@@ -45,6 +45,31 @@ public class RolJpa extends EntidadJpaBase {
     protected RolJpa() {
     }
 
+    public RolJpa(UUID id, UUID cuentaId, String codigo, String nombre, String descripcion) {
+        this.id = id;
+        this.cuentaId = cuentaId;
+        this.codigo = codigo;
+        renombrar(nombre, descripcion);
+    }
+
+    public final void renombrar(String nombre, String descripcion) {
+        this.nombre = nombre;
+        this.descripcion = descripcion;
+    }
+
+    /**
+     * Deja el rol exactamente con estos permisos.
+     *
+     * <p>Se muta la colección existente en vez de asignar una nueva: Hibernate
+     * sigue la instancia que él gestiona, y sustituirla por otra le hace borrar
+     * todas las filas de {@code rol_permiso} e insertarlas de vuelta en cada
+     * guardado, aunque no haya cambiado nada.
+     */
+    public void reemplazarPermisos(Set<PermisoJpa> nuevos) {
+        permisos.clear();
+        permisos.addAll(nuevos);
+    }
+
     public UUID getCuentaId() {
         return cuentaId;
     }

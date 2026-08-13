@@ -21,5 +21,29 @@ public interface UsuarioEmpresaRepositorio {
 
     List<UsuarioEmpresa> listarDeEmpresa(UUID empresaId);
 
+    /**
+     * Quién entra en esta empresa, con su rol y su alcance, en una consulta.
+     *
+     * <p>Es la pantalla de usuarios. Se resuelve con una proyección por el mismo
+     * motivo que {@link #listarAsignacionesDe}: navegar asociaciones sería una
+     * consulta por miembro más una por rol más una por sucursal.
+     */
+    List<MiembroEmpresa> listarMiembrosDe(UUID empresaId);
+
+    Optional<UsuarioEmpresa> buscarPorId(UUID id);
+
     UsuarioEmpresa guardar(UsuarioEmpresa asignacion);
+
+    /**
+     * Retira el acceso de alguien a una empresa.
+     *
+     * <p>Esto sí se borra, y es la excepción a la regla de desactivar en vez de
+     * eliminar. La diferencia está en qué representa la fila: un almacén o una
+     * serie aparecen en documentos ya emitidos, y borrarlos dejaría esos
+     * documentos apuntando a nada. Una asignación no aparece en ningún
+     * comprobante — es un permiso vigente, y un permiso retirado no tiene por qué
+     * seguir existiendo. Quién hizo qué queda en la bitácora, que es donde debe
+     * quedar.
+     */
+    void eliminar(UUID id);
 }

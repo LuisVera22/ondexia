@@ -1,262 +1,386 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
-
-/** Acciones base, disponibles en todo submódulo. */
-type AccionBase = 'consultar' | 'editar' | 'eliminar';
-
-/** Acciones que solo existen donde el dominio las admite. */
-interface AccionEspecial {
-  clave: string;
-  nombre: string;
-  concedida: boolean;
-}
-
-interface SubmoduloPermisos {
-  clave: string;
-  nombre: string;
-  consultar: boolean;
-  editar: boolean;
-  eliminar: boolean;
-  /** Submódulos derivados, como «Productos por agotarse», solo se consultan. */
-  soloConsulta?: boolean;
-  especiales?: AccionEspecial[];
-}
-
-interface ModuloPermisos {
-  nombre: string;
-  abierto: boolean;
-  submodulos: SubmoduloPermisos[];
-}
-
-interface Rol {
-  id: number;
-  nombre: string;
-  descripcion: string;
-  usuarios: number;
-  fijo: boolean;
-}
-
-const sub = (
-  clave: string,
-  nombre: string,
-  extra: Partial<SubmoduloPermisos> = {}
-): SubmoduloPermisos => ({
-  clave,
-  nombre,
-  consultar: false,
-  editar: false,
-  eliminar: false,
-  ...extra,
-});
+import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
+import {
+  ConfiguracionApiService,
+  ModuloApi,
+  RolApi,
+  SubmoduloApi,
+  mensajeDeError,
+} from '../../../nucleo/configuracion.api.service';
 
 /**
- * Roles y permisos.
+ * Roles y permisos, con la matriz en tres niveles.
  *
- * El permiso es por **submódulo** y por acción, no por módulo: quien
- * gestiona productos no necesariamente gestiona guías de remisión, y quien
- * registra una compra no necesariamente aprueba la orden.
+ * <h2>Módulo → submódulo → función</h2>
  *
- * Las acciones especiales solo aparecen donde el dominio las admite —emitir
- * y anular en comprobantes, aprobar en órdenes— porque un permiso que no
- * significa nada en su contexto solo agrega ruido a una matriz que ya es
- * grande.
+ * <p>Primero se da acceso al módulo —Almacén, Compras, Ventas, Configuración—,
+ * luego a los submódulos que correspondan, y al final a las funciones concretas:
+ * consultar, registrar, editar, anular.
+ *
+ * <p>La autorización es <strong>conjuntiva</strong>: hacen falta los tres. Eso es
+ * lo que convierte el interruptor de módulo en una puerta de verdad — apagar
+ * «Almacén» deja fuera sus treinta y tantas casillas de una vez.
+ *
+ * <p>Y las <strong>borra</strong>, no las deja dormidas: al apagar el módulo se
+ * desmarca lo de dentro aquí mismo, y el servidor poda al guardar. Volver a
+ * encenderlo lo devuelve vacío. Es la lectura menos sorprendente —lo que se ve
+ * marcado es exactamente lo que autoriza— y por eso el desmarcado ocurre a la
+ * vista y no en silencio al guardar.
+ *
+ * <h2>Nada se deniega en silencio</h2>
+ *
+ * <p>Ese diseño tiene un modo de fallo caro: una casilla marcada que aun así no
+ * autoriza, porque falta un eslabón de arriba. Se cierra por dos lados.
+ *
+ * <p>Aquí, apagando visiblemente lo que cuelga de un padre cerrado —la fila se
+ * pinta en gris, las casillas se deshabilitan y se dice por qué—. Y en el
+ * servidor, que al guardar <em>poda</em> lo que no tenga sus padres, de modo que
+ * ese estado incoherente no llega a existir en la base.
+ *
+ * <h2>El catálogo viene del servidor, incluidos los nombres</h2>
+ *
+ * <p>Antes había aquí un mapa de código a nombre escrito a mano. Se quitó: al
+ * añadir un módulo nadie se acordaba de ampliarlo, la pantalla mostraba
+ * {@code almacen.tipo_precio} en crudo y no fallaba nada. Ahora un módulo nuevo
+ * aparece solo.
  */
 @Component({
   selector: 'app-roles',
-  imports: [EncabezadoPaginaComponent],
+  imports: [EncabezadoPaginaComponent, ConfirmacionComponent, ReactiveFormsModule],
   templateUrl: './roles.component.html',
 })
 export class RolesComponent {
-  roles: Rol[] = [
-    { id: 1, nombre: 'Administrador', descripcion: 'Acceso total, incluida la configuración', usuarios: 1, fijo: true },
-    { id: 2, nombre: 'Ventas', descripcion: 'Emite comprobantes y gestiona clientes', usuarios: 1, fijo: true },
-    { id: 3, nombre: 'Almacén', descripcion: 'Gestiona productos y existencias', usuarios: 0, fijo: true },
-    { id: 4, nombre: 'Solo lectura', descripcion: 'Consulta sin modificar', usuarios: 0, fijo: true },
-  ];
+  private readonly api = inject(ConfiguracionApiService);
+  private readonly constructorFormulario = inject(FormBuilder);
 
-  rolSeleccionado: Rol = this.roles[1];
+  readonly roles = signal<RolApi[]>([]);
+  readonly catalogo = signal<ModuloApi[]>([]);
+  readonly cargando = signal(true);
+  readonly guardando = signal(false);
+  readonly error = signal<string | null>(null);
 
-  modulos: ModuloPermisos[] = [
-    {
-      nombre: 'Almacén',
-      abierto: true,
-      submodulos: [
-        sub('almacen.productos', 'Productos', { consultar: true }),
-        sub('almacen.presentaciones', 'Presentaciones', { consultar: true }),
-        sub('almacen.por-agotarse', 'Productos por agotarse', { consultar: true, soloConsulta: true }),
-        sub('almacen.guias-remision', 'Guías de remisión', {
-          especiales: [
-            { clave: 'emitir', nombre: 'Emitir', concedida: false },
-            { clave: 'anular', nombre: 'Anular', concedida: false },
-          ],
-        }),
-        sub('almacen.guias-ingreso', 'Guías de ingreso'),
-        sub('almacen.tipos-precio', 'Tipos de precio', { consultar: true }),
-        sub('almacen.marcas', 'Marcas', { consultar: true }),
-        sub('almacen.modelos', 'Modelos', { consultar: true }),
-        sub('almacen.unidades', 'Unidades', { consultar: true }),
-        sub('almacen.almacenes', 'Almacenes', { consultar: true }),
-      ],
-    },
-    {
-      nombre: 'Compras',
-      abierto: false,
-      submodulos: [
-        sub('compras.proveedores', 'Proveedores', { consultar: true }),
-        sub('compras.notas-pedido', 'Notas de pedido'),
-        sub('compras.ordenes-compra', 'Órdenes de compra', {
-          especiales: [{ clave: 'aprobar', nombre: 'Aprobar', concedida: false }],
-        }),
-        sub('compras.ordenes-servicio', 'Órdenes de servicio', {
-          especiales: [{ clave: 'aprobar', nombre: 'Aprobar', concedida: false }],
-        }),
-        sub('compras.notas-compra', 'Notas de compra'),
-        sub('compras.facturas', 'Facturas de compra'),
-        sub('compras.liquidaciones', 'Liquidaciones de compra', {
-          especiales: [{ clave: 'emitir', nombre: 'Emitir', concedida: false }],
-        }),
-      ],
-    },
-    {
-      nombre: 'Ventas',
-      abierto: false,
-      submodulos: [
-        sub('ventas.clientes', 'Clientes', { consultar: true, editar: true }),
-        sub('ventas.cotizaciones', 'Cotizaciones', { consultar: true, editar: true }),
-        sub('ventas.preventas', 'Notas de preventa', { consultar: true, editar: true }),
-        sub('ventas.facturas', 'Facturas', {
-          consultar: true,
-          editar: true,
-          especiales: [
-            { clave: 'emitir', nombre: 'Emitir', concedida: true },
-            { clave: 'anular', nombre: 'Anular', concedida: false },
-          ],
-        }),
-        sub('ventas.boletas', 'Boletas', {
-          consultar: true,
-          editar: true,
-          especiales: [
-            { clave: 'emitir', nombre: 'Emitir', concedida: true },
-            { clave: 'anular', nombre: 'Anular', concedida: false },
-          ],
-        }),
-        sub('ventas.notas-credito', 'Notas de crédito', {
-          consultar: true,
-          especiales: [{ clave: 'emitir', nombre: 'Emitir', concedida: false }],
-        }),
-        sub('ventas.comunicacion-baja', 'Comunicación de baja', {
-          consultar: true,
-          especiales: [{ clave: 'emitir', nombre: 'Comunicar', concedida: false }],
-        }),
-        sub('ventas.resumen-diario', 'Resumen diario', {
-          consultar: true,
-          especiales: [{ clave: 'emitir', nombre: 'Enviar', concedida: false }],
-        }),
-        sub('ventas.formas-pago', 'Formas de pago', { consultar: true }),
-      ],
-    },
-    {
-      nombre: 'Configuración',
-      abierto: false,
-      submodulos: [
-        sub('config.empresa', 'Empresa'),
-        sub('config.identidad', 'Identidad visual'),
-        sub('config.establecimientos', 'Establecimientos'),
-        sub('config.series', 'Series y correlativos'),
-        sub('config.usuarios', 'Usuarios'),
-        sub('config.roles', 'Roles y permisos'),
-        sub('config.comprobantes', 'Comprobantes'),
-        sub('config.suscripcion', 'Suscripción'),
-      ],
-    },
-  ];
+  /** Rol cuya matriz se está viendo. Null = ninguno seleccionado. */
+  readonly seleccionado = signal<RolApi | null>(null);
+  readonly marcados = signal<Set<string>>(new Set());
 
-  get esRolFijo(): boolean {
-    return this.rolSeleccionado.fijo;
+  /** Módulos desplegados. Cerrados de inicio: cuatro títulos caben de un vistazo. */
+  readonly desplegados = signal<Set<string>>(new Set());
+
+  readonly duplicandoDe = signal<RolApi | null>(null);
+  readonly renombrando = signal<RolApi | null>(null);
+  readonly confirmacionAbierta = signal(false);
+
+  private aEliminar: RolApi | null = null;
+
+  formularioDuplicado = this.constructorFormulario.nonNullable.group({
+    nombre: ['', [Validators.required]],
+  });
+
+  formularioRenombrado = this.constructorFormulario.nonNullable.group({
+    nombre: ['', [Validators.required]],
+    descripcion: [''],
+  });
+
+  /** Solo cuentan las funciones: es lo que el usuario entiende por «permisos». */
+  readonly totalFunciones = computed(() => {
+    const marcados = this.marcados();
+    return this.catalogo()
+      .flatMap((m) => m.submodulos)
+      .flatMap((s) => s.funciones)
+      .filter((f) => marcados.has(f.id)).length;
+  });
+
+  constructor() {
+    void this.cargar();
   }
 
-  seleccionar(rol: Rol): void {
-    this.rolSeleccionado = rol;
+  private async cargar(): Promise<void> {
+    this.cargando.set(true);
+    this.error.set(null);
+    try {
+      const [roles, catalogo] = await Promise.all([
+        this.api.roles(),
+        this.api.catalogoPermisos(),
+      ]);
+      this.roles.set(roles);
+      this.catalogo.set(catalogo);
+
+      const abierto = this.seleccionado();
+      if (abierto) {
+        const vigente = roles.find((r) => r.id === abierto.id) ?? null;
+        this.seleccionado.set(vigente);
+        if (vigente) {
+          await this.cargarPermisos(vigente);
+        }
+      }
+    } catch (fallo: unknown) {
+      this.error.set(mensajeDeError(fallo, 'No se pudieron cargar los roles.'));
+    } finally {
+      this.cargando.set(false);
+    }
   }
 
-  alternarModulo(modulo: ModuloPermisos): void {
-    modulo.abierto = !modulo.abierto;
+  async seleccionar(rol: RolApi): Promise<void> {
+    this.seleccionado.set(rol);
+    await this.cargarPermisos(rol);
   }
+
+  private async cargarPermisos(rol: RolApi): Promise<void> {
+    this.error.set(null);
+    try {
+      this.marcados.set(new Set(await this.api.permisosDelRol(rol.id)));
+    } catch (fallo: unknown) {
+      this.error.set(mensajeDeError(fallo, 'No se pudieron cargar los permisos del rol.'));
+    }
+  }
+
+  /** Los predefinidos se ven, no se tocan. */
+  get soloLectura(): boolean {
+    return this.seleccionado()?.delSistema ?? true;
+  }
+
+  estaMarcado(id: string): boolean {
+    return this.marcados().has(id);
+  }
+
+  // ── Nivel 1: el módulo ───────────────────────────────────────────────────
 
   /**
-   * Alterna una acción base respetando la dependencia entre permisos:
-   * no se puede editar ni eliminar sin poder consultar. Al conceder editar
-   * se concede consultar; al quitar consultar se quita todo lo demás.
+   * Apagar el módulo apaga todo lo de dentro, y encenderlo no enciende nada.
+   *
+   * <p>La asimetría es intencionada. Apagar tiene que arrastrar, porque si no lo
+   * hiciera la pantalla mostraría casillas marcadas que el servidor no autoriza.
+   * Encender no debe arrastrar: quien abre «Almacén» está empezando a componer,
+   * y marcarle sus treinta casillas de golpe le concede cosas que no ha mirado —
+   * que es el error caro en la dirección contraria.
    */
-  alternar(submodulo: SubmoduloPermisos, accion: AccionBase): void {
-    if (this.esRolFijo || (submodulo.soloConsulta && accion !== 'consultar')) {
+  alternarModulo(modulo: ModuloApi): void {
+    if (this.soloLectura) {
+      return;
+    }
+    const copia = new Set(this.marcados());
+
+    if (copia.has(modulo.id)) {
+      copia.delete(modulo.id);
+      for (const submodulo of modulo.submodulos) {
+        copia.delete(submodulo.id);
+        submodulo.funciones.forEach((f) => copia.delete(f.id));
+      }
+    } else {
+      copia.add(modulo.id);
+      // Se despliega para que se vea que ahora hay algo que elegir dentro.
+      this.desplegar(modulo.codigo, true);
+    }
+
+    this.marcados.set(copia);
+  }
+
+  // ── Nivel 2: el submódulo ────────────────────────────────────────────────
+
+  /** Cerrado si su módulo lo está: sin él, nada de dentro autoriza. */
+  bloqueadoPorModulo(modulo: ModuloApi): boolean {
+    return !this.marcados().has(modulo.id);
+  }
+
+  alternarSubmodulo(modulo: ModuloApi, submodulo: SubmoduloApi): void {
+    if (this.soloLectura || this.bloqueadoPorModulo(modulo)) {
+      return;
+    }
+    const copia = new Set(this.marcados());
+
+    if (copia.has(submodulo.id)) {
+      copia.delete(submodulo.id);
+      submodulo.funciones.forEach((f) => copia.delete(f.id));
+    } else {
+      copia.add(submodulo.id);
+    }
+
+    this.marcados.set(copia);
+  }
+
+  // ── Nivel 3: la función ──────────────────────────────────────────────────
+
+  bloqueadaPorSubmodulo(modulo: ModuloApi, submodulo: SubmoduloApi): boolean {
+    return this.bloqueadoPorModulo(modulo) || !this.marcados().has(submodulo.id);
+  }
+
+  alternarFuncion(modulo: ModuloApi, submodulo: SubmoduloApi, funcionId: string): void {
+    if (this.soloLectura || this.bloqueadaPorSubmodulo(modulo, submodulo)) {
+      return;
+    }
+    const copia = new Set(this.marcados());
+    if (copia.has(funcionId)) {
+      copia.delete(funcionId);
+    } else {
+      copia.add(funcionId);
+    }
+    this.marcados.set(copia);
+  }
+
+  /** Marca o desmarca de golpe todas las funciones de un submódulo. */
+  alternarTodasLasFunciones(modulo: ModuloApi, submodulo: SubmoduloApi): void {
+    if (this.soloLectura || this.bloqueadaPorSubmodulo(modulo, submodulo)) {
+      return;
+    }
+    const copia = new Set(this.marcados());
+    const todas = submodulo.funciones.every((f) => copia.has(f.id));
+    submodulo.funciones.forEach((f) => (todas ? copia.delete(f.id) : copia.add(f.id)));
+    this.marcados.set(copia);
+  }
+
+  // ── Resumen por módulo, para leer la matriz plegada ──────────────────────
+
+  submodulosActivos(modulo: ModuloApi): number {
+    return modulo.submodulos.filter((s) => this.marcados().has(s.id)).length;
+  }
+
+  funcionesActivas(modulo: ModuloApi): number {
+    const marcados = this.marcados();
+    return modulo.submodulos.flatMap((s) => s.funciones).filter((f) => marcados.has(f.id)).length;
+  }
+
+  estaDesplegado(codigo: string): boolean {
+    return this.desplegados().has(codigo);
+  }
+
+  alternarDespliegue(codigo: string): void {
+    this.desplegar(codigo, !this.estaDesplegado(codigo));
+  }
+
+  private desplegar(codigo: string, abierto: boolean): void {
+    const copia = new Set(this.desplegados());
+    if (abierto) {
+      copia.add(codigo);
+    } else {
+      copia.delete(codigo);
+    }
+    this.desplegados.set(copia);
+  }
+
+  async guardarPermisos(): Promise<void> {
+    const rol = this.seleccionado();
+    if (!rol || rol.delSistema) {
       return;
     }
 
-    submodulo[accion] = !submodulo[accion];
-
-    if (accion === 'consultar' && !submodulo.consultar) {
-      submodulo.editar = false;
-      submodulo.eliminar = false;
-      (submodulo.especiales ?? []).forEach((e) => (e.concedida = false));
-    } else if (accion !== 'consultar' && submodulo[accion]) {
-      submodulo.consultar = true;
+    this.guardando.set(true);
+    this.error.set(null);
+    try {
+      // El servidor devuelve lo que quedó tras podar. Se adopta su respuesta en
+      // vez de dar por buena la selección local: si algo se podó, la pantalla
+      // debe mostrarlo, no seguir enseñando lo que se mandó.
+      const vigentes = await this.api.cambiarPermisosDelRol(rol.id, [...this.marcados()]);
+      this.marcados.set(new Set(vigentes));
+      await this.cargar();
+    } catch (fallo: unknown) {
+      this.error.set(mensajeDeError(fallo, 'No se pudieron guardar los permisos.'));
+    } finally {
+      this.guardando.set(false);
     }
   }
 
-  alternarEspecial(submodulo: SubmoduloPermisos, especial: AccionEspecial): void {
-    if (this.esRolFijo) {
+  // ── Duplicar ─────────────────────────────────────────────────────────────
+
+  abrirDuplicado(rol: RolApi): void {
+    this.duplicandoDe.set(rol);
+    this.formularioDuplicado.reset({ nombre: `${rol.nombre} (copia)` });
+  }
+
+  cerrarDuplicado(): void {
+    this.duplicandoDe.set(null);
+  }
+
+  async duplicar(): Promise<void> {
+    const origen = this.duplicandoDe();
+    if (!origen || this.formularioDuplicado.invalid) {
+      this.formularioDuplicado.markAllAsTouched();
       return;
     }
-    especial.concedida = !especial.concedida;
-    if (especial.concedida) {
-      submodulo.consultar = true;
+
+    this.guardando.set(true);
+    this.error.set(null);
+    try {
+      const copia = await this.api.duplicarRol(
+        origen.id,
+        this.formularioDuplicado.getRawValue().nombre
+      );
+      this.cerrarDuplicado();
+      await this.cargar();
+      await this.seleccionar(copia);
+    } catch (fallo: unknown) {
+      this.error.set(mensajeDeError(fallo, 'No se pudo duplicar el rol.'));
+    } finally {
+      this.guardando.set(false);
     }
   }
 
-  /** Concede o quita una acción en todo el módulo de una vez. */
-  alternarColumna(modulo: ModuloPermisos, accion: AccionBase): void {
-    if (this.esRolFijo) {
-      return;
-    }
-    const conceder = !this.columnaCompleta(modulo, accion);
-    modulo.submodulos.forEach((s) => {
-      if (s.soloConsulta && accion !== 'consultar') {
-        return;
-      }
-      s[accion] = conceder;
-      if (conceder && accion !== 'consultar') {
-        s.consultar = true;
-      }
-      if (!conceder && accion === 'consultar') {
-        s.editar = false;
-        s.eliminar = false;
-        (s.especiales ?? []).forEach((e) => (e.concedida = false));
-      }
+  // ── Renombrar ────────────────────────────────────────────────────────────
+
+  abrirRenombrado(rol: RolApi): void {
+    this.renombrando.set(rol);
+    this.formularioRenombrado.reset({
+      nombre: rol.nombre,
+      descripcion: rol.descripcion ?? '',
     });
   }
 
-  columnaCompleta(modulo: ModuloPermisos, accion: AccionBase): boolean {
-    const aplicables = modulo.submodulos.filter((s) => !(s.soloConsulta && accion !== 'consultar'));
-    return aplicables.length > 0 && aplicables.every((s) => s[accion]);
+  cerrarRenombrado(): void {
+    this.renombrando.set(null);
   }
 
-  concedidosEnModulo(modulo: ModuloPermisos): number {
-    return modulo.submodulos.reduce((total, s) => {
-      const base = [s.consultar, s.editar, s.eliminar].filter(Boolean).length;
-      const especiales = (s.especiales ?? []).filter((e) => e.concedida).length;
-      return total + base + especiales;
-    }, 0);
+  async renombrar(): Promise<void> {
+    const rol = this.renombrando();
+    if (!rol || this.formularioRenombrado.invalid) {
+      this.formularioRenombrado.markAllAsTouched();
+      return;
+    }
+
+    this.guardando.set(true);
+    this.error.set(null);
+    try {
+      const valores = this.formularioRenombrado.getRawValue();
+      await this.api.renombrarRol(rol.id, valores.nombre, valores.descripcion || null);
+      this.cerrarRenombrado();
+      await this.cargar();
+    } catch (fallo: unknown) {
+      this.error.set(mensajeDeError(fallo, 'No se pudo renombrar el rol.'));
+    } finally {
+      this.guardando.set(false);
+    }
   }
 
-  totalEnModulo(modulo: ModuloPermisos): number {
-    return modulo.submodulos.reduce((total, s) => {
-      const base = s.soloConsulta ? 1 : 3;
-      return total + base + (s.especiales ?? []).length;
-    }, 0);
+  // ── Eliminar ─────────────────────────────────────────────────────────────
+
+  pedirEliminacion(rol: RolApi): void {
+    this.aEliminar = rol;
+    this.confirmacionAbierta.set(true);
   }
 
-  get totalConcedidos(): number {
-    return this.modulos.reduce((t, m) => t + this.concedidosEnModulo(m), 0);
+  get mensajeEliminacion(): string {
+    return `El rol «${this.aEliminar?.nombre ?? ''}» se borra y no se recupera. Nadie lo tiene asignado, así que no deja a ninguna persona sin permisos.`;
+  }
+
+  async eliminar(): Promise<void> {
+    const rol = this.aEliminar;
+    if (!rol) {
+      return;
+    }
+    this.confirmacionAbierta.set(false);
+    this.error.set(null);
+
+    try {
+      await this.api.eliminarRol(rol.id);
+      if (this.seleccionado()?.id === rol.id) {
+        this.seleccionado.set(null);
+        this.marcados.set(new Set());
+      }
+      await this.cargar();
+    } catch (fallo: unknown) {
+      this.error.set(mensajeDeError(fallo, 'No se pudo eliminar el rol.'));
+    } finally {
+      this.aEliminar = null;
+    }
   }
 }

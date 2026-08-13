@@ -8,6 +8,7 @@ import com.ondexia.domain.identidad.CuentaAdministradorRepositorio;
 import com.ondexia.domain.identidad.CuentaRepositorio;
 import com.ondexia.domain.identidad.Empresa;
 import com.ondexia.domain.identidad.EmpresaRepositorio;
+import com.ondexia.domain.identidad.MiembroEmpresa;
 import com.ondexia.domain.identidad.Permiso;
 import com.ondexia.domain.identidad.PermisoRepositorio;
 import com.ondexia.domain.identidad.Permisos;
@@ -21,6 +22,7 @@ import com.ondexia.domain.identidad.UsuarioEmpresaRepositorio;
 import com.ondexia.domain.identidad.UsuarioRepositorio;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -204,9 +206,25 @@ public final class AdaptadoresIdentidad {
         }
 
         @Override
+        public List<MiembroEmpresa> listarMiembrosDe(UUID empresaId) {
+            return filas.findMiembrosByEmpresaId(empresaId);
+        }
+
+        @Override
+        public Optional<UsuarioEmpresa> buscarPorId(UUID id) {
+            return filas.findById(id).map(MapeadoresIdentidad::aDominio);
+        }
+
+        @Override
         @Transactional
         public UsuarioEmpresa guardar(UsuarioEmpresa asignacion) {
             return MapeadoresIdentidad.aDominio(filas.save(MapeadoresIdentidad.aFila(asignacion)));
+        }
+
+        @Override
+        @Transactional
+        public void eliminar(UUID id) {
+            filas.deleteById(id);
         }
     }
 
@@ -268,7 +286,7 @@ public final class AdaptadoresIdentidad {
 
         @Override
         public List<Permiso> listarCatalogo() {
-            return filas.findAllByOrderByModuloAscAccionAsc().stream()
+            return filas.findCatalogoOrdenado().stream()
                     .map(MapeadoresIdentidad::aDominio)
                     .toList();
         }
@@ -279,9 +297,14 @@ public final class AdaptadoresIdentidad {
     public static class Roles implements RolRepositorio {
 
         private final RolJpaRepository filas;
+        private final PermisoJpaRepository permisos;
+        private final UsuarioEmpresaJpaRepository asignaciones;
 
-        public Roles(RolJpaRepository filas) {
+        public Roles(RolJpaRepository filas, PermisoJpaRepository permisos,
+                UsuarioEmpresaJpaRepository asignaciones) {
             this.filas = filas;
+            this.permisos = permisos;
+            this.asignaciones = asignaciones;
         }
 
         @Override
@@ -295,6 +318,64 @@ public final class AdaptadoresIdentidad {
             return filas.findDisponibles(cuentaId).stream()
                     .map(MapeadoresIdentidad::aDominio)
                     .toList();
+        }
+
+        @Override
+        public Optional<Rol> buscarPorId(UUID id) {
+            return filas.findById(id).map(MapeadoresIdentidad::aDominio);
+        }
+
+        @Override
+        public boolean existeCodigoEnCuenta(UUID cuentaId, String codigo) {
+            return filas.existsByCuentaIdAndCodigo(cuentaId, codigo);
+        }
+
+        @Override
+        @Transactional
+        public Rol guardar(Rol rol) {
+            var fila = filas.findById(rol.id()).orElse(null);
+
+            if (fila == null) {
+                fila = new RolJpa(rol.id(), rol.cuentaId(), rol.codigo(), rol.nombre(),
+                        rol.descripcion());
+            } else {
+                fila.renombrar(rol.nombre(), rol.descripcion());
+            }
+
+            return MapeadoresIdentidad.aDominio(filas.save(fila));
+        }
+
+        @Override
+        public Set<UUID> permisosDe(UUID rolId) {
+            return filas.findConPermisos(rolId)
+                    .map(fila -> fila.getPermisos().stream()
+                            .map(PermisoJpa::getId)
+                            .collect(java.util.stream.Collectors.toSet()))
+                    .orElseGet(Set::of);
+        }
+
+        @Override
+        @Transactional
+        public void reemplazarPermisos(UUID rolId, Set<UUID> permisoIds) {
+            var fila = filas.findConPermisos(rolId).orElseThrow();
+            // findAllById descarta en silencio los identificadores que no
+            // existen. Aquí eso es correcto: el servicio ya rechazó los
+            // desconocidos, y esta capa no debe volver a decidirlo.
+            fila.reemplazarPermisos(new java.util.HashSet<>(permisos.findAllById(permisoIds)));
+            filas.save(fila);
+        }
+
+        @Override
+        public boolean estaAsignadoAAlguien(UUID rolId) {
+            return asignaciones.existsByRolId(rolId);
+        }
+
+        @Override
+        @Transactional
+        public void eliminar(UUID id) {
+            // rol_permiso lleva ON DELETE CASCADE sobre rol (V1), así que las
+            // asignaciones de permisos se van con él.
+            filas.deleteById(id);
         }
     }
 }

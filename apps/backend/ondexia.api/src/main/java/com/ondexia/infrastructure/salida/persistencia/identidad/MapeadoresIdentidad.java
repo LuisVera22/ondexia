@@ -120,7 +120,13 @@ final class MapeadoresIdentidad {
     // ── Permiso ────────────────────────────────────────────────────────────
 
     static Permiso aDominio(PermisoJpa fila) {
-        return new Permiso(fila.getId(), fila.getModulo(), fila.getAccion(), fila.getDescripcion());
+        return new Permiso(
+                fila.getId(),
+                com.ondexia.domain.identidad.NivelPermiso.valueOf(fila.getNivel()),
+                fila.getModulo(),
+                fila.getAccion(),
+                fila.getNombre(),
+                fila.getDescripcion());
     }
 
     // ── Rol ────────────────────────────────────────────────────────────────
