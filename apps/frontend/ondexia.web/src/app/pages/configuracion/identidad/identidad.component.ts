@@ -1,13 +1,16 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import {
   ConfiguracionApiService,
+  Empresa,
   LogoApi,
   mensajeDeError,
 } from '../../../nucleo/configuracion.api.service';
 
 /** Lo que el navegador anuncia para PNG y JPG. Sin SVG, a propósito. */
 const TIPOS_ADMITIDOS = ['image/png', 'image/jpeg'];
+
+type Formato = 'a4' | 'ticket';
 
 /**
  * Identidad visual: los logos de la empresa.
@@ -24,18 +27,27 @@ const TIPOS_ADMITIDOS = ['image/png', 'image/jpeg'];
  * nuestra API, y meter un {@code Authorization} en una URL ya firmada por S3
  * serían dos mecanismos de autenticación en la misma petición, que S3 rechaza.
  *
+ * <h2>La previsualización no es un adorno</h2>
+ *
+ * <p>Es lo único que detecta que un logo quedó desproporcionado <em>antes</em> de
+ * emitir. Suelto sobre fondo blanco casi cualquier archivo se ve bien; dentro de
+ * la cabecera de un documento se delatan el logo demasiado ancho y el que trae
+ * márgenes internos enormes.
+ *
+ * <p>En el ticket importa aún más: la impresión térmica es monocroma, así que el
+ * logo se pinta en escala de grises al ancho real de 80 mm. Un archivo con
+ * degradado se ve perfecto en la tarjeta y sale una mancha en la impresora.
+ *
+ * <p>No necesita ningún comprobante: es un marco con las proporciones correctas.
+ * Los datos fiscales que lleva —RUC, razón social, la serie— son los reales de
+ * la empresa, no los inventados de una maqueta.
+ *
  * <h2>PNG y JPG. No SVG</h2>
  *
  * <p>Un SVG es XML que puede llevar JavaScript, y este es el único sitio donde
- * alguien sube un archivo que después se muestra a otros —incluido dentro de un
- * PDF y en la barra superior—. Se comprueba aquí para avisar antes de gastar la
- * subida, y el servidor lo comprueba otra vez porque esta validación se salta
- * llamando a la API directamente.
- *
- * <h2>Lo que la maqueta prometía y no está</h2>
- *
- * <p>La previsualización dentro del comprobante. Necesita el comprobante, que es
- * de C1. Dejarla pintada haría creer que el logo ya sale en los documentos.
+ * alguien sube un archivo que después se muestra a otros. Se comprueba aquí para
+ * avisar antes de gastar la subida, y el servidor lo comprueba otra vez porque
+ * esta validación se salta llamando a la API directamente.
  */
 @Component({
   selector: 'app-identidad',
@@ -52,6 +64,30 @@ export class IdentidadComponent {
   /** Cuál está subiendo, para deshabilitar solo ese y no la pantalla entera. */
   readonly enCurso = signal<string | null>(null);
 
+  readonly formato = signal<Formato>('a4');
+
+  /** Datos fiscales de la cabecera. Null si no se pudieron leer — ver cargar(). */
+  readonly empresa = signal<Empresa | null>(null);
+  readonly numeroFactura = signal<string | null>(null);
+  readonly numeroBoleta = signal<string | null>(null);
+
+  /**
+   * El logo que corresponde al formato: el principal encabeza el A4, y el de
+   * ticket la impresión térmica.
+   *
+   * <p>Sin respaldo de uno por otro a propósito. Si el de ticket falta, lo que
+   * hay que ver es que falta —es justo la comprobación que se viene a hacer— y
+   * no el principal disfrazado, que daría por bueno algo que no se va a imprimir.
+   */
+  readonly logoDelFormato = computed(() => {
+    const clave = this.formato() === 'a4' ? 'logo_principal' : 'logo_ticket';
+    return this.logos().find((l) => l.logo === clave)?.url ?? null;
+  });
+
+  readonly numeroDelFormato = computed(() =>
+    this.formato() === 'a4' ? this.numeroFactura() : this.numeroBoleta()
+  );
+
   constructor() {
     void this.cargar();
   }
@@ -65,6 +101,42 @@ export class IdentidadComponent {
       this.error.set(mensajeDeError(fallo, 'No se pudieron cargar los logos.'));
     } finally {
       this.cargando.set(false);
+    }
+
+    await this.cargarDatosDeLaCabecera();
+  }
+
+  /**
+   * Empresa y series, solo para la cabecera de la previsualización.
+   *
+   * <p>Van aparte y con el fallo absorbido porque son de <strong>otros
+   * permisos</strong>: quien tenga {@code configuracion.identidad} y no
+   * {@code configuracion.empresa} recibiría un 403 aquí. Dejarlo caer en el
+   * mismo bloque que los logos rompería la pantalla entera por no poder pintar
+   * un RUC.
+   *
+   * <p>Sin estos datos la previsualización sigue sirviendo para lo que importa:
+   * ver el logo a escala dentro del marco.
+   */
+  private async cargarDatosDeLaCabecera(): Promise<void> {
+    try {
+      this.empresa.set(await this.api.empresa());
+    } catch {
+      this.empresa.set(null);
+    }
+
+    try {
+      const series = await this.api.series();
+      const activas = series.filter((s) => s.activa);
+      this.numeroFactura.set(
+        activas.find((s) => s.tipoDocumento === '01')?.siguienteNumero ?? null
+      );
+      this.numeroBoleta.set(
+        activas.find((s) => s.tipoDocumento === '03')?.siguienteNumero ?? null
+      );
+    } catch {
+      this.numeroFactura.set(null);
+      this.numeroBoleta.set(null);
     }
   }
 
@@ -118,6 +190,10 @@ export class IdentidadComponent {
       // Hasta aquí no ha cambiado nada en la base: el servidor comprueba con el
       // almacén qué llegó de verdad antes de guardar la referencia.
       this.logos.set(await this.api.confirmarLogo(logo.logo, autorizacion.clave));
+
+      // Se salta al formato donde se acaba de cambiar algo: mirar la
+      // previsualización es el motivo de haber subido.
+      this.formato.set(logo.logo === 'logo_ticket' ? 'ticket' : 'a4');
     } catch (fallo: unknown) {
       this.error.set(
         mensajeDeError(fallo, `No se pudo subir el ${logo.nombre.toLowerCase()}.`)
