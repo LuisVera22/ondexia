@@ -33,7 +33,269 @@ tags:
   description: Ubicaciones físicas de las existencias
 - name: Establecimientos
   description: Anexos de la empresa ante SUNAT
+- name: Identidad visual
+  description: Logos de la empresa
+- name: Roles
+  description: Roles de la cuenta y su matriz de permisos
+- name: Usuarios
+  description: "Quién entra en la empresa, con qué rol y hasta dónde"
+- name: Comprobantes
+  description: Tipos de comprobante que emite la empresa
+- name: Series
+  description: Series de comprobante y su correlativo
 paths:
+  /api/v1/configuracion/usuarios/{asignacionId}:
+    put:
+      tags:
+      - Usuarios
+      summary: Cambia el rol o el alcance
+      description: "Surte efecto en la petición siguiente: el contexto se resuelve\
+        \ en cada una."
+      operationId: reasignar
+      parameters:
+      - name: asignacionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionReasignacion"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaUsuario"
+    delete:
+      tags:
+      - Usuarios
+      summary: Retira el acceso a esta empresa
+      description: La persona sigue existiendo en la cuenta y conserva las demás empresas
+        que tuviera.
+      operationId: retirar
+      parameters:
+      - name: asignacionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+  /api/v1/configuracion/usuarios/{asignacionId}/estado:
+    put:
+      tags:
+      - Usuarios
+      summary: Activa o desactiva a la persona
+      description: "Afecta a toda la cuenta, no solo a esta empresa: es la única forma\
+        \ de revocar el acceso antes de que caduque su token."
+      operationId: cambiarEstado
+      parameters:
+      - name: asignacionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionEstado"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaUsuario"
+  /api/v1/configuracion/series/{id}/estado:
+    put:
+      tags:
+      - Series
+      summary: Activa o desactiva una serie
+      description: "Lo único editable. Desactivar no borra ni reinicia: el último\
+        \ número queda como estaba, de modo que reactivarla continúa donde se quedó\
+        ."
+      operationId: cambiarEstado_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionEstado"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaSerie"
+  /api/v1/configuracion/roles/{rolId}:
+    put:
+      tags:
+      - Roles
+      summary: Renombra un rol propio
+      operationId: renombrar
+      parameters:
+      - name: rolId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionRenombrado"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaRol"
+    delete:
+      tags:
+      - Roles
+      summary: Elimina un rol propio
+      description: Falla con 409 si algún usuario lo tiene asignado.
+      operationId: eliminar
+      parameters:
+      - name: rolId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+  /api/v1/configuracion/roles/{rolId}/permisos:
+    get:
+      tags:
+      - Roles
+      summary: Los permisos que tiene un rol
+      operationId: permisosDe
+      parameters:
+      - name: rolId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                uniqueItems: true
+                type: array
+                items:
+                  type: string
+                  format: uuid
+    put:
+      tags:
+      - Roles
+      summary: Reemplaza los permisos de un rol
+      description: "El cuerpo es el estado final de la matriz, no un incremento. Surte\
+        \ efecto en la petición siguiente, sin esperar a que se recicle nada."
+      operationId: cambiarPermisos
+      parameters:
+      - name: rolId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionPermisos"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                uniqueItems: true
+                type: array
+                items:
+                  type: string
+                  format: uuid
+  /api/v1/configuracion/identidad/{logo}:
+    put:
+      tags:
+      - Identidad visual
+      summary: Confirma la subida
+      description: |-
+        Comprueba contra el almacén qué llegó de verdad —tipo y tamaño— y solo entonces guarda la referencia. Responde 400 con `subida_no_completada` si el archivo no está.
+
+        El logo anterior no se borra: los comprobantes ya emitidos lo referencian.
+      operationId: confirmar
+      parameters:
+      - name: logo
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionConfirmacion"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaLogo"
+    delete:
+      tags:
+      - Identidad visual
+      summary: Quita el logo
+      description: "Aquí sí se borra el archivo: significa «no quiero logo», no «\
+        cambié de logo». Reemplazar conserva el anterior; quitar lo retira."
+      operationId: quitar
+      parameters:
+      - name: logo
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaLogo"
   /api/v1/configuracion/establecimientos/{id}:
     put:
       tags:
@@ -112,6 +374,33 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaEmpresa"
+  /api/v1/configuracion/comprobantes/{codigo}:
+    put:
+      tags:
+      - Comprobantes
+      summary: Habilita o deshabilita un tipo
+      description: "No se puede deshabilitar un tipo con series activas: la pantalla\
+        \ diría una cosa y el sistema haría otra. Responde 400 con `tipo_con_series_activas`."
+      operationId: cambiarEstado_2
+      parameters:
+      - name: codigo
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionEstado"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaTipo"
   /api/v1/almacen/almacenes/{id}:
     put:
       tags:
@@ -179,12 +468,142 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaRegistro"
+  /api/v1/configuracion/usuarios:
+    get:
+      tags:
+      - Usuarios
+      summary: "Lista los usuarios de la empresa, activos e inactivos"
+      operationId: listar
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaUsuario"
+    post:
+      tags:
+      - Usuarios
+      summary: Da de alta a alguien en la empresa
+      description: "No crea su cuenta de acceso: eso lo hace la propia persona al\
+        \ registrarse, y se vincula sola en su primer ingreso. Hasta entonces figura\
+        \ como invitada."
+      operationId: invitar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionNuevo"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaUsuario"
+  /api/v1/configuracion/series:
+    get:
+      tags:
+      - Series
+      summary: "Lista las series, activas e inactivas"
+      operationId: listar_1
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaSerie"
+    post:
+      tags:
+      - Series
+      summary: Da de alta una serie
+      description: "La primera letra la fija SUNAT según el tipo: F para factura,\
+        \ B para boleta, T para guía. El `numeroInicial` es para quien migra desde\
+        \ otro sistema y no puede volver a numerar desde el 1; se fija aquí y no se\
+        \ vuelve a tocar."
+      operationId: registrar_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionNueva"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaSerie"
+  /api/v1/configuracion/roles/{rolOrigenId}/duplicado:
+    post:
+      tags:
+      - Roles
+      summary: Duplica un rol
+      description: La copia arrastra los permisos del original y ya es editable. Es
+        la única forma de partir de un rol predefinido sin modificarlo.
+      operationId: duplicar
+      parameters:
+      - name: rolOrigenId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionDuplicado"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaRol"
+  /api/v1/configuracion/identidad/{logo}/subida:
+    post:
+      tags:
+      - Identidad visual
+      summary: Autoriza una subida
+      description: |-
+        Devuelve una URL firmada a la que hay que hacer `PUT` con el archivo como cuerpo y el mismo `Content-Type` que se declaró aquí — va dentro de la firma, así que subir otra cosa da 403.
+
+        No cambia nada todavía: hasta confirmar, es como si no hubiera pasado.
+      operationId: autorizar
+      parameters:
+      - name: logo
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionSubida"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaAutorizacion"
   /api/v1/configuracion/establecimientos:
     get:
       tags:
       - Establecimientos
       summary: "Lista los establecimientos, activos e inactivos"
-      operationId: listar
+      operationId: listar_2
       responses:
         "200":
           description: OK
@@ -200,7 +619,7 @@ paths:
       summary: Registra un establecimiento
       description: El código son los cuatro dígitos que asigna SUNAT y aparecen en
         la ficha RUC; no se genera aquí. La casa matriz es 0000.
-      operationId: registrar_1
+      operationId: registrar_2
       requestBody:
         content:
           application/json:
@@ -219,7 +638,7 @@ paths:
       tags:
       - Almacenes
       summary: "Lista los almacenes, activos e inactivos"
-      operationId: listar_1
+      operationId: listar_3
       responses:
         "200":
           description: OK
@@ -235,7 +654,7 @@ paths:
       summary: Registra un almacén
       description: "El código lo elige el cliente: se teclea en cada movimiento de\
         \ mercadería, así que conviene que sea corto. Se guarda en mayúsculas."
-      operationId: registrar_2
+      operationId: registrar_3
       requestBody:
         content:
           application/json:
@@ -281,8 +700,241 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaContexto"
+  /api/v1/configuracion/usuarios/roles-asignables:
+    get:
+      tags:
+      - Usuarios
+      summary: Roles que se pueden asignar
+      description: Los predefinidos del sistema más los que esta cuenta haya creado.
+      operationId: rolesAsignables
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaRolAsignable"
+  /api/v1/configuracion/series/tipos-documento:
+    get:
+      tags:
+      - Series
+      summary: Catálogo 01 de SUNAT
+      description: "Los tipos de documento que se pueden numerar, con la letra que\
+        \ SUNAT exige al principio de la serie. Alimenta el desplegable del alta."
+      operationId: tiposDocumento
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaTipoDocumento"
+  /api/v1/configuracion/roles:
+    get:
+      tags:
+      - Roles
+      summary: "Lista los roles: los predefinidos y los de la cuenta"
+      operationId: listar_4
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaRol"
+  /api/v1/configuracion/roles/permisos:
+    get:
+      tags:
+      - Roles
+      summary: "Catálogo de permisos, como árbol de tres niveles"
+      description: |-
+        Módulo → submódulo → función. Lo define el sistema: es la lista de lo que Ondexia sabe hacer.
+
+        Viene ya como árbol y con los nombres para mostrar, de modo que la pantalla no tiene que saber que `almacen.producto` cuelga de `almacen` ni traducir códigos. Un módulo nuevo aparece solo, sin tocar el frontend.
+
+        La autorización es conjuntiva: hacen falta los tres niveles.
+      operationId: catalogo
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaModulo"
+  /api/v1/configuracion/identidad:
+    get:
+      tags:
+      - Identidad visual
+      summary: "Los tres logos con su URL pública, si la tienen"
+      operationId: consultar_3
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaLogo"
+  /api/v1/configuracion/comprobantes:
+    get:
+      tags:
+      - Comprobantes
+      summary: Los cinco tipos del catálogo 01 con su estado
+      description: "Vienen todos, habilitados y deshabilitados: la pantalla es un\
+        \ panel de interruptores, no una lista de los activos."
+      operationId: listar_5
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaTipo"
 components:
   schemas:
+    PeticionReasignacion:
+      required:
+      - rolId
+      type: object
+      properties:
+        rolId:
+          type: string
+          format: uuid
+        sucursalId:
+          type: string
+          format: uuid
+    RespuestaUsuario:
+      type: object
+      properties:
+        asignacionId:
+          type: string
+          format: uuid
+        usuarioId:
+          type: string
+          format: uuid
+        email:
+          type: string
+        nombre:
+          type: string
+        activo:
+          type: boolean
+        invitado:
+          type: boolean
+        rolId:
+          type: string
+          format: uuid
+        rolNombre:
+          type: string
+        sucursalId:
+          type: string
+          format: uuid
+        sucursalNombre:
+          type: string
+        todosLosEstablecimientos:
+          type: boolean
+    PeticionEstado:
+      required:
+      - activo
+      type: object
+      properties:
+        activo:
+          type: boolean
+    RespuestaSerie:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sucursalId:
+          type: string
+          format: uuid
+        tipoDocumento:
+          type: string
+        tipoDocumentoNombre:
+          type: string
+        serie:
+          type: string
+        ultimoNumero:
+          type: integer
+          format: int64
+        siguienteNumero:
+          type: string
+        activa:
+          type: boolean
+    PeticionRenombrado:
+      required:
+      - nombre
+      type: object
+      properties:
+        nombre:
+          maxLength: 120
+          minLength: 0
+          type: string
+        descripcion:
+          maxLength: 300
+          minLength: 0
+          type: string
+    RespuestaRol:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        codigo:
+          type: string
+        nombre:
+          type: string
+        descripcion:
+          type: string
+        delSistema:
+          type: boolean
+        cantidadPermisos:
+          type: integer
+          format: int32
+        enUso:
+          type: boolean
+    PeticionPermisos:
+      required:
+      - permisoIds
+      type: object
+      properties:
+        permisoIds:
+          uniqueItems: true
+          type: array
+          items:
+            type: string
+            format: uuid
+    PeticionConfirmacion:
+      required:
+      - clave
+      type: object
+      properties:
+        clave:
+          minLength: 1
+          type: string
+    RespuestaLogo:
+      type: object
+      properties:
+        logo:
+          type: string
+        nombre:
+          type: string
+        url:
+          type: string
+        maximoBytes:
+          type: integer
+          format: int64
     PeticionEdicion:
       required:
       - direccion
@@ -357,6 +1009,18 @@ components:
           type: string
         activa:
           type: boolean
+    RespuestaTipo:
+      type: object
+      properties:
+        codigo:
+          type: string
+        nombre:
+          type: string
+        emite:
+          type: boolean
+        seriesActivas:
+          type: integer
+          format: int64
     RespuestaAlmacen:
       type: object
       properties:
@@ -411,26 +1075,80 @@ components:
           format: uuid
     PeticionNuevo:
       required:
-      - codigo
-      - direccion
+      - email
+      - nombre
+      - rolId
+      type: object
+      properties:
+        email:
+          maxLength: 254
+          minLength: 0
+          type: string
+          format: email
+        nombre:
+          maxLength: 150
+          minLength: 0
+          type: string
+        rolId:
+          type: string
+          format: uuid
+        sucursalId:
+          type: string
+          format: uuid
+    PeticionNueva:
+      required:
+      - serie
+      - sucursalId
+      - tipoDocumento
+      type: object
+      properties:
+        sucursalId:
+          type: string
+          format: uuid
+        tipoDocumento:
+          minLength: 1
+          pattern: "0[13789]"
+          type: string
+        serie:
+          minLength: 1
+          pattern: "[A-Za-z][A-Za-z0-9]{3}"
+          type: string
+        numeroInicial:
+          minimum: 0
+          type: integer
+          format: int64
+    PeticionDuplicado:
+      required:
       - nombre
       type: object
       properties:
-        codigo:
-          minLength: 1
-          pattern: "\\d{4}"
-          type: string
         nombre:
-          maxLength: 200
+          maxLength: 120
           minLength: 0
           type: string
-        direccion:
-          maxLength: 400
-          minLength: 0
+    PeticionSubida:
+      required:
+      - bytes
+      - tipoContenido
+      type: object
+      properties:
+        tipoContenido:
+          minLength: 1
           type: string
-        ubigeo:
-          pattern: "^$|^\\d{6}$"
+        bytes:
+          minimum: 1
+          type: integer
+          format: int64
+    RespuestaAutorizacion:
+      type: object
+      properties:
+        url:
           type: string
+        clave:
+          type: string
+        validaSegundos:
+          type: integer
+          format: int64
     Salud:
       type: object
       properties:
@@ -494,6 +1212,69 @@ components:
           type: string
         email:
           type: string
+    RespuestaRolAsignable:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        codigo:
+          type: string
+        nombre:
+          type: string
+        descripcion:
+          type: string
+        delSistema:
+          type: boolean
+    RespuestaTipoDocumento:
+      type: object
+      properties:
+        codigo:
+          type: string
+        nombre:
+          type: string
+    RespuestaFuncion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        accion:
+          type: string
+        nombre:
+          type: string
+        codigo:
+          type: string
+    RespuestaModulo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        codigo:
+          type: string
+        nombre:
+          type: string
+        descripcion:
+          type: string
+        submodulos:
+          type: array
+          items:
+            $ref: "#/components/schemas/RespuestaSubmodulo"
+    RespuestaSubmodulo:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        codigo:
+          type: string
+        nombre:
+          type: string
+        funciones:
+          type: array
+          items:
+            $ref: "#/components/schemas/RespuestaFuncion"
   parameters:
     EmpresaActiva:
       name: X-Empresa-Id

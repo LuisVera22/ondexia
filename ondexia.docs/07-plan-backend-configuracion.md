@@ -36,6 +36,12 @@ produce un comprobante inválido.
 
 Seis de nueve. Las tres que quedan fuera no bloquean nada.
 
+> **Estado a 2026-08-13: las seis están entregadas**, con Comprobantes en su
+> alcance parcial. 91 pruebas en verde. Las dos que quedan fuera —Identidad
+> visual y Suscripción— siguen sin tocarse, y sus pantallas conservan la maqueta
+> original: dejarlas conectadas a medias sería peor que dejarlas evidentemente
+> sin conectar.
+
 ### 1.2 Sin SUNAT en esta versión
 
 Decisión del propietario, 2026-08-11: **la v1 no integra con SUNAT.** Consecuencias
@@ -170,7 +176,7 @@ Las entidades ya existen. Falta todo lo demás.
 
 ---
 
-### Entrega 2 · Almacenes · **S**
+### Entrega 2 · Almacenes · **S** — **ENTREGADA**
 
 Entidad nueva `almacen` (`empresa_id`, `sucursal_id`, `nombre`).
 
@@ -179,52 +185,130 @@ estrena `activar_aislamiento_empresa()`**. Valida la función de RLS sobre una
 tabla de negocio real con una entidad tan simple que, si algo falla, el fallo
 solo puede estar en el aislamiento.
 
----
-
-### Entrega 3 · Series y correlativos · **L**
-
-La pieza crítica del módulo.
-
-- Entidad `serie_correlativo` y CRUD.
-- Validación del formato de serie según tipo de documento (catálogo 01).
-- **Servicio de asignación con `SELECT … FOR UPDATE`** (DTE F-02). Nunca
-  `SEQUENCE`: no es transaccional y deja huecos ante cualquier rollback.
-- El correlativo **se asigna al confirmar, jamás al abrir un borrador**. Un
-  borrador abandonado con número asignado es un hueco permanente.
-
-**La prueba que más rinde de todo el módulo:** N hilos pidiendo correlativo de la
-misma serie a la vez, verificando **cero duplicados y cero huecos**. Es barata de
-escribir y es la única forma de saber que el bloqueo funciona — un fallo de
-concurrencia no se reproduce a mano.
-
-Al terminar esta entrega, el cimiento de C1 está completo. Se podría pivotar a la
-boleta sin esperar a las dos siguientes.
+Funcionó: `Almacenes` es visiblemente más corto que `Establecimientos` porque no
+comprueba la empresa en ningún método. Esa diferencia de longitud **es** la
+prueba de que el aislamiento lo pone la base.
 
 ---
 
-### Entrega 4 · Usuarios y asignaciones · **M**
+### Entrega 3 · Series y correlativos · **L** — **ENTREGADA**
 
-- Alta de usuario, asignación a empresa con rol y alcance de sucursal.
-- Activar y desactivar. El invariante de `cuenta_administrador` ya lo defiende la
-  base con un disparador diferido.
+La pieza crítica del módulo. 11 pruebas, incluida la de concurrencia.
 
-> **El alta en Cognito la hace el SPA, no el backend.** La Lambda no tiene salida
-> a internet (DTE §4.8), y resolverlo «de forma natural» exigiría un endpoint de
+**Lo que cambió respecto a lo planeado:**
+
+- **La propagación del asignador es `MANDATORY`, no la habitual.** Con
+  `REQUIRED`, llamarlo sin transacción abierta crearía una, confirmaría el número
+  y volvería; si la creación del comprobante fallara después, ese número quedaría
+  consumido para siempre. `MANDATORY` convierte ese error en una excepción
+  inmediata en vez de en un hueco silencioso. **La firma del método impide el mal
+  uso** en lugar de confiar en que un comentario lo advierta.
+- **La letra de la serie se valida además en la base**, con un `CHECK` por tipo.
+  Una serie con la letra equivocada no la rechaza nadie hasta el envío a SUNAT, y
+  para entonces todos sus comprobantes están emitidos y numerados.
+- **Apareció un `numeroInicial` que el plan no contemplaba.** Quien migra desde
+  otro sistema va por el 4300 y no puede volver a numerar desde el 1 sin duplicar
+  comprobantes ya declarados. Se fija **solo en el alta** y no se vuelve a tocar:
+  un endpoint para «corregir» el correlativo acabaría usándose para tapar un
+  error y produciría duplicados.
+- **No hay borrado de series**, y el catálogo de permisos ya lo decía —
+  `configuracion.serie` solo tiene `consultar`, `registrar` y `editar`. Se
+  desactivan, conservando su último número: reactivar continúa donde se quedó.
+
+**La prueba que más rinde:** doce hilos con barrera de salida pidiendo
+correlativo de la misma serie, verificando **cero duplicados y cero huecos**. Más
+dos que fijan las decisiones de arriba: que sin transacción falla, y que al
+deshacer la transacción el número vuelve a estar disponible.
+
+Con esto, el cimiento de C1 está completo.
+
+---
+
+### Entrega 4 · Usuarios y asignaciones · **M** — **ENTREGADA**
+
+12 pruebas.
+
+**Lo que cambió respecto a lo planeado:**
+
+- **El identificador que manejan los endpoints es el de la asignación, no el de
+  la persona.** La misma persona puede estar en varias empresas con roles
+  distintos; usar su identificador obligaría a mandar además la empresa en cada
+  llamada — un parámetro que el contexto ya sabe y que, si se pudiera mandar, se
+  podría mandar mal.
+- **Tres puertas que no se pueden cerrar por dentro**, y el plan solo preveía la
+  tercera: nadie se desactiva a sí mismo, nadie se retira su propio acceso, y el
+  último administrador de la cuenta no se puede desactivar. Esta última **no la
+  puede defender la base**: el disparador de la V1 protege
+  `cuenta_administrador`, y desactivar al usuario no borra su fila de
+  administrador — la deja intacta y sin poder entrar, que es exactamente el
+  estado que el disparador existía para impedir.
+- **Retirar el acceso sí borra la fila**, y es la excepción a «desactivar, nunca
+  eliminar». Una asignación no aparece en ningún comprobante: es un permiso
+  vigente, y uno retirado no tiene por qué seguir existiendo. Quién lo hizo queda
+  en la bitácora.
+- **La pantalla tiene tres estados, no dos.** «Invitado» —la fila existe, la
+  identidad de Cognito todavía no— es la respuesta a «le di de alta y no puede
+  entrar», que sin esa etiqueta se diagnostica mirando la base.
+
+> **El alta en Cognito la hace la propia persona, no el backend.** La Lambda no
+> tiene salida a internet (DTE §4.8), y resolverlo exigiría un endpoint de
 > interfaz a ~7.30 USD/mes — más caro que la NAT que se evitó. El backend crea la
-> fila `usuario` sin `cognito_sub`; se vincula en el primer acceso. Ya está
-> modelado así en la entidad.
+> fila `usuario` sin `cognito_sub`; se vincula en el primer acceso.
 
 ---
 
-### Entrega 5 · Roles a medida · **M**
+### Entrega 5 · Roles a medida · **M** — **ENTREGADA**
 
-- Duplicar un rol predefinido y editar los permisos de la copia. Los
-  predefinidos son inmutables a propósito: si cada cliente pudiera editar
-  «Vendedor», la palabra dejaría de significar lo mismo entre clientes.
-- Matriz de permisos por `(modulo, accion)`.
-- **Prueba de que revocar un permiso surte efecto en la petición siguiente**, sin
-  esperar a que el contenedor de Lambda se recicle. Es lo que justifica el
-  `permisos_version` de la cuenta.
+9 pruebas.
+
+**Lo que cambió respecto a lo planeado:**
+
+- **El código del rol se deriva del nombre, no lo escribe el usuario.** Es un
+  identificador interno con índice único por cuenta: pedírselo solo serviría para
+  que choque. Duplicar dos veces «Contador junior» da `CONTADOR_JUNIOR` y
+  `CONTADOR_JUNIOR_2`.
+- **La copia arrastra los permisos del original.** Empezar en blanco sería más
+  simple de programar y peor de usar: quien duplica «Vendedor» quiere «Vendedor y
+  además esto», no reconstruir cuarenta casillas.
+- **Los predefinidos responden 409, no 403.** No es un problema de quién eres: ese
+  rol no lo modifica nadie. Un 403 sugeriría que otro usuario sí podría.
+- **La invalidación acompaña a toda operación que altere permisos**, no solo a la
+  que los edita: duplicar crea un rol con permisos, y eliminar los quita.
+
+**La prueba que justifica `permisos_version`:** un usuario con rol a medida
+recibe 403, se le concede el permiso, la petición **siguiente** da 200, se le
+revoca, y vuelve a 403. Sin invalidación por versión, el tramo de revocación
+seguiría dando 200 con el permiso ya quitado de la base — conceder tarde es una
+molestia, revocar tarde es un agujero.
+
+---
+
+### Comprobantes · parcial · **ENTREGADA**
+
+Solo qué tipos emite la empresa, como marca §1.1. Emitir, anular y consultar el
+estado ante SUNAT son de C1.
+
+**La decisión que conviene no olvidar:** la tabla `tipo_comprobante_empresa`
+guarda **decisiones, no estado completo**. Una empresa sin ninguna fila tiene los
+cinco tipos habilitados; solo aparece fila cuando alguien decide algo distinto de
+lo predeterminado.
+
+No es un atajo. `RegistrarCuenta` corre **sin contexto de empresa** —es el caso de
+uso que la crea— así que no puede insertar en una tabla con RLS; es el mismo
+motivo por el que el alta tampoco escribe en `auditoria`. Con «sin fila =
+habilitado» no hay nada que sembrar, ni en el alta ni en la migración para las
+empresas que ya existían.
+
+**Y la declaración hace efecto:** `Series.registrar` la consulta antes de dar de
+alta una serie, y un tipo con series activas no se deja apagar. Una pantalla de
+configuración que no cambia el comportamiento de nada es una pantalla que el
+cliente rellena para nada.
+
+El permiso `configuracion.comprobante` se añade en la V5 y **se asigna a mano** a
+Administrador y Contador: los `INSERT` por patrón de la V2 ya corrieron, y un
+permiso creado después no lo recoge nadie. Es el comportamiento que la V2
+describía —lo nuevo permanece cerrado hasta que alguien decide lo contrario— y
+aquí alguien lo decide.
 
 ---
 
