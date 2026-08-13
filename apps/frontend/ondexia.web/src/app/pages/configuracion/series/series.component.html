@@ -1,60 +1,192 @@
 <div>
   <app-encabezado-pagina titulo="Series y correlativos" />
 
+  @if (error()) {
+  <div class="mb-5 flex items-start gap-3 rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert">
+    <svg class="mt-0.5 shrink-0 text-error-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
+    </svg>
+    <p class="text-sm text-error-500">{{ error() }}</p>
+  </div>
+  }
+
   <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <p class="max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-      Cada establecimiento tiene su propia serie por tipo de comprobante. El correlativo lo asigna el sistema al emitir y no se edita manualmente.
+      Cada serie numera un tipo de comprobante en un establecimiento. El número
+      lo asigna el sistema al emitir, nunca a mano: así no hay duplicados ni
+      saltos, que es lo que SUNAT revisa.
     </p>
 
     <button
       type="button"
+      (click)="abrirNueva()"
       class="shrink-0 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600"
     >
       Agregar serie
     </button>
   </div>
 
+  @if (formularioAbierto()) {
+  <section class="mb-5 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] xl:p-6">
+    <h3 class="mb-5 font-medium text-gray-800 dark:text-white/90">Nueva serie</h3>
+
+    <form [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div>
+          <label for="tipoDocumento" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Tipo de comprobante <span class="text-error-500">*</span>
+          </label>
+          <select
+            id="tipoDocumento"
+            formControlName="tipoDocumento"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+          >
+            <option value="">Elige un tipo…</option>
+            @for (tipo of tipos(); track tipo.codigo) {
+            <option [value]="tipo.codigo">{{ tipo.nombre }}</option>
+            }
+          </select>
+          @if (controles.tipoDocumento.touched && controles.tipoDocumento.invalid) {
+          <p class="mt-1.5 text-xs text-error-500">Elige el tipo de comprobante.</p>
+          }
+        </div>
+
+        <div>
+          <label for="serie" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Serie <span class="text-error-500">*</span>
+          </label>
+          <input
+            id="serie"
+            type="text"
+            formControlName="serie"
+            maxlength="4"
+            placeholder="F001"
+            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm uppercase text-gray-800 shadow-apoyo placeholder:normal-case placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90"
+            [class]="controles.serie.touched && controles.serie.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+          />
+          @if (controles.serie.touched && controles.serie.invalid) {
+          <p class="mt-1.5 text-xs text-error-500">
+            Cuatro caracteres: una letra y tres letras o dígitos.
+          </p>
+          } @else if (letraEsperada) {
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            SUNAT exige que empiece por <strong>{{ letraEsperada }}</strong> para este tipo.
+          </p>
+          } @else {
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            La primera letra la fija SUNAT según el tipo de comprobante.
+          </p>
+          }
+        </div>
+
+        <div>
+          <label for="sucursalId" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Establecimiento <span class="text-error-500">*</span>
+          </label>
+          <select
+            id="sucursalId"
+            formControlName="sucursalId"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+          >
+            @for (establecimiento of establecimientos(); track establecimiento.id) {
+            <option [value]="establecimiento.id">
+              {{ establecimiento.codigo }} · {{ establecimiento.nombre }}
+            </option>
+            }
+          </select>
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            Obligatorio: SUNAT relaciona la serie con el anexo que emite.
+          </p>
+        </div>
+
+        <div>
+          <label for="numeroInicial" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Último número ya emitido
+          </label>
+          <input
+            id="numeroInicial"
+            type="number"
+            min="0"
+            max="99999999"
+            formControlName="numeroInicial"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
+          />
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            Déjalo en 0 si la serie empieza de cero. Solo se puede fijar ahora:
+            después el número lo lleva el sistema.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-5 flex justify-end gap-3">
+        <button
+          type="button"
+          (click)="cerrarFormulario()"
+          class="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          [disabled]="guardando()"
+          class="rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
+        >
+          {{ guardando() ? 'Guardando…' : 'Crear serie' }}
+        </button>
+      </div>
+    </form>
+  </section>
+  }
+
+  @if (cargando()) {
+  <div class="rounded-2xl border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+    <p class="text-sm text-gray-500 dark:text-gray-400">Cargando series…</p>
+  </div>
+  } @else {
   <app-tabla-datos
     [columnas]="columnas"
-    [registros]="registros"
-    [totalRegistros]="registros.length"
-    vacioTitulo="Aún no hay series configuradas"
-    vacioDescripcion="Sin una serie configurada no es posible emitir comprobantes."
+    [registros]="registros()"
+    [totalRegistros]="registros().length"
+    vacioTitulo="Aún no hay series"
+    vacioDescripcion="Sin al menos una serie no se puede emitir ningún comprobante: es de donde sale su número."
     vacioAccion="Agregar serie"
+    (accionVacio)="abrirNueva()"
   >
     <ng-template #acciones let-registro>
       <div class="flex items-center justify-end gap-1">
+        @if (registro.activa) {
         <button
           type="button"
-          class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.05]"
-          aria-label="Editar"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z" />
-          </svg>
-        </button>
-
-        <button
-          type="button"
-          (click)="pedirEliminacion(registro)"
+          (click)="pedirDesactivacion(registro)"
+          [attr.aria-label]="'Desactivar la serie ' + registro.serie"
           class="rounded-lg p-2 text-gray-400 transition hover:bg-error-50 hover:text-error-500 dark:hover:bg-error-500/10"
-          aria-label="Eliminar"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 7h14M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4.5h6V7" />
+            <path d="M18.36 6.64A9 9 0 1 1 5.64 6.64M12 3v9" />
           </svg>
         </button>
+        } @else {
+        <button
+          type="button"
+          (click)="reactivar(registro)"
+          [attr.aria-label]="'Reactivar la serie ' + registro.serie"
+          class="rounded-lg px-3 py-1.5 text-xs font-medium text-brand-500 transition hover:bg-brand-50 dark:hover:bg-brand-500/10"
+        >
+          Reactivar
+        </button>
+        }
       </div>
     </ng-template>
   </app-tabla-datos>
+  }
 
   <app-confirmacion
-    [abierto]="confirmacionAbierta"
+    [abierto]="confirmacionAbierta()"
     [peligrosa]="true"
     titulo="¿Desactivar la serie?"
-    mensaje="No se podrán emitir nuevos comprobantes con esta serie. Los ya emitidos conservan su numeración y validez."
-    textoConfirmar="Confirmar"
-    (confirmar)="eliminar()"
-    (cancelar)="confirmacionAbierta = false"
+    mensaje="Dejará de emitir comprobantes nuevos. No se borra ni se reinicia: conserva su último número, así que si la reactivas continuará donde se quedó."
+    textoConfirmar="Desactivar"
+    (confirmar)="desactivar()"
+    (cancelar)="confirmacionAbierta.set(false)"
   />
 </div>
