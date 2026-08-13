@@ -42,10 +42,29 @@ resource "aws_cognito_user_pool" "inquilinos" {
     temporary_password_validity_days = local.politica_contrasena.temporary_password_validity_days
   }
 
-  # Solo un administrador crea usuarios. Un ERP no tiene registro abierto:
-  # quien entra es empleado de una empresa que ya contrató.
+  /**
+   * Autoservicio abierto. Decía lo contrario, y decía esto:
+   *
+   *   «Un ERP no tiene registro abierto: quien entra es empleado de una empresa
+   *   que ya contrató.»
+   *
+   * La segunda mitad sigue siendo cierta y la primera no. El empleado, en
+   * efecto, lo da de alta el administrador de su empresa. Pero **ese
+   * administrador tiene que llegar de algún sitio**, y con el autoservicio
+   * cerrado no llegaba de ninguno: cada cliente nuevo exigía crear a mano la
+   * cuenta, el usuario y la empresa. Es lo que hubo que hacer para poder entrar
+   * a dev por primera vez.
+   *
+   * Decisión de producto (2026-08-13): Ondexia se vende con período de prueba,
+   * así que el alta es una pantalla del producto, no trabajo de operaciones.
+   *
+   * Lo que frena el registro basura no es cerrar el autoservicio sino que el
+   * correo deba verificarse —`auto_verified_attributes`, más arriba— y que el
+   * RUC sea único en toda la instalación. Sin correo confirmado no hay token, y
+   * sin token no hay alta.
+   */
   admin_create_user_config {
-    allow_admin_create_user_only = true
+    allow_admin_create_user_only = false
   }
 
   # No revela si un correo existe cuando falla el acceso.
@@ -86,9 +105,65 @@ resource "aws_cognito_user_pool_client" "spa" {
 
   generate_secret = false
 
+  /**
+   * SRP y renovación. Las dos hacen falta, y la primera no es evidente.
+   *
+   * Es tentador quitar SRP razonando que el SPA nunca ve la contraseña —cierto,
+   * la pide la interfaz alojada—. Pero quien comprueba esa contraseña contra el
+   * pool es la propia interfaz alojada, usando SRP y **este mismo cliente**.
+   * Sin el flujo habilitado no puede validar a nadie, y con
+   * prevent_user_existence_errors activado el fallo sale como «Incorrect
+   * username or password» aunque el usuario exista y la contraseña sea la
+   * correcta. Dos horas de buscar en el sitio equivocado.
+   *
+   * Lo que NO se habilita es ALLOW_USER_PASSWORD_AUTH, que aceptaría la
+   * contraseña en claro desde cualquier cliente. Con SRP, la contraseña no
+   * viaja: viaja una prueba de que se conoce.
+   */
   explicit_auth_flows = [
     "ALLOW_USER_SRP_AUTH",
     "ALLOW_REFRESH_TOKEN_AUTH",
+  ]
+
+  /**
+   * Flujo de código de autorización con PKCE.
+   *
+   * `code` y no `implicit`: el flujo implícito devuelve el token en el
+   * fragmento de la URL, donde acaba en el historial del navegador y en los
+   * registros de cualquier intermediario. Está desaconsejado desde 2019.
+   *
+   * PKCE lo aplica Cognito por su cuenta cuando el cliente no tiene secreto,
+   * que es este caso. Sin él, cualquiera que interceptase el código podría
+   * canjearlo; con él hace falta además el verificador, que solo conoce la
+   * pestaña que inició la sesión.
+   */
+  allowed_oauth_flows_user_pool_client = true
+  allowed_oauth_flows                  = ["code"]
+
+  # `openid` es obligatorio para recibir un id_token. `email` y `profile` son
+  # los que hacen que el token traiga el correo y el nombre — sin ellos, la
+  # pantalla de perfil no tendría qué mostrar hasta llamar a la API.
+  allowed_oauth_scopes         = ["openid", "email", "profile"]
+  supported_identity_providers = ["COGNITO"]
+
+  /**
+   * Cognito solo redirige a URLs de esta lista, comparadas de forma exacta.
+   *
+   * Es la defensa contra el robo del código: sin ella, un atacante podría
+   * lanzar el flujo con una `redirect_uri` propia y recibir él el código de
+   * autorización de la víctima.
+   *
+   * localhost está permitido a propósito para desarrollar, y es la única
+   * excepción de http que acepta Cognito. En prod conviene quitarlo.
+   */
+  callback_urls = [
+    "${local.origen_app}/acceso/retorno",
+    "http://localhost:4200/acceso/retorno",
+  ]
+
+  logout_urls = [
+    "${local.origen_app}/acceso/ingresar",
+    "http://localhost:4200/acceso/ingresar",
   ]
 
   # Una hora de token de acceso limita cuánto sobrevive uno robado. Los
@@ -113,6 +188,25 @@ resource "aws_cognito_user_pool_client" "spa" {
   # atributos que no le corresponden.
   read_attributes  = ["email", "email_verified", "name"]
   write_attributes = ["name"]
+}
+
+/**
+ * Dominio de la interfaz alojada.
+ *
+ * Es la que pide el correo y la contraseña, resuelve el segundo factor, la
+ * verificación por correo y el «olvidé mi contraseña». Nada de eso vive en
+ * nuestro código, y por tanto tampoco su mantenimiento: el pool tiene el MFA
+ * en OPTIONAL, y cada reto de esa negociación —MFA_SETUP, SOFTWARE_TOKEN_MFA,
+ * NEW_PASSWORD_REQUIRED— sería una pantalla propia que construir y probar.
+ *
+ * El prefijo es único en toda la región de AWS, de ahí el identificador de
+ * cuenta. Queda como:
+ *
+ *     https://ondexia-dev-370930247103.auth.us-east-1.amazoncognito.com
+ */
+resource "aws_cognito_user_pool_domain" "inquilinos" {
+  domain       = "${local.nombre}-${local.sufijo}"
+  user_pool_id = aws_cognito_user_pool.inquilinos.id
 }
 
 resource "aws_cognito_user_pool" "personal" {

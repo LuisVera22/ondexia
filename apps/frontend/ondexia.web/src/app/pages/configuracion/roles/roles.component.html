@@ -1,0 +1,368 @@
+<div>
+  <app-encabezado-pagina titulo="Roles y permisos" />
+
+  @if (error()) {
+  <div class="mb-5 flex items-start gap-3 rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert">
+    <svg class="mt-0.5 shrink-0 text-error-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
+    </svg>
+    <p class="text-sm text-error-500">{{ error() }}</p>
+  </div>
+  }
+
+  <p class="mb-5 max-w-3xl text-sm text-gray-500 dark:text-gray-400">
+    Los permisos van en tres niveles: primero el <strong>módulo</strong>, luego
+    sus <strong>submódulos</strong>, y al final las <strong>funciones</strong>.
+    Hacen falta los tres. Apagar un módulo desmarca todo lo que cuelga de él —no
+    lo deja en reserva—, así que volver a encenderlo lo devuelve vacío. Los
+    cambios surten efecto de inmediato, sin que nadie tenga que volver a entrar.
+  </p>
+
+  @if (cargando()) {
+  <div class="rounded-2xl border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+    <p class="text-sm text-gray-500 dark:text-gray-400">Cargando roles…</p>
+  </div>
+  } @else {
+  <div class="grid grid-cols-1 gap-5 lg:grid-cols-[20rem_1fr]">
+    <!-- Lista de roles -->
+    <section class="rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]">
+      <h3 class="mb-3 px-1 text-sm font-medium text-gray-800 dark:text-white/90">Roles</h3>
+
+      <ul class="flex flex-col gap-1">
+        @for (rol of roles(); track rol.id) {
+        <li>
+          <div
+            class="rounded-xl border p-3 transition"
+            [class]="seleccionado()?.id === rol.id ? 'border-brand-500/40 bg-brand-50 dark:bg-brand-500/10' : 'border-transparent hover:bg-gray-50 dark:hover:bg-white/[0.03]'"
+          >
+            <button type="button" (click)="seleccionar(rol)" class="w-full text-left">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-sm font-medium text-gray-800 dark:text-white/90">{{ rol.nombre }}</span>
+                @if (rol.delSistema) {
+                <span class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600 dark:bg-white/[0.06] dark:text-gray-400">
+                  Predefinido
+                </span>
+                }
+              </div>
+              <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                {{ rol.cantidadPermisos }} permiso{{ rol.cantidadPermisos === 1 ? '' : 's' }}
+                @if (rol.enUso) { · en uso }
+              </p>
+            </button>
+
+            <div class="mt-2 flex items-center gap-1">
+              <button
+                type="button"
+                (click)="abrirDuplicado(rol)"
+                class="rounded-lg px-2 py-1 text-xs font-medium text-brand-500 transition hover:bg-brand-50 dark:hover:bg-brand-500/10"
+              >
+                Duplicar
+              </button>
+
+              @if (!rol.delSistema) {
+              <button
+                type="button"
+                (click)="abrirRenombrado(rol)"
+                class="rounded-lg px-2 py-1 text-xs font-medium text-gray-500 transition hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/[0.05]"
+              >
+                Renombrar
+              </button>
+              @if (!rol.enUso) {
+              <button
+                type="button"
+                (click)="pedirEliminacion(rol)"
+                class="rounded-lg px-2 py-1 text-xs font-medium text-error-500 transition hover:bg-error-50 dark:hover:bg-error-500/10"
+              >
+                Eliminar
+              </button>
+              }
+              }
+            </div>
+          </div>
+        </li>
+        }
+      </ul>
+    </section>
+
+    <!-- Matriz en tres niveles -->
+    <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] xl:p-6">
+      @if (!seleccionado()) {
+      <div class="py-16 text-center">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Elige un rol de la izquierda para ver sus permisos.
+        </p>
+      </div>
+      } @else {
+      <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 class="font-medium text-gray-800 dark:text-white/90">{{ seleccionado()!.nombre }}</h3>
+          @if (seleccionado()!.descripcion) {
+          <p class="mt-1 max-w-xl text-sm text-gray-500 dark:text-gray-400">
+            {{ seleccionado()!.descripcion }}
+          </p>
+          }
+          <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            {{ totalFunciones() }} función{{ totalFunciones() === 1 ? '' : 'es' }} marcada{{ totalFunciones() === 1 ? '' : 's' }}
+          </p>
+        </div>
+
+        @if (!soloLectura) {
+        <button
+          type="button"
+          (click)="guardarPermisos()"
+          [disabled]="guardando()"
+          class="shrink-0 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
+        >
+          {{ guardando() ? 'Guardando…' : 'Guardar permisos' }}
+        </button>
+        }
+      </div>
+
+      @if (soloLectura) {
+      <div class="mb-5 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-white/[0.02]">
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          Este rol es predefinido y lo comparten todos los clientes de Ondexia,
+          así que no se modifica. Duplícalo si necesitas uno parecido pero
+          distinto: la copia empieza con estos mismos permisos.
+        </p>
+      </div>
+      }
+
+      <div class="flex flex-col gap-3">
+        @for (modulo of catalogo(); track modulo.codigo) {
+        <div class="rounded-xl border border-gray-200 dark:border-gray-800">
+          <!-- Nivel 1 · Módulo -->
+          <div class="flex items-start gap-3 p-4">
+            <input
+              type="checkbox"
+              [id]="'mod-' + modulo.codigo"
+              [checked]="estaMarcado(modulo.id)"
+              [disabled]="soloLectura"
+              (change)="alternarModulo(modulo)"
+              class="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/20 disabled:opacity-60 dark:border-gray-700 dark:bg-transparent"
+            />
+
+            <div class="min-w-0 flex-1">
+              <label
+                [for]="'mod-' + modulo.codigo"
+                class="text-sm font-medium text-gray-800 dark:text-white/90"
+                [class]="soloLectura ? 'cursor-default' : 'cursor-pointer'"
+              >
+                {{ modulo.nombre }}
+              </label>
+
+              @if (modulo.descripcion) {
+              <p class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{{ modulo.descripcion }}</p>
+              }
+
+              @if (estaMarcado(modulo.id)) {
+              <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                {{ submodulosActivos(modulo) }} de {{ modulo.submodulos.length }} submódulos ·
+                {{ funcionesActivas(modulo) }} función{{ funcionesActivas(modulo) === 1 ? '' : 'es' }}
+              </p>
+              } @else {
+              <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                Módulo cerrado: nada de lo que hay dentro autoriza.
+              </p>
+              }
+            </div>
+
+            <button
+              type="button"
+              (click)="alternarDespliegue(modulo.codigo)"
+              [attr.aria-expanded]="estaDesplegado(modulo.codigo)"
+              [attr.aria-label]="(estaDesplegado(modulo.codigo) ? 'Plegar ' : 'Desplegar ') + modulo.nombre"
+              class="shrink-0 rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.05]"
+            >
+              <svg
+                width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"
+                class="transition-transform"
+                [class]="estaDesplegado(modulo.codigo) ? 'rotate-180' : ''"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+          </div>
+
+          @if (estaDesplegado(modulo.codigo)) {
+          <div class="border-t border-gray-100 dark:border-gray-800">
+            @if (bloqueadoPorModulo(modulo)) {
+            <p class="border-b border-gray-100 bg-gray-50 px-4 py-2.5 text-xs text-gray-500 dark:border-gray-800 dark:bg-white/[0.02] dark:text-gray-400">
+              Enciende <strong>{{ modulo.nombre }}</strong> para poder elegir aquí dentro. Lo que
+              marques ahora no tendría efecto.
+            </p>
+            }
+
+            <div class="divide-y divide-gray-100 dark:divide-gray-800">
+              @for (submodulo of modulo.submodulos; track submodulo.codigo) {
+              <div
+                class="px-4 py-3"
+                [class]="bloqueadoPorModulo(modulo) ? 'opacity-50' : ''"
+              >
+                <!-- Nivel 2 · Submódulo -->
+                <div class="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    [id]="'sub-' + submodulo.codigo"
+                    [checked]="estaMarcado(submodulo.id)"
+                    [disabled]="soloLectura || bloqueadoPorModulo(modulo)"
+                    (change)="alternarSubmodulo(modulo, submodulo)"
+                    class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/20 disabled:opacity-60 dark:border-gray-700 dark:bg-transparent"
+                  />
+                  <label
+                    [for]="'sub-' + submodulo.codigo"
+                    class="flex-1 text-sm text-gray-700 dark:text-gray-300"
+                    [class]="soloLectura || bloqueadoPorModulo(modulo) ? 'cursor-default' : 'cursor-pointer'"
+                  >
+                    {{ submodulo.nombre }}
+                  </label>
+
+                  @if (!bloqueadaPorSubmodulo(modulo, submodulo) && !soloLectura) {
+                  <button
+                    type="button"
+                    (click)="alternarTodasLasFunciones(modulo, submodulo)"
+                    class="shrink-0 rounded-lg px-2 py-1 text-xs font-medium text-brand-500 transition hover:bg-brand-50 dark:hover:bg-brand-500/10"
+                  >
+                    Todas
+                  </button>
+                  }
+                </div>
+
+                <!-- Nivel 3 · Funciones -->
+                <div
+                  class="ml-7 mt-2 flex flex-wrap items-center gap-x-4 gap-y-2"
+                  [class]="bloqueadaPorSubmodulo(modulo, submodulo) ? 'opacity-50' : ''"
+                >
+                  @for (funcion of submodulo.funciones; track funcion.id) {
+                  <label
+                    class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"
+                    [class]="soloLectura || bloqueadaPorSubmodulo(modulo, submodulo) ? 'cursor-default' : 'cursor-pointer'"
+                  >
+                    <input
+                      type="checkbox"
+                      [checked]="estaMarcado(funcion.id)"
+                      [disabled]="soloLectura || bloqueadaPorSubmodulo(modulo, submodulo)"
+                      (change)="alternarFuncion(modulo, submodulo, funcion.id)"
+                      class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/20 disabled:opacity-60 dark:border-gray-700 dark:bg-transparent"
+                    />
+                    {{ funcion.nombre }}
+                  </label>
+                  }
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+          }
+        </div>
+        }
+      </div>
+      }
+    </section>
+  </div>
+  }
+
+  <!-- Duplicar -->
+  @if (duplicandoDe()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4">
+    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+      <h3 class="mb-1 font-medium text-gray-800 dark:text-white/90">Duplicar rol</h3>
+      <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
+        La copia empieza con los mismos permisos que «{{ duplicandoDe()!.nombre }}» y ya es editable.
+      </p>
+
+      <form [formGroup]="formularioDuplicado" (ngSubmit)="duplicar()" novalidate>
+        <label for="nombreCopia" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+          Nombre del rol nuevo <span class="text-error-500">*</span>
+        </label>
+        <input
+          id="nombreCopia"
+          type="text"
+          formControlName="nombre"
+          maxlength="120"
+          class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
+        />
+
+        <div class="mt-5 flex justify-end gap-3">
+          <button
+            type="button"
+            (click)="cerrarDuplicado()"
+            class="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="guardando()"
+            class="rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
+          >
+            {{ guardando() ? 'Duplicando…' : 'Duplicar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+
+  <!-- Renombrar -->
+  @if (renombrando()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4">
+    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
+      <h3 class="mb-5 font-medium text-gray-800 dark:text-white/90">Renombrar rol</h3>
+
+      <form [formGroup]="formularioRenombrado" (ngSubmit)="renombrar()" novalidate>
+        <label for="nombreRol" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+          Nombre <span class="text-error-500">*</span>
+        </label>
+        <input
+          id="nombreRol"
+          type="text"
+          formControlName="nombre"
+          maxlength="120"
+          class="mb-4 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
+        />
+
+        <label for="descripcionRol" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+          Descripción
+        </label>
+        <textarea
+          id="descripcionRol"
+          formControlName="descripcion"
+          rows="3"
+          maxlength="300"
+          class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
+        ></textarea>
+
+        <div class="mt-5 flex justify-end gap-3">
+          <button
+            type="button"
+            (click)="cerrarRenombrado()"
+            class="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="guardando()"
+            class="rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
+          >
+            {{ guardando() ? 'Guardando…' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+
+  <app-confirmacion
+    [abierto]="confirmacionAbierta()"
+    [peligrosa]="true"
+    titulo="¿Eliminar el rol?"
+    [mensaje]="mensajeEliminacion"
+    textoConfirmar="Eliminar"
+    (confirmar)="eliminar()"
+    (cancelar)="confirmacionAbierta.set(false)"
+  />
+</div>

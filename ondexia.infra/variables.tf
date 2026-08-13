@@ -75,6 +75,30 @@ variable "almacenamiento_bd_gb" {
   default     = 20
 }
 
+variable "acceso_bd_publico" {
+  description = <<-TEXTO
+    Da a la instancia RDS una IP pública y abre el 5432 **solo** a la IP
+    saliente de quien aplica, para poder conectar psql o un cliente gráfico
+    desde el equipo de desarrollo.
+
+    Solo tiene efecto en dev: `local.bd_publica` lo cruza con el entorno, y la
+    precondición de la instancia aborta el apply si alguien lo enciende en
+    prod. La base de prod guarda datos tributarios de clientes y no se expone
+    a internet por comodidad de nadie.
+
+    Lo que hay que entender antes de encenderlo: con esto las subredes dejan de
+    ser privadas de verdad —tienen ruta a la puerta de enlace— y lo único que
+    separa la base de internet es el grupo de seguridad. La Lambda sigue sin
+    salida, porque sus interfaces nunca reciben IP pública.
+
+    La alternativa sin exposición es un bastión con EC2 Instance Connect
+    Endpoint: cuesta ~3 USD/mes y deja la topología intacta. Es la vía a usar
+    cuando dev tenga datos que importen.
+  TEXTO
+  type        = bool
+  default     = false
+}
+
 variable "retencion_respaldos_dias" {
   description = <<-TEXTO
     Días de retención de respaldos automáticos. Con 7 se cubre el RPO de 5 min
@@ -126,9 +150,46 @@ variable "concurrencia_reservada_api" {
     conexiones por contenedor, 20 contenedores son 40 conexiones, dentro de lo
     que aguanta una db.t4g.micro. Además acota el gasto ante un bucle
     accidental (DTE §4.6).
+
+    -1 significa «sin reserva»: la función usa el fondo común de la cuenta.
+
+    OJO con las cuentas nuevas de AWS. El límite de concurrencia no arranca en
+    los 1000 habituales sino en 10, y AWS exige que queden al menos 10 SIN
+    reservar. Con ese techo ninguna función puede reservar nada, y cualquier
+    valor positivo hace fallar el apply:
+
+      InvalidParameterValueException: Specified ReservedConcurrentExecutions
+      for function decreases account's UnreservedConcurrentExecution below its
+      minimum value of [10]
+
+    Se comprueba con `aws lambda get-account-settings`. Para poner un valor
+    real hay que pedir antes una ampliación de cuota a AWS.
   TEXTO
   type        = number
-  default     = 20
+  default     = -1
+
+  validation {
+    condition     = var.concurrencia_reservada_api == -1 || var.concurrencia_reservada_api >= 1
+    error_message = "Usa -1 para no reservar, o un entero >= 1. El 0 existe y significa APAGAR la funcion: rechaza toda invocacion."
+  }
+}
+
+variable "repositorio_github" {
+  description = <<-TEXTO
+    Repositorio en formato `propietario/nombre`. Solo las ejecuciones de GitHub
+    Actions sobre ESTE repositorio, y sobre las ramas main o develop, pueden
+    asumir el rol de despliegue.
+
+    Es el valor que acota todo el mecanismo: con un comodín aquí, cualquier
+    repositorio de GitHub podría asumirlo. Ver despliegue.tf.
+  TEXTO
+  type        = string
+  default     = "LuisVera22/ondexia"
+
+  validation {
+    condition     = can(regex("^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$", var.repositorio_github))
+    error_message = "Debe ser propietario/nombre, sin comodines ni barras de más."
+  }
 }
 
 variable "retencion_logs_dias" {

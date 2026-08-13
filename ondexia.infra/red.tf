@@ -22,6 +22,24 @@ locals {
   # la instancia sea de zona única: es un requisito del servicio, no una
   # decisión de alta disponibilidad.
   zonas = slice(data.aws_availability_zones.disponibles.names, 0, 2)
+
+  # El `&&` no es redundante con la precondición de la instancia: esta línea
+  # hace que el valor sea falso en prod aunque alguien lo encienda, y la
+  # precondición hace que además se entere. Silencioso y seguro, o ruidoso e
+  # inseguro, son dos formas de fallar; esto es ruidoso y seguro.
+  bd_publica = var.acceso_bd_publico && var.entorno == "dev"
+}
+
+# La IP saliente de quien ejecuta el apply. Se consulta a un servicio de AWS
+# que devuelve la dirección en texto plano y nada más.
+#
+# Ojo con la consecuencia: la regla del grupo de seguridad queda atada a la red
+# desde la que se aplicó. Aplicar desde otra red —o que el proveedor rote la IP
+# doméstica— reescribe la regla en el siguiente plan. Eso es visible en el diff,
+# que es donde debe verse.
+data "http" "ip_de_quien_aplica" {
+  count = local.bd_publica ? 1 : 0
+  url   = "https://checkip.amazonaws.com"
 }
 
 resource "aws_vpc" "principal" {
@@ -57,6 +75,38 @@ resource "aws_route_table_association" "privada" {
 
   subnet_id      = aws_subnet.privada[count.index].id
   route_table_id = aws_route_table.privada.id
+}
+
+/**
+ * Puerta de enlace a internet — solo cuando dev abre la base de datos.
+ *
+ * No contradice la cabecera de este archivo: sigue sin haber NAT, y la Lambda
+ * sigue sin poder salir. Una función en subred privada no recibe IP pública en
+ * sus interfaces, así que una ruta por defecto no le sirve de nada; hace falta
+ * NAT, y no la hay. Lo único que esta ruta habilita es el tráfico de vuelta de
+ * la RDS, que sí tiene IP pública cuando `publicly_accessible` está activo.
+ *
+ * La puerta de enlace no cuesta nada por existir. Lo que se paga es la
+ * transferencia de salida, y consultar una base de datos de dev mueve
+ * kilobytes.
+ */
+resource "aws_internet_gateway" "principal" {
+  count = local.bd_publica ? 1 : 0
+
+  vpc_id = aws_vpc.principal.id
+
+  tags = { Name = "${local.nombre}-igw" }
+}
+
+# Se declara suelta y no como bloque `route` dentro de la tabla: los bloques
+# inline y los recursos `aws_route` sobre la misma tabla se pisan entre sí, y
+# aquí la ruta tiene que poder desaparecer sin tocar la tabla.
+resource "aws_route" "salida_internet" {
+  count = local.bd_publica ? 1 : 0
+
+  route_table_id         = aws_route_table.privada.id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.principal[0].id
 }
 
 /**
@@ -107,6 +157,19 @@ resource "aws_vpc_security_group_ingress_rule" "bd_desde_lambda" {
   to_port                      = 5432
   ip_protocol                  = "tcp"
   description                  = "PostgreSQL desde la Lambda de la API"
+}
+
+# La única puerta que separa la base de internet cuando dev está abierto. Un
+# /32: no un rango de la operadora, no 0.0.0.0/0 «mientras pruebo».
+resource "aws_vpc_security_group_ingress_rule" "bd_desde_desarrollo" {
+  count = local.bd_publica ? 1 : 0
+
+  security_group_id = aws_security_group.base_datos.id
+  cidr_ipv4         = "${chomp(data.http.ip_de_quien_aplica[0].response_body)}/32"
+  from_port         = 5432
+  to_port           = 5432
+  ip_protocol       = "tcp"
+  description       = "PostgreSQL desde el equipo que aplico Terraform (solo dev)"
 }
 
 resource "aws_vpc_security_group_egress_rule" "lambda_hacia_bd" {

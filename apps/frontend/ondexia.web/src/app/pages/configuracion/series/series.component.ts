@@ -1,0 +1,229 @@
+import { Component, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
+import { TablaDatosComponent, ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
+import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
+import {
+  ConfiguracionApiService,
+  Establecimiento,
+  SerieApi,
+  TipoDocumento,
+  mensajeDeError,
+} from '../../../nucleo/configuracion.api.service';
+
+/**
+ * Series de comprobante por establecimiento y tipo de documento.
+ *
+ * <h2>Lo que esta pantalla no ofrece, y por qué</h2>
+ *
+ * <p>No se puede editar el correlativo, y no es que falte el campo: el backend
+ * tampoco lo acepta. El número lo asigna el sistema al confirmar el documento,
+ * dentro de la transacción, y un botón para «corregirlo» acabaría usándose para
+ * tapar un error y produciría dos comprobantes con el mismo número (DTE F-02).
+ *
+ * <p>Quien migra desde otro sistema sí necesita empezar en 4300, y para eso está
+ * el número inicial <strong>del alta</strong>: se fija una vez y desaparece.
+ *
+ * <p>Tampoco se puede eliminar una serie. Nombra a todos los comprobantes que
+ * emitió; lo que se hace es desactivarla, y entonces deja de emitir sin perder
+ * su numeración — reactivarla continúa donde se quedó, no vuelve a empezar.
+ *
+ * <h2>Cambios respecto a la maqueta</h2>
+ *
+ * <p>La columna «Último número» se acompaña del siguiente ya formateado, que es
+ * lo que de verdad se quiere saber al mirar esta tabla. Y el tipo de documento
+ * sale del catálogo 01 del servidor, no de una lista escrita aquí: la letra de
+ * la serie depende del tipo, y tener esa correspondencia en dos sitios es cómo
+ * se acaba ofreciendo una combinación que el servidor rechaza.
+ */
+@Component({
+  selector: 'app-series',
+  imports: [
+    EncabezadoPaginaComponent,
+    TablaDatosComponent,
+    ConfirmacionComponent,
+    ReactiveFormsModule,
+  ],
+  templateUrl: './series.component.html',
+})
+export class SeriesComponent {
+  private readonly api = inject(ConfiguracionApiService);
+  private readonly constructorFormulario = inject(FormBuilder);
+
+  readonly columnas: ColumnaTabla[] = [
+    { campo: 'serie', titulo: 'Serie', ordenable: true, ancho: 'w-28' },
+    { campo: 'tipoDocumento', titulo: 'Tipo de comprobante', ordenable: true },
+    { campo: 'establecimiento', titulo: 'Establecimiento', ordenable: true },
+    { campo: 'ultimoNumero', titulo: 'Último emitido', formato: 'cantidad', ancho: 'w-32' },
+    { campo: 'siguiente', titulo: 'Siguiente', ancho: 'w-40' },
+    { campo: 'estado', titulo: 'Estado', ancho: 'w-28' },
+  ];
+
+  readonly registros = signal<Record<string, unknown>[]>([]);
+  readonly establecimientos = signal<Establecimiento[]>([]);
+  readonly tipos = signal<TipoDocumento[]>([]);
+  readonly cargando = signal(true);
+  readonly guardando = signal(false);
+  readonly error = signal<string | null>(null);
+
+  readonly formularioAbierto = signal(false);
+  readonly confirmacionAbierta = signal(false);
+
+  private aDesactivar: SerieApi | null = null;
+  private originales: SerieApi[] = [];
+
+  formulario = this.constructorFormulario.nonNullable.group({
+    sucursalId: ['', [Validators.required]],
+    tipoDocumento: ['', [Validators.required]],
+    serie: ['', [Validators.required, Validators.pattern(/^[A-Za-z][A-Za-z0-9]{3}$/)]],
+    numeroInicial: [0, [Validators.min(0), Validators.max(99999999)]],
+  });
+
+  constructor() {
+    void this.cargar();
+  }
+
+  get controles() {
+    return this.formulario.controls;
+  }
+
+  /**
+   * La letra que SUNAT exige según el tipo elegido. Se muestra como ayuda en vez
+   * de forzarla en el campo: escribirla es parte de reconocer la serie propia, y
+   * un prefijo fijo hace dudar de si hay que teclearla o no.
+   */
+  get letraEsperada(): string {
+    switch (this.controles.tipoDocumento.value) {
+      case '01':
+        return 'F';
+      case '03':
+        return 'B';
+      case '07':
+      case '08':
+        return 'F o B';
+      case '09':
+        return 'T';
+      default:
+        return '';
+    }
+  }
+
+  private async cargar(): Promise<void> {
+    this.cargando.set(true);
+    this.error.set(null);
+    try {
+      const [series, establecimientos, tipos] = await Promise.all([
+        this.api.series(),
+        this.api.establecimientos(),
+        this.api.tiposDocumento(),
+      ]);
+
+      this.originales = series;
+      this.establecimientos.set(establecimientos);
+      this.tipos.set(tipos);
+
+      const porId = new Map(establecimientos.map((e) => [e.id, e]));
+
+      this.registros.set(
+        series.map((s) => ({
+          id: s.id,
+          serie: s.serie,
+          tipoDocumento: s.tipoDocumentoNombre,
+          establecimiento:
+            porId.get(s.sucursalId)?.nombre ?? 'Establecimiento desconocido',
+          ultimoNumero: s.ultimoNumero,
+          // Solo tiene sentido si la serie va a emitir. En una desactivada, el
+          // «siguiente» sería un número que nadie va a usar.
+          siguiente: s.activa ? s.siguienteNumero : '—',
+          estado: s.activa ? 'Activa' : 'Inactiva',
+          activa: s.activa,
+        }))
+      );
+    } catch (fallo: unknown) {
+      this.error.set(mensajeDeError(fallo, 'No se pudieron cargar las series.'));
+    } finally {
+      this.cargando.set(false);
+    }
+  }
+
+  abrirNueva(): void {
+    this.formulario.reset({
+      sucursalId: this.establecimientos()[0]?.id ?? '',
+      tipoDocumento: '',
+      serie: '',
+      numeroInicial: 0,
+    });
+    this.formularioAbierto.set(true);
+  }
+
+  cerrarFormulario(): void {
+    this.formularioAbierto.set(false);
+  }
+
+  async guardar(): Promise<void> {
+    if (this.formulario.invalid) {
+      this.formulario.markAllAsTouched();
+      return;
+    }
+
+    this.guardando.set(true);
+    this.error.set(null);
+
+    const valores = this.formulario.getRawValue();
+
+    try {
+      await this.api.crearSerie({
+        sucursalId: valores.sucursalId,
+        tipoDocumento: valores.tipoDocumento,
+        serie: valores.serie,
+        numeroInicial: valores.numeroInicial ?? 0,
+      });
+      this.cerrarFormulario();
+      await this.cargar();
+    } catch (fallo: unknown) {
+      // El servidor explica bien los dos casos previsibles: la letra que no
+      // corresponde al tipo, y el tipo que la empresa tiene deshabilitado en
+      // Configuración › Comprobantes.
+      this.error.set(mensajeDeError(fallo, 'No se pudo crear la serie.'));
+    } finally {
+      this.guardando.set(false);
+    }
+  }
+
+  pedirDesactivacion(fila: Record<string, unknown>): void {
+    const serie = this.originales.find((s) => s.id === fila['id']);
+    if (!serie) {
+      return;
+    }
+    this.aDesactivar = serie;
+    this.confirmacionAbierta.set(true);
+  }
+
+  async desactivar(): Promise<void> {
+    if (!this.aDesactivar) {
+      return;
+    }
+    this.confirmacionAbierta.set(false);
+    this.error.set(null);
+
+    try {
+      await this.api.cambiarEstadoSerie(this.aDesactivar.id, false);
+      await this.cargar();
+    } catch (fallo: unknown) {
+      this.error.set(mensajeDeError(fallo, 'No se pudo desactivar la serie.'));
+    } finally {
+      this.aDesactivar = null;
+    }
+  }
+
+  /** Reactivar no necesita confirmación: no destruye nada y se deshace igual. */
+  async reactivar(fila: Record<string, unknown>): Promise<void> {
+    this.error.set(null);
+    try {
+      await this.api.cambiarEstadoSerie(String(fila['id']), true);
+      await this.cargar();
+    } catch (fallo: unknown) {
+      this.error.set(mensajeDeError(fallo, 'No se pudo reactivar la serie.'));
+    }
+  }
+}

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  El dominio de Ondexia. Reglas de negocio y nada mas.
+
+  ══════════════════════════════════════════════════════════════════════════
+  ESTE MODULO NO TIENE NINGUNA DEPENDENCIA DE PRODUCCION, Y ES DELIBERADO.
+  ══════════════════════════════════════════════════════════════════════════
+
+  Sin JPA, sin Spring, sin Bean Validation. Asi la pureza del dominio no es una
+  convencion que alguien tenga que recordar: `jakarta.persistence` no esta en el
+  classpath, de modo que una entidad con @Entity aqui **no compila**.
+
+  Antes de anadir una dependencia, la pregunta es si el negocio la necesita para
+  existir. La respuesta casi siempre es no: las reglas se comprueban en el
+  constructor, no con anotaciones que solo actuan si alguien invoca al validador.
+
+  Existe como modulo aparte porque ondexia-facturacion tambien lo necesita — el
+  Emisor lee el mismo Comprobante que escribe el nucleo comercial (DT-13). Esa
+  es la razon del modulo; la pureza del compilador es un beneficio anadido.
+
+  Ver ondexia.docs/08-arquitectura-backend.md
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.ondexia</groupId>
+    <artifactId>ondexia-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>ondexia-domain</artifactId>
+  <name>Ondexia — dominio</name>
+
+  <build>
+    <plugins>
+      <!--
+        Es una biblioteca, no un ejecutable. Sin esto el plugin de Spring Boot
+        lo reempaqueta como jar ejecutable, las clases quedan bajo BOOT-INF/ y
+        ondexia-api no las ve.
+      -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

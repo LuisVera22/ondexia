@@ -1,0 +1,457 @@
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { CONFIGURACION } from './configuracion';
+
+/**
+ * Cliente del módulo de configuración.
+ *
+ * <p>Escrito a mano, igual que {@code contexto.api.ts}. La intención sigue
+ * siendo generarlo desde el {@code openapi.yaml} que el backend exporta en cada
+ * build; mientras eso no exista, estos tipos son el único sitio donde una
+ * divergencia entre backend y frontend puede pasar inadvertida.
+ */
+
+export interface Empresa {
+  readonly id: string;
+  /** No se puede cambiar: identifica al contribuyente en los comprobantes emitidos. */
+  readonly ruc: string;
+  readonly razonSocial: string;
+  readonly nombreComercial: string | null;
+  readonly domicilioFiscal: string;
+  readonly ubigeo: string | null;
+  readonly modoSunat: string;
+  readonly activa: boolean;
+}
+
+export interface DatosEmpresa {
+  readonly razonSocial: string;
+  readonly nombreComercial: string | null;
+  readonly domicilioFiscal: string;
+  readonly ubigeo: string | null;
+}
+
+export interface Establecimiento {
+  readonly id: string;
+  /** Los cuatro dígitos que asigna SUNAT. No se puede cambiar. */
+  readonly codigo: string;
+  readonly nombre: string;
+  readonly direccion: string;
+  readonly ubigeo: string | null;
+  readonly activa: boolean;
+}
+
+export interface DatosEstablecimiento {
+  readonly nombre: string;
+  readonly direccion: string;
+  readonly ubigeo: string | null;
+}
+
+export interface AlmacenApi {
+  readonly id: string;
+  /** Corto y en mayúsculas: se teclea en cada movimiento de mercadería. */
+  readonly codigo: string;
+  readonly nombre: string;
+  /** null: hay almacenes que no cuelgan de ningún establecimiento. */
+  readonly sucursalId: string | null;
+  readonly activo: boolean;
+}
+
+export interface DatosAlmacen {
+  readonly nombre: string;
+  readonly sucursalId: string | null;
+}
+
+// ── Series ─────────────────────────────────────────────────────────────────
+
+export interface TipoDocumento {
+  /** Código del catálogo 01 de SUNAT: '01', '03', '07', '08', '09'. */
+  readonly codigo: string;
+  readonly nombre: string;
+}
+
+export interface SerieApi {
+  readonly id: string;
+  readonly sucursalId: string;
+  readonly tipoDocumento: string;
+  readonly tipoDocumentoNombre: string;
+  readonly serie: string;
+  /** Último número EMITIDO. Una serie nueva vale 0. */
+  readonly ultimoNumero: number;
+  /** Ya formateado por el backend: `F001-00001234`. */
+  readonly siguienteNumero: string;
+  readonly activa: boolean;
+}
+
+export interface DatosSerie {
+  readonly sucursalId: string;
+  readonly tipoDocumento: string;
+  readonly serie: string;
+  /** Solo al dar de alta, para quien migra desde otro sistema. */
+  readonly numeroInicial: number;
+}
+
+// ── Usuarios ───────────────────────────────────────────────────────────────
+
+export interface UsuarioApi {
+  /** El identificador de la ASIGNACIÓN, no el de la persona. */
+  readonly asignacionId: string;
+  readonly usuarioId: string;
+  readonly email: string;
+  readonly nombre: string;
+  readonly activo: boolean;
+  /** Existe en nuestra base pero aún no completó su registro en Cognito. */
+  readonly invitado: boolean;
+  readonly rolId: string;
+  readonly rolNombre: string;
+  readonly sucursalId: string | null;
+  readonly sucursalNombre: string | null;
+  readonly todosLosEstablecimientos: boolean;
+}
+
+export interface RolAsignable {
+  readonly id: string;
+  readonly codigo: string;
+  readonly nombre: string;
+  readonly descripcion: string | null;
+  readonly delSistema: boolean;
+}
+
+// ── Roles ──────────────────────────────────────────────────────────────────
+
+export interface RolApi {
+  readonly id: string;
+  readonly codigo: string;
+  readonly nombre: string;
+  readonly descripcion: string | null;
+  /** Los predefinidos no se editan ni se borran: se duplican. */
+  readonly delSistema: boolean;
+  readonly cantidadPermisos: number;
+  readonly enUso: boolean;
+}
+
+/**
+ * El catálogo llega como árbol de tres niveles y con los nombres ya traducidos.
+ *
+ * La jerarquía es **conjuntiva**: para poder consultar productos hacen falta el
+ * módulo, el submódulo y la función. Apagar el módulo deja fuera todo lo que
+ * cuelga de él.
+ *
+ * Antes había aquí un mapa de códigos a nombres escrito a mano. Se quitó porque
+ * degradaba en silencio: al añadir un módulo nadie se acordaba de ampliarlo, la
+ * pantalla mostraba `almacen.tipo_precio` en crudo y no fallaba nada.
+ */
+export interface FuncionApi {
+  readonly id: string;
+  readonly accion: string;
+  /** «Consultar», «Anular»… ya en castellano. */
+  readonly nombre: string;
+  readonly codigo: string;
+}
+
+export interface SubmoduloApi {
+  readonly id: string;
+  readonly codigo: string;
+  readonly nombre: string;
+  readonly funciones: FuncionApi[];
+}
+
+export interface ModuloApi {
+  readonly id: string;
+  readonly codigo: string;
+  readonly nombre: string;
+  readonly descripcion: string | null;
+  readonly submodulos: SubmoduloApi[];
+}
+
+// ── Comprobantes ───────────────────────────────────────────────────────────
+
+// ── Identidad visual ───────────────────────────────────────────────────────
+
+export interface LogoApi {
+  /** `logo_principal`, `logo_ticket` o `simbolo`. */
+  readonly logo: string;
+  readonly nombre: string;
+  /** null = sin archivo cargado. */
+  readonly url: string | null;
+  /** Para avisar antes de subir, en vez de dejar que el usuario espere y falle. */
+  readonly maximoBytes: number;
+}
+
+export interface AutorizacionDeSubida {
+  /** Destino del PUT. Lleva la firma dentro; no se le añade cabecera de sesión. */
+  readonly url: string;
+  readonly clave: string;
+  readonly validaSegundos: number;
+}
+
+export interface TipoComprobanteApi {
+  readonly codigo: string;
+  readonly nombre: string;
+  readonly emite: boolean;
+  /** Por qué un interruptor no se deja apagar. */
+  readonly seriesActivas: number;
+}
+
+@Injectable({ providedIn: 'root' })
+export class ConfiguracionApiService {
+  private readonly http = inject(HttpClient);
+  private readonly config = inject(CONFIGURACION);
+
+  private get base(): string {
+    return `${this.config.api}/api/v1/configuracion`;
+  }
+
+  empresa(): Promise<Empresa> {
+    return firstValueFrom(this.http.get<Empresa>(`${this.base}/empresa`));
+  }
+
+  guardarEmpresa(datos: DatosEmpresa): Promise<Empresa> {
+    return firstValueFrom(this.http.put<Empresa>(`${this.base}/empresa`, datos));
+  }
+
+  establecimientos(): Promise<Establecimiento[]> {
+    return firstValueFrom(
+      this.http.get<Establecimiento[]>(`${this.base}/establecimientos`)
+    );
+  }
+
+  crearEstablecimiento(
+    datos: DatosEstablecimiento & { readonly codigo: string }
+  ): Promise<Establecimiento> {
+    return firstValueFrom(
+      this.http.post<Establecimiento>(`${this.base}/establecimientos`, datos)
+    );
+  }
+
+  actualizarEstablecimiento(
+    id: string,
+    datos: DatosEstablecimiento
+  ): Promise<Establecimiento> {
+    return firstValueFrom(
+      this.http.put<Establecimiento>(`${this.base}/establecimientos/${id}`, datos)
+    );
+  }
+
+  /** Desactiva, no borra: el establecimiento aparece en los comprobantes emitidos. */
+  desactivarEstablecimiento(id: string): Promise<void> {
+    return firstValueFrom(
+      this.http.delete<void>(`${this.base}/establecimientos/${id}`)
+    );
+  }
+
+  // ── Almacenes ────────────────────────────────────────────────────────────
+  //
+  // Cuelgan de /almacen y no de /configuracion porque los gobierna el permiso
+  // `almacen.almacen`: quien administra el inventario los crea, sin necesitar
+  // acceso a los datos fiscales de la empresa.
+
+  private get baseAlmacen(): string {
+    return `${this.config.api}/api/v1/almacen`;
+  }
+
+  almacenes(): Promise<AlmacenApi[]> {
+    return firstValueFrom(this.http.get<AlmacenApi[]>(`${this.baseAlmacen}/almacenes`));
+  }
+
+  crearAlmacen(datos: DatosAlmacen & { readonly codigo: string }): Promise<AlmacenApi> {
+    return firstValueFrom(this.http.post<AlmacenApi>(`${this.baseAlmacen}/almacenes`, datos));
+  }
+
+  actualizarAlmacen(id: string, datos: DatosAlmacen): Promise<AlmacenApi> {
+    return firstValueFrom(
+      this.http.put<AlmacenApi>(`${this.baseAlmacen}/almacenes/${id}`, datos)
+    );
+  }
+
+  /** Desactiva, no borra: el almacén aparece en cada movimiento de stock que lo tocó. */
+  desactivarAlmacen(id: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`${this.baseAlmacen}/almacenes/${id}`));
+  }
+
+  // ── Series ───────────────────────────────────────────────────────────────
+
+  tiposDocumento(): Promise<TipoDocumento[]> {
+    return firstValueFrom(
+      this.http.get<TipoDocumento[]>(`${this.base}/series/tipos-documento`)
+    );
+  }
+
+  series(): Promise<SerieApi[]> {
+    return firstValueFrom(this.http.get<SerieApi[]>(`${this.base}/series`));
+  }
+
+  crearSerie(datos: DatosSerie): Promise<SerieApi> {
+    return firstValueFrom(this.http.post<SerieApi>(`${this.base}/series`, datos));
+  }
+
+  /**
+   * Lo único editable de una serie.
+   *
+   * No hay forma de cambiar el correlativo, y es deliberado: un endpoint para
+   * «corregirlo» acabaría usándose para tapar un error y produciría dos
+   * comprobantes con el mismo número.
+   */
+  cambiarEstadoSerie(id: string, activa: boolean): Promise<SerieApi> {
+    return firstValueFrom(
+      this.http.put<SerieApi>(`${this.base}/series/${id}/estado`, { activa })
+    );
+  }
+
+  // ── Usuarios ─────────────────────────────────────────────────────────────
+
+  usuarios(): Promise<UsuarioApi[]> {
+    return firstValueFrom(this.http.get<UsuarioApi[]>(`${this.base}/usuarios`));
+  }
+
+  rolesAsignables(): Promise<RolAsignable[]> {
+    return firstValueFrom(
+      this.http.get<RolAsignable[]>(`${this.base}/usuarios/roles-asignables`)
+    );
+  }
+
+  invitarUsuario(datos: {
+    readonly email: string;
+    readonly nombre: string;
+    readonly rolId: string;
+    readonly sucursalId: string | null;
+  }): Promise<UsuarioApi> {
+    return firstValueFrom(this.http.post<UsuarioApi>(`${this.base}/usuarios`, datos));
+  }
+
+  reasignarUsuario(
+    asignacionId: string,
+    datos: { readonly rolId: string; readonly sucursalId: string | null }
+  ): Promise<UsuarioApi> {
+    return firstValueFrom(
+      this.http.put<UsuarioApi>(`${this.base}/usuarios/${asignacionId}`, datos)
+    );
+  }
+
+  cambiarEstadoUsuario(asignacionId: string, activo: boolean): Promise<UsuarioApi> {
+    return firstValueFrom(
+      this.http.put<UsuarioApi>(`${this.base}/usuarios/${asignacionId}/estado`, { activo })
+    );
+  }
+
+  /** Quita el acceso a esta empresa. La persona sigue en la cuenta. */
+  retirarUsuario(asignacionId: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`${this.base}/usuarios/${asignacionId}`));
+  }
+
+  // ── Roles ────────────────────────────────────────────────────────────────
+
+  roles(): Promise<RolApi[]> {
+    return firstValueFrom(this.http.get<RolApi[]>(`${this.base}/roles`));
+  }
+
+  catalogoPermisos(): Promise<ModuloApi[]> {
+    return firstValueFrom(this.http.get<ModuloApi[]>(`${this.base}/roles/permisos`));
+  }
+
+  permisosDelRol(rolId: string): Promise<string[]> {
+    return firstValueFrom(this.http.get<string[]>(`${this.base}/roles/${rolId}/permisos`));
+  }
+
+  duplicarRol(rolOrigenId: string, nombre: string): Promise<RolApi> {
+    return firstValueFrom(
+      this.http.post<RolApi>(`${this.base}/roles/${rolOrigenId}/duplicado`, { nombre })
+    );
+  }
+
+  renombrarRol(rolId: string, nombre: string, descripcion: string | null): Promise<RolApi> {
+    return firstValueFrom(
+      this.http.put<RolApi>(`${this.base}/roles/${rolId}`, { nombre, descripcion })
+    );
+  }
+
+  /** El cuerpo es el estado final de la matriz, no un incremento. */
+  cambiarPermisosDelRol(rolId: string, permisoIds: string[]): Promise<string[]> {
+    return firstValueFrom(
+      this.http.put<string[]>(`${this.base}/roles/${rolId}/permisos`, { permisoIds })
+    );
+  }
+
+  eliminarRol(rolId: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`${this.base}/roles/${rolId}`));
+  }
+
+  // ── Identidad visual ─────────────────────────────────────────────────────
+  //
+  // La subida va en tres pasos y el archivo NO pasa por nuestra API: se firma
+  // un permiso, el navegador sube directo a S3, y después se confirma. Eso
+  // esquiva el límite de 10 MB de la pasarela y funciona aunque la Lambda no
+  // tenga salida a internet, porque firmar es un cálculo local.
+
+  logos(): Promise<LogoApi[]> {
+    return firstValueFrom(this.http.get<LogoApi[]>(`${this.base}/identidad`));
+  }
+
+  autorizarSubidaDeLogo(
+    logo: string,
+    tipoContenido: string,
+    bytes: number
+  ): Promise<AutorizacionDeSubida> {
+    return firstValueFrom(
+      this.http.post<AutorizacionDeSubida>(`${this.base}/identidad/${logo}/subida`, {
+        tipoContenido,
+        bytes,
+      })
+    );
+  }
+
+  /**
+   * Sube el archivo directo al almacén.
+   *
+   * El `Content-Type` va dentro de la firma, así que tiene que ser exactamente
+   * el que se declaró al autorizar; mandar otro da 403 desde S3.
+   *
+   * Esta petición **no lleva cabecera de sesión**, y es importante: el
+   * interceptor solo firma las URL que empiezan por la base de la API, y añadir
+   * un `Authorization` aquí rompería la firma de S3 —serían dos mecanismos de
+   * autenticación en la misma petición.
+   */
+  subirArchivo(url: string, archivo: File): Promise<unknown> {
+    return firstValueFrom(
+      this.http.put(url, archivo, { headers: { 'Content-Type': archivo.type } })
+    );
+  }
+
+  /** Comprueba contra el almacén qué llegó y guarda la referencia. */
+  confirmarLogo(logo: string, clave: string): Promise<LogoApi[]> {
+    return firstValueFrom(
+      this.http.put<LogoApi[]>(`${this.base}/identidad/${logo}`, { clave })
+    );
+  }
+
+  /** Aquí sí borra el archivo: «no quiero logo», no «cambié de logo». */
+  quitarLogo(logo: string): Promise<LogoApi[]> {
+    return firstValueFrom(this.http.delete<LogoApi[]>(`${this.base}/identidad/${logo}`));
+  }
+
+  // ── Comprobantes ─────────────────────────────────────────────────────────
+
+  tiposComprobante(): Promise<TipoComprobanteApi[]> {
+    return firstValueFrom(
+      this.http.get<TipoComprobanteApi[]>(`${this.base}/comprobantes`)
+    );
+  }
+
+  cambiarEstadoTipoComprobante(codigo: string, emite: boolean): Promise<TipoComprobanteApi> {
+    return firstValueFrom(
+      this.http.put<TipoComprobanteApi>(`${this.base}/comprobantes/${codigo}`, { emite })
+    );
+  }
+}
+
+/**
+ * Saca el mensaje legible de un error de la API.
+ *
+ * <p>El backend responde con `application/problem+json` y añade un `codigo`
+ * estable. Se prefiere `detail` porque es el texto escrito para el usuario;
+ * `title` es genérico —«Conflict»— y no dice nada útil.
+ */
+export function mensajeDeError(error: unknown, porDefecto: string): string {
+  const cuerpo = (error as { error?: { detail?: string; codigo?: string } })?.error;
+  return cuerpo?.detail ?? porDefecto;
+}

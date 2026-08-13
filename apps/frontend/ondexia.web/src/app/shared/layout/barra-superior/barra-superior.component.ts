@@ -1,0 +1,113 @@
+import { Component, ElementRef, HostListener, computed, inject, signal } from '@angular/core';
+import { RouterModule } from '@angular/router';
+import { MenuLateralService } from '../../services/menu-lateral.service';
+import { TemaService } from '../../services/tema.service';
+import { ContextoService } from '../../services/contexto.service';
+import { SesionService } from '../../../nucleo/sesion.service';
+import { SelectorContextoComponent } from '../../components/comunes/selector-contexto/selector-contexto.component';
+
+/**
+ * Barra superior.
+ *
+ * Reúne lo que no pertenece a ninguna vista concreta: plegar el menú, buscar,
+ * el contexto de trabajo —empresa y establecimiento activos, que determinan la
+ * serie del comprobante— y el menú del usuario.
+ *
+ * No hay campana de notificaciones. La tenía la plantilla con avisos
+ * inventados, y un control que no notifica nada real enseña al usuario a
+ * ignorarlo. Volverá cuando haya algo que avisar: un comprobante rechazado por
+ * SUNAT, una suscripción por vencer.
+ */
+@Component({
+  selector: 'app-barra-superior',
+  imports: [RouterModule, SelectorContextoComponent],
+  templateUrl: './barra-superior.component.html',
+})
+export class BarraSuperiorComponent {
+  private readonly anfitrion = inject(ElementRef<HTMLElement>);
+
+  readonly menu = inject(MenuLateralService);
+  readonly tema = inject(TemaService);
+  readonly contexto = inject(ContextoService);
+
+  readonly sesion = inject(SesionService);
+
+  readonly menuUsuarioAbierto = signal(false);
+
+  /**
+   * El usuario sale del contexto que devuelve la API, no del token.
+   *
+   * Los dos traen el nombre, pero el del contexto es el que está en NUESTRA
+   * base: si alguien corrige su nombre en el perfil, ahí se ve al instante,
+   * mientras que el del token no cambia hasta la siguiente renovación.
+   *
+   * Se recurre al token solo mientras el contexto aún no ha llegado, para que
+   * la barra no aparezca vacía durante la primera carga.
+   */
+  readonly nombreCompleto = computed(
+    () => this.contexto.usuario()?.nombre ?? this.sesion.usuario()?.nombre ?? ''
+  );
+
+  readonly correo = computed(
+    () => this.contexto.usuario()?.email ?? this.sesion.usuario()?.correo ?? ''
+  );
+
+  readonly nombreCorto = computed(() => {
+    const partes = this.nombreCompleto().trim().split(/\s+/).filter(Boolean);
+    // Nombre y primer apellido. Los nombres peruanos suelen traer dos
+    // apellidos, y los cuatro juntos no caben en la barra.
+    return partes.slice(0, 2).join(' ');
+  });
+
+  /**
+   * Iniciales en lugar de fotografía: en un sistema de gestión casi nadie sube
+   * una, y el avatar genérico repetido en toda la cuenta no distingue a nadie.
+   */
+  readonly iniciales = computed(() => {
+    const partes = this.nombreCompleto().trim().split(/\s+/).filter(Boolean);
+    if (partes.length === 0) {
+      return '·';
+    }
+    const primera = partes[0].charAt(0);
+    const segunda = partes.length > 1 ? partes[1].charAt(0) : '';
+    return (primera + segunda).toUpperCase();
+  });
+
+  /** Cierra la sesión aquí y en Cognito. Sin lo segundo, «entrar» volvería a entrar solo. */
+  cerrarSesion(): void {
+    this.contexto.limpiar();
+    this.sesion.cerrar();
+  }
+
+  alternarMenuUsuario(): void {
+    this.menuUsuarioAbierto.update((abierto) => !abierto);
+  }
+
+  cerrarMenuUsuario(): void {
+    this.menuUsuarioAbierto.set(false);
+  }
+
+  /** El botón de plegado alterna el cajón en móvil y el ancho en escritorio. */
+  alternarMenu(): void {
+    if (window.innerWidth < 1280) {
+      this.menu.alternarEnMovil();
+    } else {
+      this.menu.alternarDesplegado();
+    }
+  }
+
+  @HostListener('document:pointerdown', ['$event'])
+  alPulsarFuera(evento: PointerEvent): void {
+    if (
+      this.menuUsuarioAbierto() &&
+      !this.anfitrion.nativeElement.contains(evento.target as Node)
+    ) {
+      this.cerrarMenuUsuario();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  alPulsarEscape(): void {
+    this.cerrarMenuUsuario();
+  }
+}

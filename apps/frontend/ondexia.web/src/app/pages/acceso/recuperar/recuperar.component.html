@@ -1,0 +1,44 @@
+<app-marco-acceso>
+  <div class="w-full max-w-md">
+    <div class="mb-8 flex flex-col items-center text-center">
+      <img src="/images/logo/logo-icon.svg" alt="" width="48" height="48" class="mb-5" />
+      <h1 class="mb-2 text-3xl font-semibold text-gray-800 dark:text-white/90">
+        Recuperar contraseña
+      </h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Te llevaremos a la página segura de acceso: ahí pides el código, te
+        llega al correo y eliges tu contraseña nueva.
+      </p>
+    </div>
+
+    @if (error()) {
+    <div
+      class="mb-5 rounded-lg border border-error-500/30 bg-error-500/10 px-4 py-3 text-sm text-error-500"
+      role="alert"
+    >
+      {{ error() }}
+    </div>
+    }
+
+    <button
+      type="button"
+      (click)="recuperar()"
+      [disabled]="enviando()"
+      class="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand-500 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
+    >
+      @if (enviando()) {
+      <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25" />
+        <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+      </svg>
+      Redirigiendo… } @else { Continuar }
+    </button>
+
+    <p class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+      ¿La recordaste?
+      <a routerLink="/acceso/ingresar" class="font-medium text-brand-500 transition hover:text-brand-600">
+        Volver a ingresar
+      </a>
+    </p>
+  </div>
+</app-marco-acceso>

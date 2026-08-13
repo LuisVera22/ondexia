@@ -1,6 +1,6 @@
 output "url_app" {
   description = "Donde queda servida la SPA."
-  value       = var.gestionar_dns ? "https://app.${var.dominio}" : "https://${aws_cloudfront_distribution.sitio["app"].domain_name}"
+  value       = local.origen_app
 }
 
 output "url_landing" {
@@ -43,6 +43,28 @@ output "cognito" {
     cliente_spa     = aws_cognito_user_pool_client.spa.id
     emisor          = "https://${aws_cognito_user_pool.inquilinos.endpoint}"
     pool_personal   = aws_cognito_user_pool.personal.id
+    # Base de la interfaz alojada: de aquí cuelgan /oauth2/authorize,
+    # /oauth2/token y /logout. Es lo que el SPA escribe en su config.json.
+    dominio = "https://${aws_cognito_user_pool_domain.inquilinos.domain}.auth.${var.region}.amazoncognito.com"
+  }
+}
+
+output "configuracion_spa" {
+  description = <<-TEXTO
+    Contenido de public/config.json para este entorno. El SPA lo lee al
+    arrancar, así que el mismo artefacto vale para dev y para prod sin
+    reconstruirlo — que es justo lo que permite promocionar a producción
+    exactamente lo que se probó.
+
+    Se genera con:
+      terraform output -json configuracion_spa > ../apps/frontend/ondexia.web/dist/ondexia-web/browser/config.json
+  TEXTO
+  value = {
+    api = var.gestionar_dns ? "https://api.${var.dominio}" : aws_apigatewayv2_api.principal.api_endpoint
+    cognito = {
+      dominio   = "https://${aws_cognito_user_pool_domain.inquilinos.domain}.auth.${var.region}.amazoncognito.com"
+      clienteId = aws_cognito_user_pool_client.spa.id
+    }
   }
 }
 
@@ -55,18 +77,55 @@ output "servidores_dns" {
 }
 
 output "base_datos" {
-  description = "Punto de conexión. Solo alcanzable desde dentro de la VPC."
+  description = <<-TEXTO
+    Punto de conexión. `alcanzable_desde_internet` dice si se puede conectar un
+    cliente desde fuera de la VPC; cuando es falso, solo la Lambda llega.
+
+    La contraseña no va aquí para que no aparezca en cualquier `terraform
+    output`. Se pide a propósito:
+
+      terraform output -raw contrasena_bd
+  TEXTO
   value = {
-    host   = aws_db_instance.principal.address
-    puerto = aws_db_instance.principal.port
-    nombre = aws_db_instance.principal.db_name
+    host                      = aws_db_instance.principal.address
+    puerto                    = aws_db_instance.principal.port
+    nombre                    = aws_db_instance.principal.db_name
+    usuario                   = aws_db_instance.principal.username
+    alcanzable_desde_internet = local.bd_publica
   }
+}
+
+output "contrasena_bd" {
+  description = <<-TEXTO
+    Contraseña del usuario maestro. Generada por Terraform y guardada solo en
+    el estado, que vive cifrado en S3.
+
+    Deuda conocida: la Lambda la recibe en una variable de entorno, donde la ve
+    cualquiera con lambda:GetFunctionConfiguration. Antes de prod debe pasar a
+    manage_master_user_password, que la mueve a Secrets Manager con rotación.
+  TEXTO
+  value       = random_password.bd.result
+  sensitive   = true
+}
+
+output "funcion_migraciones" {
+  description = <<-TEXTO
+    Función que aplica las migraciones de Flyway. Hay que invocarla después de
+    cada despliegue que traiga migraciones nuevas — la API ya no migra al
+    arrancar:
+
+      aws lambda invoke --function-name <este valor> --payload '{}' salida.json
+
+    Vacío mientras no haya artefacto de backend desplegado.
+  TEXTO
+  value       = local.hay_backend ? aws_lambda_function.migraciones[0].function_name : ""
 }
 
 output "recordatorios" {
   description = "Lo que Terraform no puede hacer por ti."
   value = [
     "Confirmar la suscripción de correo al tema de SNS: llega un mensaje de AWS y hay que pulsar el enlace, o las alarmas no avisan a nadie.",
+    local.hay_backend ? "Invocar la funcion de migraciones (output funcion_migraciones) antes de probar la API: el esquema no existe hasta entonces." : "Sin artefacto de backend: se despliega la funcion de relleno que responde 501.",
     "Poner el MFA del grupo de personal en ON cuando el primer usuario tenga su TOTP configurado.",
     "Pasar la cuenta al plan de pago antes de que venza el periodo gratuito: el plan gratuito cierra la cuenta sola.",
     var.gestionar_dns ? "Cargar los servidores de nombres en el registrador del dominio." : "gestionar_dns esta apagado: se sirve por los dominios predeterminados de CloudFront.",
