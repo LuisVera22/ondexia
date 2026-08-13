@@ -64,8 +64,11 @@ resource "aws_db_instance" "principal" {
 
   db_subnet_group_name   = aws_db_subnet_group.principal.name
   vpc_security_group_ids = [aws_security_group.base_datos.id]
-  publicly_accessible    = false
   multi_az               = false
+
+  # Solo en dev, y solo alcanzable desde la IP que aplicó. Ver acceso_bd_publico
+  # en variables.tf para lo que esto implica.
+  publicly_accessible = local.bd_publica
 
   parameter_group_name = aws_db_parameter_group.principal.name
 
@@ -85,6 +88,16 @@ resource "aws_db_instance" "principal" {
   performance_insights_enabled = false # tiene costo; se activa si hace falta diagnosticar
 
   enabled_cloudwatch_logs_exports = ["postgresql"]
+
+  lifecycle {
+    # `local.bd_publica` ya deja el valor en falso fuera de dev, así que sin
+    # esto un `acceso_bd_publico = true` en prod.tfvars no haría nada y nadie se
+    # enteraría del intento. Esto lo convierte en un apply que se detiene.
+    precondition {
+      condition     = !var.acceso_bd_publico || var.entorno == "dev"
+      error_message = "acceso_bd_publico solo vale en dev. La base de prod guarda datos tributarios de clientes y no se expone a internet: usa un bastion con EC2 Instance Connect Endpoint."
+    }
+  }
 
   tags = { Name = local.nombre }
 }

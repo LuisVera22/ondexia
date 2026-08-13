@@ -75,6 +75,30 @@ variable "almacenamiento_bd_gb" {
   default     = 20
 }
 
+variable "acceso_bd_publico" {
+  description = <<-TEXTO
+    Da a la instancia RDS una IP pública y abre el 5432 **solo** a la IP
+    saliente de quien aplica, para poder conectar psql o un cliente gráfico
+    desde el equipo de desarrollo.
+
+    Solo tiene efecto en dev: `local.bd_publica` lo cruza con el entorno, y la
+    precondición de la instancia aborta el apply si alguien lo enciende en
+    prod. La base de prod guarda datos tributarios de clientes y no se expone
+    a internet por comodidad de nadie.
+
+    Lo que hay que entender antes de encenderlo: con esto las subredes dejan de
+    ser privadas de verdad —tienen ruta a la puerta de enlace— y lo único que
+    separa la base de internet es el grupo de seguridad. La Lambda sigue sin
+    salida, porque sus interfaces nunca reciben IP pública.
+
+    La alternativa sin exposición es un bastión con EC2 Instance Connect
+    Endpoint: cuesta ~3 USD/mes y deja la topología intacta. Es la vía a usar
+    cuando dev tenga datos que importen.
+  TEXTO
+  type        = bool
+  default     = false
+}
+
 variable "retencion_respaldos_dias" {
   description = <<-TEXTO
     Días de retención de respaldos automáticos. Con 7 se cubre el RPO de 5 min

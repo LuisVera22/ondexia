@@ -29,6 +29,8 @@ tags:
   description: "Identidad, empresas accesibles y permisos efectivos"
 - name: Registro
   description: "Alta de cuenta, empresa y primer administrador"
+- name: Almacenes
+  description: Ubicaciones físicas de las existencias
 - name: Establecimientos
   description: Anexos de la empresa ante SUNAT
 paths:
@@ -110,6 +112,50 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaEmpresa"
+  /api/v1/almacen/almacenes/{id}:
+    put:
+      tags:
+      - Almacenes
+      summary: Actualiza un almacén
+      description: "El código no cambia: identifica al almacén en los movimientos\
+        \ ya registrados."
+      operationId: actualizar_2
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionEdicion"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaAlmacen"
+    delete:
+      tags:
+      - Almacenes
+      summary: Desactiva un almacén
+      description: "No lo borra: aparece en cada movimiento de stock que lo tocó."
+      operationId: desactivar_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
   /api/v1/registro:
     post:
       tags:
@@ -168,6 +214,41 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaEstablecimiento"
+  /api/v1/almacen/almacenes:
+    get:
+      tags:
+      - Almacenes
+      summary: "Lista los almacenes, activos e inactivos"
+      operationId: listar_1
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaAlmacen"
+    post:
+      tags:
+      - Almacenes
+      summary: Registra un almacén
+      description: "El código lo elige el cliente: se teclea en cada movimiento de\
+        \ mercadería, así que conviene que sea corto. Se guarda en mayúsculas."
+      operationId: registrar_2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionNuevo"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaAlmacen"
   /salud:
     get:
       tags:
@@ -275,6 +356,21 @@ components:
         modoSunat:
           type: string
         activa:
+          type: boolean
+    RespuestaAlmacen:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        codigo:
+          type: string
+        nombre:
+          type: string
+        sucursalId:
+          type: string
+          format: uuid
+        activo:
           type: boolean
     PeticionRegistro:
       required:

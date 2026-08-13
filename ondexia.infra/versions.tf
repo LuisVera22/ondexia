@@ -14,6 +14,12 @@ terraform {
       source  = "hashicorp/archive"
       version = "~> 2.6"
     }
+    # Solo para averiguar la IP saliente de quien aplica, cuando dev abre la
+    # base de datos al exterior. Ver acceso_bd_publico en variables.tf.
+    http = {
+      source  = "hashicorp/http"
+      version = "~> 3.4"
+    }
   }
 
   # El estado se guarda en S3, no en disco. Con el estado local, perder el

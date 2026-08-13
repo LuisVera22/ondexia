@@ -47,6 +47,21 @@ export interface DatosEstablecimiento {
   readonly ubigeo: string | null;
 }
 
+export interface AlmacenApi {
+  readonly id: string;
+  /** Corto y en mayúsculas: se teclea en cada movimiento de mercadería. */
+  readonly codigo: string;
+  readonly nombre: string;
+  /** null: hay almacenes que no cuelgan de ningún establecimiento. */
+  readonly sucursalId: string | null;
+  readonly activo: boolean;
+}
+
+export interface DatosAlmacen {
+  readonly nombre: string;
+  readonly sucursalId: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ConfiguracionApiService {
   private readonly http = inject(HttpClient);
@@ -92,6 +107,35 @@ export class ConfiguracionApiService {
     return firstValueFrom(
       this.http.delete<void>(`${this.base}/establecimientos/${id}`)
     );
+  }
+
+  // ── Almacenes ────────────────────────────────────────────────────────────
+  //
+  // Cuelgan de /almacen y no de /configuracion porque los gobierna el permiso
+  // `almacen.almacen`: quien administra el inventario los crea, sin necesitar
+  // acceso a los datos fiscales de la empresa.
+
+  private get baseAlmacen(): string {
+    return `${this.config.api}/api/v1/almacen`;
+  }
+
+  almacenes(): Promise<AlmacenApi[]> {
+    return firstValueFrom(this.http.get<AlmacenApi[]>(`${this.baseAlmacen}/almacenes`));
+  }
+
+  crearAlmacen(datos: DatosAlmacen & { readonly codigo: string }): Promise<AlmacenApi> {
+    return firstValueFrom(this.http.post<AlmacenApi>(`${this.baseAlmacen}/almacenes`, datos));
+  }
+
+  actualizarAlmacen(id: string, datos: DatosAlmacen): Promise<AlmacenApi> {
+    return firstValueFrom(
+      this.http.put<AlmacenApi>(`${this.baseAlmacen}/almacenes/${id}`, datos)
+    );
+  }
+
+  /** Desactiva, no borra: el almacén aparece en cada movimiento de stock que lo tocó. */
+  desactivarAlmacen(id: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`${this.baseAlmacen}/almacenes/${id}`));
   }
 }
 

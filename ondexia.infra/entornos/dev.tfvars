@@ -18,6 +18,15 @@ tope_presupuesto_usd = 15
 retencion_respaldos_dias = 1
 retencion_logs_dias      = 7
 
+# La base acepta conexiones desde la IP que ejecuta el apply, para poder
+# inspeccionarla con psql o un cliente gráfico. Se sostiene mientras la frase de
+# arriba siga siendo cierta: aquí no hay nada que perder. El día que dev tenga
+# datos de un cliente real, esto se apaga y se monta el bastión.
+#
+# Al cambiar de red hay que volver a aplicar: la regla queda atada a la IP
+# anterior y la conexión pasa a expirar sin explicación.
+acceso_bd_publico = true
+
 # Sin reserva de concurrencia. No es lo que se queria, es lo que la cuenta
 # permite: su limite total son 10 ejecuciones simultaneas —el de una cuenta
 # nueva de AWS, no los 1000 habituales— y AWS exige dejar 10 sin reservar. Con

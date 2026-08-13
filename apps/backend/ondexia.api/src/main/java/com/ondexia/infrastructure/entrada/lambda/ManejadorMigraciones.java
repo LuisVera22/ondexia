@@ -76,6 +76,29 @@ public class ManejadorMigraciones implements RequestHandler<Map<String, Object>,
         var flyway = Flyway.configure()
                 .dataSource(url, variable("BD_USUARIO"), variable("BD_CONTRASENA"))
                 .locations("classpath:db/migration")
+                /*
+                 * Fuera de orden permitido, y no es una concesion: es lo que
+                 * exige el diseno de los datos de ejemplo.
+                 *
+                 * V900__datos_de_ejemplo.sql lleva ese numero alto A PROPOSITO,
+                 * para dejar libre la numeracion baja a las migraciones de
+                 * esquema reales — lo explica su propia cabecera. La
+                 * consecuencia es que en cualquier entorno donde se haya
+                 * sembrado, la V900 queda aplicada y toda migracion nueva (V3,
+                 * V4...) llega con version MENOR que la ultima registrada.
+                 *
+                 * Con la validacion estricta, Flyway lo rechaza:
+                 *
+                 *   Detected resolved migration not applied to database: 3
+                 *
+                 * Y no es un aviso teorico: paso al aplicar la V3 en dev.
+                 *
+                 * El riesgo habitual del fuera de orden —que dos ramas creen
+                 * versiones solapadas y se apliquen en distinto orden en cada
+                 * entorno— no aplica aqui: la unica version alta es la semilla,
+                 * que solo existe fuera de produccion y no toca el esquema.
+                 */
+                .outOfOrder(true)
                 // Mismo criterio que application.yml: 'clean' no está
                 // disponible en ningún entorno. Es un borrado del esquema
                 // completo a una llamada de distancia.
@@ -118,6 +141,10 @@ public class ManejadorMigraciones implements RequestHandler<Map<String, Object>,
                 // normal Flyway ni la mira, que es lo que impide que los datos
                 // de demostracion lleguen a produccion por descuido.
                 .locations("classpath:db/migration", "classpath:db/local")
+                // Mismo motivo que en la migracion normal: la V900 de la
+                // semilla deja fuera de orden a toda migracion de esquema
+                // posterior.
+                .outOfOrder(true)
                 .cleanDisabled(true)
                 .load()
                 .migrate();

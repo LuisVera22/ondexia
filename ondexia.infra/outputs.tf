@@ -77,12 +77,35 @@ output "servidores_dns" {
 }
 
 output "base_datos" {
-  description = "Punto de conexión. Solo alcanzable desde dentro de la VPC."
+  description = <<-TEXTO
+    Punto de conexión. `alcanzable_desde_internet` dice si se puede conectar un
+    cliente desde fuera de la VPC; cuando es falso, solo la Lambda llega.
+
+    La contraseña no va aquí para que no aparezca en cualquier `terraform
+    output`. Se pide a propósito:
+
+      terraform output -raw contrasena_bd
+  TEXTO
   value = {
-    host   = aws_db_instance.principal.address
-    puerto = aws_db_instance.principal.port
-    nombre = aws_db_instance.principal.db_name
+    host                      = aws_db_instance.principal.address
+    puerto                    = aws_db_instance.principal.port
+    nombre                    = aws_db_instance.principal.db_name
+    usuario                   = aws_db_instance.principal.username
+    alcanzable_desde_internet = local.bd_publica
   }
+}
+
+output "contrasena_bd" {
+  description = <<-TEXTO
+    Contraseña del usuario maestro. Generada por Terraform y guardada solo en
+    el estado, que vive cifrado en S3.
+
+    Deuda conocida: la Lambda la recibe en una variable de entorno, donde la ve
+    cualquiera con lambda:GetFunctionConfiguration. Antes de prod debe pasar a
+    manage_master_user_password, que la mueve a Secrets Manager con rotación.
+  TEXTO
+  value       = random_password.bd.result
+  sensitive   = true
 }
 
 output "funcion_migraciones" {

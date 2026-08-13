@@ -1,60 +1,175 @@
 <div>
   <app-encabezado-pagina titulo="Almacenes" />
 
+  @if (error()) {
+  <div class="mb-5 flex items-start gap-3 rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert">
+    <svg class="mt-0.5 shrink-0 text-error-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
+    </svg>
+    <p class="text-sm text-error-500">{{ error() }}</p>
+  </div>
+  }
+
   <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <p class="max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-      Espacios donde se registran las existencias. Cada establecimiento tiene su almacén principal creado automáticamente.
+      Dónde está físicamente la mercadería. Es distinto del establecimiento: en
+      un mismo local puede haber varios —mostrador, depósito— y los hay que no
+      cuelgan de ninguno, como la mercadería en tránsito.
     </p>
 
     <button
       type="button"
+      (click)="abrirNuevo()"
       class="shrink-0 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600"
     >
       Agregar almacén
     </button>
   </div>
 
+  @if (formularioAbierto()) {
+  <section class="mb-5 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] xl:p-6">
+    <h3 class="mb-5 font-medium text-gray-800 dark:text-white/90">
+      {{ enEdicion() ? 'Editar almacén' : 'Nuevo almacén' }}
+    </h3>
+
+    <form [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div>
+          <label for="codigo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Código <span class="text-error-500">*</span>
+          </label>
+          <input
+            id="codigo"
+            type="text"
+            formControlName="codigo"
+            maxlength="20"
+            placeholder="CENTRAL"
+            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm uppercase text-gray-800 shadow-apoyo placeholder:normal-case placeholder:text-gray-400 focus:outline-hidden focus:ring-3 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-500 dark:text-white/90 dark:disabled:bg-white/[0.03]"
+            [class]="controles.codigo.touched && controles.codigo.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+          />
+          @if (controles.codigo.touched && controles.codigo.invalid) {
+          <p class="mt-1.5 text-xs text-error-500">Letras, números y guiones, hasta 20 caracteres.</p>
+          } @else if (enEdicion()) {
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            No se puede cambiar: identifica al almacén en los movimientos ya registrados.
+          </p>
+          } @else {
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            Se teclea en cada movimiento de mercadería, así que conviene que sea corto.
+          </p>
+          }
+        </div>
+
+        <div>
+          <label for="nombre" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Nombre <span class="text-error-500">*</span>
+          </label>
+          <input
+            id="nombre"
+            type="text"
+            formControlName="nombre"
+            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:outline-hidden focus:ring-3 dark:text-white/90"
+            [class]="controles.nombre.touched && controles.nombre.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+          />
+          @if (controles.nombre.touched && controles.nombre.invalid) {
+          <p class="mt-1.5 text-xs text-error-500">El nombre es obligatorio.</p>
+          }
+        </div>
+
+        <div class="sm:col-span-2">
+          <label for="sucursalId" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Establecimiento
+          </label>
+          <select
+            id="sucursalId"
+            formControlName="sucursalId"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
+          >
+            <!-- Opción vacía primera y explícita: no asignar es una decisión
+                 válida, no un descuido. -->
+            <option value="">Sin asignar</option>
+            @for (establecimiento of establecimientos(); track establecimiento.id) {
+            <option [value]="establecimiento.id">
+              {{ establecimiento.codigo }} · {{ establecimiento.nombre }}
+            </option>
+            }
+          </select>
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            Opcional. La mercadería en tránsito, por ejemplo, no pertenece a ningún local.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-5 flex justify-end gap-3">
+        <button
+          type="button"
+          (click)="cerrarFormulario()"
+          class="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+        >
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          [disabled]="guardando()"
+          class="rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
+        >
+          {{ guardando() ? 'Guardando…' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </section>
+  }
+
+  @if (cargando()) {
+  <div class="rounded-2xl border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+    <p class="text-sm text-gray-500 dark:text-gray-400">Cargando almacenes…</p>
+  </div>
+  } @else {
   <app-tabla-datos
     [columnas]="columnas"
-    [registros]="registros"
-    [totalRegistros]="registros.length"
+    [registros]="registros()"
+    [totalRegistros]="registros().length"
     vacioTitulo="Aún no hay almacenes"
-    vacioDescripcion="Los almacenes permiten separar la mercadería de tienda y depósito dentro de un mismo local."
+    vacioDescripcion="Hace falta al menos uno para poder registrar existencias y descargarlas al vender."
     vacioAccion="Agregar almacén"
   >
     <ng-template #acciones let-registro>
       <div class="flex items-center justify-end gap-1">
         <button
           type="button"
+          (click)="abrirEdicion(registro)"
+          [attr.aria-label]="'Editar ' + registro.nombre"
           class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.05]"
-          aria-label="Editar"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
             <path d="M4 20h4l10-10a2.8 2.8 0 0 0-4-4L4 16v4Z" />
           </svg>
         </button>
 
+        @if (registro.activo) {
         <button
           type="button"
-          (click)="pedirEliminacion(registro)"
+          (click)="pedirDesactivacion(registro)"
+          [attr.aria-label]="'Desactivar ' + registro.nombre"
           class="rounded-lg p-2 text-gray-400 transition hover:bg-error-50 hover:text-error-500 dark:hover:bg-error-500/10"
-          aria-label="Eliminar"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
-            <path d="M5 7h14M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4.5h6V7" />
+            <path d="M18.36 6.64A9 9 0 1 1 5.64 6.64M12 3v9" />
           </svg>
         </button>
+        }
       </div>
     </ng-template>
   </app-tabla-datos>
+  }
 
   <app-confirmacion
-    [abierto]="confirmacionAbierta"
+    [abierto]="confirmacionAbierta()"
     [peligrosa]="true"
-    titulo="¿Eliminar el almacén?"
-    mensaje="Solo se puede eliminar un almacén sin existencias registradas. Los movimientos históricos se conservan."
-    textoConfirmar="Confirmar"
-    (confirmar)="eliminar()"
-    (cancelar)="confirmacionAbierta = false"
+    titulo="¿Desactivar el almacén?"
+    mensaje="Dejará de estar disponible para registrar movimientos, pero no se borra: aparece en cada movimiento de stock que lo tocó y el kardex lo sigue referenciando."
+    textoConfirmar="Desactivar"
+    (confirmar)="desactivar()"
+    (cancelar)="confirmacionAbierta.set(false)"
   />
 </div>
