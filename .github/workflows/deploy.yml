@@ -59,7 +59,13 @@ jobs:
 
       # ── Herramientas ───────────────────────────────────────────────────────
 
+      # `package_json_file` por lo mismo que en ci.yml: la acción busca
+      # `packageManager` en la raíz del repositorio y el frontend cuelga de
+      # apps/frontend/ondexia.web. Sin esto el despliegue muere antes de
+      # empezar, con un error que no dice dónde estaba buscando.
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: apps/frontend/ondexia.web/package.json
 
       - uses: actions/setup-node@v4
         with:
