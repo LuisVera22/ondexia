@@ -174,6 +174,24 @@ variable "concurrencia_reservada_api" {
   }
 }
 
+variable "repositorio_github" {
+  description = <<-TEXTO
+    Repositorio en formato `propietario/nombre`. Solo las ejecuciones de GitHub
+    Actions sobre ESTE repositorio, y sobre las ramas main o develop, pueden
+    asumir el rol de despliegue.
+
+    Es el valor que acota todo el mecanismo: con un comodín aquí, cualquier
+    repositorio de GitHub podría asumirlo. Ver despliegue.tf.
+  TEXTO
+  type        = string
+  default     = "LuisVera22/ondexia"
+
+  validation {
+    condition     = can(regex("^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$", var.repositorio_github))
+    error_message = "Debe ser propietario/nombre, sin comodines ni barras de más."
+  }
+}
+
 variable "retencion_logs_dias" {
   description = "Retención de CloudWatch Logs. Los logs sin política son la fuga de costo más común."
   type        = number
