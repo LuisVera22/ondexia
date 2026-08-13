@@ -120,6 +120,31 @@
     </dependency>
 
     <!--
+      RDS, solo por RdsUtilities: genera el token de autenticacion por IAM con
+      el que la Lambda se conecta a la base SIN contrasena.
+
+      Igual que al firmar una URL de S3, generar el token es una firma LOCAL
+      sobre las credenciales del rol y no abre ninguna conexion. Por eso
+      funciona en una subred sin NAT, y por eso la alternativa —leer la
+      contrasena de Secrets Manager— habria costado un endpoint de interfaz a
+      ~7.30 USD/mes.
+    -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>rds</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>netty-nio-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>apache-client</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <!--
       Con org.crac en el classpath, Spring cierra el contexto antes de que
       SnapStart tome la instantanea y lo reabre al restaurarla.
 

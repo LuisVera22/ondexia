@@ -17,7 +17,16 @@ spring:
     # falta. Es el tipo de error que cuesta media tarde.
     url: jdbc:postgresql://${BD_HOST}:${BD_PUERTO}/${BD_NOMBRE}
     username: ${BD_USUARIO}
-    password: ${BD_CONTRASENA}
+
+    # Sin contrasena, y no es un olvido.
+    #
+    # La API se conecta con un token de IAM que genera BaseDeDatosIamConfig
+    # firmando localmente con las credenciales del rol. No hay ningun secreto
+    # en las variables de entorno de esta funcion ni en el estado de Terraform.
+    #
+    # El usuario es `ondexia_app`, no el maestro: conceder rds_iam a un rol le
+    # quita la autenticacion por contrasena, y hacerlo sobre el maestro seria
+    # quedarse sin salida de emergencia si la ruta de IAM fallara (ver V8).
 
     hikari:
       # Lo pide el propio arranque, literalmente:

@@ -62,6 +62,22 @@ resource "aws_db_instance" "principal" {
   username = "ondexia_admin"
   password = random_password.bd.result
 
+  /**
+   * Autenticación por IAM, que es lo que quita la contraseña de la API.
+   *
+   * La Lambda se conecta como `ondexia_app` con un token que genera firmando
+   * localmente con las credenciales de su rol — sin llamada de red, igual que
+   * al firmar una subida a S3. Por eso funciona en una subred sin NAT y por eso
+   * no cuesta nada: la alternativa era un endpoint de interfaz a ~7.30 USD/mes
+   * para alcanzar Secrets Manager.
+   *
+   * Activarlo no obliga a nadie: `ondexia_admin` sigue entrando con contraseña,
+   * y es a propósito. Conceder `rds_iam` al usuario maestro le quitaría ese
+   * método, y si la ruta de IAM fallara no quedaría forma de entrar a
+   * arreglarlo — un candado con la llave dentro. Ver la V8.
+   */
+  iam_database_authentication_enabled = true
+
   db_subnet_group_name   = aws_db_subnet_group.principal.name
   vpc_security_group_ids = [aws_security_group.base_datos.id]
   multi_az               = false

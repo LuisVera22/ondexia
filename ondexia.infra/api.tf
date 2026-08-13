@@ -177,6 +177,26 @@ data "aws_iam_policy_document" "api" {
     actions   = ["s3:ListBucket"]
     resources = [aws_s3_bucket.marca.arn]
   }
+
+  /**
+   * Conectarse a la base como `ondexia_app`, sin contraseña.
+   *
+   * El identificador del recurso —`resource_id`, no el nombre— es a propósito:
+   * si algún día se restaura la instancia desde una copia, cambia, y una
+   * política escrita contra el nombre seguiría concediendo acceso a una base
+   * que ya no es esa.
+   *
+   * Solo ese usuario. `ondexia_admin` queda deliberadamente fuera: conserva su
+   * contraseña como salida de emergencia y ninguna función debe poder entrar
+   * con él por esta vía.
+   */
+  statement {
+    sid     = "ConectarBaseConIam"
+    actions = ["rds-db:connect"]
+    resources = [
+      "arn:aws:rds-db:${var.region}:${data.aws_caller_identity.actual.account_id}:dbuser:${aws_db_instance.principal.resource_id}/ondexia_app"
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "api" {
@@ -290,11 +310,26 @@ resource "aws_lambda_function" "api" {
       # localhost:4200, que en la nube no es nadie.
       CORS_ORIGENES = local.origen_app
 
-      BD_HOST            = aws_db_instance.principal.address
-      BD_PUERTO          = tostring(aws_db_instance.principal.port)
-      BD_NOMBRE          = aws_db_instance.principal.db_name
-      BD_USUARIO         = aws_db_instance.principal.username
-      BD_CONTRASENA      = random_password.bd.result
+      BD_HOST   = aws_db_instance.principal.address
+      BD_PUERTO = tostring(aws_db_instance.principal.port)
+      BD_NOMBRE = aws_db_instance.principal.db_name
+
+      /**
+       * `ondexia_app`, no el usuario maestro, y SIN contraseña.
+       *
+       * Aquí ya no hay ningún secreto. El token de conexión lo genera la propia
+       * función firmando con las credenciales de su rol, así que no queda nada
+       * que leer con lambda:GetFunctionConfiguration ni nada que guardar en el
+       * estado de Terraform.
+       *
+       * El nombre va a mano y no sale de `aws_db_instance.principal.username`
+       * porque ese es el maestro. Tiene que coincidir letra por letra con el rol
+       * que crea la V8 y con el que autoriza la política de rds-db:connect: si
+       * los tres no dicen lo mismo, la conexión falla con «PAM authentication
+       * failed», que no menciona IAM por ningún lado.
+       */
+      BD_USUARIO = "ondexia_app"
+
       COGNITO_POOL_ID    = aws_cognito_user_pool.inquilinos.id
       COGNITO_CLIENTE_ID = aws_cognito_user_pool_client.spa.id
       BUCKET_MARCA       = aws_s3_bucket.marca.id
