@@ -141,6 +141,40 @@ class RegistroIT extends PruebaIntegracion {
     }
 
     @Test
+    @DisplayName("Con un token sin correo, el alta usa el del cuerpo")
+    void elCorreoLlegaDelCuerpoCuandoElTokenNoLoTrae() throws Exception {
+        /*
+         * El caso que rompió en produccion y no se veia desde la aplicacion.
+         *
+         * Los tokens de ACCESO de Cognito no llevan `email`. La primera version
+         * caia a la reclamacion `username`, que en un pool con acceso por correo
+         * es el UUID — asi que los usuarios registrados quedaban con su `sub`
+         * guardado como correo. No fallaba nada; solo escribia basura, y se
+         * descubrio inspeccionando la tabla.
+         */
+        String sub = "sub-sin-correo-en-el-token";
+
+        mockMvc.perform(post(REGISTRO)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenSinCorreo(sub))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "ruc": "20100000092",
+                                  "razonSocial": "CON CORREO EN EL CUERPO S.A.C.",
+                                  "domicilioFiscal": "Av. Nueva 100, Lima",
+                                  "nombreTitular": "Titular de Prueba",
+                                  "correo": "titular@ejemplo.com"
+                                }"""))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/v1/contexto")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenSinCorreo(sub)))
+                .andExpect(status().isOk())
+                // Lo que importa: el correo, no el UUID.
+                .andExpect(jsonPath("$.usuario.email").value("titular@ejemplo.com"));
+    }
+
+    @Test
     @DisplayName("Sin token no hay registro")
     void sinTokenNoHayRegistro() throws Exception {
         mockMvc.perform(post(REGISTRO)

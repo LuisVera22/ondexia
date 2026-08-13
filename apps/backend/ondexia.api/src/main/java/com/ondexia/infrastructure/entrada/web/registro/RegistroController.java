@@ -59,20 +59,31 @@ public class RegistroController {
         var jwt = token.getToken();
 
         /*
-         * El correo sale del token, con dos posibles nombres.
+         * El correo: del token si viene, del cuerpo si no.
          *
-         * El token de identidad de Cognito lleva `email`; el de acceso, según la
-         * configuración, puede traer `username`. Se prefiere `email` y se cae a
-         * lo que llegue: quedarse sin correo aquí dejaría un usuario que no se
-         * puede identificar en la pantalla de usuarios.
+         * La primera versión lo sacaba solo del token, con respaldo a la
+         * reclamación `username`. Estaba mal, y no se vio hasta mirar la tabla:
+         * los usuarios registrados tenían su `sub` guardado como correo.
+         *
+         * El motivo es que el TOKEN DE ACCESO de Cognito no lleva `email` —eso
+         * vive en el token de identidad— y aquí llega el de acceso, que es el
+         * correcto para una API. En un pool cuyo identificador es el correo,
+         * `username` resulta ser el UUID, así que el respaldo escribía basura
+         * sin fallar.
+         *
+         * Se acepta del cuerpo porque el SPA sí tiene el correo verificado: lo
+         * lee del token de identidad que Cognito le entregó. Y mentir aquí no
+         * abre nada — la identidad con la que se opera es el `sub`, que sigue
+         * saliendo del token. Lo peor que consigue quien falsee este campo es
+         * mostrarse a sí mismo un correo equivocado.
          */
         String email = jwt.getClaimAsString("email");
         if (email == null || email.isBlank()) {
-            email = jwt.getClaimAsString("username");
+            email = peticion.correo();
         }
         if (email == null || email.isBlank()) {
             throw new NoAutenticado(
-                    "El token no trae el correo. Revisa que el acceso pida el ámbito 'email'.");
+                    "No se pudo determinar el correo de la cuenta.");
         }
 
         UUID cuentaId = registrar.ejecutar(
@@ -111,7 +122,15 @@ public class RegistroController {
 
             @NotBlank(message = "Falta tu nombre.")
             @Size(max = 150)
-            String nombreTitular) {
+            String nombreTitular,
+
+            /**
+             * Solo se usa si el token no trae la reclamación {@code email}, que
+             * es lo que ocurre con los tokens de acceso de Cognito. No sirve
+             * para identificarse: eso es el {@code sub} del token.
+             */
+            @Size(max = 254)
+            String correo) {
     }
 
     public record RespuestaRegistro(UUID cuentaId) {

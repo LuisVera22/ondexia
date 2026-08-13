@@ -160,6 +160,31 @@ public abstract class PruebaIntegracion {
         return emisorTokens.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
+    /**
+     * Token como los que emite Cognito de verdad: <strong>sin</strong> la
+     * reclamacion {@code email}.
+     *
+     * <p>El token de ACCESO de Cognito no la lleva —vive en el de identidad— y
+     * es el de acceso el que llega a la API. `tokenPara` si la incluye por
+     * comodidad, y esa comodidad escondio un fallo: el alta guardaba el `sub`
+     * como correo y nadie lo noto hasta mirar la tabla.
+     */
+    protected String tokenSinCorreo(String sub) {
+        Instant ahora = Instant.now();
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("https://desarrollo.ondexia.local")
+                .subject(sub)
+                .issuedAt(ahora)
+                .expiresAt(ahora.plus(Duration.ofMinutes(10)))
+                .claim("token_use", "access")
+                // Como Cognito: el username de un pool con acceso por correo es
+                // el propio UUID, no el correo. Ese fue el respaldo que
+                // escribia basura.
+                .claim("username", sub)
+                .build();
+        return emisorTokens.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+    }
+
     protected String autorizacionDemo() {
         return "Bearer " + tokenPara(SUB_DEMO);
     }

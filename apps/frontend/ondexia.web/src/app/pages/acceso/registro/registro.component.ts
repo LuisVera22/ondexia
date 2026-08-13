@@ -70,6 +70,10 @@ export class RegistroComponent {
           domicilioFiscal: valores.domicilioFiscal,
           ubigeo: valores.ubigeo || null,
           nombreTitular: valores.nombreTitular,
+          // El token de ACCESO de Cognito no lleva el correo —eso vive en el de
+          // identidad, que el SPA sí tiene— así que se envía. El backend lo usa
+          // solo para mostrar: la identidad con la que se opera es el `sub`.
+          correo: this.correo,
         })
       );
 

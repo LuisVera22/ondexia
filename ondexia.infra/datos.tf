@@ -89,6 +89,27 @@ resource "aws_db_instance" "principal" {
 
   enabled_cloudwatch_logs_exports = ["postgresql"]
 
+  /**
+   * La puerta de enlace tiene que existir ANTES de hacer pública la instancia.
+   *
+   * Terraform no lo deduce solo: `publicly_accessible` recibe un booleano
+   * calculado, no una referencia al recurso, así que no hay arista en el grafo
+   * y ambos se planifican en paralelo. Si RDS va primero, AWS lo rechaza:
+   *
+   *   InvalidVPCNetworkStateFault: Cannot create a publicly accessible
+   *   DBInstance. The specified VPC has no internet gateway attached.
+   *
+   * Y el mensaje despista, porque la puerta de enlace SÍ está en el código —
+   * solo que todavía no se había creado. Pasó al encender acceso_bd_publico.
+   *
+   * La ruta va también en la lista: sin ella la instancia tendría dirección
+   * pública y ningún camino de vuelta.
+   */
+  depends_on = [
+    aws_internet_gateway.principal,
+    aws_route.salida_internet,
+  ]
+
   lifecycle {
     # `local.bd_publica` ya deja el valor en falso fuera de dev, así que sin
     # esto un `acceso_bd_publico = true` en prod.tfvars no haría nada y nadie se
