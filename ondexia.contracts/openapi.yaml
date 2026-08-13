@@ -27,6 +27,8 @@ tags:
   description: Datos fiscales de la empresa activa
 - name: Contexto
   description: "Identidad, empresas accesibles y permisos efectivos"
+- name: Registro
+  description: "Alta de cuenta, empresa y primer administrador"
 - name: Establecimientos
   description: Anexos de la empresa ante SUNAT
 paths:
@@ -108,6 +110,29 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaEmpresa"
+  /api/v1/registro:
+    post:
+      tags:
+      - Registro
+      summary: Da de alta la cuenta del usuario autenticado
+      description: "Crea cuenta, usuario administrador, empresa y el establecimiento\
+        \ de casa matriz (0000) en una sola transacción. La identidad sale del token,\
+        \ nunca del cuerpo: aceptarla como parámetro permitiría darse de alta suplantando\
+        \ a otra persona."
+      operationId: registrar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionRegistro"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaRegistro"
   /api/v1/configuracion/establecimientos:
     get:
       tags:
@@ -129,7 +154,7 @@ paths:
       summary: Registra un establecimiento
       description: El código son los cuatro dígitos que asigna SUNAT y aparecen en
         la ficha RUC; no se genera aquí. La casa matriz es 0000.
-      operationId: registrar
+      operationId: registrar_1
       requestBody:
         content:
           application/json:
@@ -251,6 +276,39 @@ components:
           type: string
         activa:
           type: boolean
+    PeticionRegistro:
+      required:
+      - domicilioFiscal
+      - nombreTitular
+      - razonSocial
+      - ruc
+      type: object
+      properties:
+        ruc:
+          minLength: 1
+          pattern: "\\d{11}"
+          type: string
+        razonSocial:
+          maxLength: 300
+          minLength: 0
+          type: string
+        domicilioFiscal:
+          maxLength: 400
+          minLength: 0
+          type: string
+        ubigeo:
+          pattern: "^$|^\\d{6}$"
+          type: string
+        nombreTitular:
+          maxLength: 150
+          minLength: 0
+          type: string
+    RespuestaRegistro:
+      type: object
+      properties:
+        cuentaId:
+          type: string
+          format: uuid
     PeticionNuevo:
       required:
       - codigo

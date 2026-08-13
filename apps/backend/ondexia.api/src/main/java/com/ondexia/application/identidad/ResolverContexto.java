@@ -2,7 +2,7 @@ package com.ondexia.application.identidad;
 
 import com.ondexia.domain.comun.ContextoOperacion;
 import com.ondexia.domain.comun.error.AccesoDenegado;
-import com.ondexia.domain.comun.error.NoAutenticado;
+import com.ondexia.domain.comun.error.RecursoNoEncontrado;
 import com.ondexia.domain.identidad.AsignacionEmpresa;
 import com.ondexia.domain.identidad.Cuenta;
 import com.ondexia.domain.identidad.CuentaAdministradorRepositorio;
@@ -46,9 +46,24 @@ public class ResolverContexto {
      */
     @Transactional(readOnly = true)
     public ContextoOperacion ejecutar(String cognitoSub, UUID empresaPedida, String ip) {
+        /*
+         * «Token válido, usuario sin registrar» NO es un fallo de autenticación.
+         *
+         * Es el estado normal de quien acaba de crear su cuenta en Cognito y
+         * todavía no ha completado el alta: identidad probada, sin fila en
+         * nuestra base. Antes salía como 401, y eso mandaba al SPA a cerrar la
+         * sesión y volver al acceso — donde Cognito lo dejaba entrar otra vez,
+         * porque la sesión de Cognito sí es válida. Un bucle.
+         *
+         * Sale como 404 con código propio para que el frontend lo distinga y
+         * lleve a la pantalla de registro. El 401 queda para lo que de verdad
+         * es: token ausente, caducado o mal firmado.
+         */
         Usuario usuario = usuarios.buscarPorCognitoSub(cognitoSub)
-                .orElseThrow(() -> new NoAutenticado(
-                        "El token es valido pero no corresponde a ningun usuario registrado."));
+                .orElseThrow(() -> RecursoNoEncontrado.con(
+                        "usuario_no_registrado",
+                        "El token es valido pero todavia no hay una cuenta asociada. "
+                                + "Falta completar el registro."));
 
         // Se comprueba en cada petición, no solo al iniciar sesión: desactivar a
         // alguien tiene que cortarle el acceso ya, y Cognito no revoca un token

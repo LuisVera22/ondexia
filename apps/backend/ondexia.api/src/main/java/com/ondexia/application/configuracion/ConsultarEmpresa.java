@@ -34,7 +34,7 @@ public class ConsultarEmpresa {
         var empresaId = contexto.obligatorio().empresaActivaObligatoria();
 
         return empresas.buscarPorId(empresaId)
-                .orElseThrow(() -> new RecursoNoEncontrado(
+                .orElseThrow(() -> RecursoNoEncontrado.con(
                         "empresa_no_encontrada",
                         "La empresa activa ya no existe. Vuelve a iniciar sesión."));
     }

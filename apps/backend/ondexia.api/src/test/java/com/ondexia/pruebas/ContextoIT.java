@@ -29,15 +29,30 @@ class ContextoIT extends PruebaIntegracion {
     }
 
     @Test
-    @DisplayName("Un token cuyo sujeto no existe en nuestra base tampoco pasa")
-    void tokenDeSujetoDesconocidoDevuelve401() throws Exception {
-        // La firma es valida: el token lo emitimos nosotros. Lo que falla es que
-        // no hay usuario detras. Es el caso de alguien dado de baja en nuestra
-        // base cuyo usuario de Cognito sigue existiendo — y tiene que cerrarse.
+    @DisplayName("Un token sin usuario detrás significa «falta registrarse», no «no autenticado»")
+    void tokenDeSujetoDesconocidoPideRegistro() throws Exception {
+        /*
+         * Esta prueba exigía 401 y ahora exige 404 con código propio. El cambio
+         * lo trajo el flujo de registro, y corrige un bucle real.
+         *
+         * La lectura anterior era «alguien dado de baja cuyo usuario de Cognito
+         * sigue existiendo». Existe otro caso mucho más frecuente y que antes no
+         * existía: el de quien acaba de crear su cuenta en Cognito y todavía no
+         * ha completado el alta. Su identidad está probada; lo que falta es el
+         * negocio.
+         *
+         * Con 401, el SPA cerraba la sesión y volvía al acceso — donde Cognito,
+         * cuya sesión sí es válida, lo dejaba entrar otra vez. Un bucle del que
+         * el usuario no puede salir.
+         *
+         * La baja sigue cubierta, y por otra vía: `ResolverContexto` comprueba
+         * `usuario.estaActivo()` en CADA petición y responde 403. Esa es la que
+         * corta el acceso a quien fue desactivado, no esta.
+         */
         mockMvc.perform(get("/api/v1/contexto")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("nadie")))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.codigo").value("no_autenticado"));
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.codigo").value("usuario_no_registrado"));
     }
 
     @Test

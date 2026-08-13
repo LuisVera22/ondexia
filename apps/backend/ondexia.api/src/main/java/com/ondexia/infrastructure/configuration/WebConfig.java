@@ -32,6 +32,10 @@ public class WebConfig implements WebMvcConfigurer {
         "/swagger-ui/**",
         "/swagger-ui.html",
         "/desarrollo/**",
+        // El alta es el unico endpoint que atiende a alguien con token valido y
+        // sin fila en la base — resolver su contexto es imposible por
+        // definicion, porque el contexto es justo lo que va a crear.
+        "/api/v1/registro",
     };
 
     private final ContextoInterceptor contextoInterceptor;

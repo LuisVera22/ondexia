@@ -42,10 +42,29 @@ resource "aws_cognito_user_pool" "inquilinos" {
     temporary_password_validity_days = local.politica_contrasena.temporary_password_validity_days
   }
 
-  # Solo un administrador crea usuarios. Un ERP no tiene registro abierto:
-  # quien entra es empleado de una empresa que ya contrató.
+  /**
+   * Autoservicio abierto. Decía lo contrario, y decía esto:
+   *
+   *   «Un ERP no tiene registro abierto: quien entra es empleado de una empresa
+   *   que ya contrató.»
+   *
+   * La segunda mitad sigue siendo cierta y la primera no. El empleado, en
+   * efecto, lo da de alta el administrador de su empresa. Pero **ese
+   * administrador tiene que llegar de algún sitio**, y con el autoservicio
+   * cerrado no llegaba de ninguno: cada cliente nuevo exigía crear a mano la
+   * cuenta, el usuario y la empresa. Es lo que hubo que hacer para poder entrar
+   * a dev por primera vez.
+   *
+   * Decisión de producto (2026-08-13): Ondexia se vende con período de prueba,
+   * así que el alta es una pantalla del producto, no trabajo de operaciones.
+   *
+   * Lo que frena el registro basura no es cerrar el autoservicio sino que el
+   * correo deba verificarse —`auto_verified_attributes`, más arriba— y que el
+   * RUC sea único en toda la instalación. Sin correo confirmado no hay token, y
+   * sin token no hay alta.
+   */
   admin_create_user_config {
-    allow_admin_create_user_only = true
+    allow_admin_create_user_only = false
   }
 
   # No revela si un correo existe cuando falla el acceso.

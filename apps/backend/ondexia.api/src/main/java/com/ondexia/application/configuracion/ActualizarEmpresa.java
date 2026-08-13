@@ -48,7 +48,7 @@ public class ActualizarEmpresa {
         var empresaId = contexto.obligatorio().empresaActivaObligatoria();
 
         var empresa = empresas.buscarPorId(empresaId)
-                .orElseThrow(() -> new RecursoNoEncontrado(
+                .orElseThrow(() -> RecursoNoEncontrado.con(
                         "empresa_no_encontrada", "La empresa activa ya no existe."));
 
         // Se copia el estado ANTES de mutar. La auditoría necesita las dos

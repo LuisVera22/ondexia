@@ -138,12 +138,12 @@ public class Establecimientos {
      */
     private Sucursal exigirDeEstaEmpresa(UUID id) {
         var sucursal = sucursales.buscarPorId(id)
-                .orElseThrow(() -> new RecursoNoEncontrado(
+                .orElseThrow(() -> RecursoNoEncontrado.con(
                         "establecimiento_no_encontrado", "El establecimiento no existe."));
 
         if (!sucursal.empresaId().equals(empresaActiva())) {
-            throw new RecursoNoEncontrado(
-                    "establecimiento_no_encontrado", "El establecimiento no existe.");
+            throw RecursoNoEncontrado.con(
+                        "establecimiento_no_encontrado", "El establecimiento no existe.");
         }
         return sucursal;
     }
