@@ -69,6 +69,18 @@
     <shade.version>3.6.0</shade.version>
 
     <!--
+      SDK de AWS, solo para S3 (logos de marca).
+
+      Se usa el cliente de URLConnection y NO el de Netty ni el de Apache. Los
+      dos ultimos traen su propia pila de red —Netty pesa varios megabytes y
+      arranca hilos— y aqui las llamadas son dos por subida: firmar es un
+      calculo local sin red, y despues un HeadObject y algun DeleteObject
+      ocasional. El cliente del JDK sobra para eso y no engorda el artefacto,
+      que ya roza los 67 MB.
+    -->
+    <awssdk.version>2.32.14</awssdk.version>
+
+    <!--
       OWASP Dependency-Check enlazado a la fase verify, no como paso aparte del
       workflow: asi corre igual en CI y en local (doc 03 §9.0). Es bloqueante
       por decision de §9.4 — en un sistema que firma comprobantes con valor
@@ -118,6 +130,13 @@
         <groupId>org.testcontainers</groupId>
         <artifactId>testcontainers-bom</artifactId>
         <version>${testcontainers.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>${awssdk.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>

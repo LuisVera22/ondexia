@@ -87,6 +87,39 @@
     </dependency>
 
     <!--
+      S3, para los logos de marca.
+
+      Se excluyen los dos clientes HTTP que trae por omision y se pone el del
+      JDK. Netty son varios megabytes y arranca su propio grupo de hilos; en una
+      Lambda que atiende una peticion a la vez eso no aporta nada y si engorda
+      un artefacto que ya roza el limite comodo.
+
+      Ojo con lo que este SDK NO necesita: firmar una URL es un calculo local
+      con las credenciales, sin ninguna llamada de red. Por eso los logos
+      funcionan sin NAT — el navegador del usuario sube el archivo directo a S3,
+      y la Lambda solo firma y despues comprueba por el endpoint de puerta de
+      enlace, que es gratuito.
+    -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>netty-nio-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>apache-client</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>url-connection-client</artifactId>
+    </dependency>
+
+    <!--
       Con org.crac en el classpath, Spring cierra el contexto antes de que
       SnapStart tome la instantanea y lo reabre al restaurarla.
 

@@ -85,6 +85,18 @@ spring:
           # 'client_id' en vez de 'aud'. Lo que si se revalida es la firma y el
           # emisor: la pasarela puede estar bien configurada hoy y mal manana.
 
+
+# Marca: donde viven los logos que sube el cliente.
+#
+# Las dos variables las pone Terraform desde el primer despliegue (api.tf), asi
+# que no hay nada que anadir alli. BUCKET_MARCA es el destino de la subida
+# firmada; CDN_MARCA es el dominio por el que se sirven, distinto al de la
+# aplicacion a proposito (DTE §5.8).
+ondexia:
+  marca:
+    bucket: ${BUCKET_MARCA}
+    cdn: ${CDN_MARCA}
+
 # El arranque en frio se paga una vez por instancia; con SnapStart, casi nunca.
 # Pero el log de arranque de Spring se escribe en cada restauracion y CloudWatch
 # se factura por GB ingerido.

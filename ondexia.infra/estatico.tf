@@ -112,6 +112,35 @@ resource "aws_s3_bucket_versioning" "marca" {
   }
 }
 
+/**
+ * CORS del bucket de marca.
+ *
+ * El navegador sube el logo DIRECTO aquí con una URL firmada, sin pasar por la
+ * API. Eso es una petición entre orígenes, así que sin esta configuración el
+ * navegador la bloquea antes de enviarla y el síntoma es una subida que falla
+ * sin ningún error en nuestros registros —porque nunca llegó a ocurrir.
+ *
+ * Solo PUT, y solo desde el origen de la aplicación. GET no hace falta: los
+ * logos se leen por CloudFront, que es otro dominio y no pasa por aquí.
+ *
+ * `ETag` en los expuestos porque es lo que devuelve S3 al terminar la subida y
+ * lo único que el navegador puede leer para confirmar que fue bien.
+ */
+resource "aws_s3_bucket_cors_configuration" "marca" {
+  bucket = aws_s3_bucket.marca.id
+
+  cors_rule {
+    allowed_methods = ["PUT"]
+    allowed_origins = [local.origen_app]
+    allowed_headers = ["content-type"]
+    expose_headers  = ["ETag"]
+
+    # Cachea el preflight una hora: la subida son dos peticiones y sin esto la
+    # mitad de ellas son OPTIONS.
+    max_age_seconds = 3600
+  }
+}
+
 # ── CloudFront ─────────────────────────────────────────────────────────────
 
 resource "aws_cloudfront_origin_access_control" "sitio" {
