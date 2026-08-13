@@ -1,34 +1,90 @@
-<div class="relative flex min-h-screen flex-col bg-white dark:bg-gray-900 lg:flex-row">
+<div class="relative flex min-h-screen bg-white p-4 dark:bg-gray-950 lg:p-5">
   <!-- Columna del formulario -->
-  <div class="flex w-full flex-1 items-center justify-center p-6 sm:p-10">
+  <div class="flex w-full flex-1 flex-col items-center justify-center px-2 py-10 sm:px-6">
     <ng-content />
   </div>
 
-  <!-- Columna de marca: decorativa, se retira en pantallas pequeñas -->
-  <div class="relative hidden w-full items-center justify-center bg-brand-950 lg:flex lg:w-1/2 dark:bg-white/5">
-    <!--
-      Rejilla de puntos en lugar de una fotografía: pesa unos bytes en vez de
-      cientos de kilobytes, se ve nítida en cualquier densidad de pantalla y no
-      compite con el formulario por la atención.
-    -->
+  <!-- Panel de marca: se retira en pantallas pequeñas -->
+  <aside
+    class="relative hidden w-1/2 shrink-0 overflow-hidden rounded-3xl bg-gradient-to-br from-brand-500 via-brand-600 to-brand-900 lg:flex lg:flex-col lg:items-center lg:justify-center"
+  >
+    <!-- Trazado de fondo: líneas suaves que evocan un plano, sin pesar nada -->
     <div
-      class="absolute inset-0 opacity-[0.15]"
+      class="absolute inset-0 opacity-[0.08]"
       aria-hidden="true"
       style="
-        background-image: radial-gradient(circle, #ffffff 1px, transparent 1px);
-        background-size: 32px 32px;
+        background-image:
+          linear-gradient(#ffffff 1px, transparent 1px),
+          linear-gradient(90deg, #ffffff 1px, transparent 1px);
+        background-size: 56px 56px;
       "
     ></div>
+    <div
+      class="absolute -right-24 -top-24 size-80 rounded-full bg-white/10 blur-3xl"
+      aria-hidden="true"
+    ></div>
+    <div
+      class="absolute -bottom-32 -left-16 size-96 rounded-full bg-brand-950/40 blur-3xl"
+      aria-hidden="true"
+    ></div>
 
-    <div class="relative flex max-w-xs flex-col items-center px-6 text-center">
-      <a routerLink="/" class="mb-5 block" aria-label="Ondexia">
-        <img src="/images/logo/auth-logo.svg" alt="Ondexia" width="231" height="48" />
-      </a>
-      <p class="text-dato text-gray-400">
-        Gestión comercial y facturación electrónica para empresas peruanas
+    <div class="relative flex w-full max-w-md flex-col items-center px-10 text-center">
+      <!--
+        Ilustración propia en SVG: un comprobante aceptado sobre una tarjeta de
+        vidrio. Dice qué hace el producto sin cargar una imagen de archivo.
+      -->
+      <div class="mb-10 w-full rounded-[2rem] border border-white/20 bg-white/10 p-8 shadow-superpuesto backdrop-blur-sm">
+        <svg viewBox="0 0 280 190" fill="none" xmlns="http://www.w3.org/2000/svg" class="mx-auto w-full max-w-xs" role="img" aria-label="Comprobante aceptado">
+          <!-- Documento -->
+          <rect x="70" y="14" width="140" height="162" rx="12" fill="#ffffff" fill-opacity="0.95" />
+          <rect x="88" y="34" width="64" height="9" rx="4.5" fill="#465fff" fill-opacity="0.85" />
+          <rect x="88" y="52" width="104" height="6" rx="3" fill="#d0d5dd" />
+          <rect x="88" y="66" width="88" height="6" rx="3" fill="#d0d5dd" />
+          <line x1="88" y1="84" x2="192" y2="84" stroke="#e4e7ec" stroke-width="2" stroke-dasharray="5 5" />
+          <rect x="88" y="96" width="56" height="6" rx="3" fill="#98a2b3" />
+          <rect x="164" y="96" width="28" height="6" rx="3" fill="#98a2b3" />
+          <rect x="88" y="112" width="48" height="6" rx="3" fill="#d0d5dd" />
+          <rect x="156" y="112" width="36" height="6" rx="3" fill="#d0d5dd" />
+          <rect x="88" y="128" width="52" height="6" rx="3" fill="#d0d5dd" />
+          <rect x="160" y="128" width="32" height="6" rx="3" fill="#d0d5dd" />
+          <line x1="88" y1="146" x2="192" y2="146" stroke="#e4e7ec" stroke-width="2" />
+          <rect x="88" y="156" width="40" height="8" rx="4" fill="#344054" />
+          <rect x="152" y="156" width="40" height="8" rx="4" fill="#465fff" />
+          <!-- Barras: la parte de gestión -->
+          <rect x="22" y="118" width="14" height="40" rx="4" fill="#ffffff" fill-opacity="0.35" />
+          <rect x="42" y="98" width="14" height="60" rx="4" fill="#ffffff" fill-opacity="0.55" />
+          <rect x="62" y="76" width="14" height="82" rx="4" fill="#ffffff" fill-opacity="0.8" transform="translate(-8 0)" />
+          <!-- Sello de aceptado -->
+          <circle cx="212" cy="42" r="26" fill="#12b76a" />
+          <circle cx="212" cy="42" r="26" stroke="#ffffff" stroke-opacity="0.6" stroke-width="3" />
+          <path d="m201 42.5 7.5 7.5 14-15" stroke="#ffffff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+
+      <!-- Mensajes rotatorios -->
+      <h2 class="mb-2 text-2xl font-semibold text-white">
+        {{ mensajes[mensajeActivo()].titulo }}
+      </h2>
+      <p class="mb-8 min-h-10 text-dato text-brand-100">
+        {{ mensajes[mensajeActivo()].detalle }}
       </p>
+
+      <!-- Puntos del carrusel: controles de verdad, no adorno -->
+      <div class="flex items-center gap-2" role="tablist" aria-label="Mensajes">
+        @for (mensaje of mensajes; track $index) {
+        <button
+          type="button"
+          role="tab"
+          [attr.aria-selected]="mensajeActivo() === $index"
+          [attr.aria-label]="mensaje.titulo"
+          (click)="elegirMensaje($index)"
+          class="h-2 rounded-full transition-all duration-300"
+          [class]="mensajeActivo() === $index ? 'w-7 bg-white' : 'w-2 bg-white/40 hover:bg-white/60'"
+        ></button>
+        }
+      </div>
     </div>
-  </div>
+  </aside>
 
   <!-- El tema también se alterna aquí: quien entra de noche no debería tragarse
        una pantalla blanca para luego cambiarlo dentro. -->

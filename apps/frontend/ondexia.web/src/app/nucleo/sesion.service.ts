@@ -71,8 +71,40 @@ export class SesionService {
     return this._sesion()?.acceso ?? null;
   }
 
-  /** Redirige a Cognito. No retorna: la pestaña navega fuera. */
-  async iniciar(destino = '/'): Promise<void> {
+  /** Redirige a la pantalla de acceso de Cognito. No retorna: la pestaña navega fuera. */
+  iniciar(destino = '/'): Promise<void> {
+    return this.navegarACognito('/oauth2/authorize', destino);
+  }
+
+  /**
+   * Redirige al alta de Cognito: correo, contraseña y verificación del correo.
+   *
+   * Al confirmar el código, Cognito inicia la sesión solo y vuelve a
+   * `/acceso/retorno` con un código de autorización — el mismo camino que un
+   * acceso normal. La diferencia aparece después: el contexto responde
+   * `usuario_no_registrado` y el SPA lleva a completar los datos de la empresa.
+   */
+  registrarse(): Promise<void> {
+    return this.navegarACognito('/signup', '/');
+  }
+
+  /**
+   * Redirige a la recuperación de contraseña de Cognito.
+   *
+   * El formulario propio que había aquí no enviaba nada — era de la maqueta.
+   * Quien sabe si el correo existe, manda el código y valida la contraseña
+   * nueva es Cognito, así que lo honesto es llevar ahí.
+   */
+  recuperar(): Promise<void> {
+    return this.navegarACognito('/forgotPassword', '/');
+  }
+
+  /**
+   * Todas las puertas de Cognito comparten los mismos parámetros, PKCE
+   * incluido: aunque el usuario entre por «recuperar contraseña», el final del
+   * recorrido es siempre un código de autorización que hay que poder canjear.
+   */
+  private async navegarACognito(ruta: string, destino: string): Promise<void> {
     const verificador = aleatorio(64);
     const estado = aleatorio(16);
 
@@ -90,7 +122,7 @@ export class SesionService {
       code_challenge_method: 'S256',
     });
 
-    location.assign(`${this.configuracion.cognito.dominio}/oauth2/authorize?${parametros}`);
+    location.assign(`${this.configuracion.cognito.dominio}${ruta}?${parametros}`);
   }
 
   /**

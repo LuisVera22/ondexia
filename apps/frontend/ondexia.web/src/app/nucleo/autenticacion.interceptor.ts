@@ -78,6 +78,17 @@ export const autenticacionInterceptor: HttpInterceptorFn = (peticion, siguiente)
         void router.navigate(['/sin-permisos']);
       }
 
+      /*
+       * Sesión válida pero alta sin completar. Cubre el caso que el retorno no
+       * alcanza: quien cerró la pestaña a mitad del registro y vuelve mañana —
+       * la guarda lo deja pasar (tiene sesión) y la primera llamada a la API
+       * cae aquí. Se filtra por el código estable, no por el 404 a secas: un
+       * «no encontrado» cualquiera no debe mandar a nadie a registrarse.
+       */
+      if (error.status === 404 && error.error?.codigo === 'usuario_no_registrado') {
+        void router.navigate(['/acceso/registro']);
+      }
+
       return throwError(() => error);
     })
   );

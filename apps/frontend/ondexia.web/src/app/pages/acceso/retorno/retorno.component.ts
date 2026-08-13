@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MarcoAccesoComponent } from '../../../shared/layout/marco-acceso/marco-acceso.component';
@@ -32,6 +33,10 @@ export class RetornoComponent {
     void this.procesar();
   }
 
+  // El backend lo marca con un código estable, no con el estado HTTP a secas:
+  // un 404 cualquiera no debe mandar a nadie a registrarse.
+  private static readonly SIN_REGISTRAR = 'usuario_no_registrado';
+
   private async procesar(): Promise<void> {
     const parametros = this.ruta.snapshot.queryParamMap;
 
@@ -61,6 +66,21 @@ export class RetornoComponent {
 
       void this.router.navigateByUrl(destino, { replaceUrl: true });
     } catch (fallo: unknown) {
+      /*
+       * «Usuario sin registrar» no es un fallo: es el estado normal de quien
+       * acaba de crear su cuenta en Cognito. La sesión quedó bien abierta; lo
+       * que falta son los datos de la empresa. Sin este desvío, el recién
+       * llegado vería «no se pudo iniciar sesión» justo después de verificar
+       * su correo con éxito — el mensaje más desmoralizador posible.
+       */
+      if (
+        fallo instanceof HttpErrorResponse &&
+        fallo.error?.codigo === RetornoComponent.SIN_REGISTRAR
+      ) {
+        void this.router.navigate(['/acceso/registro'], { replaceUrl: true });
+        return;
+      }
+
       this.error.set(
         fallo instanceof Error
           ? fallo.message

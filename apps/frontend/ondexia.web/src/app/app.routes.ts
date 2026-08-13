@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { sesionGuard } from './nucleo/sesion.guard';
+import { RegistroComponent } from './pages/acceso/registro/registro.component';
 import { RetornoComponent } from './pages/acceso/retorno/retorno.component';
 import { MarcoAppComponent } from './shared/layout/marco-app/marco-app.component';
 import { PanelComponent } from './pages/panel/panel.component';
@@ -182,6 +183,15 @@ export const routes: Routes = [
     path: 'acceso/retorno',
     component: RetornoComponent,
     title: `Accediendo | ${TITULO}`,
+  },
+  {
+    // Último paso del alta: los datos de la empresa. Exige sesión —la
+    // identidad ya está probada por Cognito— pero queda fuera del marco de la
+    // aplicación: quien está aquí todavía no tiene panel al que ir.
+    path: 'acceso/registro',
+    component: RegistroComponent,
+    canActivate: [sesionGuard],
+    title: `Crear cuenta | ${TITULO}`,
   },
 
   {

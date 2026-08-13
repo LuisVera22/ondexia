@@ -47,4 +47,21 @@ export class IngresarComponent {
       this.error.set('No se pudo contactar con el servicio de acceso. Inténtalo de nuevo.');
     }
   }
+
+  /**
+   * Lleva al alta de Cognito. Al confirmar el correo, la vuelta es el mismo
+   * retorno de siempre; el contexto responde «usuario sin registrar» y de ahí
+   * se pasa a completar los datos de la empresa.
+   */
+  async crearCuenta(): Promise<void> {
+    this.enviando.set(true);
+    this.error.set(null);
+
+    try {
+      await this.sesion.registrarse();
+    } catch {
+      this.enviando.set(false);
+      this.error.set('No se pudo contactar con el servicio de acceso. Inténtalo de nuevo.');
+    }
+  }
 }

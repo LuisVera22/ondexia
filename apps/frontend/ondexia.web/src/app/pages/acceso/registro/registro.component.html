@@ -1,0 +1,150 @@
+<app-marco-acceso>
+  <div class="w-full max-w-md">
+    <div class="mb-8 flex flex-col items-center text-center">
+      <img src="/images/logo/logo-icon.svg" alt="" width="48" height="48" class="mb-5" />
+      <h1 class="mb-2 text-3xl font-semibold text-gray-800 dark:text-white/90">
+        Ya casi está
+      </h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Tu correo <span class="font-medium text-gray-700 dark:text-gray-300">{{ correo }}</span>
+        quedó verificado. Falta conocer a tu empresa.
+      </p>
+    </div>
+
+    @if (error()) {
+    <div
+      class="mb-5 rounded-lg border border-error-500/30 bg-error-500/10 px-4 py-3 text-sm text-error-500"
+      role="alert"
+    >
+      {{ error() }}
+    </div>
+    }
+
+    <form [formGroup]="formulario" (ngSubmit)="registrar()" novalidate class="space-y-5">
+      <div>
+        <label for="nombreTitular" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+          Tu nombre <span class="text-error-500">*</span>
+        </label>
+        <input
+          id="nombreTitular"
+          type="text"
+          formControlName="nombreTitular"
+          autocomplete="name"
+          placeholder="Como quieres aparecer en el sistema"
+          class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90 dark:placeholder:text-white/30"
+          [class]="controles.nombreTitular.touched && controles.nombreTitular.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+        />
+        @if (controles.nombreTitular.touched && controles.nombreTitular.invalid) {
+        <p class="mt-1.5 text-xs text-error-500">Falta tu nombre.</p>
+        } @else {
+        <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+          Quedarás como administrador de la cuenta.
+        </p>
+        }
+      </div>
+
+      <div>
+        <label for="ruc" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+          RUC <span class="text-error-500">*</span>
+        </label>
+        <input
+          id="ruc"
+          type="text"
+          formControlName="ruc"
+          maxlength="11"
+          inputmode="numeric"
+          placeholder="20123456789"
+          class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm tabular-nums text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90 dark:placeholder:text-white/30"
+          [class]="controles.ruc.touched && controles.ruc.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+        />
+        @if (controles.ruc.touched && controles.ruc.invalid) {
+        <p class="mt-1.5 text-xs text-error-500">El RUC son once dígitos.</p>
+        }
+      </div>
+
+      <div>
+        <label for="razonSocial" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+          Razón social <span class="text-error-500">*</span>
+        </label>
+        <input
+          id="razonSocial"
+          type="text"
+          formControlName="razonSocial"
+          placeholder="Como figura en la ficha RUC"
+          class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90 dark:placeholder:text-white/30"
+          [class]="controles.razonSocial.touched && controles.razonSocial.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+        />
+        @if (controles.razonSocial.touched && controles.razonSocial.invalid) {
+        <p class="mt-1.5 text-xs text-error-500">La razón social es obligatoria.</p>
+        }
+      </div>
+
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+        <div class="sm:col-span-2">
+          <label for="domicilioFiscal" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Domicilio fiscal <span class="text-error-500">*</span>
+          </label>
+          <input
+            id="domicilioFiscal"
+            type="text"
+            formControlName="domicilioFiscal"
+            placeholder="Av. Ejemplo 123, Lima"
+            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90 dark:placeholder:text-white/30"
+            [class]="controles.domicilioFiscal.touched && controles.domicilioFiscal.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+          />
+          @if (controles.domicilioFiscal.touched && controles.domicilioFiscal.invalid) {
+          <p class="mt-1.5 text-xs text-error-500">El domicilio fiscal es obligatorio.</p>
+          }
+        </div>
+
+        <div>
+          <label for="ubigeo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Ubigeo
+          </label>
+          <input
+            id="ubigeo"
+            type="text"
+            formControlName="ubigeo"
+            maxlength="6"
+            inputmode="numeric"
+            placeholder="150101"
+            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm tabular-nums text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90 dark:placeholder:text-white/30"
+            [class]="controles.ubigeo.touched && controles.ubigeo.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+          />
+          @if (controles.ubigeo.touched && controles.ubigeo.invalid) {
+          <p class="mt-1.5 text-xs text-error-500">Son seis dígitos.</p>
+          }
+        </div>
+      </div>
+
+      <!--
+        Lo que el formulario NO pregunta también comunica: el establecimiento
+        matriz (0000) se crea solo, porque SUNAT lo exige siempre.
+      -->
+      <p class="text-xs text-gray-400 dark:text-gray-500">
+        Crearemos tu casa matriz (código 0000) con el domicilio fiscal. Podrás
+        añadir más establecimientos desde Configuración.
+      </p>
+
+      <button
+        type="submit"
+        [disabled]="enviando()"
+        class="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand-500 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
+      >
+        @if (enviando()) {
+        <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25" />
+          <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+        </svg>
+        Creando tu cuenta… } @else { Empezar a usar Ondexia }
+      </button>
+    </form>
+
+    <p class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+      ¿No es tu empresa?
+      <button type="button" (click)="cancelar()" class="font-medium text-brand-500 transition hover:text-brand-600">
+        Salir
+      </button>
+    </p>
+  </div>
+</app-marco-acceso>

@@ -1,50 +1,65 @@
 <app-marco-acceso>
-  <div class="flex flex-col flex-1 w-full lg:w-1/2">
-    <div class="flex flex-col justify-center flex-1 w-full max-w-md mx-auto px-4 sm:px-0">
-      <div class="mb-8">
-        <h1 class="mb-2 font-semibold text-gray-800 text-3xl dark:text-white/90 sm:text-4xl">
-          Iniciar sesión
-        </h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400">
-          Continúe con su cuenta de Ondexia para acceder al panel.
-        </p>
-      </div>
-
-      @if (error()) {
-      <div
-        class="mb-5 rounded-lg border border-error-500/30 bg-error-500/10 px-4 py-3 text-sm text-error-500"
-        role="alert"
-      >
-        {{ error() }}
-      </div>
-      }
-
-      <button
-        type="button"
-        (click)="entrar()"
-        [disabled]="enviando()"
-        class="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand-500 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
-      >
-        @if (enviando()) {
-        <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25" />
-          <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-        </svg>
-        Redirigiendo… } @else { Ingresar }
-      </button>
-
-      <!--
-        La contraseña, el segundo factor y la recuperación los resuelve la
-        interfaz alojada de Cognito. No es una simplificación: significa que la
-        contraseña del usuario no pasa por este código en ningún momento.
-      -->
-      <p class="mt-4 text-center text-xs text-gray-400 dark:text-gray-500">
-        Se le pedirá su correo y contraseña en la página segura de acceso.
-      </p>
-
-      <p class="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-        Las cuentas las crea el administrador de su empresa.
+  <div class="w-full max-w-md">
+    <div class="mb-8 flex flex-col items-center text-center">
+      <img src="/images/logo/logo-icon.svg" alt="" width="48" height="48" class="mb-5" />
+      <h1 class="mb-2 text-3xl font-semibold text-gray-800 dark:text-white/90">
+        ¡Bienvenido!
+      </h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Ingresa con tu cuenta para continuar.
       </p>
     </div>
+
+    @if (error()) {
+    <div
+      class="mb-5 rounded-lg border border-error-500/30 bg-error-500/10 px-4 py-3 text-sm text-error-500"
+      role="alert"
+    >
+      {{ error() }}
+    </div>
+    }
+
+    <button
+      type="button"
+      (click)="entrar()"
+      [disabled]="enviando()"
+      class="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand-500 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
+    >
+      @if (enviando()) {
+      <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25" />
+        <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+      </svg>
+      Redirigiendo… } @else { Ingresar }
+    </button>
+
+    <!--
+      La contraseña, el segundo factor y la recuperación los resuelve la página
+      segura de Cognito: la contraseña no pasa por este código en ningún momento.
+    -->
+    <p class="mt-4 text-center text-xs text-gray-400 dark:text-gray-500">
+      Se te pedirá tu correo y contraseña en la página segura de acceso.
+    </p>
+
+    <div class="my-7 flex items-center gap-4" aria-hidden="true">
+      <span class="h-px flex-1 bg-gray-200 dark:bg-gray-800"></span>
+      <span class="text-menudo uppercase tracking-wide text-gray-400 dark:text-gray-500">o</span>
+      <span class="h-px flex-1 bg-gray-200 dark:bg-gray-800"></span>
+    </div>
+
+    <p class="text-center text-sm text-gray-500 dark:text-gray-400">
+      ¿Aún no tienes una cuenta?
+      <button
+        type="button"
+        (click)="crearCuenta()"
+        [disabled]="enviando()"
+        class="font-medium text-brand-500 transition hover:text-brand-600 disabled:opacity-60"
+      >
+        Crear cuenta
+      </button>
+    </p>
+    <p class="mt-2 text-center text-xs text-gray-400 dark:text-gray-500">
+      Prueba Ondexia con tu empresa: solo necesitas tu RUC.
+    </p>
   </div>
 </app-marco-acceso>
