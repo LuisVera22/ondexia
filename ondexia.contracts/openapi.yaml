@@ -23,16 +23,133 @@ servers:
 security:
 - jwt: []
 tags:
+- name: Empresa
+  description: Datos fiscales de la empresa activa
 - name: Contexto
   description: "Identidad, empresas accesibles y permisos efectivos"
+- name: Establecimientos
+  description: Anexos de la empresa ante SUNAT
 paths:
+  /api/v1/configuracion/establecimientos/{id}:
+    put:
+      tags:
+      - Establecimientos
+      summary: Actualiza un establecimiento
+      description: "El código no se puede cambiar: identifica al anexo ante SUNAT."
+      operationId: actualizar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionEdicion"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaEstablecimiento"
+    delete:
+      tags:
+      - Establecimientos
+      summary: Desactiva un establecimiento
+      description: "No lo borra. Un establecimiento aparece en los comprobantes ya\
+        \ emitidos: borrarlo dejaría documentos apuntando a nada."
+      operationId: desactivar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "204":
+          description: No Content
+  /api/v1/configuracion/empresa:
+    get:
+      tags:
+      - Empresa
+      summary: Datos de la empresa activa
+      operationId: consultar
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaEmpresa"
+    put:
+      tags:
+      - Empresa
+      summary: Actualiza los datos fiscales
+      description: "El RUC no se puede cambiar y por eso no está en el cuerpo. Cambiarlo\
+        \ no es corregir un dato: es decir que los comprobantes ya emitidos pertenecen\
+        \ a otro contribuyente."
+      operationId: actualizar_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionEmpresa"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaEmpresa"
+  /api/v1/configuracion/establecimientos:
+    get:
+      tags:
+      - Establecimientos
+      summary: "Lista los establecimientos, activos e inactivos"
+      operationId: listar
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaEstablecimiento"
+    post:
+      tags:
+      - Establecimientos
+      summary: Registra un establecimiento
+      description: El código son los cuatro dígitos que asigna SUNAT y aparecen en
+        la ficha RUC; no se genera aquí. La casa matriz es 0000.
+      operationId: registrar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionNuevo"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaEstablecimiento"
   /salud:
     get:
       tags:
       - salud-controller
       summary: Sonda de vida
       description: Responde si el proceso esta en pie. No comprueba dependencias.
-      operationId: consultar
+      operationId: consultar_1
       responses:
         "200":
           description: OK
@@ -50,7 +167,7 @@ paths:
         Devuelve la identidad, las empresas a las que tiene acceso y los permisos del rol en la empresa activa.
 
         La empresa activa se indica con la cabecera X-Empresa-Id. Si se omite y el usuario solo tiene una, se toma esa. Si tiene varias y no la indica, la respuesta trae la lista para que elija y el conjunto de permisos vacio.
-      operationId: consultar_1
+      operationId: consultar_2
       responses:
         "200":
           description: OK
@@ -60,6 +177,102 @@ paths:
                 $ref: "#/components/schemas/RespuestaContexto"
 components:
   schemas:
+    PeticionEdicion:
+      required:
+      - direccion
+      - nombre
+      type: object
+      properties:
+        nombre:
+          maxLength: 200
+          minLength: 0
+          type: string
+        direccion:
+          maxLength: 400
+          minLength: 0
+          type: string
+        ubigeo:
+          pattern: "^$|^\\d{6}$"
+          type: string
+    RespuestaEstablecimiento:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        codigo:
+          type: string
+        nombre:
+          type: string
+        direccion:
+          type: string
+        ubigeo:
+          type: string
+        activa:
+          type: boolean
+    PeticionEmpresa:
+      required:
+      - domicilioFiscal
+      - razonSocial
+      type: object
+      properties:
+        razonSocial:
+          maxLength: 300
+          minLength: 0
+          type: string
+        nombreComercial:
+          maxLength: 300
+          minLength: 0
+          type: string
+        domicilioFiscal:
+          maxLength: 400
+          minLength: 0
+          type: string
+        ubigeo:
+          pattern: "^$|^\\d{6}$"
+          type: string
+    RespuestaEmpresa:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        ruc:
+          type: string
+        razonSocial:
+          type: string
+        nombreComercial:
+          type: string
+        domicilioFiscal:
+          type: string
+        ubigeo:
+          type: string
+        modoSunat:
+          type: string
+        activa:
+          type: boolean
+    PeticionNuevo:
+      required:
+      - codigo
+      - direccion
+      - nombre
+      type: object
+      properties:
+        codigo:
+          minLength: 1
+          pattern: "\\d{4}"
+          type: string
+        nombre:
+          maxLength: 200
+          minLength: 0
+          type: string
+        direccion:
+          maxLength: 400
+          minLength: 0
+          type: string
+        ubigeo:
+          pattern: "^$|^\\d{6}$"
+          type: string
     Salud:
       type: object
       properties:

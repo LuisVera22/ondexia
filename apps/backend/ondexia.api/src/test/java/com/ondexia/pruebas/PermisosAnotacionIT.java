@@ -108,14 +108,26 @@ class PermisosAnotacionIT extends PruebaIntegracion {
     }
 
     @Test
-    @DisplayName("Sin empresa activa se deniega, aunque el rol tenga el permiso")
-    void sinEmpresaActivaSeDeniega() throws Exception {
-        // Denegar por defecto. El usuario tiene dos empresas y no ha dicho
-        // sobre cuál opera, así que no hay rol contra el que evaluar. Fallar
-        // abriendo sería lo peligroso.
+    @DisplayName("Sin empresa activa no se pasa, y se dice por qué")
+    void sinEmpresaActivaNoSePasa() throws Exception {
+        /*
+         * Esta prueba exigía un 403 y ahora exige un 400. El cambio es
+         * deliberado, y lo motivó la Entrega 1.
+         *
+         * Lo esencial no ha cambiado: sin empresa activa no se pasa, y se falla
+         * cerrado. Lo que cambia es la RAZÓN que se comunica. Un 403 decía «no
+         * tienes permiso», y el frontend lo traduce llevando al usuario a la
+         * pantalla de «sin permisos» — cuando lo único que ocurre es que tiene
+         * dos empresas y aún no ha elegido sobre cuál trabaja.
+         *
+         * Ese usuario acababa expulsado a una pantalla que le decía algo falso
+         * sobre sus permisos. Ahora recibe un código propio con el que el SPA
+         * puede pedirle que elija.
+         */
         mockMvc.perform(get("/pruebas/permisos/anular")
                         .header(HttpHeaders.AUTHORIZATION, autorizacionDemo()))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("sin_empresa_activa"));
     }
 
     @Test
