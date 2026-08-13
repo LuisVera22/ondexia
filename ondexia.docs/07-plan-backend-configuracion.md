@@ -128,7 +128,35 @@ permisos y aislamiento de una sola pasada.
 
 ---
 
-### Entrega 1 · Empresa y establecimientos · **M**
+### Entrega 1 · Empresa y establecimientos · **M** — **ENTREGADA**
+
+Endpoints bajo `/api/v1/configuracion`, 43 pruebas en verde, y las dos
+pantallas conectadas.
+
+**Lo que cambió respecto a lo planeado:**
+
+- **El RUC no se bloquea «cuando hay comprobantes», se bloquea siempre.** Al
+  escribir la regla condicional se vio que sobra: no existe ningún momento en
+  que cambiarlo sea correcto. Si se tecleó mal al dar de alta, lo que procede es
+  crear la empresa buena.
+- **Sin empresa activa se responde 400, no 403.** Los permisos son por empresa,
+  así que sin una elegida se denegaba todo y el usuario con varias acababa en
+  «sin permisos» — un mensaje falso sobre su situación.
+- **Las pantallas perdieron campos.** `departamento`, `provincia`, `distrito`,
+  `teléfono` y `correo` no existen en el esquema; mantenerlos habría significado
+  aceptar lo que el usuario escribe y descartarlo en silencio. Los tres primeros
+  se derivan del ubigeo cuando haya catálogo; los otros dos necesitan columnas
+  nuevas, que es una migración y por tanto una decisión.
+- **«Eliminar» pasó a ser «Desactivar»** en establecimientos, y la casa matriz
+  (0000) no ofrece la acción.
+
+**Deuda que deja:** el rol Vendedor no tiene ningún permiso de `configuracion.*`,
+ni de lectura, así que el filtro entre empresas no se puede ejercitar por HTTP
+—la autorización corta antes— y se prueba contra el caso de uso.
+
+---
+
+#### Lo que decía el plan
 
 Las entidades ya existen. Falta todo lo demás.
 
