@@ -268,6 +268,23 @@ resource "aws_lambda_function" "api" {
        */
       SPRING_PROFILES_ACTIVE = "aws,${var.entorno}"
 
+      /**
+       * Qué build está sirviendo, visible en /salud.
+       *
+       * application.yml ya lee ONDEXIA_VERSION y cae a «0.1.0-SNAPSHOT» si no
+       * está, que es lo que respondía la sonda: el mismo texto para siempre,
+       * sin decir nada. Con el hash del artefacto, `curl /salud` identifica el
+       * build exacto que corre — que es justo lo que se quiere saber cuando
+       * algo se comporta distinto de lo esperado tras un despliegue.
+       *
+       * Efecto secundario deliberado: cambia con cada artefacto, así que un
+       * despliegue nuevo SIEMPRE modifica $LATEST y Lambda publica versión
+       * nueva. Sin esto, republicar tras una versión fallida es imposible —
+       * `publish-version` devuelve la misma versión rota, porque $LATEST no ha
+       * cambiado. Ocurrió al desplegar la Entrega 2.
+       */
+      ONDEXIA_VERSION = substr(filemd5(local.ruta_artefacto), 0, 12)
+
       # El SPA llama desde su propio origen. La pasarela ya hace CORS, pero
       # Spring tiene su propia configuración y por omisión apunta a
       # localhost:4200, que en la nube no es nadie.
