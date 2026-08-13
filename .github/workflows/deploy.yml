@@ -190,29 +190,36 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Terraform apply
+      # ── Migraciones, ANTES de publicar la API ──────────────────────────────
+      #
+      # El orden de estos dos pasos importa y costó descubrirlo.
+      #
+      # La API corre con ddl-auto=validate: al arrancar comprueba que cada
+      # entidad tenga su tabla. Publicar una versión con una entidad nueva
+      # ANTES de aplicar su migración hace que el arranque falle con
+      # «Schema validation: missing table», y como SnapStart toma la instantánea
+      # durante ese arranque, la versión queda en estado Failed. El alias no
+      # puede apuntar a una versión fallida, así que el despliegue se detiene
+      # con la API sirviendo todavía el código anterior.
+      #
+      # Por eso se actualiza primero SOLO la función de migraciones —que no
+      # levanta Hibernate y por tanto no valida nada—, se migra, y solo entonces
+      # se aplica el resto.
+
+      - name: Actualizar la función de migraciones
         if: ${{ !inputs.solo_plan }}
         working-directory: ondexia.infra
-        # Se aplica el plan guardado, no se recalcula. Un `apply` que vuelve a
-        # planificar puede hacer algo distinto de lo que se revisó, y entre el
-        # plan y el apply hay una aprobación humana de por medio.
-        run: terraform apply -auto-approve plan.tfplan
-
-      # ── Migraciones ────────────────────────────────────────────────────────
+        # -target está desaconsejado como norma y aquí es lo correcto: se
+        # necesita justamente aplicar una parte antes que el resto.
+        run: |
+          terraform apply -auto-approve \
+            -var-file="entornos/${{ inputs.entorno }}.tfvars" \
+            -target=aws_s3_object.api \
+            -target=aws_lambda_function.migraciones
 
       - name: Aplicar las migraciones
         if: ${{ !inputs.solo_plan }}
         working-directory: ondexia.infra
-        # Entre el apply y el sondeo, y no es opcional.
-        #
-        # La API ya no migra al arrancar (ver ManejadorMigraciones): en Lambda
-        # «al arrancar» son N arranques en frío simultáneos peleándose por el
-        # candado de Flyway, dentro de peticiones de usuario con 29 s de límite.
-        #
-        # Sin este paso el despliegue no queda a medias: queda ROTO. Hibernate
-        # corre con ddl-auto=validate, así que sin esquema no construye el
-        # EntityManagerFactory y la aplicación no llega a levantarse. El sondeo
-        # de más abajo fallaría tras diez intentos sin explicar por qué.
         run: |
           FUNCION=$(terraform output -raw funcion_migraciones)
 
@@ -235,6 +242,20 @@ jobs:
           fi
 
           echo "$(cat respuesta.json)" >> "$GITHUB_STEP_SUMMARY"
+
+      # ── Infraestructura, ya con el esquema al día ──────────────────────────
+
+      - name: Terraform apply
+        if: ${{ !inputs.solo_plan }}
+        working-directory: ondexia.infra
+        # Se aplica el plan guardado, no se recalcula. Un `apply` que vuelve a
+        # planificar puede hacer algo distinto de lo que se revisó, y entre el
+        # plan y el apply hay una aprobación humana de por medio.
+        #
+        # El paso anterior aplicó dos recursos del plan por adelantado; el plan
+        # guardado los vuelve a incluir y Terraform los encuentra ya en su
+        # estado deseado, así que no hace nada con ellos.
+        run: terraform apply -auto-approve plan.tfplan
 
       # ── Publicación del contenido estático ─────────────────────────────────
       #
