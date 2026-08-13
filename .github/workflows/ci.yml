@@ -26,7 +26,19 @@ jobs:
 
       # pnpm antes que setup-node: el runner no lo trae, y setup-node necesita
       # que exista para poder cachear su almacén.
+      #
+      # `package_json_file` hace falta porque la acción busca `packageManager`
+      # en la RAÍZ del repositorio, y aquí no hay package.json ahí: el frontend
+      # cuelga de apps/frontend/ondexia.web. Sin esta línea falla en ocho
+      # segundos con «No pnpm version is specified», antes de compilar nada, y
+      # el mensaje no menciona que el problema sea dónde está mirando.
+      #
+      # Se apunta al archivo en vez de fijar `version:` aquí para que la versión
+      # siga estando en un solo sitio. Con las dos, la del workflow y la del
+      # package.json se separan el día que alguien actualice una.
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: apps/frontend/ondexia.web/package.json
 
       - uses: actions/setup-node@v4
         with:
