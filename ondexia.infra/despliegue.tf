@@ -165,6 +165,7 @@ data "aws_iam_policy_document" "despliegue_iam" {
       "iam:GetRole",
       "iam:UpdateRole",
       "iam:PassRole",
+      "iam:UpdateAssumeRolePolicy",
       "iam:TagRole",
       "iam:UntagRole",
       "iam:ListRoleTags",
@@ -189,17 +190,61 @@ data "aws_iam_policy_document" "despliegue_iam" {
     resources = ["*"]
   }
 
-  # El proveedor OIDC y este mismo rol quedan fuera a propósito: los crea una
-  # persona desde su equipo, una vez. Un rol que puede reescribir su propia
-  # política de confianza no está acotado por ella.
+  # LEER el proveedor OIDC. Terraform lo tiene en su estado, así que lo refresca
+  # en cada plan, y PowerUserAccess excluye IAM por completo. Sin esta concesión
+  # el plan se calcula entero y luego aborta con exit 1 y este error:
+  #
+  #   Error: reading IAM OIDC Provider (...): AccessDenied: User:
+  #   .../ondexia-despliegue is not authorized to perform:
+  #   iam:GetOpenIDConnectProvider ... with an explicit deny in an
+  #   identity-based policy
+  #
+  # El «explicit deny» era de aquí: la primera versión denegaba
+  # `iam:*OpenIDConnectProvider*`, y ese comodín abarca también el Get. Una
+  # denegación explícita gana sobre cualquier permiso, así que la protección
+  # contra reescribir la propia identidad impedía además calcular el plan.
   statement {
-    sid    = "NoTocarSuPropiaIdentidad"
+    sid       = "LeerProveedorOidc"
+    actions   = ["iam:GetOpenIDConnectProvider"]
+    resources = ["*"]
+  }
+
+  # El proveedor OIDC no se modifica desde el despliegue: lo crea una persona
+  # desde su equipo, una vez.
+  #
+  # La lista es cerrada en vez de un comodín, y eso tiene un coste honesto: si
+  # AWS añadiera mañana una acción de escritura sobre proveedores OIDC, no
+  # quedaría denegada. Se acepta porque el comodín tapa también las lecturas
+  # —era el fallo de arriba— y porque para aprovechar ese hueco habría que estar
+  # ya ejecutando código en este repositorio.
+  statement {
+    sid    = "NoTocarElProveedorOidc"
     effect = "Deny"
     actions = [
-      "iam:*OpenIDConnectProvider*",
-      "iam:UpdateAssumeRolePolicy",
+      "iam:CreateOpenIDConnectProvider",
+      "iam:DeleteOpenIDConnectProvider",
+      "iam:UpdateOpenIDConnectProviderThumbprint",
+      "iam:AddClientIDToOpenIDConnectProvider",
+      "iam:RemoveClientIDFromOpenIDConnectProvider",
+      "iam:TagOpenIDConnectProvider",
+      "iam:UntagOpenIDConnectProvider",
     ]
     resources = ["*"]
+  }
+
+  # Un rol que puede reescribir su propia política de confianza no está acotado
+  # por ella: se concedería a sí mismo cualquier `sub`.
+  #
+  # La denegación es sobre ESTE rol y no sobre todos. `UpdateAssumeRolePolicy`
+  # se concede arriba para `ondexia-*` porque Terraform necesita poder cambiar
+  # la confianza de los roles de las funciones —hoy no cambia, pero el día que
+  # cambie el apply fallaría con un AccessDenied que no explica nada—, y aquí se
+  # le resta el único caso que importa.
+  statement {
+    sid       = "NoReescribirSuPropiaConfianza"
+    effect    = "Deny"
+    actions   = ["iam:UpdateAssumeRolePolicy"]
+    resources = [aws_iam_role.despliegue.arn]
   }
 }
 
