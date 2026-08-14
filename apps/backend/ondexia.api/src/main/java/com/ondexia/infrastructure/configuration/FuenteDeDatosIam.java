@@ -75,10 +75,14 @@ final class FuenteDeDatosIam implements DataSource {
          * La cadena predeterminada resuelve por variables de entorno, que es lo
          * primero que mira y lo que Lambda inyecta. No hay llamada de red, que es
          * la condición para que esto funcione en una subred sin NAT.
+         *
+         * `builder().build()` y no `create()`: esa está obsoleta en el SDK, y el
+         * módulo compila con -Werror, así que usarla no produce un aviso sino un
+         * error de compilación.
          */
         this.firmador = RdsUtilities.builder()
                 .region(region)
-                .credentialsProvider(DefaultCredentialsProvider.create())
+                .credentialsProvider(DefaultCredentialsProvider.builder().build())
                 .build();
     }
 
