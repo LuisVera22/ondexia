@@ -191,7 +191,7 @@ class UsuariosIT extends PruebaIntegracion {
         // Ahora opera esa otra persona, que no es administradora de la cuenta.
         ContextoDePrueba.establecer(new ContextoOperacion(
                 otra.usuarioId(), CUENTA, 1L, UUID.fromString(EMPRESA_ADMINISTRADA),
-                null, otra.rolId(), false, "127.0.0.1"));
+                null, otra.rolId(), false, false, "127.0.0.1"));
 
         var administrador = usuarios.listar().stream()
                 .filter(m -> m.usuarioId().equals(UUID.fromString(USUARIO_DEMO)))

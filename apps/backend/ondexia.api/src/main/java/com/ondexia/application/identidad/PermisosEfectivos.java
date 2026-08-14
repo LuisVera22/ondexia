@@ -118,7 +118,13 @@ public class PermisosEfectivos {
         if (delRol.vacio()) {
             return delRol;
         }
-        return delRol.limitadoA(contratadosDe(actual));
+
+        Permisos contratado = delRol.limitadoA(contratadosDe(actual));
+
+        // Las dos máscaras se componen y el orden da igual, porque una filtra por
+        // módulo y la otra por acción. Se aplica la de lectura al final solo para
+        // que el caso normal —suscripción vigente— no toque el conjunto.
+        return actual.soloLectura() ? contratado.soloLectura() : contratado;
     }
 
     private Set<String> contratadosDe(ContextoOperacion actual) {

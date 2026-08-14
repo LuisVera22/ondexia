@@ -70,7 +70,8 @@ public class ContextoController {
 
             return new RespuestaContexto(
                     new UsuarioResumen(resuelto.usuarioId(), resuelto.nombre(), resuelto.email()),
-                    new CuentaResumen(resuelto.cuentaId(), resuelto.esAdministradorCuenta()),
+                    new CuentaResumen(resuelto.cuentaId(), resuelto.esAdministradorCuenta(),
+                            resuelto.estadoSuscripcion(), resuelto.soloLectura()),
                     activa,
                     empresas,
                     // Ordenados para que la respuesta sea estable entre llamadas.
@@ -88,7 +89,20 @@ public class ContextoController {
      *                        No es un rol de la matriz de permisos — ver
      *                        {@code CuentaAdministrador}
      */
-    public record CuentaResumen(java.util.UUID id, boolean esAdministrador) {
+    /**
+     * @param estadoSuscripcion {@code ACTIVA}, {@code EN_PRUEBA}, {@code SUSPENDIDA}
+     *                          o {@code CANCELADA}. El SPA elige con esto qué
+     *                          anuncio pinta
+     * @param soloLectura       si la cuenta no puede escribir. Va explícito y no
+     *                          deducido del estado para que la regla viva en un
+     *                          solo lado; si el frontend la replicara, un cambio
+     *                          en el servidor dejaría la interfaz mintiendo
+     */
+    public record CuentaResumen(
+            java.util.UUID id,
+            boolean esAdministrador,
+            String estadoSuscripcion,
+            boolean soloLectura) {
     }
 
     /**
