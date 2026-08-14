@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MenuLateralComponent } from '../menu-lateral/menu-lateral.component';
+import { AvisoSuscripcionComponent } from '../../components/comunes/aviso-suscripcion/aviso-suscripcion.component';
 import { BarraSuperiorComponent } from '../barra-superior/barra-superior.component';
 import { MenuLateralService } from '../../services/menu-lateral.service';
 
@@ -13,7 +14,12 @@ import { MenuLateralService } from '../../services/menu-lateral.service';
  */
 @Component({
   selector: 'app-marco-app',
-  imports: [RouterModule, MenuLateralComponent, BarraSuperiorComponent],
+  imports: [
+    RouterModule,
+    MenuLateralComponent,
+    BarraSuperiorComponent,
+    AvisoSuscripcionComponent,
+  ],
   templateUrl: './marco-app.component.html',
 })
 export class MarcoAppComponent {

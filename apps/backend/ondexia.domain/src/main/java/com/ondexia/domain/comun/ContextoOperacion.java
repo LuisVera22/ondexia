@@ -20,6 +20,12 @@ import java.util.UUID;
  * @param sucursalId      alcance dentro de la empresa; {@code null} = todas
  * @param rolId           rol <em>en esa empresa</em>. Cambia al cambiar de empresa
  * @param permisosVersion versión del catálogo de permisos de la cuenta
+ * @param soloLectura     la suscripción no está vigente. El usuario entra y
+ *                        consulta, pero no escribe. Ver doc 09 §5.1: cortar el
+ *                        acceso a los datos por una factura impaga le
+ *                        trasladaría al cliente un problema tributario, porque
+ *                        responde ante SUNAT de comprobantes que debe conservar
+ *                        cinco años
  */
 public record ContextoOperacion(
         UUID usuarioId,
@@ -29,6 +35,7 @@ public record ContextoOperacion(
         UUID sucursalId,
         UUID rolId,
         boolean esAdministradorCuenta,
+        boolean soloLectura,
         String ip) {
 
     public boolean tieneEmpresaActiva() {

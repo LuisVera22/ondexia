@@ -2,9 +2,11 @@ package com.ondexia.application.identidad;
 
 import com.ondexia.domain.comun.ContextoOperacion;
 import com.ondexia.domain.comun.ProveedorDeContexto;
+import com.ondexia.domain.identidad.ModulosContratadosRepositorio;
 import com.ondexia.domain.identidad.PermisoRepositorio;
 import com.ondexia.domain.identidad.Permisos;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ public class PermisosEfectivos {
 
     private final PermisoRepositorio permisos;
     private final ProveedorDeContexto contexto;
+    private final ModulosContratadosRepositorio modulos;
 
     /**
      * Caché por rol. La clave es el rol y el valor lleva la versión de permisos
@@ -39,15 +42,43 @@ public class PermisosEfectivos {
     private record EntradaCache(long permisosVersion, Permisos permisos) {
     }
 
-    public PermisosEfectivos(PermisoRepositorio permisos, ProveedorDeContexto contexto) {
+    /**
+     * Los módulos contratados, cacheados <strong>por cuenta</strong> y no por rol.
+     *
+     * <h2>Aquí hay una fuga que evitar y no es evidente</h2>
+     *
+     * <p>Lo natural sería recortar los permisos antes de guardarlos en la caché de
+     * arriba y quedarse con un solo mapa. <strong>Sería una fuga entre
+     * inquilinos.</strong> Esa
+     * caché se indexa por rol, y los roles del sistema —{@code ADMINISTRADOR},
+     * {@code CONTADOR}, {@code VENDEDOR}— tienen {@code cuenta_id} nulo: son
+     * compartidos por todas las cuentas. La primera cuenta en pedirlos dejaría su
+     * recorte cacheado y la siguiente lo heredaría, con los módulos de otra.
+     *
+     * <p>Por eso son dos mapas: el de roles guarda los permisos <em>en bruto</em>,
+     * como hasta ahora, y el recorte se aplica en cada llamada con la máscara de la
+     * cuenta que está pidiendo. Intersecar dos conjuntos de decenas de cadenas es
+     * irrelevante al lado de una consulta.
+     *
+     * <p>Se invalida con la misma versión: {@code cuenta.permisos_version} se
+     * incrementa también al cambiar el plan o un módulo, no solo al editar un rol.
+     */
+    private final Map<UUID, EntradaModulos> modulosPorCuenta = new ConcurrentHashMap<>();
+
+    private record EntradaModulos(long permisosVersion, Set<String> contratados) {
+    }
+
+    public PermisosEfectivos(PermisoRepositorio permisos, ProveedorDeContexto contexto,
+            ModulosContratadosRepositorio modulos) {
         this.permisos = permisos;
         this.contexto = contexto;
+        this.modulos = modulos;
     }
 
     public Permisos actuales() {
         return contexto.actual()
                 .filter(ContextoOperacion::tieneEmpresaActiva)
-                .map(this::cargar)
+                .map(actual -> limitarAContratado(actual, cargar(actual)))
                 .orElseGet(Permisos::ninguno);
     }
 
@@ -76,8 +107,42 @@ public class PermisosEfectivos {
         return cargados;
     }
 
+    /**
+     * Recorta a lo contratado por la cuenta.
+     *
+     * <p>Va después de la caché de roles y no dentro, por el motivo del comentario
+     * de {@link #modulosPorCuenta}: el rol puede ser compartido entre cuentas y la
+     * máscara nunca lo es.
+     */
+    private Permisos limitarAContratado(ContextoOperacion actual, Permisos delRol) {
+        if (delRol.vacio()) {
+            return delRol;
+        }
+
+        Permisos contratado = delRol.limitadoA(contratadosDe(actual));
+
+        // Las dos máscaras se componen y el orden da igual, porque una filtra por
+        // módulo y la otra por acción. Se aplica la de lectura al final solo para
+        // que el caso normal —suscripción vigente— no toque el conjunto.
+        return actual.soloLectura() ? contratado.soloLectura() : contratado;
+    }
+
+    private Set<String> contratadosDe(ContextoOperacion actual) {
+        UUID cuentaId = actual.cuentaId();
+
+        EntradaModulos entrada = modulosPorCuenta.get(cuentaId);
+        if (entrada != null && entrada.permisosVersion() == actual.permisosVersion()) {
+            return entrada.contratados();
+        }
+
+        Set<String> contratados = modulos.contratadosDe(cuentaId);
+        modulosPorCuenta.put(cuentaId, new EntradaModulos(actual.permisosVersion(), contratados));
+        return contratados;
+    }
+
     /** Solo para pruebas: en producción la invalidación por versión ya lo resuelve. */
     public void vaciarCache() {
         cache.clear();
+        modulosPorCuenta.clear();
     }
 }

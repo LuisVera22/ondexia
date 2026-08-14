@@ -76,11 +76,19 @@ public class ResolverContexto {
                 .orElseThrow(() -> new IllegalStateException(
                         "El usuario " + usuario.id() + " apunta a una cuenta inexistente"));
 
-        if (!cuenta.estaOperativa()) {
-            throw new AccesoDenegado(
-                    "La suscripcion de la cuenta esta " + cuenta.estadoSuscripcion() + ".");
-        }
-
+        /*
+         * Una suscripción caída ya NO cierra la puerta.
+         *
+         * Antes esto lanzaba AccesoDenegado y la cuenta suspendida no podía ni
+         * mirar sus comprobantes. Es la decisión del doc 09 §5.1: el cliente
+         * responde ante SUNAT de documentos que debe conservar cinco años, así que
+         * dejarle fuera de sus propios datos por una factura impaga le convierte un
+         * problema comercial en uno tributario.
+         *
+         * Entra, y el contexto queda marcado como solo lectura. El recorte lo
+         * aplica PermisosEfectivos, no este método: aquí se resuelve QUIÉN es, no
+         * qué puede.
+         */
         boolean esAdministrador = administradores.esAdministrador(cuenta.id(), usuario.id());
         AsignacionEmpresa activa = elegirEmpresa(usuario.id(), empresaPedida);
 
@@ -92,6 +100,7 @@ public class ResolverContexto {
                 activa == null ? null : activa.sucursalId(),
                 activa == null ? null : activa.rolId(),
                 esAdministrador,
+                !cuenta.permiteEscritura(),
                 ip);
     }
 

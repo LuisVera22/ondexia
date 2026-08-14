@@ -4,6 +4,7 @@ import com.ondexia.domain.comun.ContextoOperacion;
 import com.ondexia.domain.comun.ProveedorDeContexto;
 import com.ondexia.domain.comun.error.RecursoNoEncontrado;
 import com.ondexia.domain.identidad.AsignacionEmpresa;
+import com.ondexia.domain.identidad.CuentaRepositorio;
 import com.ondexia.domain.identidad.Usuario;
 import com.ondexia.domain.identidad.UsuarioEmpresaRepositorio;
 import com.ondexia.domain.identidad.UsuarioRepositorio;
@@ -26,13 +27,16 @@ public class ConsultarContexto {
     private final UsuarioEmpresaRepositorio asignaciones;
     private final ProveedorDeContexto contexto;
     private final PermisosEfectivos permisos;
+    private final CuentaRepositorio cuentas;
 
     public ConsultarContexto(UsuarioRepositorio usuarios, UsuarioEmpresaRepositorio asignaciones,
-            ProveedorDeContexto contexto, PermisosEfectivos permisos) {
+            ProveedorDeContexto contexto, PermisosEfectivos permisos,
+            CuentaRepositorio cuentas) {
         this.usuarios = usuarios;
         this.asignaciones = asignaciones;
         this.contexto = contexto;
         this.permisos = permisos;
+        this.cuentas = cuentas;
     }
 
     @Transactional(readOnly = true)
@@ -56,6 +60,14 @@ public class ConsultarContexto {
                 // Sin empresa activa el conjunto va vacío, y el frontend no debe
                 // mostrar ningún módulo: no es que el usuario no pueda nada, es
                 // que todavía no ha dicho sobre qué empresa opera.
-                permisos.actuales().codigos());
+                permisos.actuales().codigos(),
+                // Una consulta más, y solo en este endpoint. El estado se necesita
+                // para redactar el anuncio —suspendida y cancelada no dicen lo
+                // mismo— y no cabe en el contexto, que se resuelve en cada
+                // petición y no debe engordar por algo que se lee una vez.
+                cuentas.buscarPorId(actual.cuentaId())
+                        .map(cuenta -> cuenta.estadoSuscripcion().name())
+                        .orElse(null),
+                actual.soloLectura());
     }
 }
