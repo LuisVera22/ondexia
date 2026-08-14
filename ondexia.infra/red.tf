@@ -85,20 +85,44 @@ resource "aws_route_table_association" "privada" {
 }
 
 /**
- * Puerta de enlace a internet — solo cuando dev abre la base de datos.
+ * Puerta de enlace a internet — en dev siempre, en prod nunca.
  *
  * No contradice la cabecera de este archivo: sigue sin haber NAT, y la Lambda
  * sigue sin poder salir. Una función en subred privada no recibe IP pública en
  * sus interfaces, así que una ruta por defecto no le sirve de nada; hace falta
- * NAT, y no la hay. Lo único que esta ruta habilita es el tráfico de vuelta de
- * la RDS, que sí tiene IP pública cuando `publicly_accessible` está activo.
+ * NAT, y no la hay. Lo único que la ruta de abajo habilita es el tráfico de
+ * vuelta de la RDS, que sí tiene IP pública cuando `publicly_accessible` está
+ * activo.
  *
  * La puerta de enlace no cuesta nada por existir. Lo que se paga es la
  * transferencia de salida, y consultar una base de datos de dev mueve
  * kilobytes.
+ *
+ * POR QUÉ NO CUELGA DE `local.bd_publica`, QUE ES LO QUE PARECERÍA CORRECTO
+ *
+ * Porque desatarla es una operación que Terraform no sabe secuenciar. Al apagar
+ * `acceso_bd_publico`, la instancia pasa a `publicly_accessible = false` —una
+ * actualización en sitio— y la puerta de enlace se destruye. El `depends_on` de
+ * la instancia ordena creaciones y destrucciones, pero NO ordena una
+ * actualización en sitio frente a la destrucción de su dependencia: Terraform
+ * lanzó el `detach` sin haber soltado antes la dirección pública, y AWS lo
+ * rechaza durante veinte minutos de reintentos antes de rendirse:
+ *
+ *   DependencyViolation: Network vpc-… has some mapped public address(es).
+ *   Please unmap those public address(es) before detaching the gateway.
+ *
+ * Dejarla presente en dev elimina la carrera entera: nunca hay `detach`, y el
+ * interruptor se queda con las tres cosas que sí se pueden apagar sin orden
+ * —la ruta, la regla del 5432 y la dirección pública de RDS—. De paso desaparece
+ * también el problema inverso, el `InvalidVPCNetworkStateFault` al encenderlo.
+ *
+ * Y lo que se conserva es lo que importa: en prod NO hay puerta de enlace, y esa
+ * sigue siendo una afirmación absoluta. En dev, una puerta de enlace adjunta sin
+ * ruta hacia ella no habilita nada — alcanzar algo desde internet necesita las
+ * tres a la vez: ruta, dirección pública y regla del grupo de seguridad.
  */
 resource "aws_internet_gateway" "principal" {
-  count = local.bd_publica ? 1 : 0
+  count = var.entorno == "dev" ? 1 : 0
 
   vpc_id = aws_vpc.principal.id
 
