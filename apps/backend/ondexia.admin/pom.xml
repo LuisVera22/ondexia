@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  El panel administrativo interno. Ver ondexia.docs/09-panel-administrativo.md.
+
+  ES OTRO DESPLEGABLE, NO OTRA CAPA DE ondexia.api
+
+  La alternativa era añadir rutas al backend de clientes, y se descartó por lo
+  que ocurre cuando falla: un error en el autorizador deja de ser un error y pasa
+  a ser escalada de privilegios entre inquilinos. Separado, la API de clientes no
+  tiene con qué leer otras cuentas aunque su código se equivoque, porque no es
+  solo otro paquete — es otra función, con otro rol de base de datos.
+
+  DEPENDE DE ondexia.domain Y NO DE ondexia.api
+
+  Depender de la API arrastraría sus controladores, y con `@ComponentScan` mal
+  puesto el panel publicaría los endpoints de inquilinos en su propia puerta. La
+  regla del dominio compartido sigue valiendo; la infraestructura no se comparte.
+
+  SIN JPA, A PROPÓSITO
+
+  Lo que el panel hace son consultas de agregado —cuentas con su consumo frente a
+  los límites— y no recorridos de grafo de objetos. Traerse el modelo de entidades
+  significaría además heredar las asignaciones de ESCRITURA de tablas de
+  inquilino, que es justo lo que el rol `ondexia_panel` tiene prohibido en la base.
+  Con SQL y proyecciones, lo que el panel puede tocar se lee en la consulta.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.ondexia</groupId>
+    <artifactId>ondexia-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>ondexia-admin</artifactId>
+  <name>Ondexia — panel administrativo</name>
+  <description>Consola interna: cuentas, planes y modulos contratados</description>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.ondexia</groupId>
+      <artifactId>ondexia-domain</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- JDBC y no JPA. El motivo, arriba. -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+
+    <!--
+      El grupo de personal de Cognito valida aqui. Es un emisor DISTINTO del de
+      inquilinos: un token de cliente no abre esta puerta ni por error de
+      configuracion, porque la clave que lo firma es de otro pool.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.amazonaws.serverless</groupId>
+      <artifactId>aws-serverless-java-container-springboot4</artifactId>
+      <version>${serverless-container.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-lambda-java-core</artifactId>
+      <version>${lambda-core.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>ondexia-admin</finalName>
+
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <!-- Sin reempaquetar: el cargador de Lambda no sabe leer un fat jar.
+               El razonamiento completo esta en ondexia.api/pom.xml. -->
+          <skip>true</skip>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <configuration>
+          <createDependencyReducedPom>false</createDependencyReducedPom>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <excludes>
+                  <!-- El servidor de Tomcat lo pone el contenedor serverless.
+                       Ojo: tomcat-embed-el NO se excluye, ver ondexia.api. -->
+                  <exclude>org.apache.tomcat.embed:tomcat-embed-core</exclude>
+                  <exclude>org.apache.tomcat.embed:tomcat-embed-websocket</exclude>
+                </excludes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <!-- Firmas que dejan de cuadrar al fusionar los jars. -->
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>module-info.class</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
