@@ -175,27 +175,6 @@ jobs:
             -backend-config="key=ondexia/${{ inputs.entorno }}/terraform.tfstate" \
             -backend-config="region=${REGION}"
 
-      - name: Terraform plan
-        working-directory: ondexia.infra
-        run: |
-          terraform plan \
-            -var-file="entornos/${{ inputs.entorno }}.tfvars" \
-            -out=plan.tfplan
-          terraform show -no-color plan.tfplan > plan.txt
-
-      - name: Publicar el plan en el resumen
-        working-directory: ondexia.infra
-        # Queda en la página de la ejecución. Con un solo operador (R-13) no hay
-        # un segundo par de ojos, así que el plan legible después del hecho es
-        # lo más parecido a una revisión que existe.
-        run: |
-          {
-            echo "## Plan · ${{ inputs.entorno }}"
-            echo '```terraform'
-            head -c 60000 plan.txt
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
       # ── Migraciones, ANTES de publicar la API ──────────────────────────────
       #
       # El orden de estos dos pasos importa y costó descubrirlo.
@@ -251,16 +230,46 @@ jobs:
 
       # ── Infraestructura, ya con el esquema al día ──────────────────────────
 
+      # El plan se calcula AQUÍ y no antes de las migraciones, y el motivo es
+      # que un plan guardado caduca.
+      #
+      # Terraform anota en el archivo del plan el serial del estado con el que lo
+      # calculó, y `apply plan.tfplan` se niega a aplicarlo si el estado avanzó
+      # desde entonces: «Saved plan is stale». El paso de migraciones aplica dos
+      # recursos con -target, así que el estado avanza justo en medio — planificar
+      # antes producía un plan condenado a rechazarse.
+      #
+      # Calculándolo después se arreglan las dos cosas a la vez: el plan ya no
+      # caduca, y deja de incluir dos recursos que se aplicaron por adelantado y
+      # que había que explicar en el resumen como «ya están en su estado
+      # deseado».
+      - name: Terraform plan
+        working-directory: ondexia.infra
+        run: |
+          terraform plan \
+            -var-file="entornos/${{ inputs.entorno }}.tfvars" \
+            -out=plan.tfplan
+          terraform show -no-color plan.tfplan > plan.txt
+
+      - name: Publicar el plan en el resumen
+        working-directory: ondexia.infra
+        # Queda en la página de la ejecución. Con un solo operador (R-13) no hay
+        # un segundo par de ojos, así que el plan legible después del hecho es
+        # lo más parecido a una revisión que existe.
+        run: |
+          {
+            echo "## Plan · ${{ inputs.entorno }}"
+            echo '```terraform'
+            head -c 60000 plan.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Terraform apply
         if: ${{ !inputs.solo_plan }}
         working-directory: ondexia.infra
         # Se aplica el plan guardado, no se recalcula. Un `apply` que vuelve a
-        # planificar puede hacer algo distinto de lo que se revisó, y entre el
-        # plan y el apply hay una aprobación humana de por medio.
-        #
-        # El paso anterior aplicó dos recursos del plan por adelantado; el plan
-        # guardado los vuelve a incluir y Terraform los encuentra ya en su
-        # estado deseado, así que no hace nada con ellos.
+        # planificar puede hacer algo distinto de lo que se revisó, y en prod hay
+        # una aprobación humana de por medio.
         run: terraform apply -auto-approve plan.tfplan
 
       # ── Publicación del contenido estático ─────────────────────────────────
