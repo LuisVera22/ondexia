@@ -51,7 +51,7 @@
     <java.version>21</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <springdoc.version>3.0.3</springdoc.version>
+    <springdoc.version>3.1.0</springdoc.version>
     <testcontainers.version>2.0.5</testcontainers.version>
     <archunit.version>1.5.0</archunit.version>
 
@@ -99,9 +99,11 @@
       omitia por falta de clave, ver ci.yml— senalo dos dependencias por encima
       del umbral de CVSS 7:
 
-        postgresql 42.7.11    CVE-2026-54291 (8.2)
-        tomcat-embed-core     CVE-2026-55276, 53434, 59083, 59084 (9.1)
-                              CVE-2026-66299 (7.5), CVE-2026-53404 (7.3)
+        postgresql 42.7.11    CVE-2026-54291 (8.2)  -> corregido en 42.7.13
+        tomcat-embed-core     CVE-2026-55276, 53434, 59083, 59084 (9.1),
+                              CVE-2026-53404 (7.3)   -> corregidos en 11.0.24
+                              CVE-2026-66299 (7.5)   -> sin version corregida,
+                                                        suprimido con motivo
 
       Se sube a la ultima publicada de cada linea. Son parches dentro de la misma
       version menor, asi que no hay cambio de API; lo que cambia es que el
@@ -260,6 +262,14 @@
         </executions>
         <configuration>
           <failBuildOnCVSS>${dependency-check.failBuildOnCVSS}</failBuildOnCVSS>
+          <!--
+            Hallazgos que no aplican, cada uno con su justificacion escrita.
+            La ruta se ancla a la raiz del proyecto multimodulo para que resuelva
+            igual al construir el reactor entero que un modulo suelto.
+          -->
+          <suppressionFiles>
+            <suppressionFile>${maven.multiModuleProjectDirectory}/dependency-check-suprimidos.xml</suppressionFile>
+          </suppressionFiles>
           <skip>${dependency-check.skip}</skip>
           <nvdApiKey>${dependency-check.nvdApiKey}</nvdApiKey>
           <!--
