@@ -22,7 +22,19 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v4
+      # Las versiones de las acciones se subieron todas de golpe porque GitHub
+      # está retirando Node 20 y las majors anteriores corren sobre él: hoy sale
+      # un aviso y el día que retiren el runtime dejan de ejecutarse. Se fijan a
+      # la major, no al SHA — con un solo desarrollador, el coste de revisar cada
+      # parche a mano supera al riesgo de que una acción oficial se corrompa.
+      #
+      # De los cambios incompatibles, solo uno nos rozaba: checkout v7 deja de
+      # descargar el código de PR desde bifurcaciones cuando el disparador es
+      # `pull_request_target` o `workflow_run`. Aquí no aplica —el CI se dispara
+      # con `push` y `pull_request`— y además es la clase de protección que
+      # queremos, porque ese patrón es justo el que filtra secretos a una PR
+      # ajena.
+      - uses: actions/checkout@v7
 
       # pnpm antes que setup-node: el runner no lo trae, y setup-node necesita
       # que exista para poder cachear su almacén.
@@ -36,17 +48,17 @@ jobs:
       # Se apunta al archivo en vez de fijar `version:` aquí para que la versión
       # siga estando en un solo sitio. Con las dos, la del workflow y la del
       # package.json se separan el día que alguien actualice una.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           package_json_file: apps/frontend/ondexia.web/package.json
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: pnpm
           cache-dependency-path: apps/frontend/ondexia.web/pnpm-lock.yaml
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
@@ -101,7 +113,7 @@ jobs:
       # DT-16 sustituyó AWS CDK por Terraform. Este paso buscaba
       # ondexia.infra/package.json y ejecutaba `cdk synth`: no se disparaba
       # nunca y no validaba nada.
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v4
         if: hashFiles('ondexia.infra/versions.tf') != ''
         with:
           terraform_version: '1.15.8'

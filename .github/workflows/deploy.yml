@@ -55,7 +55,7 @@ jobs:
     timeout-minutes: 45
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # ── Herramientas ───────────────────────────────────────────────────────
 
@@ -63,23 +63,23 @@ jobs:
       # `packageManager` en la raíz del repositorio y el frontend cuelga de
       # apps/frontend/ondexia.web. Sin esto el despliegue muere antes de
       # empezar, con un error que no dice dónde estaba buscando.
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           package_json_file: apps/frontend/ondexia.web/package.json
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: pnpm
           cache-dependency-path: apps/frontend/ondexia.web/pnpm-lock.yaml
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'
           cache: maven
 
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: ${{ env.TERRAFORM_VERSION }}
           # Sin envoltorio: interfiere al leer la salida de `terraform output`
@@ -87,7 +87,7 @@ jobs:
           terraform_wrapper: false
 
       - name: Asumir rol de despliegue
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ env.REGION }}
