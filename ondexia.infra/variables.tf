@@ -176,12 +176,13 @@ variable "concurrencia_reservada_api" {
 
 variable "repositorio_github" {
   description = <<-TEXTO
-    Repositorio en formato `propietario/nombre`. Solo las ejecuciones de GitHub
-    Actions sobre ESTE repositorio, y sobre las ramas main o develop, pueden
-    asumir el rol de despliegue.
+    Repositorio en formato `propietario/nombre`, legible.
 
-    Es el valor que acota todo el mecanismo: con un comodín aquí, cualquier
-    repositorio de GitHub podría asumirlo. Ver despliegue.tf.
+    No entra en la política de confianza: allí va la forma con identificadores
+    numéricos, que es la que GitHub emite. Este valor existe para dos cosas —
+    poder leer de qué repositorio hablamos sin descifrar números, y comprobar
+    que los identificadores de `repositorio_github_inmutable` corresponden a
+    este y no a otro.
   TEXTO
   type        = string
   default     = "LuisVera22/ondexia"
@@ -216,6 +217,22 @@ variable "repositorio_github_inmutable" {
   validation {
     condition     = can(regex("^[A-Za-z0-9_.-]+@[0-9]+/[A-Za-z0-9_.-]+@[0-9]+$", var.repositorio_github_inmutable))
     error_message = "Debe ser propietario@id/nombre@id, con los dos identificadores numéricos."
+  }
+
+  /*
+   * Que los identificadores sean de ESTE repositorio y no de otro.
+   *
+   * Pegar aquí los números equivocados no rompe nada al aplicar: crea una
+   * política que autoriza a un repositorio ajeno y niega al nuestro, y el
+   * síntoma es un AccessDenied en el despliegue que no menciona los
+   * identificadores. Esto lo convierte en un error de validación con nombre.
+   */
+  validation {
+    condition = (
+      startswith(var.repositorio_github_inmutable, "${split("/", var.repositorio_github)[0]}@")
+      && strcontains(var.repositorio_github_inmutable, "/${split("/", var.repositorio_github)[1]}@")
+    )
+    error_message = "El propietario y el nombre no coinciden con repositorio_github."
   }
 }
 
