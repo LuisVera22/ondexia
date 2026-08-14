@@ -163,12 +163,23 @@ El aviso se muestra **al iniciar sesión**, después de autenticar. La identidad
 correcta —la persona es quien dice ser—; lo que no está vigente es el contrato,
 y son dos cosas distintas que conviene no mezclar en el mismo error.
 
-| Estado | Puede consultar y descargar | Puede emitir | Qué se muestra al entrar |
+| Estado | Puede consultar y descargar | Puede emitir a SUNAT | Qué se muestra al entrar |
 |---|---|---|---|
-| `EN_PRUEBA` | Sí | Sí, contra la beta de SUNAT | Días restantes y qué pasa al terminar |
+| `EN_PRUEBA` | Sí | **No** | Días restantes y qué pasa al terminar |
 | `ACTIVA` | Sí | Sí | Nada |
 | `SUSPENDIDA` | **Sí** | No | Aviso con el motivo y cómo regularizar |
 | `CANCELADA` | **Sí** | No | Aviso de cuenta cerrada y cómo exportar sus datos |
+
+> **`EN_PRUEBA` corrige al doc 04 §2.4**, que proponía la prueba gratuita
+> «emitiendo contra la beta de SUNAT». Emitir queda fuera de la prueba: el
+> cliente configura, carga catálogo y recorre el producto, pero nada sale hacia
+> SUNAT. Evita además exigirle certificado digital y credenciales SOL antes de
+> haber decidido si compra. Queda por precisar si durante la prueba el comprobante
+> se genera y se queda en borrador, o si la acción de emitir no está disponible.
+
+**El aviso es solo informativo.** Da el estado y una dirección de correo de
+contacto. No hay botón que lleve a ningún flujo de pago dentro de la aplicación,
+que es coherente con el §7: los cobros no existen todavía en el producto.
 
 **Suspender nunca cierra el acceso a los datos.** Los comprobantes tienen
 obligación de conservación de cinco años (DTE §5.8) y el cliente responde ante
@@ -249,11 +260,18 @@ Del orden de **1 USD/mes**, contra un presupuesto de 15 en dev.
 | # | Entrega | Contenido |
 |---|---|---|
 | 0 | **Requisito previo** | MFA del grupo de personal en `ON` |
-| 1 | **Esquema** | Tablas `plan`, `plan_modulo`, `cuenta_modulo`; FK de `cuenta.plan`; permisos por columna del §3.2; rol `ondexia_panel` |
+| 1 | **Esquema** · ENTREGADA | Tablas `plan`, `plan_modulo`, `cuenta_modulo`, `auditoria_admin`; FK de `cuenta.plan`; límites negociables por cuenta; permisos por columna del §3.2; rol `ondexia_panel`. Todo en la V9 |
 | 2 | **Comprobación** | El cuarto conjunto en `Permisos`, con pruebas. Sin panel todavía: se verifica que un módulo apagado devuelve 403 |
 | 3 | **Infraestructura** | Módulo Maven, Lambda, API, cliente de Cognito, bucket y distribución del SPA |
 | 4 | **Consola: lectura** | Listado de cuentas, ficha con consumo frente a límites |
-| 5 | **Consola: escritura** | Cambio de plan, suspensión y reactivación, módulos por cuenta. Todo a `auditoria` |
+| 5 | **Consola: escritura** | Cambio de plan, suspensión y reactivación, módulos por cuenta. Todo a `auditoria_admin` |
+
+> La bitácora del panel **no puede ser `auditoria`**. Esa tabla tiene política de
+> fila por `empresa_id` y las acciones del panel son sobre una *cuenta*: una fila
+> con `empresa_id` nulo no satisface `empresa_id = empresa_actual()` y la base la
+> rechaza — que es exactamente lo que debe hacer. Debilitar esa política para
+> encajar ahí algo que no es de una empresa habría sido el error. De ahí
+> `auditoria_admin`, creada en la V9.
 
 La 2 antes que la 3 no es casual: **la comprobación tiene que existir antes que
 la pantalla que la manipula.** Al revés se construye un panel que promete un
