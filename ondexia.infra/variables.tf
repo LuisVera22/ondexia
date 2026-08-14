@@ -192,6 +192,33 @@ variable "repositorio_github" {
   }
 }
 
+variable "repositorio_github_inmutable" {
+  description = <<-TEXTO
+    El mismo repositorio con los identificadores numéricos que GitHub pega al
+    propietario y al nombre: `propietario@idPropietario/nombre@idRepositorio`.
+
+    Hace falta porque GitHub emite el `sub` del token OIDC en esta forma, no en
+    la legible. Se descubrió leyendo en CloudTrail el intento fallido: la
+    política esperaba `repo:LuisVera22/ondexia:environment:dev` y lo que llegaba
+    era `repo:LuisVera22@149976444/ondexia@1326100922:environment:dev`.
+
+    Los identificadores son INMUTABLES, y eso es una ventaja: renombrar la cuenta
+    o el repositorio no rompe la autorización, y nadie puede quedarse con un
+    nombre liberado para suplantarlos.
+
+    Se obtiene de la API de GitHub:
+      curl -s https://api.github.com/repos/LuisVera22/ondexia | grep -E '"id"'
+    o del propio CloudTrail cuando un intento falla.
+  TEXTO
+  type        = string
+  default     = "LuisVera22@149976444/ondexia@1326100922"
+
+  validation {
+    condition     = can(regex("^[A-Za-z0-9_.-]+@[0-9]+/[A-Za-z0-9_.-]+@[0-9]+$", var.repositorio_github_inmutable))
+    error_message = "Debe ser propietario@id/nombre@id, con los dos identificadores numéricos."
+  }
+}
+
 variable "retencion_logs_dias" {
   description = "Retención de CloudWatch Logs. Los logs sin política son la fuga de costo más común."
   type        = number
