@@ -9,6 +9,7 @@ import com.ondexia.domain.identidad.CuentaRepositorio;
 import com.ondexia.domain.identidad.Empresa;
 import com.ondexia.domain.identidad.EmpresaRepositorio;
 import com.ondexia.domain.identidad.MiembroEmpresa;
+import com.ondexia.domain.identidad.ModulosContratadosRepositorio;
 import com.ondexia.domain.identidad.Permiso;
 import com.ondexia.domain.identidad.PermisoRepositorio;
 import com.ondexia.domain.identidad.Permisos;
@@ -289,6 +290,25 @@ public final class AdaptadoresIdentidad {
             return filas.findCatalogoOrdenado().stream()
                     .map(MapeadoresIdentidad::aDominio)
                     .toList();
+        }
+    }
+
+    @Repository
+    @Transactional(readOnly = true)
+    public static class ModulosContratados implements ModulosContratadosRepositorio {
+
+        private final PermisoJpaRepository filas;
+
+        public ModulosContratados(PermisoJpaRepository filas) {
+            this.filas = filas;
+        }
+
+        @Override
+        public Set<String> contratadosDe(UUID cuentaId) {
+            if (cuentaId == null) {
+                return Set.of();
+            }
+            return filas.findModulosContratados(cuentaId.toString());
         }
     }
 

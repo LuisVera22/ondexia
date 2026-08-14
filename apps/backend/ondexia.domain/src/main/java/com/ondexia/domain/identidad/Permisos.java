@@ -1,6 +1,7 @@
 package com.ondexia.domain.identidad;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * El conjunto de permisos de un rol, y la decisión de si algo se puede.
@@ -73,6 +74,51 @@ public record Permisos(Set<String> codigos) {
     /** Si el rol alcanza el módulo. Lo usa el menú para no pintar áreas vacías. */
     public boolean alcanzaModulo(String modulo) {
         return codigos.contains(Permiso.componerCodigo(modulo, Permiso.ACCEDER));
+    }
+
+    /**
+     * Recorta estos permisos a lo que la cuenta tiene contratado.
+     *
+     * <h2>Máscara en vez de una cuarta comprobación</h2>
+     *
+     * <p>El doc 09 §5 describe la autorización como cuatro condiciones a la vez, y
+     * la cuarta —«la cuenta tiene contratado el módulo»— podría haberse añadido a
+     * {@link #puede}. Se implementa recortando el conjunto, que es equivalente y
+     * tiene dos ventajas.
+     *
+     * <p>La primera es que <strong>no hay ningún consumidor que pueda olvidarla</strong>.
+     * {@code puede}, {@link #alcanzaModulo} y el menú que el frontend recibe leen
+     * el mismo conjunto; si el recorte estuviera dentro de {@code puede}, el menú
+     * seguiría pintando un módulo no contratado y el usuario descubriría el límite
+     * al recibir un 403 tras hacer clic.
+     *
+     * <p>La segunda es que deja la regla en un solo sitio. Un módulo no contratado
+     * desaparece, y con él sus submódulos y sus funciones, porque el código de
+     * cada uno empieza por el del módulo.
+     *
+     * <p><strong>Deniega por defecto</strong>: sin nada contratado no queda nada.
+     *
+     * @param contratados códigos de módulo y submódulo contratados, sin acción:
+     *                    {@code almacen}, {@code almacen.producto}
+     */
+    public Permisos limitadoA(Set<String> contratados) {
+        if (contratados == null || contratados.isEmpty()) {
+            return NINGUNO;
+        }
+
+        return new Permisos(codigos.stream()
+                .filter(codigo -> contratados.contains(moduloDelCodigo(codigo)))
+                .collect(Collectors.toUnmodifiableSet()));
+    }
+
+    /**
+     * La parte de antes de los dos puntos. Un código sin ellos no identifica nada,
+     * y devolver la cadena entera hace que no case con ningún contratado — es
+     * decir, se deniega, que es lo correcto.
+     */
+    private static String moduloDelCodigo(String codigo) {
+        int separador = codigo.indexOf(':');
+        return separador < 0 ? codigo : codigo.substring(0, separador);
     }
 
     public boolean vacio() {
