@@ -65,26 +65,36 @@
     No hay version que lo corrija: 11.0.24 es la ultima publicada y el rango
     afectado llega hasta ella.
 
+    OJO CON EL ALCANCE: el CVE se asigna por CPE —`apache:tomcat:11.0.24`— y ese
+    identificador lo llevan TODOS los jars de Tomcat embebido, no solo
+    tomcat-embed-core. El primer intento suprimio unicamente `-core` y el build
+    siguio rojo por `-websocket`, que es el mismo Tomcat partido en artefactos.
+    De ahi que el patron cubra `tomcat-embed-*`.
+
     Deja de aplicar si: se publica una version corregida —entonces se sube y se
     borra esta entrada— o si algun dia se despliega en un Tomcat completo.
   -->
   <suppress>
     <notes><![CDATA[
       Afecta a la webapp de ejemplos de Tomcat, que un embebido de Spring Boot
-      no incluye. Ademas el jar esta excluido del artefacto desplegado. Sin
-      version corregida a 2026-08-14 (11.0.24 es la ultima).
+      no incluye. Ademas estos jars estan excluidos del artefacto desplegado.
+      Sin version corregida a 2026-08-14 (11.0.24 es la ultima). Cubre todos los
+      tomcat-embed-* porque el CVE se asigna por el CPE de Tomcat, comun a todos.
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat-embed-core@.*$</packageUrl>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat-embed-.*@.*$</packageUrl>
     <cve>CVE-2026-66299</cve>
   </suppress>
 
   <!--
-    NO se suprime CVE-2026-65898 (DOMPurify dentro de swagger-ui).
+    CVE-2026-65898 (DOMPurify dentro de swagger-ui) NO figura aqui, y conviene
+    dejar dicho por que: se corrigio de verdad.
 
-    Es una vulnerabilidad real de XSS almacenado y nos llega por springdoc. Se
-    intenta corregir subiendo springdoc, que trae un swagger-ui mas nuevo. Si
-    esa via no bastara, la salida correcta no es suprimir sino dejar de
-    empaquetar swagger-ui en el artefacto desplegado: publicar la documentacion
+    Era XSS almacenado real. Subir springdoc de 3.0.3 a 3.1.0 trajo swagger-ui
+    5.32.11 con DOMPurify 3.4.12 en lugar de 3.3.2, y el hallazgo desaparecio
+    solo. Suprimirlo habria sido esconder un defecto que tenia arreglo.
+
+    Si algun dia vuelve sin version corregida disponible, la salida no es
+    suprimirlo sino dejar de empaquetar swagger-ui: publicar la documentacion
     interactiva de la API de un sistema tributario no es algo que se quiera en
     produccion de todas formas.
   -->
