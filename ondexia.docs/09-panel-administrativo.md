@@ -157,11 +157,51 @@ Dos cosas que no pueden faltar:
   justamente para eso; cambiar el plan o un módulo la incrementa, igual que
   hacerlo con un rol.
 
+### 5.1 Qué ve el cliente cuando su cuenta no está activa
+
+El aviso se muestra **al iniciar sesión**, después de autenticar. La identidad es
+correcta —la persona es quien dice ser—; lo que no está vigente es el contrato,
+y son dos cosas distintas que conviene no mezclar en el mismo error.
+
+| Estado | Puede consultar y descargar | Puede emitir | Qué se muestra al entrar |
+|---|---|---|---|
+| `EN_PRUEBA` | Sí | Sí, contra la beta de SUNAT | Días restantes y qué pasa al terminar |
+| `ACTIVA` | Sí | Sí | Nada |
+| `SUSPENDIDA` | **Sí** | No | Aviso con el motivo y cómo regularizar |
+| `CANCELADA` | **Sí** | No | Aviso de cuenta cerrada y cómo exportar sus datos |
+
+**Suspender nunca cierra el acceso a los datos.** Los comprobantes tienen
+obligación de conservación de cinco años (DTE §5.8) y el cliente responde ante
+SUNAT por ellos: dejarle fuera de sus propios documentos por una factura impaga
+sería trasladarle un problema tributario por un problema comercial. Se corta
+emitir, que es lo que genera obligaciones nuevas, y nada más.
+
+#### La regla que fija la forma del mensaje
+
+**Ondexia no pide datos de pago desde un aviso, nunca.** El mensaje explica la
+situación y remite a un canal nuestro que el cliente ya conoce; no lleva un botón
+que desemboque en un formulario de tarjeta.
+
+No es una manía. Un aviso de «tu suscripción venció → pulsa aquí → introduce tu
+tarjeta» es literalmente la silueta de la estafa de suplantación más común, hasta
+en el detalle del «no te cobraremos nada». Un producto que entrena a sus clientes
+a seguir ese flujo los deja indefensos el día que alguien nos suplante a nosotros.
+
+De ahí, tres reglas para redactarlo:
+
+1. **Sin urgencia fabricada.** Ni cuentas atrás, ni «actúa ahora». La situación
+   real ya es suficiente motivo.
+2. **Sin gancho.** Nada de regalos, extensiones gratuitas ni promociones dentro
+   de un aviso de estado. Es el anzuelo característico del fraude.
+3. **Decir qué sigue funcionando**, y decirlo primero. «Puedes seguir
+   consultando y descargando tus comprobantes» tranquiliza y, de paso, es la
+   frase que ningún phishing escribe.
+
 ## 6. Arquitectura
 
 ### 6.1 Por qué separada y qué cuesta
 
-Un módulo Maven `ondexia.consola` que depende de `ondexia.domain`, su propia
+Un módulo Maven `ondexia.admin` que depende de `ondexia.domain`, su propia
 Lambda, su propia API HTTP, su propio SPA y el grupo de personal como
 autorizador. Las migraciones **se quedan donde están**, en `ondexia.api`: una
 sola pieza es dueña del esquema, y el panel nunca migra.
@@ -174,7 +214,7 @@ código se equivoque.
 
 ### 6.2 El rol de base de datos es lo que hace real la separación
 
-`ondexia_consola`, autenticación por IAM como `ondexia_app`, y concesiones **solo
+`ondexia_panel`, autenticación por IAM como `ondexia_app`, y concesiones **solo
 sobre las tablas que necesita**: `cuenta`, `plan`, `plan_modulo`,
 `cuenta_modulo`, `empresa`, `usuario`, `usuario_empresa`, `rol`, `permiso`,
 `auditoria`.
@@ -209,7 +249,7 @@ Del orden de **1 USD/mes**, contra un presupuesto de 15 en dev.
 | # | Entrega | Contenido |
 |---|---|---|
 | 0 | **Requisito previo** | MFA del grupo de personal en `ON` |
-| 1 | **Esquema** | Tablas `plan`, `plan_modulo`, `cuenta_modulo`; FK de `cuenta.plan`; permisos por columna del §3.2; rol `ondexia_consola` |
+| 1 | **Esquema** | Tablas `plan`, `plan_modulo`, `cuenta_modulo`; FK de `cuenta.plan`; permisos por columna del §3.2; rol `ondexia_panel` |
 | 2 | **Comprobación** | El cuarto conjunto en `Permisos`, con pruebas. Sin panel todavía: se verifica que un módulo apagado devuelve 403 |
 | 3 | **Infraestructura** | Módulo Maven, Lambda, API, cliente de Cognito, bucket y distribución del SPA |
 | 4 | **Consola: lectura** | Listado de cuentas, ficha con consumo frente a límites |
@@ -219,14 +259,22 @@ La 2 antes que la 3 no es casual: **la comprobación tiene que existir antes que
 la pantalla que la manipula.** Al revés se construye un panel que promete un
 control que el servidor todavía no aplica.
 
-## 8. Decisiones pendientes
+## 8. Nombres
 
-1. **Nombre.** `consola` en este documento. Alternativas: `panel`, `admin`,
-   `interno`. Afecta a nombres de módulo, bucket y repositorio de código.
-2. **Qué ve una cuenta suspendida.** Suspender no puede borrar datos —hay
-   obligación de conservación de 5 años— así que lo razonable es solo lectura con
-   un aviso, no un portazo. Falta decidir si emitir se corta de inmediato.
-3. **Suplantación para soporte.** Poder «entrar como» un cliente resuelve la
+El proyecto se llama **`ondexia.admin`**: `apps/frontend/ondexia.admin` para el
+SPA y `apps/backend/ondexia.admin` para el módulo Maven.
+
+El rol de base de datos **no** puede llamarse igual. `ondexia_admin` ya existe:
+es el usuario maestro de la instancia RDS, el dueño de todas las tablas y el que
+usa la función de migraciones. Reutilizar ese nombre daría al panel exactamente
+los privilegios que el §6.2 quiere negarle, y además lo dejaría exento de las
+políticas de fila por ser propietario. El rol del panel es **`ondexia_panel`**.
+
+## 9. Decisiones pendientes
+
+1. **Suplantación para soporte.** Poder «entrar como» un cliente resuelve la
    mitad de las consultas de soporte y es la funcionalidad más peligrosa de un
    panel así. Recomendación: fuera de esta entrega, y cuando entre, con registro
    en `auditoria` y aviso visible al cliente.
+2. **Redacción concreta de los avisos del §5.1**, que es trabajo de producto más
+   que de código y conviene escribir con los mensajes delante.
