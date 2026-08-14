@@ -15,6 +15,12 @@
       relacionar el número de una fila con su importe.
     -->
     <main class="mx-auto w-full max-w-(--breakpoint-2xl) flex-1 p-4 md:p-6">
+      <!--
+        Va dentro del main y no sobre la barra superior: es informacion de la
+        cuenta, no navegacion, y ahi comparte el ancho del contenido en vez de
+        cruzar toda la pantalla como una alarma.
+      -->
+      <app-aviso-suscripcion />
       <router-outlet />
     </main>
   </div>

@@ -31,6 +31,14 @@ export interface CuentaResumen {
   readonly id: string;
   /** Gobierna la suscripción y el alta de empresas. No es un rol de la matriz. */
   readonly esAdministrador: boolean;
+  /** ACTIVA, EN_PRUEBA, SUSPENDIDA o CANCELADA. Decide qué anuncio se pinta. */
+  readonly estadoSuscripcion: string | null;
+  /**
+   * Si la cuenta no puede escribir. Llega calculado del servidor a propósito: la
+   * regla de qué estados escriben vive allí, y replicarla aquí haría que un
+   * cambio en el servidor dejara la interfaz mintiendo.
+   */
+  readonly soloLectura: boolean;
 }
 
 export interface EmpresaResumen {
