@@ -120,6 +120,11 @@ resource "aws_db_instance" "principal" {
    *
    * La ruta va también en la lista: sin ella la instancia tendría dirección
    * pública y ningún camino de vuelta.
+   *
+   * Esto ordena el ENCENDIDO. El apagado no se puede ordenar así —`depends_on`
+   * no sitúa una actualización en sitio antes de la destrucción de aquello de lo
+   * que depende— y por eso la puerta de enlace dejó de colgar del interruptor.
+   * El razonamiento completo está en red.tf, sobre `aws_internet_gateway`.
    */
   depends_on = [
     aws_internet_gateway.principal,
