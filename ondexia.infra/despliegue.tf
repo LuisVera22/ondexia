@@ -43,15 +43,34 @@ resource "aws_iam_openid_connect_provider" "github" {
  * puede asumir este rol. No es una exageración teórica; es la forma en que estas
  * configuraciones se rompen.
  *
- * Por eso se enumeran las ramas una por una en vez de usar `repo:…:*`:
+ * SE ACOTA POR ENVIRONMENT Y NO POR RAMA, y no es lo que parecía al principio.
  *
- *   · `refs/heads/main`    — despliegue a producción
- *   · `refs/heads/develop` — despliegue a dev
+ * Cuando un job declara `environment:` —y deploy.yml lo hace, para poder exigir
+ * aprobación manual en prod— GitHub cambia la forma del `sub`:
  *
- * Nada más. Una rama de trabajo no despliega, y un `pull_request` desde una
- * bifurcación tampoco: su `sub` es `repo:…:pull_request`, que no está en la
- * lista. Eso último importa más de lo que parece — sin ello, cualquiera que
- * abriera una PR podría ejecutar código con estas credenciales.
+ *   sin environment:  repo:…:ref:refs/heads/develop
+ *   con environment:  repo:…:environment:dev
+ *
+ * Las dos formas son excluyentes: llega una o la otra, nunca las dos. Escribir
+ * las de rama aquí sería dejar en el código una restricción que no se evalúa
+ * jamás, lo que es peor que no tenerla — parece que acota y no acota nada.
+ *
+ * Sigue fuera `repo:…:pull_request`, que es el que importa: sin esa exclusión,
+ * cualquiera que abriera una PR desde una bifurcación ejecutaría código con
+ * estas credenciales.
+ *
+ * QUÉ SE PIERDE Y DÓNDE SE RECUPERA
+ *
+ * El `sub` por environment no dice de qué rama viene la ejecución, así que esta
+ * política ya no limita la rama. Ese límite se pone en GitHub, en las
+ * «deployment branches» del propio environment: `prod` solo desde `main`,
+ * `dev` solo desde `develop`.
+ *
+ * Y ahí está el hueco de hoy: esa opción, igual que la protección de ramas,
+ * exige plan Pro o Team en repositorios privados. Mientras no lo haya, quien
+ * tenga permiso de escritura puede lanzar el despliegue desde cualquier rama.
+ * Con un solo desarrollador es una cuestión de disciplina; con dos, deja de
+ * serlo.
  */
 data "aws_iam_policy_document" "asumir_despliegue" {
   statement {
@@ -73,8 +92,8 @@ data "aws_iam_policy_document" "asumir_despliegue" {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
       values = [
-        "repo:${var.repositorio_github}:ref:refs/heads/main",
-        "repo:${var.repositorio_github}:ref:refs/heads/develop",
+        "repo:${var.repositorio_github}:environment:dev",
+        "repo:${var.repositorio_github}:environment:prod",
       ]
     }
   }
