@@ -110,9 +110,15 @@ output "contrasena_bd" {
 
 output "funcion_migraciones" {
   description = <<-TEXTO
-    Función que aplica las migraciones de Flyway. Hay que invocarla después de
-    cada despliegue que traiga migraciones nuevas — la API ya no migra al
-    arrancar:
+    Función que aplica las migraciones de Flyway, porque la API ya no migra al
+    arrancar.
+
+    El workflow de despliegue la invoca solo, y lo hace ANTES de publicar la
+    versión nueva de la API: al revés, la API arrancaría con ddl-auto=validate
+    contra un esquema viejo, fallaría la validación y —como SnapStart toma la
+    instantánea durante ese arranque— la versión quedaría en Failed.
+
+    Este valor hace falta cuando se aplica a mano desde un equipo:
 
       aws lambda invoke --function-name <este valor> --payload '{}' salida.json
 
@@ -125,7 +131,7 @@ output "recordatorios" {
   description = "Lo que Terraform no puede hacer por ti."
   value = [
     "Confirmar la suscripción de correo al tema de SNS: llega un mensaje de AWS y hay que pulsar el enlace, o las alarmas no avisan a nadie.",
-    local.hay_backend ? "Invocar la funcion de migraciones (output funcion_migraciones) antes de probar la API: el esquema no existe hasta entonces." : "Sin artefacto de backend: se despliega la funcion de relleno que responde 501.",
+    local.hay_backend ? "Si aplicaste a mano: invocar la función de migraciones (output funcion_migraciones) antes de probar la API, porque el esquema no existe hasta entonces. Desde el workflow de despliegue NO hace falta — ya la invoca, y antes de publicar la API a propósito." : "Sin artefacto de backend: se despliega la función de relleno que responde 501.",
     "Poner el MFA del grupo de personal en ON cuando el primer usuario tenga su TOTP configurado.",
     "Pasar la cuenta al plan de pago antes de que venza el periodo gratuito: el plan gratuito cierra la cuenta sola.",
     var.gestionar_dns ? "Cargar los servidores de nombres en el registrador del dominio." : "gestionar_dns esta apagado: se sirve por los dominios predeterminados de CloudFront.",
