@@ -263,6 +263,36 @@
         <configuration>
           <failBuildOnCVSS>${dependency-check.failBuildOnCVSS}</failBuildOnCVSS>
           <!--
+            OSS Index de Sonatype, apagado.
+
+            Es un analizador mas, ademas de la NVD, y se consulta de forma
+            anonima. Desde los runners de GitHub —direcciones compartidas por
+            mucha gente— responde 401 a cada peticion y tumba el build entero:
+
+              DownloadFailedException: https://ossindex.sonatype.org/api/v3/
+              component-report - Server status: 401 - Server reason: Unauthorized
+
+            No se apaga por comodidad. Se comprobo en los informes de las dos
+            ejecuciones anteriores cuantos hallazgos habia aportado cada fuente:
+
+              NVD       24  y  2
+              RetireJS   6  y  2
+              OSS Index  0  y  0
+
+            Cero en ambas. Lo que encontro el analisis —el 8.2 del driver de
+            PostgreSQL, los 9.1 de Tomcat, el XSS de DOMPurify— salio de la NVD y
+            de RetireJS, que siguen activos.
+
+            La alternativa era `failOnError=false`, y es peor: silenciaria
+            CUALQUIER error de analisis, incluidos los que si querriamos ver.
+            Apagar una fuente concreta y decir por que es una decision; tapar
+            todos los errores es perder el detector sin enterarse.
+
+            Se revisa si algun dia aporta algo: con una cuenta de Sonatype se
+            configura `ossIndexServerId` y deja de ir anonimo.
+          -->
+          <ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
+          <!--
             Hallazgos que no aplican, cada uno con su justificacion escrita.
             La ruta se ancla a la raiz del proyecto multimodulo para que resuelva
             igual al construir el reactor entero que un modulo suelto.
