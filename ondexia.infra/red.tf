@@ -37,6 +37,13 @@ locals {
 # desde la que se aplicó. Aplicar desde otra red —o que el proveedor rote la IP
 # doméstica— reescribe la regla en el siguiente plan. Eso es visible en el diff,
 # que es donde debe verse.
+#
+# Y de ahí se sigue algo que no era evidente al escribirlo: «quien aplica» dejó
+# de ser una persona. Aplicado desde GitHub Actions, esto abre el 5432 a la IP
+# efímera del runner —una dirección de Azure que después es de otro— y la
+# reescribe en cada ejecución. Por eso `acceso_bd_publico` está en false en
+# dev.tfvars, con el detalle allí: es una variable que solo se enciende para un
+# apply desde el equipo.
 data "http" "ip_de_quien_aplica" {
   count = local.bd_publica ? 1 : 0
   url   = "https://checkip.amazonaws.com"

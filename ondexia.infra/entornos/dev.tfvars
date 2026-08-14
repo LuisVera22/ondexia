@@ -18,14 +18,33 @@ tope_presupuesto_usd = 15
 retencion_respaldos_dias = 1
 retencion_logs_dias      = 7
 
-# La base acepta conexiones desde la IP que ejecuta el apply, para poder
-# inspeccionarla con psql o un cliente gráfico. Se sostiene mientras la frase de
-# arriba siga siendo cierta: aquí no hay nada que perder. El día que dev tenga
-# datos de un cliente real, esto se apaga y se monta el bastión.
+# Apagado, y el motivo es que el apply ya no lo hace una persona.
 #
-# Al cambiar de red hay que volver a aplicar: la regla queda atada a la IP
-# anterior y la conexión pasa a expirar sin explicación.
-acceso_bd_publico = true
+# La regla se ata a la IP saliente de QUIEN APLICA. Desde un equipo eso es
+# cómodo; desde GitHub Actions es otra cosa. El primer plan lanzado desde CI
+# quiso hacer esto:
+#
+#   ~ cidr_ipv4 = "179.6.31.36/32" -> "40.76.119.208/32"
+#
+# Es decir: cambiar la IP del desarrollador por la del runner. Tres problemas, y
+# el tercero es el que decide.
+#
+#   1. Se pierde el acceso desde pgAdmin en cada despliegue.
+#   2. La IP del runner es efímera, así que la regla se reescribe en cada
+#      ejecución y el plan nunca sale limpio — el ruido acaba tapando un cambio
+#      que sí importe.
+#   3. Queda autorizado el 5432 para una dirección de un rango compartido de
+#      Azure que mañana es de la máquina de otra persona.
+#
+# Para volver a conectar con un cliente gráfico: ponerlo en true y aplicar DESDE
+# EL EQUIPO, no desde CI, y devolverlo a false al terminar. Apagarlo puede
+# necesitar dos applies seguidos: quitar la puerta de enlace y liberar la IP
+# pública de RDS son dos cambios que Terraform no secuencia entre sí, y el
+# primer intento falla con DependencyViolation.
+#
+# Lo estable, cuando dev tenga datos que importen, es el bastión con EC2
+# Instance Connect Endpoint (~3 USD/mes) que describe la variable.
+acceso_bd_publico = false
 
 # Sin reserva de concurrencia. No es lo que se queria, es lo que la cuenta
 # permite: su limite total son 10 ejecuciones simultaneas —el de una cuenta
