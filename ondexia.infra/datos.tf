@@ -88,6 +88,33 @@ resource "aws_db_instance" "principal" {
 
   parameter_group_name = aws_db_parameter_group.principal.name
 
+  /**
+   * Cuándo se hacen efectivos los cambios de esta instancia.
+   *
+   * El valor por omisión es falso, y eso ENCOLA la modificación para la ventana
+   * de mantenimiento. Terraform no lo sabe: pide el cambio, la instancia vuelve
+   * a `available` y da la modificación por completada. El resultado es un apply
+   * en verde sobre algo que no ha pasado.
+   *
+   * Costó un despliegue entero. La activación de `iam_database_authentication`
+   * quedó pendiente mientras Terraform decía «Modifications complete after
+   * 1m22s», y la versión siguiente de la API intentó autenticarse por IAM contra
+   * una base que todavía no la aceptaba:
+   *
+   *   aws rds describe-db-instances → "IAMDatabaseAuthenticationEnabled": false
+   *   PendingModifiedValues: { "IAMDatabaseAuthenticationEnabled": true }
+   *
+   * En dev se aplica al momento: no hay nadie a quien interrumpir y un cambio
+   * que se cree aplicado y no lo está es mucho peor que un corte de segundos.
+   *
+   * En prod se deja encolado a propósito: hay cambios que reinician la
+   * instancia, y cuándo ocurre eso lo decide una persona, no el final de un
+   * despliegue. La contrapartida es justo la trampa de arriba, así que un cambio
+   * de esta instancia en prod NO está hecho cuando el apply termina — hay que
+   * comprobar `PendingModifiedValues` y decidir si se fuerza.
+   */
+  apply_immediately = var.entorno == "dev"
+
   backup_retention_period = var.retencion_respaldos_dias
   backup_window           = "07:00-08:00" # 02:00-03:00 en Perú
   maintenance_window      = "sun:08:00-sun:09:00"
