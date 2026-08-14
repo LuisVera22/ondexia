@@ -39,6 +39,7 @@
   <modules>
     <module>ondexia.domain</module>
     <module>ondexia.api</module>
+    <module>ondexia.admin</module>
   </modules>
 
   <properties>
@@ -50,7 +51,7 @@
     <java.version>21</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-    <springdoc.version>3.0.3</springdoc.version>
+    <springdoc.version>3.1.0</springdoc.version>
     <testcontainers.version>2.0.5</testcontainers.version>
     <archunit.version>1.5.0</archunit.version>
 
@@ -90,6 +91,37 @@
     <dependency-check.failBuildOnCVSS>7</dependency-check.failBuildOnCVSS>
     <!-- Se apaga en local con -Ddependency-check.skip=true. -->
     <dependency-check.skip>false</dependency-check.skip>
+
+    <!--
+      Versiones por delante de las que fija Spring Boot, y no por gusto.
+
+      La primera ejecucion del analisis con la clave del NIST —hasta entonces se
+      omitia por falta de clave, ver ci.yml— senalo dos dependencias por encima
+      del umbral de CVSS 7:
+
+        postgresql 42.7.11    CVE-2026-54291 (8.2)  -> corregido en 42.7.13
+        tomcat-embed-core     CVE-2026-55276, 53434, 59083, 59084 (9.1),
+                              CVE-2026-53404 (7.3)   -> corregidos en 11.0.24
+                              CVE-2026-66299 (7.5)   -> sin version corregida,
+                                                        suprimido con motivo
+
+      Se sube a la ultima publicada de cada linea. Son parches dentro de la misma
+      version menor, asi que no hay cambio de API; lo que cambia es que el
+      analisis vuelve a pasar, y si no pasara lo dira el mismo build.
+
+      Sobre Tomcat conviene ser exacto para no exagerar el riesgo NI
+      minimizarlo: `tomcat-embed-core` esta EXCLUIDO del artefacto que se
+      despliega —en Lambda el contenedor de servlets lo pone
+      aws-serverless-java-container, ver el shade de ondexia.api— asi que esas
+      seis vulnerabilidades no viajan a produccion. Siguen estando en el
+      classpath de compilacion y de `spring-boot:run`, que es como se levanta en
+      la maquina de desarrollo, y por eso se corrigen igual.
+
+      El driver de PostgreSQL SI se despliega y SI se usa en cada peticion. Ese
+      es el que importaba.
+    -->
+    <postgresql.version>42.7.13</postgresql.version>
+    <tomcat.version>11.0.24</tomcat.version>
 
     <!--
       Clave de API del NIST.
@@ -230,6 +262,44 @@
         </executions>
         <configuration>
           <failBuildOnCVSS>${dependency-check.failBuildOnCVSS}</failBuildOnCVSS>
+          <!--
+            OSS Index de Sonatype, apagado.
+
+            Es un analizador mas, ademas de la NVD, y se consulta de forma
+            anonima. Desde los runners de GitHub —direcciones compartidas por
+            mucha gente— responde 401 a cada peticion y tumba el build entero:
+
+              DownloadFailedException: https://ossindex.sonatype.org/api/v3/
+              component-report - Server status: 401 - Server reason: Unauthorized
+
+            No se apaga por comodidad. Se comprobo en los informes de las dos
+            ejecuciones anteriores cuantos hallazgos habia aportado cada fuente:
+
+              NVD       24  y  2
+              RetireJS   6  y  2
+              OSS Index  0  y  0
+
+            Cero en ambas. Lo que encontro el analisis —el 8.2 del driver de
+            PostgreSQL, los 9.1 de Tomcat, el XSS de DOMPurify— salio de la NVD y
+            de RetireJS, que siguen activos.
+
+            La alternativa era `failOnError=false`, y es peor: silenciaria
+            CUALQUIER error de analisis, incluidos los que si querriamos ver.
+            Apagar una fuente concreta y decir por que es una decision; tapar
+            todos los errores es perder el detector sin enterarse.
+
+            Se revisa si algun dia aporta algo: con una cuenta de Sonatype se
+            configura `ossIndexServerId` y deja de ir anonimo.
+          -->
+          <ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
+          <!--
+            Hallazgos que no aplican, cada uno con su justificacion escrita.
+            La ruta se ancla a la raiz del proyecto multimodulo para que resuelva
+            igual al construir el reactor entero que un modulo suelto.
+          -->
+          <suppressionFiles>
+            <suppressionFile>${maven.multiModuleProjectDirectory}/dependency-check-suprimidos.xml</suppressionFile>
+          </suppressionFiles>
           <skip>${dependency-check.skip}</skip>
           <nvdApiKey>${dependency-check.nvdApiKey}</nvdApiKey>
           <!--

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Hallazgos del analisis de dependencias que NO aplican a este proyecto.
+
+  QUE ES Y QUE NO ES ESTE ARCHIVO
+
+  Una supresion es una afirmacion: «he leido este CVE y no nos afecta, por este
+  motivo». No es una forma de silenciar lo que molesta. La diferencia se nota en
+  que cada entrada de aqui explica por que el hallazgo no aplica, y esa
+  explicacion se puede comprobar.
+
+  La alternativa que NO se tomo fue bajar `failBuildOnCVSS` de 7 a 8. Habria
+  hecho pasar el build igual y habria apagado el detector para todo lo demas,
+  incluyendo lo que si nos afecte manana. Suprimir tres casos concretos y
+  documentados deja el umbral haciendo su trabajo.
+
+  REVISAR CADA VEZ QUE SE SUBA LA VERSION DE LA DEPENDENCIA
+
+  Una supresion caduca sin avisar: si manana el CVE se reasigna o aparece una
+  version corregida, esta entrada la esconde. Por eso cada una lleva la fecha en
+  que se justifico y la condicion que la invalidaria.
+-->
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+
+  <!--
+    2026-08-14 · angus-activation
+
+    El CVE es de Jakarta MAIL —«In Jakarta Mail versions prior to 2.0.2 it is
+    possible to perform an SMTP Injection»— y la dependencia senalada es Jakarta
+    ACTIVATION, que es otra biblioteca: resuelve tipos MIME, no envia correo.
+
+    El analisis las confunde porque le asigno el identificador
+    `cpe:2.3:a:eclipse:angus_mail`, y el propio informe marca esa correspondencia
+    con confianza BAJA. Ademas Ondexia no envia correo desde el backend: las
+    notificaciones las manda SNS.
+
+    Deja de aplicar si: entra angus-mail de verdad como dependencia, o el CPE se
+    corrige y el hallazgo apunta a otro producto.
+  -->
+  <suppress>
+    <notes><![CDATA[
+      CVE de Jakarta Mail asignado por error a Jakarta Activation (CPE
+      eclipse:angus_mail, confianza baja). Producto distinto; el backend no
+      envia correo.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.eclipse\.angus/angus-activation@.*$</packageUrl>
+    <cve>CVE-2025-7962</cve>
+  </suppress>
+
+  <!--
+    2026-08-14 · tomcat-embed-core
+
+    Doble motivo, y el primero basta.
+
+    El CVE describe «Uncontrolled Resource Consumption vulnerability in Apache
+    Tomcat's WebSocket chat EXAMPLE» y el propio aviso dice que quien haya
+    retirado la aplicacion de ejemplos no esta afectado. Un Tomcat embebido en
+    Spring Boot no trae la webapp de ejemplos: no hay nada que retirar porque
+    nunca estuvo.
+
+    El segundo: `tomcat-embed-core` esta excluido del artefacto que se despliega
+    —en Lambda el contenedor de servlets lo pone aws-serverless-java-container,
+    ver el shade de ondexia.api—, asi que ni siquiera viaja a produccion.
+
+    No hay version que lo corrija: 11.0.24 es la ultima publicada y el rango
+    afectado llega hasta ella.
+
+    OJO CON EL ALCANCE: el CVE se asigna por CPE —`apache:tomcat:11.0.24`— y ese
+    identificador lo llevan TODOS los jars de Tomcat embebido, no solo
+    tomcat-embed-core. El primer intento suprimio unicamente `-core` y el build
+    siguio rojo por `-websocket`, que es el mismo Tomcat partido en artefactos.
+    De ahi que el patron cubra `tomcat-embed-*`.
+
+    Deja de aplicar si: se publica una version corregida —entonces se sube y se
+    borra esta entrada— o si algun dia se despliega en un Tomcat completo.
+  -->
+  <suppress>
+    <notes><![CDATA[
+      Afecta a la webapp de ejemplos de Tomcat, que un embebido de Spring Boot
+      no incluye. Ademas estos jars estan excluidos del artefacto desplegado.
+      Sin version corregida a 2026-08-14 (11.0.24 es la ultima). Cubre todos los
+      tomcat-embed-* porque el CVE se asigna por el CPE de Tomcat, comun a todos.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.tomcat\.embed/tomcat-embed-.*@.*$</packageUrl>
+    <cve>CVE-2026-66299</cve>
+  </suppress>
+
+  <!--
+    CVE-2026-65898 (DOMPurify dentro de swagger-ui) NO figura aqui, y conviene
+    dejar dicho por que: se corrigio de verdad.
+
+    Era XSS almacenado real. Subir springdoc de 3.0.3 a 3.1.0 trajo swagger-ui
+    5.32.11 con DOMPurify 3.4.12 en lugar de 3.3.2, y el hallazgo desaparecio
+    solo. Suprimirlo habria sido esconder un defecto que tenia arreglo.
+
+    Si algun dia vuelve sin version corregida disponible, la salida no es
+    suprimirlo sino dejar de empaquetar swagger-ui: publicar la documentacion
+    interactiva de la API de un sistema tributario no es algo que se quiera en
+    produccion de todas formas.
+  -->
+</suppressions>

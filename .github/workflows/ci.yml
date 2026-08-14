@@ -110,6 +110,23 @@ jobs:
             ./mvnw -B verify -Ddependency-check.nvdApiKey="$NVD_API_KEY"
           fi
 
+      # El informe de Dependency-Check, pase o falle el build.
+      #
+      # Sin esto, cuando el análisis rompe el build lo único que queda es la lista
+      # del log, que GitHub corta por la derecha justo donde están los
+      # identificadores de CVE y sus puntuaciones. Se puede diagnosticar a ciegas
+      # o se puede leer el informe; esto es lo segundo.
+      #
+      # `if: always()` es el punto entero: el caso en que hace falta es
+      # precisamente el que aborta el job.
+      - name: Publicar el informe de dependencias
+        if: always() && hashFiles('apps/backend/ondexia.api/target/dependency-check-report.html') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check
+          path: apps/backend/**/target/dependency-check-report.*
+          retention-days: 14
+
       # DT-16 sustituyó AWS CDK por Terraform. Este paso buscaba
       # ondexia.infra/package.json y ejecutaba `cdk synth`: no se disparaba
       # nunca y no validaba nada.
