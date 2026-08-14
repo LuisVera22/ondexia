@@ -8,6 +8,7 @@ import java.sql.SQLFeatureNotSupportedException;
 import java.util.Properties;
 import java.util.logging.Logger;
 import javax.sql.DataSource;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.rds.RdsUtilities;
 
@@ -56,9 +57,29 @@ final class FuenteDeDatosIam implements DataSource {
         this.usuario = usuario;
         this.anfitrion = anfitrion;
         this.puerto = puerto;
-        // Se construye una vez: no tiene estado de conexión, solo credenciales
-        // y región para firmar.
-        this.firmador = RdsUtilities.builder().region(region).build();
+        /*
+         * El proveedor de credenciales es OBLIGATORIO, y omitirlo no falla al
+         * construir sino al firmar el primer token:
+         *
+         *   IllegalArgumentException: CredentialProvider should be provided
+         *   either in GenerateAuthenticationTokenRequest object or RdsUtilities
+         *   object
+         *
+         * Y el síntoma llega disfrazado. Hikari no puede abrir la conexión,
+         * Hibernate se queda sin metadatos para deducir el dialecto y lo que
+         * aparece arriba de la traza es «Unable to determine Dialect without JDBC
+         * metadata», que invita a buscar una URL mal formada. En SnapStart el
+         * arranque es el que toma la instantánea, así que la versión ni se
+         * publica: queda en Failed con Runtime.BadFunctionCode.
+         *
+         * La cadena predeterminada resuelve por variables de entorno, que es lo
+         * primero que mira y lo que Lambda inyecta. No hay llamada de red, que es
+         * la condición para que esto funcione en una subred sin NAT.
+         */
+        this.firmador = RdsUtilities.builder()
+                .region(region)
+                .credentialsProvider(DefaultCredentialsProvider.create())
+                .build();
     }
 
     @Override
@@ -86,7 +107,13 @@ final class FuenteDeDatosIam implements DataSource {
         return getConnection();
     }
 
-    private String tokenNuevo() {
+    /**
+     * Con ámbito de paquete, no privado, para que {@code FuenteDeDatosIamTest}
+     * pueda firmar un token sin abrir una conexión. Es la única parte de esta
+     * clase que se puede comprobar fuera de AWS —firmar es una operación local— y
+     * es justo donde estuvo el fallo que dejó una versión en {@code Failed}.
+     */
+    String tokenNuevo() {
         return firmador.generateAuthenticationToken(constructor -> constructor
                 .hostname(anfitrion)
                 .port(puerto)
