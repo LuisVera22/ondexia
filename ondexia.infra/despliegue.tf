@@ -92,22 +92,26 @@ data "aws_iam_policy_document" "asumir_despliegue" {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
       /*
-       * Las dos formas del nombre, sin comodines.
+       * Solo la forma con identificadores, que es la que GitHub emite.
        *
-       * GitHub emite hoy el `sub` con los identificadores numéricos pegados
-       * —`LuisVera22@149976444/ondexia@1326100922`— y no con el nombre legible.
-       * Se listan las dos porque cuál llega depende de GitHub y no de nosotros:
-       * si mañana volviera a la forma corta, esto seguiría funcionando.
+       * Estuvo también la legible —`repo:LuisVera22/ondexia:environment:dev`— y
+       * se quitó por dos motivos. No se evalúa nunca, así que aparentaba acotar
+       * sin acotar; y es por NOMBRE: el día que se libere ese nombre y otra
+       * persona lo tome, esa entrada la autorizaría si GitHub volviera a la
+       * forma corta. Los identificadores no tienen ese problema, que es
+       * exactamente para lo que son inmutables.
        *
        * Nada de `StringLike` con asteriscos. `repo:LuisVera22*` casaría también
-       * con una cuenta llamada `LuisVera22Falsa`, que es exactamente la clase de
-       * atajo por el que estas políticas acaban abiertas.
+       * con una cuenta llamada `LuisVera22Falsa`, que es la clase de atajo por
+       * el que estas políticas acaban abiertas.
+       *
+       * Si GitHub cambiara el formato, esto fallaría con AccessDenied. Es
+       * recuperable en minutos: el `sub` recibido está en CloudTrail, en
+       * `userIdentity.userName` del intento rechazado.
        */
       values = [
         "repo:${var.repositorio_github_inmutable}:environment:dev",
         "repo:${var.repositorio_github_inmutable}:environment:prod",
-        "repo:${var.repositorio_github}:environment:dev",
-        "repo:${var.repositorio_github}:environment:prod",
       ]
     }
   }
