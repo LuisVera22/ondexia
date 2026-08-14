@@ -93,6 +93,35 @@
     <dependency-check.skip>false</dependency-check.skip>
 
     <!--
+      Versiones por delante de las que fija Spring Boot, y no por gusto.
+
+      La primera ejecucion del analisis con la clave del NIST —hasta entonces se
+      omitia por falta de clave, ver ci.yml— senalo dos dependencias por encima
+      del umbral de CVSS 7:
+
+        postgresql 42.7.11    CVE-2026-54291 (8.2)
+        tomcat-embed-core     CVE-2026-55276, 53434, 59083, 59084 (9.1)
+                              CVE-2026-66299 (7.5), CVE-2026-53404 (7.3)
+
+      Se sube a la ultima publicada de cada linea. Son parches dentro de la misma
+      version menor, asi que no hay cambio de API; lo que cambia es que el
+      analisis vuelve a pasar, y si no pasara lo dira el mismo build.
+
+      Sobre Tomcat conviene ser exacto para no exagerar el riesgo NI
+      minimizarlo: `tomcat-embed-core` esta EXCLUIDO del artefacto que se
+      despliega —en Lambda el contenedor de servlets lo pone
+      aws-serverless-java-container, ver el shade de ondexia.api— asi que esas
+      seis vulnerabilidades no viajan a produccion. Siguen estando en el
+      classpath de compilacion y de `spring-boot:run`, que es como se levanta en
+      la maquina de desarrollo, y por eso se corrigen igual.
+
+      El driver de PostgreSQL SI se despliega y SI se usa en cada peticion. Ese
+      es el que importaba.
+    -->
+    <postgresql.version>42.7.13</postgresql.version>
+    <tomcat.version>11.0.24</tomcat.version>
+
+    <!--
       Clave de API del NIST.
 
       Desde 2023 la NVD limita con dureza a quien consulta sin clave: la primera
