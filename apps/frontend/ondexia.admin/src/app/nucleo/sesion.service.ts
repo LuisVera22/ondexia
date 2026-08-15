@@ -76,28 +76,7 @@ export class SesionService {
     return this.navegarACognito('/oauth2/authorize', destino);
   }
 
-  /**
-   * Redirige al alta de Cognito: correo, contraseña y verificación del correo.
-   *
-   * Al confirmar el código, Cognito inicia la sesión solo y vuelve a
-   * `/acceso/retorno` con un código de autorización — el mismo camino que un
-   * acceso normal. La diferencia aparece después: el contexto responde
-   * `usuario_no_registrado` y el SPA lleva a completar los datos de la empresa.
-   */
-  registrarse(): Promise<void> {
-    return this.navegarACognito('/signup', '/');
-  }
 
-  /**
-   * Redirige a la recuperación de contraseña de Cognito.
-   *
-   * El formulario propio que había aquí no enviaba nada — era de la maqueta.
-   * Quien sabe si el correo existe, manda el código y valida la contraseña
-   * nueva es Cognito, así que lo honesto es llevar ahí.
-   */
-  recuperar(): Promise<void> {
-    return this.navegarACognito('/forgotPassword', '/');
-  }
 
   /**
    * Todas las puertas de Cognito comparten los mismos parámetros, PKCE
@@ -216,7 +195,9 @@ export class SesionService {
 
     const parametros = new URLSearchParams({
       client_id: this.configuracion.cognito.clienteId,
-      logout_uri: `${origenApp()}/acceso/ingresar`,
+      // A la raiz, que es lo registrado en logout_urls. Al volver sin sesion,
+      // el guardian manda otra vez a Cognito.
+      logout_uri: origenApp(),
     });
 
     location.assign(`${this.configuracion.cognito.dominio}/logout?${parametros}`);
@@ -227,8 +208,20 @@ export class SesionService {
     this._sesion.set(null);
   }
 
+  /**
+   * La raíz, no `/acceso/retorno` como en el SPA de clientes.
+   *
+   * <p>Aquí no hay una pantalla que reciba el código: lo canjea el propio
+   * guardián de sesión antes de pintar nada, y corre en cualquier ruta. Devolver
+   * a `/acceso/retorno` daba dos fallos a la vez —Cognito rechazaba el retorno
+   * con {@code redirect_mismatch} porque el cliente tiene registrada la raíz, y
+   * aunque hubiera coincidido no existe esa ruta en el enrutador—.
+   *
+   * <p>Sin barra final: {@code location.origin} no la lleva y Cognito compara la
+   * URL entera, carácter a carácter, contra las registradas.
+   */
   private urlRetorno(): string {
-    return `${origenApp()}/acceso/retorno`;
+    return origenApp();
   }
 
   private guardar(respuesta: RespuestaToken): void {
