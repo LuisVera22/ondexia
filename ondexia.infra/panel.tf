@@ -120,17 +120,27 @@ resource "aws_lambda_function" "panel" {
   timeout     = 30
 
   /**
-   * SIN SnapStart, a propósito.
+   * SIN SnapStart, a propósito. Con versiones publicadas, también a propósito.
    *
-   * Son pocas invocaciones al día de gente que trabaja aquí, y un arranque en
-   * frío de unos segundos es tolerable en una consola interna. A cambio se evita
-   * lo que más ha costado en los despliegues de la API: publicar una versión con
-   * instantánea tarda minutos, y cualquier fallo de arranque deja la versión en
-   * `Failed` en vez de dar un error legible.
+   * Son dos decisiones distintas y conviene no confundirlas, porque en la API
+   * van juntas:
    *
-   * Por lo mismo tampoco hay alias ni versiones publicadas: se despliega sobre
-   * $LATEST, que para dos operadores es suficiente.
+   *   - Sin SnapStart porque son pocas invocaciones al día de gente que trabaja
+   *     aquí, un arranque en frío de segundos es tolerable en una consola
+   *     interna, y a cambio se evita lo que más ha costado en los despliegues de
+   *     la API: la instantánea tarda minutos y cualquier fallo de arranque deja
+   *     la versión en `Failed` en vez de dar un error legible.
+   *
+   *   - Con `publish` y alias porque servir $LATEST es servir un blanco móvil:
+   *     lo que corre cambia con cada despliegue sin que quede constancia de qué
+   *     había antes, y volver atrás obliga a reconstruir el artefacto. Una
+   *     versión es inmutable y el alias dice cuál sirve, así que revertir es
+   *     mover el alias — segundos, sin pipeline.
+   *
+   * Que $LATEST siga existiendo no es un problema: nadie lo invoca, porque la
+   * integración apunta al alias y el permiso de invocación lleva su cualificador.
    */
+  publish = true
 
   vpc_config {
     subnet_ids         = aws_subnet.privada[*].id
@@ -150,8 +160,16 @@ resource "aws_lambda_function" "panel" {
       BD_USUARIO = "ondexia_panel"
 
       # El grupo de PERSONAL. Un token de cliente está firmado por el otro pool y
-      # aquí no valida: la separación es criptográfica, no de configuración.
+      # el autorizador de esta API lo rechaza: la separación es criptográfica, no
+      # de configuración.
       COGNITO_EMISOR_PERSONAL = "https://${aws_cognito_user_pool.personal.endpoint}"
+
+      # Que el token sea para ESTA consola y no para otra aplicación del mismo
+      # grupo. Es la misma audiencia que valida el autorizador de la pasarela; la
+      # aplicación la vuelve a mirar porque comprobarlo no cuesta una salida a
+      # internet, y lo que sí la costaba —la firma— se dejó en la pasarela
+      # (ver TokenDeLaPasarela).
+      COGNITO_CLIENTE_PANEL = aws_cognito_user_pool_client.panel.id
 
       # Quien responde el preflight es Spring, porque la ruta OPTIONS apunta a
       # la funcion. Sin este origen, contesta pero sin las cabeceras que el
@@ -165,6 +183,26 @@ resource "aws_lambda_function" "panel" {
   depends_on = [aws_cloudwatch_log_group.panel]
 
   tags = { Name = "${local.nombre}-panel" }
+}
+
+/**
+ * El alias es lo que se invoca. Nunca $LATEST.
+ *
+ * Sigue a la última versión publicada, que Terraform actualiza en cada
+ * despliegue porque ONDEXIA_VERSION cambia con el hash del artefacto. El valor
+ * de tener el alias en medio es poder deshacer: si una versión sale mal, apuntar
+ * el alias a la anterior devuelve el servicio sin volver a construir nada.
+ *
+ * Es además donde se repartiría el tráfico entre dos versiones el día que un
+ * despliegue gradual haga falta.
+ */
+resource "aws_lambda_alias" "panel" {
+  count = local.hay_panel ? 1 : 0
+
+  name             = "activo"
+  description      = "Version que sirve la consola interna"
+  function_name    = aws_lambda_function.panel[0].function_name
+  function_version = aws_lambda_function.panel[0].version
 }
 
 # ── Cliente de Cognito para la consola ─────────────────────────────────────
@@ -261,9 +299,11 @@ resource "aws_apigatewayv2_authorizer" "personal" {
 resource "aws_apigatewayv2_integration" "panel" {
   count = local.hay_panel ? 1 : 0
 
-  api_id                 = aws_apigatewayv2_api.panel[0].id
-  integration_type       = "AWS_PROXY"
-  integration_uri        = aws_lambda_function.panel[0].invoke_arn
+  api_id           = aws_apigatewayv2_api.panel[0].id
+  integration_type = "AWS_PROXY"
+  # El alias, no la función: invocar la función a secas ejecuta $LATEST, que es
+  # justo lo que el alias existe para evitar.
+  integration_uri        = aws_lambda_alias.panel[0].invoke_arn
   payload_format_version = "2.0"
   timeout_milliseconds   = 30000
 }
@@ -328,5 +368,21 @@ resource "aws_lambda_permission" "panel" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.panel[0].function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.panel[0].execution_arn}/*/*"
+
+  # El permiso es sobre el alias, no sobre la función entera. Sin el
+  # cualificador, la pasarela podría invocar $LATEST además del alias.
+  qualifier = aws_lambda_alias.panel[0].name
+
+  /**
+   * Esta línea es la que sostiene la decisión de no revalidar la firma dentro
+   * de la aplicación.
+   *
+   * El único principal autorizado es esta API, y solo esta: no hay URL de
+   * función, ni otro disparador, ni invocación directa. Todo lo que llega al
+   * código pasó antes por el autorizador JWT de la ruta $default.
+   *
+   * Si alguna vez se añade otro disparador aquí, hay que volver a
+   * TokenDeLaPasarela: dejaría de ser cierto que alguien comprobó la firma.
+   */
+  source_arn = "${aws_apigatewayv2_api.panel[0].execution_arn}/*/*"
 }

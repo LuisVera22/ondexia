@@ -235,13 +235,59 @@ tablas de comprobantes que vengan. La propiedad que se obtiene es verificable:
 **el panel no puede leer los documentos tributarios de un cliente**, y no porque
 el código no lo intente, sino porque la base se lo niega.
 
-### 6.3 Sin SnapStart, a propósito
+### 6.3 Sin SnapStart, pero con versiones publicadas
 
 La Lambda de la consola no lleva SnapStart. Son pocas invocaciones al día de
 gente que trabaja aquí, un arranque en frío de segundos es tolerable, y se evita
 lo que más ha costado en los despliegues de la API: publicar una versión con
 instantánea tarda minutos y convierte cualquier fallo de arranque en una versión
 en `Failed`.
+
+Sí publica versiones y sirve a través de un alias, que es una decisión distinta
+aunque en la API vayan juntas. Servir `$LATEST` es servir un blanco móvil: lo que
+corre cambia con cada despliegue sin que quede constancia de qué había antes, y
+deshacer obliga a reconstruir el artefacto. Con el alias en medio, revertir es
+moverlo a la versión anterior.
+
+### 6.4 Quién valida el token
+
+**La pasarela, no la aplicación.** El autorizador JWT de la ruta `$default`
+comprueba firma, emisor, audiencia y caducidad antes de invocar la función, y el
+permiso de invocación está atado al ARN de esa API: no hay otra puerta.
+`TokenDeLaPasarela` lee el token sin verificar la firma y revalida lo que se
+puede sin red — emisor, cliente y caducidad.
+
+No es una optimización, es lo único que funciona en esta red. El decodificador
+que Spring construye a partir de `issuer-uri` descarga la configuración del
+emisor, y la función vive en una subred privada sin NAT cuyo grupo de seguridad
+solo permite el 5432 hacia la base y el 443 hacia S3. La descarga se agotaba, el
+contexto no levantaba y la pasarela devolvía **502**:
+
+```
+Unable to resolve the Configuration with the provided Issuer of
+"https://cognito-idp.us-east-1.amazonaws.com/us-east-1_XXXXXXXXX"
+Caused by: java.net.SocketTimeoutException: Connect timed out
+```
+
+Se descartaron dos alternativas:
+
+- **Copiar SnapStart de `ondexia.api`**, que es lo que hace que allí esa descarga
+  funcione: al crear la instantánea la función todavía no está enganchada a la
+  red privada, sale a internet y el JWKS queda dentro de la foto. Sale gratis,
+  pero apoya la validación en un detalle de plataforma que AWS no ha prometido, y
+  congela las claves de Cognito hasta el siguiente despliegue — si Cognito rota
+  una, deja de validar. **Esto es deuda de `ondexia.api`**, no un patrón a
+  extender.
+- **Un punto de enlace de interfaz para Cognito**, ~7.30 USD/mes sobre un
+  presupuesto de 15 en dev, para repetir una comprobación ya hecha.
+
+Lo que se pierde, dicho con todas las letras: si algún día se añade otra ruta sin
+autorizador, u otro disparador sobre esta misma función, la aplicación aceptaría
+un token que nadie verificó. La prueba `unaFirmaQueNadieVerificaPasa` deja esa
+decisión escrita en algo que se ejecuta, y el comentario del
+`aws_lambda_permission` marca el sitio exacto donde dejaría de ser cierta.
+
+### 6.5 Coste
 
 ### 6.4 Coste
 

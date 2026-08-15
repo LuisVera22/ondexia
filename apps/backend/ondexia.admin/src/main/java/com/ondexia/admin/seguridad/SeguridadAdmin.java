@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -18,10 +19,15 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * <h2>El grupo de personal, y solo el grupo de personal</h2>
  *
  * <p>Los tokens se validan contra el pool de <strong>personal</strong> de
- * Cognito, que es un emisor distinto del de inquilinos. Eso no es una
- * comprobación más que se pueda olvidar: un token de cliente está firmado con la
- * clave de otro pool, así que aquí <strong>no valida</strong> aunque alguien se
- * equivoque configurando permisos. La separación es criptográfica, no de reglas.
+ * Cognito, que es un emisor distinto del de inquilinos. Un token de cliente está
+ * firmado con la clave de otro pool, así que la pasarela lo rechaza antes de
+ * invocar esta función aunque alguien se equivoque configurando permisos: la
+ * separación es criptográfica, no de reglas.
+ *
+ * <p>Quien comprueba esa firma es el autorizador de la pasarela, no esta
+ * aplicación — {@link TokenDeLaPasarela} explica por qué y qué se pierde con
+ * ello. Aquí se vuelve a mirar el emisor de todos modos, que es gratis y no
+ * depende de la red.
  *
  * <p>La otra mitad de la separación está en la base: este servicio se conecta
  * como {@code ondexia_panel}, que no tiene concedidas las tablas de documentos
@@ -60,6 +66,25 @@ public class SeguridadAdmin {
         var fuente = new UrlBasedCorsConfigurationSource();
         fuente.registerCorsConfiguration("/**", configuracion);
         return fuente;
+    }
+
+    /**
+     * El decodificador va a mano, y no lo construye Spring desde
+     * {@code issuer-uri}.
+     *
+     * <p>El de Spring descarga la configuración del emisor al primer token, y
+     * esta función no tiene por dónde salir a internet. El porqué completo, y la
+     * alternativa que se descartó, están en {@link TokenDeLaPasarela}.
+     *
+     * <p>Las dos propiedades son obligatorias a propósito: sin valor por
+     * omisión, la aplicación no arranca fuera de los perfiles que las declaran.
+     * Una consola que ve las cuentas de todos los clientes no debería levantarse
+     * con una configuración de token a medias.
+     */
+    @Bean
+    JwtDecoder decodificador(@Value("${ondexia.panel.emisor}") String emisor,
+            @Value("${ondexia.panel.cliente}") String cliente) {
+        return new TokenDeLaPasarela(emisor, cliente);
     }
 
     @Bean
