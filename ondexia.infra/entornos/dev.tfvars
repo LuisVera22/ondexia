@@ -76,3 +76,10 @@ concurrencia_reservada_api = -1
 artefacto_api = "../apps/backend/ondexia.api/target/ondexia-api.jar"
 runtime_api   = "java21"
 handler_api   = "com.ondexia.infrastructure.entrada.lambda.ManejadorLambda::handleRequest"
+
+# Panel administrativo interno. El artefacto lo construye el mismo "mvnw verify"
+# que el de la API: es otro modulo del mismo reactor.
+#
+# Vaciar esta linea apaga la consola entera: no se crea ni su funcion, ni su API,
+# ni su rol de IAM. El sitio estatico se queda, porque un bucket vacio no cuesta.
+artefacto_panel = "../apps/backend/ondexia.admin/target/ondexia-admin.jar"

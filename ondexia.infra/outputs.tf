@@ -23,6 +23,7 @@ output "buckets" {
   value = {
     app     = aws_s3_bucket.sitio["app"].id
     landing = aws_s3_bucket.sitio["landing"].id
+    panel   = aws_s3_bucket.sitio["panel"].id
     marca   = aws_s3_bucket.marca.id
   }
 }
@@ -32,6 +33,7 @@ output "distribuciones_cloudfront" {
   value = {
     app     = aws_cloudfront_distribution.sitio["app"].id
     landing = aws_cloudfront_distribution.sitio["landing"].id
+    panel   = aws_cloudfront_distribution.sitio["panel"].id
     marca   = aws_cloudfront_distribution.marca.id
   }
 }
@@ -136,4 +138,35 @@ output "recordatorios" {
     "Pasar la cuenta al plan de pago antes de que venza el periodo gratuito: el plan gratuito cierra la cuenta sola.",
     var.gestionar_dns ? "Cargar los servidores de nombres en el registrador del dominio." : "gestionar_dns esta apagado: se sirve por los dominios predeterminados de CloudFront.",
   ]
+}
+
+output "url_panel" {
+  description = "Consola interna. Entrar exige un usuario del grupo de personal, con MFA."
+  value       = local.origen_panel
+}
+
+output "api_panel" {
+  description = <<-TEXTO
+    API de la consola interna. Vacia mientras `artefacto_panel` no apunte a un
+    jar: el sitio estatico existe siempre, la funcion solo cuando hay que
+    desplegarla.
+  TEXTO
+  value       = local.hay_panel ? aws_apigatewayv2_api.panel[0].api_endpoint : ""
+}
+
+output "configuracion_panel" {
+  description = <<-TEXTO
+    Contenido de config.json del SPA de la consola. Mismo mecanismo que el de
+    clientes: el artefacto no lleva dentro ninguna URL, asi que el mismo build
+    vale para dev y para prod.
+
+      terraform output -json configuracion_panel > .../dist/ondexia-admin/browser/config.json
+  TEXTO
+  value = {
+    api = local.hay_panel ? aws_apigatewayv2_api.panel[0].api_endpoint : ""
+    cognito = {
+      dominio   = "https://${aws_cognito_user_pool_domain.personal.domain}.auth.${var.region}.amazoncognito.com"
+      clienteId = aws_cognito_user_pool_client.panel.id
+    }
+  }
 }

@@ -1,0 +1,23 @@
+# Lo que depende de la plataforma. Vale igual en dev que en prod: lo que cambia
+# entre entornos son los valores, y esos llegan como variables de entorno que
+# pone Terraform.
+
+spring:
+  datasource:
+    # Sin contrasena. La credencial es un token de IAM que se firma en cada
+    # conexion — ver FuenteDeDatosIam.
+    url: jdbc:postgresql://${BD_HOST}:${BD_PUERTO}/${BD_NOMBRE}
+    username: ${BD_USUARIO}
+    hikari:
+      # Dos por contenedor, como la API. La consola la usan dos o tres personas;
+      # abrir mas conexiones solo consumiria el cupo de una db.t4g.micro.
+      maximum-pool-size: 2
+      minimum-idle: 0
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # El grupo de PERSONAL, no el de inquilinos. Un token de cliente esta
+          # firmado por otro pool y aqui no valida.
+          issuer-uri: ${COGNITO_EMISOR_PERSONAL}

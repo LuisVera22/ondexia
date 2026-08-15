@@ -81,6 +81,40 @@ jobs:
           pnpm run build
           pnpm run test:ci
 
+      # La base de vulnerabilidades del NIST, en su propia cache.
+      #
+      # Vivia dentro de la cache de Maven, que se indexa por el hash de los
+      # pom.xml. Consecuencia: cualquier cambio en un pom —anadir un modulo,
+      # subir una version— invalidaba la cache y obligaba a bajar los 377.000
+      # registros otra vez. Son quince minutos, y quince minutos colgados de un
+      # servicio externo que puede fallar:
+      #
+      #   NvdApiException: NVD Returned Status Code: 524
+      #   NoDataException: No documents exist
+      #
+      # Ese 524 es un tiempo de espera del Cloudflare de la NVD, no algo nuestro.
+      # Lo que si era nuestro es no tener de donde tirar cuando ocurre.
+      #
+      # La clave lleva el id de la ejecucion para guardar siempre una copia
+      # fresca, y `restore-keys` recupera la mas reciente aunque no coincida
+      # exactamente. Asi la base sobrevive a los cambios de pom.
+      - name: Cache de la base de vulnerabilidades
+        if: hashFiles('apps/backend/pom.xml') != ''
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: nvd-${{ github.run_id }}
+          restore-keys: nvd-
+
+      - name: Panel interno
+        if: hashFiles('apps/frontend/ondexia.admin/package.json') != ''
+        working-directory: apps/frontend/ondexia.admin
+        run: |
+          pnpm install --frozen-lockfile
+          rm -rf .angular/cache
+          pnpm run build
+          pnpm run test:ci
+
       - name: Backend
         if: hashFiles('apps/backend/pom.xml') != ''
         working-directory: apps/backend

@@ -98,6 +98,15 @@ jobs:
       # compila, conviene enterarse antes de haber modificado nada en AWS y no
       # con la mitad del despliegue hecha.
 
+      # Ver el comentario equivalente en ci.yml: sin esto, cada cambio de pom
+      # obliga a bajar los 377.000 registros de la NVD otra vez.
+      - name: Cache de la base de vulnerabilidades
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: nvd-${{ github.run_id }}
+          restore-keys: nvd-
+
       - name: Verificar el backend
         working-directory: apps/backend
         env:
@@ -125,6 +134,13 @@ jobs:
           # produce un CSS sin las utilidades de Tailwind: el build pasa en
           # verde, el bundle es válido y la aplicación sale SIN ESTILOS. En CI
           # el runner es limpio, pero este workflow tambien se dispara a mano.
+          rm -rf .angular/cache
+          pnpm run build
+
+      - name: Construir el panel interno
+        working-directory: apps/frontend/ondexia.admin
+        run: |
+          pnpm install --frozen-lockfile
           rm -rf .angular/cache
           pnpm run build
 
@@ -300,6 +316,28 @@ jobs:
           aws cloudfront create-invalidation \
             --distribution-id "${DISTRIBUCION}" \
             --paths "/index.html" "/"
+
+      - name: Publicar el panel interno
+        if: ${{ !inputs.solo_plan }}
+        working-directory: ondexia.infra
+        run: |
+          BUCKET=$(terraform output -json buckets | jq -r .panel)
+          DISTRIBUCION=$(terraform output -json distribuciones_cloudfront | jq -r .panel)
+          DESTINO=../apps/frontend/ondexia.admin/dist/ondexia-admin/browser
+
+          # La configuracion la produce Terraform y se escribe DESPUES del build:
+          # asi el artefacto no lleva dentro ninguna URL y el mismo build vale
+          # para dev y para prod.
+          terraform output -json configuracion_panel > "${DESTINO}/config.json"
+
+          aws s3 sync "${DESTINO}" "s3://${BUCKET}" --delete
+
+          aws s3 cp "s3://${BUCKET}/index.html" "s3://${BUCKET}/index.html"             --metadata-directive REPLACE             --cache-control "no-cache, no-store, must-revalidate"             --content-type "text/html; charset=utf-8"
+
+          # config.json tampoco se cachea: es lo que apunta a la API y a Cognito.
+          aws s3 cp "s3://${BUCKET}/config.json" "s3://${BUCKET}/config.json"             --metadata-directive REPLACE             --cache-control "no-cache, no-store, must-revalidate"             --content-type "application/json"
+
+          aws cloudfront create-invalidation             --distribution-id "${DISTRIBUCION}" --paths "/*" > /dev/null
 
       - name: Comprobar que responde
         if: ${{ !inputs.solo_plan }}
