@@ -1,12 +1,14 @@
 package com.ondexia.admin.cuentas;
 
+import com.ondexia.domain.comun.error.RecursoNoEncontrado;
+import com.ondexia.domain.comun.error.ReglaDeNegocioViolada;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-import org.springframework.http.HttpStatus;
+
 
 /**
  * Los cambios que el panel puede hacer sobre una cuenta.
@@ -42,8 +44,8 @@ public class GestionDeCuentas {
         String anterior = planActual(cuentaId);
 
         if (!existePlan(planCodigo)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "El plan " + planCodigo + " no existe.");
+            throw new ReglaDeNegocioViolada("plan_inexistente",
+                    "El plan " + planCodigo + " no existe o esta retirado.");
         }
 
         jdbc.sql("update cuenta set plan = :plan, actualizado_en = now() where id = :id")
@@ -51,7 +53,7 @@ public class GestionDeCuentas {
 
         invalidarCacheDePermisos(cuentaId);
         bitacora.registrar(cuentaId, actor, "CAMBIO_DE_PLAN",
-                "{\"plan\":\"" + anterior + "\"}", "{\"plan\":\"" + planCodigo + "\"}");
+                Map.of("plan", anterior), Map.of("plan", planCodigo));
     }
 
     /**
@@ -66,14 +68,14 @@ public class GestionDeCuentas {
     @Transactional
     public void cambiarEstado(UUID cuentaId, String estado, String motivo, String actor) {
         if (!ESTADOS.contains(estado)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Estado no valido: " + estado);
+            throw new ReglaDeNegocioViolada("estado_invalido",
+                    "Estado no valido: " + estado + ". Los validos son " + ESTADOS + ".");
         }
 
         String anterior = jdbc.sql("select estado_suscripcion from cuenta where id = :id")
                 .param("id", cuentaId).query(String.class).optional()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "No existe la cuenta " + cuentaId));
+                .orElseThrow(() -> RecursoNoEncontrado.con("cuenta",
+                        "No existe la cuenta " + cuentaId + "."));
 
         jdbc.sql("""
                 update cuenta set estado_suscripcion = :estado, actualizado_en = now()
@@ -86,8 +88,8 @@ public class GestionDeCuentas {
         invalidarCacheDePermisos(cuentaId);
 
         bitacora.registrar(cuentaId, actor, "CAMBIO_DE_ESTADO",
-                "{\"estado\":\"" + anterior + "\"}",
-                "{\"estado\":\"" + estado + "\",\"motivo\":" + comoJson(motivo) + "}");
+                Map.of("estado", anterior),
+                mapaConMotivo("estado", estado, motivo));
     }
 
     /**
@@ -104,11 +106,11 @@ public class GestionDeCuentas {
 
         String nivel = jdbc.sql("select nivel from permiso where id = :id")
                 .param("id", permisoId).query(String.class).optional()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "No existe el permiso " + permisoId));
+                .orElseThrow(() -> RecursoNoEncontrado.con("permiso",
+                        "No existe el permiso " + permisoId + "."));
 
         if (!List.of("MODULO", "SUBMODULO").contains(nivel)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+            throw new ReglaDeNegocioViolada("nivel_no_contratable",
                     "Solo se contratan modulos y submodulos, no funciones sueltas.");
         }
 
@@ -129,9 +131,8 @@ public class GestionDeCuentas {
 
         invalidarCacheDePermisos(cuentaId);
 
-        bitacora.registrar(cuentaId, actor, "DECISION_DE_MODULO", null,
-                "{\"permiso\":\"" + permisoId + "\",\"habilitado\":" + habilitado
-                        + ",\"motivo\":" + comoJson(motivo) + "}");
+        bitacora.registrar(cuentaId, actor, "DECISION_DE_MODULO",
+                null, mapaDeModulo(permisoId, habilitado, motivo));
     }
 
     private void invalidarCacheDePermisos(UUID cuentaId) {
@@ -144,8 +145,8 @@ public class GestionDeCuentas {
     private String planActual(UUID cuentaId) {
         return jdbc.sql("select plan from cuenta where id = :id")
                 .param("id", cuentaId).query(String.class).optional()
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "No existe la cuenta " + cuentaId));
+                .orElseThrow(() -> RecursoNoEncontrado.con("cuenta",
+                        "No existe la cuenta " + cuentaId + "."));
     }
 
     private boolean existePlan(String codigo) {
@@ -153,11 +154,27 @@ public class GestionDeCuentas {
                 .param("c", codigo).query(Integer.class).single() > 0;
     }
 
-    /** Escapa lo justo: el motivo lo escribe una persona y puede traer comillas. */
-    private static String comoJson(String texto) {
-        if (texto == null) {
-            return "null";
-        }
-        return "\"" + texto.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+    /*
+     * Se devuelven mapas y no cadenas: escribir el JSON a mano estaba roto.
+     * `comoJson` escapaba comillas y barras, pero NO los caracteres de control,
+     * y un motivo tecleado con un salto de linea producia JSON invalido. El
+     * cast a jsonb lo rechazaba y, al ir todo en la misma transaccion, se perdia
+     * TAMBIEN el cambio de plan — un usuario pegando un texto de dos lineas
+     * bastaba para provocarlo.
+     */
+    private static Map<String, Object> mapaConMotivo(String clave, String valor, String motivo) {
+        var mapa = new java.util.LinkedHashMap<String, Object>();
+        mapa.put(clave, valor);
+        mapa.put("motivo", motivo);
+        return mapa;
+    }
+
+    private static Map<String, Object> mapaDeModulo(UUID permisoId, Boolean habilitado,
+            String motivo) {
+        var mapa = new java.util.LinkedHashMap<String, Object>();
+        mapa.put("permiso", permisoId.toString());
+        mapa.put("habilitado", habilitado);
+        mapa.put("motivo", motivo);
+        return mapa;
     }
 }
