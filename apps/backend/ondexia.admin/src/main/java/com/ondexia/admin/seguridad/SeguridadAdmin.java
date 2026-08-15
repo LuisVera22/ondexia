@@ -1,11 +1,16 @@
 package com.ondexia.admin.seguridad;
 
+import java.util.List;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
  * Quién entra al panel.
@@ -32,9 +37,36 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SeguridadAdmin {
 
+    /**
+     * El origen permitido, que es uno solo.
+     *
+     * <p>Nada de comodines: esta API responde con datos de todas las cuentas
+     * cliente. Lo pone Terraform como {@code CORS_ORIGENES} y apunta a la
+     * distribución del panel.
+     *
+     * <p>Quien contesta el {@code OPTIONS} es esta aplicación y no la pasarela,
+     * porque la ruta del preflight apunta a la función — ver panel.tf.
+     */
+    @Bean
+    CorsConfigurationSource origenesPermitidos(
+            @Value("${CORS_ORIGENES:http://localhost:4200}") String origenes) {
+
+        var configuracion = new CorsConfiguration();
+        configuracion.setAllowedOrigins(List.of(origenes.split(",")));
+        configuracion.setAllowedMethods(List.of("GET", "PUT", "OPTIONS"));
+        configuracion.setAllowedHeaders(List.of("authorization", "content-type"));
+        configuracion.setMaxAge(3600L);
+
+        var fuente = new UrlBasedCorsConfigurationSource();
+        fuente.registerCorsConfiguration("/**", configuracion);
+        return fuente;
+    }
+
     @Bean
     SecurityFilterChain cadena(HttpSecurity http) throws Exception {
         return http
+                .cors(cors -> {
+                })
                 // Sin estado: cada petición trae su token. No hay sesión que
                 // fijar ni que robar, así que CSRF no aplica.
                 .csrf(csrf -> csrf.disable())

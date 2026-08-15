@@ -153,6 +153,11 @@ resource "aws_lambda_function" "panel" {
       # aquí no valida: la separación es criptográfica, no de configuración.
       COGNITO_EMISOR_PERSONAL = "https://${aws_cognito_user_pool.personal.endpoint}"
 
+      # Quien responde el preflight es Spring, porque la ruta OPTIONS apunta a
+      # la funcion. Sin este origen, contesta pero sin las cabeceras que el
+      # navegador exige.
+      CORS_ORIGENES = local.origen_panel
+
       ONDEXIA_VERSION = substr(filemd5(var.artefacto_panel), 0, 12)
     }
   }
@@ -283,6 +288,27 @@ resource "aws_apigatewayv2_route" "panel_todo" {
   target             = "integrations/${aws_apigatewayv2_integration.panel[0].id}"
   authorization_type = "JWT"
   authorizer_id      = aws_apigatewayv2_authorizer.personal[0].id
+}
+
+/**
+ * El preflight, sin autorizador.
+ *
+ * Un OPTIONS de comprobacion previa NO lleva cabecera Authorization —el navegador
+ * no la manda, por especificacion— asi que el autorizador JWT lo rechaza con 401
+ * y el navegador da por fallado el CORS. El sintoma engaña: en la consola sale
+ * «Response to preflight request doesn't pass access control check» y todo
+ * parece un problema de origenes, cuando es de autorizacion.
+ *
+ * API Gateway prefiere la ruta mas especifica, asi que esta gana sobre $default.
+ * Es el mismo arreglo que ya lleva la API de clientes.
+ */
+resource "aws_apigatewayv2_route" "panel_preflight" {
+  count = local.hay_panel ? 1 : 0
+
+  api_id             = aws_apigatewayv2_api.panel[0].id
+  route_key          = "OPTIONS /{proxy+}"
+  target             = "integrations/${aws_apigatewayv2_integration.panel[0].id}"
+  authorization_type = "NONE"
 }
 
 resource "aws_apigatewayv2_stage" "panel" {
