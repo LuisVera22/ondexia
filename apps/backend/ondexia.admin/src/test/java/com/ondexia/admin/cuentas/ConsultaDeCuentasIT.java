@@ -6,7 +6,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.jayway.jsonpath.JsonPath;
 import com.ondexia.admin.pruebas.PruebaDelPanel;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -73,6 +76,39 @@ class ConsultaDeCuentasIT extends PruebaDelPanel {
                         .value(2))
                 .andExpect(jsonPath("$[?(@.nombre == 'Distribuidora de prueba')].empresas")
                         .value(0));
+    }
+
+    @Test
+    @DisplayName("cada modulo llega seguido de sus propios submodulos")
+    void losSubmodulosCuelganDeSuModulo() throws Exception {
+        /*
+         * La pantalla sangra las filas SUBMODULO y no dibuja ninguna otra
+         * relacion, asi que el ORDEN es lo unico que dice de quien cuelgan.
+         *
+         * Ordenando por nivel primero —todos los modulos y luego todos los
+         * submodulos— los cinco de Almacen aparecian debajo de Ventas y
+         * parecian suyos. Los datos eran correctos; lo que estaba mal era lo
+         * que veia la persona que decide apagar un modulo.
+         */
+        String cuerpo = mockMvc.perform(get("/api/v1/cuentas/{id}/modulos", CUENTA).with(jwt()))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        List<String> enOrden = JsonPath.read(cuerpo, "$[*].modulo");
+        assertThat(enOrden).as("la cuenta de prueba tiene modulos que mirar").isNotEmpty();
+
+        var cerrados = new ArrayList<String>();
+        String actual = null;
+        for (String modulo : enOrden) {
+            if (!modulo.equals(actual)) {
+                assertThat(cerrados)
+                        .as("«%s» reaparece despues de otro modulo: sus filas quedan partidas",
+                                modulo)
+                        .doesNotContain(modulo);
+                cerrados.add(modulo);
+                actual = modulo;
+            }
+        }
     }
 
     @Test
