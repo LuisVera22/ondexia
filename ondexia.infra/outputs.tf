@@ -23,6 +23,7 @@ output "buckets" {
   value = {
     app     = aws_s3_bucket.sitio["app"].id
     landing = aws_s3_bucket.sitio["landing"].id
+    panel   = aws_s3_bucket.sitio["panel"].id
     marca   = aws_s3_bucket.marca.id
   }
 }
@@ -32,6 +33,7 @@ output "distribuciones_cloudfront" {
   value = {
     app     = aws_cloudfront_distribution.sitio["app"].id
     landing = aws_cloudfront_distribution.sitio["landing"].id
+    panel   = aws_cloudfront_distribution.sitio["panel"].id
     marca   = aws_cloudfront_distribution.marca.id
   }
 }
