@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { CuentaResumen, ModuloContratado, PanelApiService } from '../../nucleo/panel.api';
@@ -101,7 +101,7 @@ import { CuentaResumen, ModuloContratado, PanelApiService } from '../../nucleo/p
     }
   `,
 })
-export class CuentaComponent {
+export class CuentaComponent implements OnInit {
   private readonly api = inject(PanelApiService);
 
   readonly id = input.required<string>();
@@ -118,8 +118,15 @@ export class CuentaComponent {
   estadoElegido = '';
   motivo = '';
 
-  constructor() {
-    queueMicrotask(() => this.recargar());
+  /*
+   * En ngOnInit y no en el constructor. Las entradas de la ruta todavía no
+   * están puestas cuando corre el constructor; leer `id()` allí es exactamente
+   * el NG0950 que dejaba esta pantalla en «Cargando…». Antes había un
+   * queueMicrotask para esquivarlo, que funcionaba por cómo se encadenan las
+   * tareas y no porque Angular lo garantice.
+   */
+  ngOnInit(): void {
+    void this.recargar();
   }
 
   private async recargar(): Promise<void> {
