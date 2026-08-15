@@ -14,10 +14,16 @@ spring:
       maximum-pool-size: 2
       minimum-idle: 0
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          # El grupo de PERSONAL, no el de inquilinos. Un token de cliente esta
-          # firmado por otro pool y aqui no valida.
-          issuer-uri: ${COGNITO_EMISOR_PERSONAL}
+# Sin `spring.security.oauth2.resourceserver`, y es deliberado.
+#
+# Esa configuracion construye un decodificador que descarga el JWKS del emisor, y
+# esta funcion vive en una subred privada sin NAT: la descarga se agota, el
+# contexto no levanta y la pasarela devuelve 502. El decodificador lo pone
+# SeguridadAdmin a mano; el porque completo esta en TokenDeLaPasarela.
+ondexia:
+  panel:
+    # El grupo de PERSONAL, no el de inquilinos.
+    emisor: ${COGNITO_EMISOR_PERSONAL}
+    # El cliente de Cognito del panel: que el token sea para esta consola y no
+    # para otra aplicacion del mismo grupo.
+    cliente: ${COGNITO_CLIENTE_PANEL}

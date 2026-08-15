@@ -1164,6 +1164,10 @@ components:
           format: uuid
         esAdministrador:
           type: boolean
+        estadoSuscripcion:
+          type: string
+        soloLectura:
+          type: boolean
     EmpresaResumen:
       type: object
       properties:

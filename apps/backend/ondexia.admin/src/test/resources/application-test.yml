@@ -6,23 +6,14 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          # Un emisor de mentira, y SOLO en pruebas.
-          #
-          # Estuvo en application.yml como marcador de posicion y fue un error
-          # caro: cuando estan los dos, Spring da prioridad a jwk-set-uri sobre
-          # issuer-uri, asi que en la nube el panel intentaba validar los tokens
-          # contra localhost y respondia 502.
-          #
-          #   AuthenticationServiceException: An error occurred while attempting
-          #   to decode the Jwt: I/O error on GET request for
-          #   "http://localhost:1/sin-emisor-configurado": Connection refused
-          #
-          # Aqui no se llama nunca: las pruebas ponen la autenticacion con el
-          # postprocesador jwt(), que no pasa por el decodificador. Se declara
-          # solo para que el contexto arranque, y se usa jwk-set-uri en vez de
-          # issuer-uri porque el primero NO consulta nada al arrancar.
-          jwk-set-uri: http://localhost:1/solo-para-pruebas
+# Emisor y cliente de mentira, y SOLO en pruebas.
+#
+# Estos valores no se consultan por red: el decodificador del panel lee el token
+# sin salir a ningun sitio. Las pruebas de integracion ni siquiera pasan por el
+# —ponen la autenticacion con el postprocesador jwt()— y se declaran aqui para
+# que el contexto arranque, porque en produccion son obligatorios a proposito.
+# Quien si ejercita el decodificador de verdad es TokenDeLaPasarelaTest.
+ondexia:
+  panel:
+    emisor: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_solodepruebas
+    cliente: cliente-de-pruebas
