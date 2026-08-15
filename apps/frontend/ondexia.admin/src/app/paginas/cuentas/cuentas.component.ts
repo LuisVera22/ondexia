@@ -10,68 +10,128 @@ import { CuentaResumen, PanelApiService } from '../../nucleo/panel.api';
  * que se necesita saber es si queda sitio, no qué porcentaje se lleva usado. Y
  * cuando el límite es nulo dice <strong>«sin límite»</strong>: pintar «3 de 0»
  * llevaría a subir de plan a quien no lo necesita.
+ *
+ * <p>La tabla reproduce la de {@code ondexia.web} —tarjeta con borde redondeado,
+ * cabecera en versalitas, filas separadas por una línea tenue— para que quien
+ * trabaja en los dos sitios no tenga que aprender dos lecturas distintas de la
+ * misma información.
  */
 @Component({
   selector: 'app-cuentas',
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <h1 class="mb-4 text-xl font-semibold">Cuentas</h1>
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <h1 class="text-xl font-semibold text-gray-800 dark:text-white/90">Cuentas</h1>
+
+      @if (!cargando() && !error()) {
+        <p class="text-dato text-gray-500 dark:text-gray-400">
+          {{ cuentas().length }} {{ cuentas().length === 1 ? 'cuenta' : 'cuentas' }}
+        </p>
+      }
+    </div>
 
     @if (error()) {
-      <p class="rounded border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">
+      <div
+        class="rounded-2xl border border-error-200 bg-error-25 p-4 text-dato text-error-700
+               dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
+      >
         {{ error() }}
-      </p>
-    } @else if (cargando()) {
-      <p class="text-sm text-slate-400">Cargando…</p>
+      </div>
     } @else {
-      <div class="overflow-x-auto rounded-lg border border-slate-700">
-        <table class="w-full text-left text-sm">
-          <thead class="bg-slate-800 text-slate-300">
-            <tr>
-              <th class="px-3 py-2 font-medium">Cuenta</th>
-              <th class="px-3 py-2 font-medium">Plan</th>
-              <th class="px-3 py-2 font-medium">Estado</th>
-              <th class="px-3 py-2 font-medium">Empresas</th>
-              <th class="px-3 py-2 font-medium">Usuarios</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (cuenta of cuentas(); track cuenta.id) {
-              <tr class="border-t border-slate-800 hover:bg-slate-800/50">
-                <td class="px-3 py-2">
-                  <a class="text-sky-300 hover:underline" [routerLink]="['/cuentas', cuenta.id]">
-                    {{ cuenta.nombre }}
-                  </a>
-                </td>
-                <td class="px-3 py-2">{{ cuenta.planNombre }}</td>
-                <td class="px-3 py-2">
-                  <span class="rounded px-2 py-0.5 text-xs" [class]="colorEstado(cuenta)">
-                    {{ cuenta.estadoSuscripcion }}
-                  </span>
-                </td>
-                <td class="px-3 py-2" [class.text-amber-300]="cuenta.limiteEmpresas !== null && cuenta.empresas >= cuenta.limiteEmpresas">
-                  {{ consumo(cuenta.empresas, cuenta.limiteEmpresas) }}
-                </td>
-                <td class="px-3 py-2" [class.text-amber-300]="cuenta.limiteUsuarios !== null && cuenta.usuarios >= cuenta.limiteUsuarios">
-                  {{ consumo(cuenta.usuarios, cuenta.limiteUsuarios) }}
-                </td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="5" class="px-3 py-6 text-center text-slate-400">
-                  Todavía no hay cuentas.
-                </td>
-              </tr>
+      <div
+        class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-apoyo
+               dark:border-gray-800 dark:bg-white/[0.03]"
+      >
+        @if (cargando()) {
+          <!-- Bloques grises del alto de una fila, como en el SPA de clientes: la
+               tabla no da un salto cuando llegan los datos. -->
+          <div class="p-6">
+            @for (fila of [1, 2, 3, 4, 5]; track fila) {
+              <div class="mb-3 h-11 animate-pulse rounded-lg bg-gray-100 dark:bg-white/[0.05]"></div>
             }
-          </tbody>
-        </table>
+          </div>
+        } @else {
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[640px] text-left">
+              <thead class="border-b border-gray-200 dark:border-gray-800">
+                <tr>
+                  @for (columna of COLUMNAS; track columna) {
+                    <th
+                      class="px-5 py-3.5 text-xs font-medium tracking-wide text-gray-500 uppercase
+                             dark:text-gray-400"
+                    >
+                      {{ columna }}
+                    </th>
+                  }
+                </tr>
+              </thead>
+
+              <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                @for (cuenta of cuentas(); track cuenta.id) {
+                  <tr class="transition hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+                    <td class="px-5 py-4">
+                      <a
+                        class="text-dato font-medium text-brand-500 transition hover:text-brand-600"
+                        [routerLink]="['/cuentas', cuenta.id]"
+                      >
+                        {{ cuenta.nombre }}
+                      </a>
+                    </td>
+
+                    <td class="px-5 py-4 text-dato text-gray-700 dark:text-gray-300">
+                      {{ cuenta.planNombre }}
+                    </td>
+
+                    <td class="px-5 py-4">
+                      <span
+                        class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1
+                               text-xs font-medium"
+                        [class]="insignia(cuenta).fondo"
+                      >
+                        <span class="h-1.5 w-1.5 rounded-full" [class]="insignia(cuenta).punto"></span>
+                        {{ insignia(cuenta).texto }}
+                      </span>
+                    </td>
+
+                    <td
+                      class="px-5 py-4 text-dato tabular-nums"
+                      [class]="alLimite(cuenta.empresas, cuenta.limiteEmpresas)"
+                    >
+                      {{ consumo(cuenta.empresas, cuenta.limiteEmpresas) }}
+                    </td>
+
+                    <td
+                      class="px-5 py-4 text-dato tabular-nums"
+                      [class]="alLimite(cuenta.usuarios, cuenta.limiteUsuarios)"
+                    >
+                      {{ consumo(cuenta.usuarios, cuenta.limiteUsuarios) }}
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="5" class="px-5 py-12 text-center">
+                      <p class="text-dato font-medium text-gray-700 dark:text-gray-300">
+                        Todavía no hay cuentas
+                      </p>
+                      <p class="mt-1 text-dato text-gray-500 dark:text-gray-400">
+                        Aparecerán aquí en cuanto alguien se registre.
+                      </p>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
       </div>
     }
   `,
 })
 export class CuentasComponent {
   private readonly api = inject(PanelApiService);
+
+  protected readonly COLUMNAS = ['Cuenta', 'Plan', 'Estado', 'Empresas', 'Usuarios'];
 
   readonly cuentas = signal<CuentaResumen[]>([]);
   readonly cargando = signal(true);
@@ -90,14 +150,50 @@ export class CuentasComponent {
     return limite === null ? `${usados} · sin límite` : `${usados} de ${limite}`;
   }
 
-  colorEstado(cuenta: CuentaResumen): string {
+  /**
+   * Rojo al llegar al tope, y no antes.
+   *
+   * <p>El aviso es que la cuenta ya no puede crecer sin cambiar de plan, no que
+   * le quede poco: teñir a partir de un porcentaje convertiría el color en ruido
+   * y dejaría de leerse cuando de verdad importa.
+   */
+  alLimite(usados: number, limite: number | null): string {
+    return limite !== null && usados >= limite
+      ? 'font-medium text-error-600 dark:text-error-400'
+      : 'text-gray-700 dark:text-gray-300';
+  }
+
+  /**
+   * El color dice qué puede hacer la cuenta hoy, no si nos gusta su situación.
+   *
+   * <p>{@code EN_PRUEBA} en informativo porque es un estado de trabajo normal
+   * —aunque no pueda emitir hacia SUNAT—, {@code ACTIVA} en verde, y todo lo
+   * demás en rojo: {@code SUSPENDIDA} y {@code CANCELADA} significan que alguien
+   * al otro lado no puede trabajar.
+   */
+  insignia(cuenta: CuentaResumen): { texto: string; fondo: string; punto: string } {
+    const texto = cuenta.estadoSuscripcion.replace('_', ' ').toLowerCase();
+
     switch (cuenta.estadoSuscripcion) {
       case 'ACTIVA':
-        return 'bg-emerald-500/20 text-emerald-300';
+        return {
+          texto,
+          fondo: 'bg-success-50 text-success-700 dark:bg-success-500/15 dark:text-success-400',
+          punto: 'bg-success-500',
+        };
       case 'EN_PRUEBA':
-        return 'bg-sky-500/20 text-sky-300';
+        return {
+          texto,
+          fondo:
+            'bg-blue-light-50 text-blue-light-700 dark:bg-blue-light-500/15 dark:text-blue-light-400',
+          punto: 'bg-blue-light-500',
+        };
       default:
-        return 'bg-amber-500/20 text-amber-300';
+        return {
+          texto,
+          fondo: 'bg-error-50 text-error-700 dark:bg-error-500/15 dark:text-error-400',
+          punto: 'bg-error-500',
+        };
     }
   }
 }
