@@ -33,10 +33,29 @@ describe('CuentasComponent · consumo frente a límites', () => {
   });
 
   it('el color del estado distingue lo que exige atención', () => {
-    const activa = componente.colorEstado({ estadoSuscripcion: 'ACTIVA' } as never);
-    const suspendida = componente.colorEstado({ estadoSuscripcion: 'SUSPENDIDA' } as never);
+    const activa = componente.insignia({ estadoSuscripcion: 'ACTIVA' } as never);
+    const suspendida = componente.insignia({ estadoSuscripcion: 'SUSPENDIDA' } as never);
 
-    expect(activa).not.toBe(suspendida);
-    expect(suspendida).toContain('amber');
+    expect(activa.fondo).not.toBe(suspendida.fondo);
+
+    // Contra la escala semántica del tema, no contra un color literal. La
+    // version anterior comprobaba «amber», que es un nombre de Tailwind de
+    // fabrica: el dia que se adopto el sistema de diseno la clase dejo de
+    // existir y la prueba habria seguido en verde comprobando una cadena.
+    expect(activa.fondo).toContain('success');
+    expect(suspendida.fondo).toContain('error');
+  });
+
+  it('el estado se lee en palabras, no en constante de base de datos', () => {
+    expect(componente.insignia({ estadoSuscripcion: 'EN_PRUEBA' } as never).texto)
+      .toBe('en prueba');
+  });
+
+  it('el aviso de tope salta al llegar, no al acercarse', () => {
+    // Tenir antes de tiempo convierte el color en ruido y deja de leerse
+    // cuando de verdad importa. Sin limite no hay tope al que llegar.
+    expect(componente.alLimite(4, 5)).not.toContain('error');
+    expect(componente.alLimite(5, 5)).toContain('error');
+    expect(componente.alLimite(900, null)).not.toContain('error');
   });
 });
