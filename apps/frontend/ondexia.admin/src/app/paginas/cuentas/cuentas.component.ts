@@ -70,13 +70,18 @@ import { CuentaResumen, PanelApiService } from '../../nucleo/panel.api';
               <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                 @for (cuenta of cuentas(); track cuenta.id) {
                   <tr class="transition hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+                    <!-- El titular arriba y la empresa debajo, y no al reves.
+                         El nombre se repite entre cuentas; el correo no. -->
                     <td class="px-5 py-4">
                       <a
                         class="text-dato font-medium text-brand-500 transition hover:text-brand-600"
                         [routerLink]="['/cuentas', cuenta.id]"
                       >
-                        {{ cuenta.nombre }}
+                        {{ cuenta.titular }}
                       </a>
+                      <p class="mt-0.5 text-menudo text-gray-500 dark:text-gray-400">
+                        {{ cuenta.nombre }}
+                      </p>
                     </td>
 
                     <td class="px-5 py-4 text-dato text-gray-700 dark:text-gray-300">
@@ -131,7 +136,9 @@ import { CuentaResumen, PanelApiService } from '../../nucleo/panel.api';
 export class CuentasComponent {
   private readonly api = inject(PanelApiService);
 
-  protected readonly COLUMNAS = ['Cuenta', 'Plan', 'Estado', 'Empresas', 'Usuarios'];
+  // «Titular» y no «Cuenta»: la columna muestra el correo de quien la abrio,
+  // porque `nombre` es la razon social de su primera empresa y se repite.
+  protected readonly COLUMNAS = ['Titular', 'Plan', 'Estado', 'Empresas', 'Usuarios'];
 
   readonly cuentas = signal<CuentaResumen[]>([]);
   readonly cargando = signal(true);

@@ -40,9 +40,35 @@ public class ConsultaDeCuentas {
      * sistema, asi que no consume plan: contarlo obligaria al cliente a subir de
      * plan por gente que ya no trabaja con el.
      */
+    /*
+     * `titular` no es un adorno: es lo unico que identifica a una cuenta.
+     *
+     * `cuenta.nombre` NO es el nombre de la cuenta. RegistrarCuenta lo rellena
+     * con la razon social de la PRIMERA empresa —la misma cadena que usa para
+     * crear esa empresa—, asi que una cuenta con tres empresas sigue llamandose
+     * como la primera, y dos cuentas distintas pueden llamarse igual: el indice
+     * unico esta en `empresa.ruc`, no en la razon social. En el panel se vieron
+     * dos «Ondexia S.A.C.» seguidas sin nada que las distinguiera.
+     *
+     * El titular es el `cuenta_administrador`: quien se registro, gobierna la
+     * suscripcion y da de alta empresas. Su correo es unico y es ademas a quien
+     * hay que escribir antes de suspender, que es la accion mas seria de esta
+     * pantalla. Si hay varios administradores se toma el mas antiguo, que es el
+     * que abrio la cuenta; el desempate por correo evita que dos filas creadas
+     * en la misma transaccion salgan en orden distinto entre consultas.
+     *
+     * Nunca es nulo: un disparador de la V1 impide dejar una cuenta sin
+     * administrador.
+     */
     private static final String CUENTAS = """
             select c.id                                          as id,
                    c.nombre                                      as nombre,
+                   (select u.email
+                      from cuenta_administrador ca
+                      join usuario u on u.id = ca.usuario_id
+                     where ca.cuenta_id = c.id
+                     order by u.creado_en, u.email
+                     limit 1)                                    as titular,
                    c.plan                                        as plan_codigo,
                    p.nombre                                      as plan_nombre,
                    c.estado_suscripcion                          as estado_suscripcion,
@@ -58,7 +84,10 @@ public class ConsultaDeCuentas {
             """;
 
     /**
-     * Todas las cuentas, ordenadas por nombre.
+     * Todas las cuentas, ordenadas por su titular.
+     *
+     * <p>Por el titular y no por {@code nombre}, que se repite: ordenar por algo
+     * ambiguo deja filas idénticas juntas y sin criterio estable entre consultas.
      *
      * <p>Sin paginar, y es una decisión con fecha de caducidad: con decenas de
      * clientes una lista completa es lo más cómodo de usar y de comprobar. Pasa a
@@ -66,7 +95,7 @@ public class ConsultaDeCuentas {
      * ahora sería construir controles que nadie necesita todavía.
      */
     public List<CuentaResumen> listar() {
-        return jdbc.sql(CUENTAS + " order by c.nombre")
+        return jdbc.sql(CUENTAS + " order by titular")
                 .query(CuentaResumen.class)
                 .list();
     }
