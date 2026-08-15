@@ -53,7 +53,13 @@ public class ConsultaDeModulos {
                    on pm.permiso_id = p.id
                   and pm.plan_codigo = (select c.plan from cuenta c where c.id = :cuenta)
             where p.nivel in ('MODULO', 'SUBMODULO')
-            order by case p.nivel when 'MODULO' then 0 else 1 end, p.modulo
+            -- Cada modulo seguido de SUS submodulos, y no todos los modulos
+            -- primero. La pantalla sangra las filas SUBMODULO, asi que el orden
+            -- es lo unico que dice de quien cuelgan: ordenando por nivel
+            -- primero, los submodulos de Almacen aparecian debajo de Ventas y
+            -- parecian suyos. El fallo no se ve en los datos, se ve en la
+            -- pantalla, que es donde alguien decide apagar un modulo.
+            order by p.modulo, case p.nivel when 'MODULO' then 0 else 1 end, p.nombre
             """;
 
     public List<ModuloContratado> de(UUID cuentaId) {
