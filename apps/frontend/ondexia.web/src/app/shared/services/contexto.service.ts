@@ -90,6 +90,32 @@ export class ContextoService {
    * ya trae los permisos. Si tiene varias y no se mandó cabecera, vuelve la
    * lista con los permisos vacíos: hay que elegir antes de poder hacer nada.
    */
+  /**
+   * Carga el contexto una sola vez, y espera si ya hay una carga en marcha.
+   *
+   * <p>Lo necesita la guarda de permisos: las guardas deciden antes de que se
+   * construya el marco de la aplicación, que es quien llama a {@link #cargar}.
+   * Sin esperar aquí, la primera navegación consultaría una lista de permisos
+   * vacía y rebotaría al escritorio.
+   *
+   * <p>La promesa se comparte por el mismo motivo que en la renovación del
+   * token: varias guardas resolviéndose a la vez lanzarían varias consultas
+   * idénticas, y la última en volver pisaría a las demás.
+   */
+  async asegurarCargado(): Promise<void> {
+    if (this._contexto()) {
+      return;
+    }
+
+    this.cargaEnCurso ??= this.cargar().finally(() => {
+      this.cargaEnCurso = null;
+    });
+
+    await this.cargaEnCurso;
+  }
+
+  private cargaEnCurso: Promise<void> | null = null;
+
   async cargar(): Promise<void> {
     this._cargando.set(true);
     try {

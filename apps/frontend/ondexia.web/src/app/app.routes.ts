@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { permisoGuard } from './nucleo/permiso.guard';
 import { sesionGuard } from './nucleo/sesion.guard';
 import { RegistroComponent } from './pages/acceso/registro/registro.component';
 import { RetornoComponent } from './pages/acceso/retorno/retorno.component';
@@ -80,7 +81,28 @@ export const routes: Routes = [
      * puede saltarla y no verá nada, porque los datos los sirve la API y esa
      * valida el token en cada petición.
      */
-    canActivate: [sesionGuard],
+    /*
+     * Una sola guarda para todos los modulos, y no una anotacion por ruta.
+     *
+     * permisoGuard deduce el modulo del primer segmento de la URL, asi que
+     * cubre las mas de cincuenta rutas de abajo y las que se anadan despues.
+     * Ver permiso.guard.ts para por que se eligio asi.
+     */
+    canActivate: [sesionGuard, permisoGuard],
+
+    /*
+     * Sin esto la guarda se ejecuta UNA sola vez.
+     *
+     * Angular corre las guardas de las rutas que se activan. Al pasar de
+     * almacen/productos a ventas/facturas el padre no se desactiva —es el mismo
+     * marco— asi que su canActivate no se vuelve a evaluar y solo quedaria
+     * protegida la primera pantalla de la sesion.
+     *
+     * El coste es una comprobacion en memoria por navegacion: asegurarCargado
+     * vuelve enseguida cuando el contexto ya esta, y puede() mira una lista.
+     */
+    runGuardsAndResolvers: 'always',
+
     children: [
       {
         path: '',
