@@ -4,7 +4,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { SesionService } from './sesion.service';
 
 /**
- * Impide entrar sin sesión, y además cierra el círculo del acceso.
+ * Impide entrar sin sesión, y cierra el círculo del acceso.
  *
  * <h2>Aquí no hay pantalla de acceso propia</h2>
  *
@@ -14,18 +14,32 @@ import { SesionService } from './sesion.service';
  * factor ocurre en la pantalla de Cognito, no en la nuestra — no podemos filtrar
  * lo que nunca pasa por nuestro código.
  *
- * <p>El guardián hace también la vuelta: cuando Cognito devuelve al navegador con
- * {@code ?code=…&state=…}, canjea el código por los tokens y sigue al destino
- * original. Va aquí y no en un componente porque el guardián corre antes de
- * pintar nada, y así no se ve un parpadeo de pantalla vacía.
+ * <h2>El orden de las tres comprobaciones importa</h2>
+ *
+ * <p>La sesión se mira <strong>primero</strong>, y no es un detalle de estilo:
+ * con el canje del código antes, el guardián entraba en bucle. Ocurría así —el
+ * canje funcionaba, se navegaba a {@code /cuentas}, el guardián volvía a correr
+ * sobre la nueva ruta, la barra de direcciones todavía llevaba el
+ * {@code ?code=…}, se intentaba canjear el mismo código por segunda vez, Cognito
+ * lo rechazaba por usado y el {@code catch} mandaba otra vez a la interfaz
+ * alojada. Un ciclo de recargas del que solo se sale cerrando la pestaña.
+ *
+ * <p>Comprobando la sesión primero, la segunda vuelta sale por la puerta buena.
+ * Y se limpia además la barra de direcciones: un código de autorización usado no
+ * sirve para nada, pero tampoco tiene por qué quedarse a la vista ni viajar en el
+ * historial ni en un enlace compartido por descuido.
  *
  * <p>Sigue siendo comodidad y no seguridad: quien edite el JavaScript de su
- * navegador se lo salta y lo único que verá son pantallas vacías, porque los
+ * navegador se lo salta, y lo único que verá son pantallas vacías, porque los
  * datos los sirve una API que valida el token en cada petición.
  */
 export const sesionGuard: CanActivateFn = async (_ruta, estado) => {
   const sesion = inject(SesionService);
   const router = inject(Router);
+
+  if (sesion.autenticado()) {
+    return true;
+  }
 
   const parametros = new URLSearchParams(window.location.search);
   const codigo = parametros.get('code');
@@ -34,19 +48,23 @@ export const sesionGuard: CanActivateFn = async (_ruta, estado) => {
   if (codigo && estadoOauth) {
     try {
       const destino = await sesion.completar(codigo, estadoOauth);
+      limpiarLaBarraDeDirecciones();
       return router.parseUrl(destino || '/cuentas');
     } catch {
-      // Código caducado o reutilizado. Volver a empezar es lo único razonable:
-      // insistir con el mismo código falla igual.
+      // Código caducado, ya usado, o `state` que no corresponde a esta pestaña.
+      // Insistir con el mismo código falla igual, así que se empieza de nuevo —
+      // pero sin el código en la URL, o volvería a entrar por esta rama.
+      limpiarLaBarraDeDirecciones();
       void sesion.iniciar('/cuentas');
       return false;
     }
   }
 
-  if (sesion.autenticado()) {
-    return true;
-  }
-
   void sesion.iniciar(estado.url);
   return false;
 };
+
+/** Quita `?code=…&state=…` sin recargar ni añadir una entrada al historial. */
+function limpiarLaBarraDeDirecciones(): void {
+  window.history.replaceState({}, '', window.location.pathname);
+}
