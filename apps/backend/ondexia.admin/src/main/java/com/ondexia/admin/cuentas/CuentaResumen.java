@@ -6,6 +6,13 @@ import java.util.UUID;
 /**
  * Una cuenta cliente vista desde el panel, con su consumo frente a los límites.
  *
+ * @param titular         el correo de quien abrió la cuenta. <strong>Es lo que
+ *                        la identifica</strong>: {@code nombre} se repite
+ * @param nombre          la razón social de su PRIMERA empresa, que es con lo
+ *                        que el registro rellena {@code cuenta.nombre}. No es un
+ *                        nombre de cuenta: una cuenta con tres empresas sigue
+ *                        llamándose como la primera, y dos cuentas distintas
+ *                        pueden llamarse igual
  * @param limiteEmpresas  {@code null} significa <strong>sin límite</strong>, no
  *                        cero. Es lo que necesita el plan negociable del doc 04
  *                        §2.2, y la pantalla debe pintarlo como «sin límite» y no
@@ -18,6 +25,7 @@ import java.util.UUID;
 public record CuentaResumen(
         UUID id,
         String nombre,
+        String titular,
         String planCodigo,
         String planNombre,
         String estadoSuscripcion,

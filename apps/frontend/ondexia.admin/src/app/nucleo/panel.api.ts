@@ -12,7 +12,16 @@ import { CONFIGURACION } from './configuracion';
  */
 export interface CuentaResumen {
   readonly id: string;
+
+  /**
+   * La razón social de su PRIMERA empresa, que es con lo que el registro rellena
+   * `cuenta.nombre`. No identifica la cuenta: se repite entre cuentas distintas
+   * y no cambia cuando se añaden más empresas.
+   */
   readonly nombre: string;
+
+  /** El correo de quien abrió la cuenta. Esto sí la identifica. */
+  readonly titular: string;
   readonly planCodigo: string;
   readonly planNombre: string;
   readonly estadoSuscripcion: string;

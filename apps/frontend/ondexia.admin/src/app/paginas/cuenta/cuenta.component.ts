@@ -26,9 +26,12 @@ import { CuentaResumen, ModuloContratado, PanelApiService } from '../../nucleo/p
     @if (cuenta(); as c) {
       <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 class="text-xl font-semibold text-gray-800 dark:text-white/90">{{ c.nombre }}</h1>
+          <!-- El titular como titulo. Suspender la cuenta equivocada porque dos
+               se llaman igual es el error mas caro que se puede cometer aqui. -->
+          <h1 class="text-xl font-semibold text-gray-800 dark:text-white/90">{{ c.titular }}</h1>
           <p class="mt-1 text-dato text-gray-500 dark:text-gray-400">
-            {{ c.empresas }} {{ c.empresas === 1 ? 'empresa' : 'empresas' }} ·
+            {{ c.nombre }} · {{ c.empresas }}
+            {{ c.empresas === 1 ? 'empresa' : 'empresas' }} ·
             {{ c.usuarios }} {{ c.usuarios === 1 ? 'usuario' : 'usuarios' }}
           </p>
         </div>

@@ -26,24 +26,61 @@ class ConsultaDeCuentasIT extends PruebaDelPanel {
 
     private static final UUID CUENTA = UUID.fromString("00000000-0000-4000-9000-000000000001");
 
-    @BeforeEach
-    void sembrar() {
-        jdbc.update("delete from usuario where cuenta_id = cast(? as uuid)", CUENTA.toString());
-        jdbc.update("delete from cuenta where id = cast(? as uuid)", CUENTA.toString());
+    private static final UUID TITULAR = UUID.fromString("00000000-0000-4000-9000-0000000000a1");
+    private static final UUID TITULAR_GEMELA = UUID.fromString("00000000-0000-4000-9000-0000000000a2");
+    private static final UUID DESACTIVADO = UUID.fromString("00000000-0000-4000-9000-0000000000a3");
+    private static final UUID GEMELA = UUID.fromString("00000000-0000-4000-9000-000000000003");
 
+    /*
+     * La siembra es idempotente: reescribe lo que cambia y deja estar el resto.
+     *
+     * La version anterior borraba y reinsertaba, y con el administrador eso no
+     * se puede. El disparador `cuenta_administrador_no_vacia` es DEFERRABLE
+     * INITIALLY DEFERRED —comprueba al confirmar, para que cambiar de
+     * administrador dentro de una transaccion funcione— pero aqui cada
+     * sentencia va en su propia transaccion, asi que el borrado confirma con la
+     * cuenta ya sin administrador y salta:
+     *
+     *   ERROR: La cuenta ... quedaria sin ningun administrador
+     *
+     * Que salte es correcto: es la garantia de que ninguna cuenta se queda sin
+     * quien la gobierne. Lo que estaba mal era la prueba.
+     */
+    private void sembrarCuenta(UUID cuenta, String nombre, UUID titular, String correo) {
         jdbc.update("""
                 insert into cuenta (id, nombre, plan, estado_suscripcion)
-                values (cast(? as uuid), 'Distribuidora de prueba', 'ESENCIAL', 'ACTIVA')
-                """, CUENTA.toString());
+                values (cast(? as uuid), ?, 'ESENCIAL', 'ACTIVA')
+                on conflict (id) do update
+                    set nombre = excluded.nombre,
+                        plan = excluded.plan,
+                        estado_suscripcion = excluded.estado_suscripcion
+                """, cuenta.toString(), nombre);
 
-        // Dos usuarios, uno desactivado: el plan ESENCIAL da 2 y solo debe
+        jdbc.update("""
+                insert into usuario (id, cuenta_id, cognito_sub, email, nombre, activo)
+                values (cast(? as uuid), cast(? as uuid), ?, ?, 'Persona', true)
+                on conflict (id) do update set activo = true
+                """, titular.toString(), cuenta.toString(), correo, correo);
+
+        jdbc.update("""
+                insert into cuenta_administrador (id, cuenta_id, usuario_id)
+                values (cast(? as uuid), cast(? as uuid), cast(? as uuid))
+                on conflict (cuenta_id, usuario_id) do nothing
+                """, titular.toString(), cuenta.toString(), titular.toString());
+    }
+
+    @BeforeEach
+    void sembrar() {
+        sembrarCuenta(CUENTA, "Distribuidora de prueba", TITULAR, "activo@ejemplo.com");
+
+        // Un segundo usuario desactivado: el plan ESENCIAL da 2 y solo debe
         // contar el activo.
-        for (var datos : new String[][] {{"activo@ejemplo.com", "true"}, {"baja@ejemplo.com", "false"}}) {
-            jdbc.update("""
-                    insert into usuario (id, cuenta_id, cognito_sub, email, nombre, activo)
-                    values (gen_random_uuid(), cast(? as uuid), ?, ?, 'Persona', cast(? as boolean))
-                    """, CUENTA.toString(), datos[0], datos[0], datos[1]);
-        }
+        jdbc.update("""
+                insert into usuario (id, cuenta_id, cognito_sub, email, nombre, activo)
+                values (cast(? as uuid), cast(? as uuid), ?, ?, 'Persona', false)
+                on conflict (id) do update set activo = false
+                """, DESACTIVADO.toString(), CUENTA.toString(),
+                "baja@ejemplo.com", "baja@ejemplo.com");
     }
 
     @Test
@@ -66,16 +103,48 @@ class ConsultaDeCuentasIT extends PruebaDelPanel {
     void listaConConsumo() throws Exception {
         mockMvc.perform(get("/api/v1/cuentas").with(jwt()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.nombre == 'Distribuidora de prueba')]").exists())
-                .andExpect(jsonPath("$[?(@.nombre == 'Distribuidora de prueba')].planNombre")
+                .andExpect(jsonPath("$[?(@.id == '" + CUENTA + "')]").exists())
+                .andExpect(jsonPath("$[?(@.id == '" + CUENTA + "')].planNombre")
                         .value("Esencial"))
                 // Uno activo de dos filas: el desactivado no consume plan.
-                .andExpect(jsonPath("$[?(@.nombre == 'Distribuidora de prueba')].usuarios")
+                .andExpect(jsonPath("$[?(@.id == '" + CUENTA + "')].usuarios")
                         .value(1))
-                .andExpect(jsonPath("$[?(@.nombre == 'Distribuidora de prueba')].limiteUsuarios")
+                .andExpect(jsonPath("$[?(@.id == '" + CUENTA + "')].limiteUsuarios")
                         .value(2))
-                .andExpect(jsonPath("$[?(@.nombre == 'Distribuidora de prueba')].empresas")
+                .andExpect(jsonPath("$[?(@.id == '" + CUENTA + "')].empresas")
                         .value(0));
+    }
+
+    @Test
+    @DisplayName("dos cuentas con el mismo nombre se distinguen por su titular")
+    void elNombreNoIdentificaLaCuenta() throws Exception {
+        /*
+         * Este es el caso que se vio en el panel: dos filas «Ondexia S.A.C.»
+         * seguidas, sin nada que las distinguiera.
+         *
+         * RegistrarCuenta rellena `cuenta.nombre` con la razon social de la
+         * PRIMERA empresa —la misma cadena con la que crea esa empresa—, y el
+         * indice unico esta en `empresa.ruc`, no en la razon social. Asi que
+         * dos cuentas distintas pueden llamarse igual, y una cuenta con tres
+         * empresas se sigue llamando como la primera.
+         *
+         * Quien la identifica es su titular: el cuenta_administrador que la
+         * abrio. Suspender la cuenta equivocada porque dos se llaman igual es
+         * el error mas caro de esta pantalla.
+         */
+        // Mismo nombre que la cuenta sembrada arriba, distinto titular.
+        sembrarCuenta(GEMELA, "Distribuidora de prueba", TITULAR_GEMELA, "otra@ejemplo.com");
+
+        mockMvc.perform(get("/api/v1/cuentas").with(jwt()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == '" + CUENTA + "')].titular")
+                        .value("activo@ejemplo.com"))
+                .andExpect(jsonPath("$[?(@.id == '" + GEMELA + "')].titular")
+                        .value("otra@ejemplo.com"))
+                // Y el nombre, que es el mismo en las dos, sigue ahi como dato
+                // secundario: es util, pero no identifica.
+                .andExpect(jsonPath("$[?(@.id == '" + GEMELA + "')].nombre")
+                        .value("Distribuidora de prueba"));
     }
 
     @Test
