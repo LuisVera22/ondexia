@@ -202,6 +202,22 @@ resource "aws_cognito_user_pool_client" "panel" {
   prevent_user_existence_errors = "ENABLED"
 }
 
+/**
+ * Interfaz alojada del grupo de personal.
+ *
+ * Sin dominio no hay `/oauth2/authorize` ni `/login`, es decir: no hay donde
+ * escribir la contraseña ni donde resolver el segundo factor. El SPA de la
+ * consola redirige aquí y vuelve con un código.
+ *
+ * Que la pantalla de acceso la sirva Cognito y no nosotros es lo que mantiene la
+ * contraseña y el TOTP fuera de nuestro código — no podemos filtrar lo que nunca
+ * pasa por nuestras manos.
+ */
+resource "aws_cognito_user_pool_domain" "personal" {
+  domain       = "${local.nombre}-panel-${local.sufijo}"
+  user_pool_id = aws_cognito_user_pool.personal.id
+}
+
 # ── La API de la consola ───────────────────────────────────────────────────
 
 resource "aws_apigatewayv2_api" "panel" {

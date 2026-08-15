@@ -152,11 +152,19 @@ output "api_panel" {
   value       = local.hay_panel ? aws_apigatewayv2_api.panel[0].api_endpoint : ""
 }
 
-output "cognito_panel" {
-  description = "Lo que necesita el SPA de la consola para autenticar contra el grupo de personal."
+output "configuracion_panel" {
+  description = <<-TEXTO
+    Contenido de config.json del SPA de la consola. Mismo mecanismo que el de
+    clientes: el artefacto no lleva dentro ninguna URL, asi que el mismo build
+    vale para dev y para prod.
+
+      terraform output -json configuracion_panel > .../dist/ondexia-admin/browser/config.json
+  TEXTO
   value = {
-    pool    = aws_cognito_user_pool.personal.id
-    cliente = aws_cognito_user_pool_client.panel.id
-    emisor  = "https://${aws_cognito_user_pool.personal.endpoint}"
+    api = local.hay_panel ? aws_apigatewayv2_api.panel[0].api_endpoint : ""
+    cognito = {
+      dominio   = "https://${aws_cognito_user_pool_domain.personal.domain}.auth.${var.region}.amazoncognito.com"
+      clienteId = aws_cognito_user_pool_client.panel.id
+    }
   }
 }
