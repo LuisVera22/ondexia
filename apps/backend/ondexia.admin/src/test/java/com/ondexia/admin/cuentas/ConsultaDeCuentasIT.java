@@ -6,20 +6,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ondexia.admin.pruebas.PruebaDelPanel;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.postgresql.PostgreSQLContainer;
-import org.testcontainers.utility.DockerImageName;
 
 /**
  * El listado de cuentas del panel.
@@ -28,39 +19,7 @@ import org.testcontainers.utility.DockerImageName;
  * su dueño— y no contra uno inventado para la prueba. Si mañana cambia una
  * columna, esto se entera; con un esquema propio de prueba, no.
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-class ConsultaDeCuentasIT {
-
-    /*
-     * PostgreSQL de verdad y no H2, por lo mismo que en ondexia.api: el esquema
-     * usa jsonb, restricciones diferidas y politicas de fila. Probar contra otro
-     * motor daria una confianza que no corresponde a nada.
-     *
-     * Se arranca a mano en un bloque estatico y se comparte entre pruebas.
-     * Testcontainers 2 retiro la extension de JUnit 5, asi que este es el patron
-     * que ya usa la API.
-     */
-    private static final PostgreSQLContainer POSTGRES =
-            new PostgreSQLContainer(DockerImageName.parse("postgres:17-alpine"));
-
-    static {
-        POSTGRES.start();
-    }
-
-    @DynamicPropertySource
-    static void baseDeDatos(DynamicPropertyRegistry registro) {
-        registro.add("spring.datasource.url", POSTGRES::getJdbcUrl);
-        registro.add("spring.datasource.username", POSTGRES::getUsername);
-        registro.add("spring.datasource.password", POSTGRES::getPassword);
-    }
-
-    @Autowired
-    private MockMvc mockMvc;
-
-    @Autowired
-    private JdbcTemplate jdbc;
+class ConsultaDeCuentasIT extends PruebaDelPanel {
 
     private static final UUID CUENTA = UUID.fromString("00000000-0000-4000-9000-000000000001");
 
