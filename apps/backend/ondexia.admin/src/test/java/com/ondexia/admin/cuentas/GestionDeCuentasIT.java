@@ -3,6 +3,7 @@ package com.ondexia.admin.cuentas;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.ondexia.admin.pruebas.PruebaDelPanel;
@@ -141,6 +142,49 @@ class GestionDeCuentasIT extends PruebaDelPanel {
                 """, Integer.class, CUENTA.toString(), almacen))
                 .as("sin fila, la cuenta hereda lo que diga su plan")
                 .isZero();
+    }
+
+    @Test
+    @DisplayName("un motivo con salto de linea no rompe la bitacora")
+    void elMotivoAdmiteTextoDeVerdad() throws Exception {
+        /*
+         * Esta prueba existe por un defecto concreto. El JSON de la bitacora se
+         * construia concatenando cadenas, escapando solo comillas y barras. Los
+         * caracteres de control NO son validos dentro de una cadena JSON, asi
+         * que un motivo con un salto de linea producia un documento invalido:
+         * el cast a jsonb lo rechazaba y, al ir todo en la misma transaccion, se
+         * perdia tambien el cambio de estado.
+         *
+         * Bastaba con que alguien pegara un texto de dos lineas.
+         */
+        String motivo = "Factura de agosto impaga.\nSe hablo con el cliente el 3/8.\tPendiente.";
+
+        var cuerpo = new tools.jackson.databind.ObjectMapper().createObjectNode()
+                .put("estado", "SUSPENDIDA")
+                .put("motivo", motivo)
+                .toString();
+
+        mockMvc.perform(comoOperador(put("/api/v1/cuentas/{id}/estado", CUENTA))
+                        .content(cuerpo))
+                .andExpect(status().isOk());
+
+        assertThat(jdbc.queryForObject("""
+                select despues ->> 'motivo' from auditoria_admin
+                where cuenta_id = cast(? as uuid) and accion = 'CAMBIO_DE_ESTADO'
+                """, String.class, CUENTA.toString()))
+                .as("el texto vuelve entero, saltos de linea incluidos")
+                .isEqualTo(motivo);
+    }
+
+    @Test
+    @DisplayName("un plan inexistente responde con su codigo de error")
+    void elErrorLlevaCodigo() throws Exception {
+        mockMvc.perform(comoOperador(put("/api/v1/cuentas/{id}/plan", CUENTA))
+                        .content("{\"plan\":\"REGALADO\"}"))
+                .andExpect(status().isBadRequest())
+                // El codigo permite que la interfaz reaccione a un caso concreto
+                // sin analizar el texto, que esta escrito para una persona.
+                .andExpect(jsonPath("$.codigo").value("plan_inexistente"));
     }
 
     @Test
