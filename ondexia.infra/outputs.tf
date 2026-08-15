@@ -137,3 +137,26 @@ output "recordatorios" {
     var.gestionar_dns ? "Cargar los servidores de nombres en el registrador del dominio." : "gestionar_dns esta apagado: se sirve por los dominios predeterminados de CloudFront.",
   ]
 }
+
+output "url_panel" {
+  description = "Consola interna. Entrar exige un usuario del grupo de personal, con MFA."
+  value       = local.origen_panel
+}
+
+output "api_panel" {
+  description = <<-TEXTO
+    API de la consola interna. Vacia mientras `artefacto_panel` no apunte a un
+    jar: el sitio estatico existe siempre, la funcion solo cuando hay que
+    desplegarla.
+  TEXTO
+  value       = local.hay_panel ? aws_apigatewayv2_api.panel[0].api_endpoint : ""
+}
+
+output "cognito_panel" {
+  description = "Lo que necesita el SPA de la consola para autenticar contra el grupo de personal."
+  value = {
+    pool    = aws_cognito_user_pool.personal.id
+    cliente = aws_cognito_user_pool_client.panel.id
+    emisor  = "https://${aws_cognito_user_pool.personal.endpoint}"
+  }
+}

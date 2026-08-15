@@ -122,6 +122,22 @@ variable "artefacto_api" {
   default     = ""
 }
 
+variable "artefacto_panel" {
+  description = <<-TEXTO
+    Ruta al artefacto desplegable del panel administrativo interno.
+
+    Vacio significa que el panel NO se despliega: no se crea ni su funcion, ni su
+    API, ni su rol. Es lo que permite que la infraestructura siga siendo
+    aplicable mientras la consola se construye, y tambien apagarla entera
+    borrando una linea si algun dia hiciera falta.
+
+    El sitio estatico si se crea siempre, porque cuelga del mapa `local.sitios`
+    y un bucket vacio no cuesta nada.
+  TEXTO
+  type        = string
+  default     = ""
+}
+
 variable "runtime_api" {
   description = "Runtime de la Lambda. Pasa a java21 cuando llegue el artefacto real."
   type        = string

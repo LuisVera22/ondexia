@@ -25,6 +25,11 @@ locals {
   # Lambda. Tres copias de la misma expresión es una que se queda atrás.
   origen_app = var.gestionar_dns ? "https://app.${var.dominio}" : "https://${aws_cloudfront_distribution.sitio["app"].domain_name}"
 
+  # El de la consola interna. Lo usan las URL de retorno de su cliente de Cognito
+  # y el CORS de su API, que no admite comodines: esa API responde con datos de
+  # todas las cuentas cliente.
+  origen_panel = var.gestionar_dns ? "https://panel.${var.dominio}" : "https://${aws_cloudfront_distribution.sitio["panel"].domain_name}"
+
   sitios = {
     app = {
       descripcion = "SPA de Angular"
@@ -35,6 +40,18 @@ locals {
       descripcion = "Landing de Astro"
       subdominio  = ""
       es_spa      = false
+    }
+    # La consola interna. Mismo tratamiento que el SPA de clientes —bucket
+    # privado detras de CloudFront, con las rutas resueltas en el cliente— y
+    # separada a proposito: otro bucket y otra distribucion, de modo que una
+    # politica mal puesta en uno no alcanza al otro.
+    #
+    # Que este publicada en internet no la abre: entrar exige un token del grupo
+    # de personal, con MFA. Lo que se sirve aqui es HTML y JavaScript, no datos.
+    panel = {
+      descripcion = "Panel administrativo interno"
+      subdominio  = "panel"
+      es_spa      = true
     }
   }
 }
