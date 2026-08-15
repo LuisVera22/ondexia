@@ -2,17 +2,25 @@ spring:
   application:
     name: ondexia-admin
 
-  # Sin fuente de datos todavia. El modulo arranca y responde /salud; las
-  # consultas llegan en la entrega 4, con el rol ondexia_panel y autenticacion
-  # IAM, igual que hace la API de clientes.
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Marcador de posicion. El perfil `aws` lo sustituye por el emisor real
+          # del grupo de PERSONAL de Cognito.
+          #
+          # Se declara un jwk-set-uri y no un issuer-uri porque el primero NO se
+          # consulta al arrancar: el decodificador se construye perezoso. Con
+          # issuer-uri, Spring descarga la configuracion OIDC durante el arranque
+          # y la aplicacion no levanta sin red — algo que rompe las pruebas y el
+          # arranque en local sin aportar nada.
+          jwk-set-uri: http://localhost:1/sin-emisor-configurado
 
 server:
   port: 8081
 
-# Nada de actuator abierto. Solo salud, que ademas tiene su propio controlador.
+# Solo salud. Un actuator abierto en una consola que ve todas las cuentas seria
+# regalar el mapa.
 management:
   endpoints:
     web:

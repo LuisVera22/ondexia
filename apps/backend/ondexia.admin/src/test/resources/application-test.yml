@@ -1,0 +1,7 @@
+spring:
+  flyway:
+    # El esquema real, tomado de ondexia.api que es su dueno. Sin los datos de
+    # ejemplo de db/local: cada prueba siembra lo suyo y asi se ve en la prueba
+    # que se esta contando.
+    enabled: true
+    locations: classpath:db/migration
