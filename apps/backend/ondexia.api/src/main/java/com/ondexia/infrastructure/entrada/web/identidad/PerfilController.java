@@ -50,16 +50,23 @@ public class PerfilController {
                     entrar. La contraseña tampoco pasa por la API — vive en Cognito.""")
     @PutMapping
     public Perfil.DatosDePerfil actualizar(@Valid @RequestBody PeticionPerfil peticion) {
-        return perfil.actualizar(peticion.nombre(), peticion.telefono());
+        return perfil.actualizar(peticion.nombre(), peticion.apellido(), peticion.telefono());
     }
 
     /**
+     * @param apellido obligatorio aunque la columna admita nulo: las filas
+     *                 anteriores a la V11 lo tienen vacío, y esta es la pantalla
+     *                 donde se arregla
      * @param telefono opcional. En blanco borra el que hubiera
      */
     public record PeticionPerfil(
             @NotBlank(message = "El nombre es obligatorio.")
             @Size(max = 150)
             String nombre,
+
+            @NotBlank(message = "El apellido es obligatorio.")
+            @Size(max = 150)
+            String apellido,
 
             @Size(max = 30, message = "El teléfono no puede pasar de 30 caracteres.")
             String telefono) {

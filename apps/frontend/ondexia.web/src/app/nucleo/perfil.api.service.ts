@@ -13,6 +13,12 @@ import { CONFIGURACION } from './configuracion';
 
 export interface DatosDePerfil {
   readonly nombre: string;
+  /**
+   * Nulo en las cuentas creadas antes de que el campo existiera, que conservan
+   * el nombre completo en `nombre`. El formulario lo exige, así que se queda así
+   * solo hasta el primer guardado.
+   */
+  readonly apellido: string | null;
   /** Credencial de acceso a Cognito. Se pinta, no se edita. */
   readonly email: string;
   readonly telefono: string | null;
@@ -20,6 +26,7 @@ export interface DatosDePerfil {
 
 export interface CambioDePerfil {
   readonly nombre: string;
+  readonly apellido: string;
   /** En blanco borra el que hubiera. */
   readonly telefono: string | null;
 }

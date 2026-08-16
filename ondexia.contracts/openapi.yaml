@@ -899,10 +899,15 @@ components:
   schemas:
     PeticionPerfil:
       required:
+      - apellido
       - nombre
       type: object
       properties:
         nombre:
+          maxLength: 150
+          minLength: 0
+          type: string
+        apellido:
           maxLength: 150
           minLength: 0
           type: string
@@ -914,6 +919,8 @@ components:
       type: object
       properties:
         nombre:
+          type: string
+        apellido:
           type: string
         email:
           type: string
@@ -1154,6 +1161,7 @@ components:
           type: boolean
     PeticionRegistro:
       required:
+      - apellidoTitular
       - domicilioFiscal
       - nombreTitular
       - razonSocial
@@ -1179,6 +1187,10 @@ components:
           maxLength: 150
           minLength: 0
           type: string
+        apellidoTitular:
+          maxLength: 150
+          minLength: 0
+          type: string
         correo:
           maxLength: 254
           minLength: 0
@@ -1191,6 +1203,7 @@ components:
           format: uuid
     PeticionNuevo:
       required:
+      - apellido
       - email
       - nombre
       - rolId
@@ -1202,6 +1215,10 @@ components:
           type: string
           format: email
         nombre:
+          maxLength: 150
+          minLength: 0
+          type: string
+        apellido:
           maxLength: 150
           minLength: 0
           type: string

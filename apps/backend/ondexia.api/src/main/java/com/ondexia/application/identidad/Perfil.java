@@ -56,16 +56,21 @@ public class Perfil {
     }
 
     @Transactional
-    public DatosDePerfil actualizar(String nombre, String telefono) {
-        String limpio = nombre == null ? "" : nombre.trim();
+    public DatosDePerfil actualizar(String nombre, String apellido, String telefono) {
+        /*
+         * El apellido es obligatorio aquí aunque la columna admita nulo.
+         *
+         * Las filas anteriores a la V11 lo tienen vacío con el nombre completo
+         * metido en `nombre`, y esta pantalla es justo donde se arregla: la
+         * persona lo parte una vez y ya queda bien. Aceptarlo en blanco haría
+         * que esas filas se quedaran a medias para siempre, porque nada más las
+         * vuelve a tocar.
+         */
+        String nombreLimpio = exigir(nombre, "nombre_requerido", "El nombre es obligatorio.",
+                MAXIMO_NOMBRE, "El nombre");
+        String apellidoLimpio = exigir(apellido, "apellido_requerido",
+                "El apellido es obligatorio.", MAXIMO_NOMBRE, "El apellido");
 
-        if (limpio.isEmpty()) {
-            throw new ReglaDeNegocioViolada("nombre_requerido", "El nombre es obligatorio.");
-        }
-        if (limpio.length() > MAXIMO_NOMBRE) {
-            throw new ReglaDeNegocioViolada(
-                    "nombre_muy_largo", "El nombre no puede pasar de " + MAXIMO_NOMBRE + " caracteres.");
-        }
         if (telefono != null && telefono.trim().length() > MAXIMO_TELEFONO) {
             throw new ReglaDeNegocioViolada(
                     "telefono_muy_largo",
@@ -73,8 +78,22 @@ public class Perfil {
         }
 
         var usuario = actual();
-        usuario.actualizarPerfil(limpio, telefono);
+        usuario.actualizarPerfil(nombreLimpio, apellidoLimpio, telefono);
         return DatosDePerfil.de(usuarios.guardar(usuario));
+    }
+
+    private static String exigir(String valor, String codigo, String mensaje, int maximo,
+            String etiqueta) {
+        String limpio = valor == null ? "" : valor.trim();
+        if (limpio.isEmpty()) {
+            throw new ReglaDeNegocioViolada(codigo, mensaje);
+        }
+        if (limpio.length() > maximo) {
+            throw new ReglaDeNegocioViolada(
+                    codigo.replace("_requerido", "_muy_largo"),
+                    etiqueta + " no puede pasar de " + maximo + " caracteres.");
+        }
+        return limpio;
     }
 
     /**
@@ -90,12 +109,15 @@ public class Perfil {
     }
 
     /**
-     * @param email se devuelve para pintarlo, no para editarlo
+     * @param apellido nulo en las filas anteriores a la V11. El formulario lo
+     *                 exige, así que se queda así solo hasta el primer guardado
+     * @param email    se devuelve para pintarlo, no para editarlo
      */
-    public record DatosDePerfil(String nombre, String email, String telefono) {
+    public record DatosDePerfil(String nombre, String apellido, String email, String telefono) {
 
         static DatosDePerfil de(Usuario usuario) {
-            return new DatosDePerfil(usuario.nombre(), usuario.email(), usuario.telefono());
+            return new DatosDePerfil(usuario.nombre(), usuario.apellido(), usuario.email(),
+                    usuario.telefono());
         }
     }
 }

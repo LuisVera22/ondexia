@@ -94,7 +94,8 @@ public class Usuarios {
      * @param sucursalId {@code null} = alcanza todos los establecimientos
      */
     @Transactional
-    public MiembroEmpresa invitar(String email, String nombre, UUID rolId, UUID sucursalId) {
+    public MiembroEmpresa invitar(String email, String nombre, String apellido, UUID rolId,
+            UUID sucursalId) {
         var cuentaId = cuentaActual();
         var empresaId = empresaActiva();
 
@@ -102,10 +103,19 @@ public class Usuarios {
         var rol = validarRol(rolId);
         var sucursal = validarSucursal(sucursalId);
 
+        /*
+         * El nombre y el apellido solo se usan si la persona es nueva. Si ya
+         * existe en la cuenta se reutiliza su fila tal cual: el administrador la
+         * está añadiendo a OTRA empresa, no rebautizándola. Dejar que estos
+         * campos pisaran los suyos permitiría cambiarle el nombre a alguien
+         * desde una empresa en la que ni siquiera trabaja todavía.
+         */
         var usuario = usuarios.buscarPorEmailEnCuenta(cuentaId, correo)
                 .orElseGet(() -> usuarios.guardar(new Usuario(
                         UUID.randomUUID(), cuentaId, correo,
-                        exigirTexto(nombre, "nombre_requerido", "El nombre es obligatorio."))));
+                        exigirTexto(nombre, "nombre_requerido", "El nombre es obligatorio."),
+                        exigirTexto(apellido, "apellido_requerido",
+                                "El apellido es obligatorio."))));
 
         asignaciones.buscarAsignacion(usuario.id(), empresaId).ifPresent(existente -> {
             throw new Conflicto(

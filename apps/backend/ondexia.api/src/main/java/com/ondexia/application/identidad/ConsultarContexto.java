@@ -50,7 +50,11 @@ public class ConsultarContexto {
 
         return new ContextoResuelto(
                 usuario.id(),
-                usuario.nombre(),
+                // El completo: el contexto alimenta la barra superior y la
+                // bitácora, donde se muestra la persona, no se editan sus
+                // campos. Quien necesita las partes por separado es Mi perfil,
+                // que las pide a su propio endpoint.
+                usuario.nombreCompleto(),
                 usuario.email(),
                 actual.cuentaId(),
                 actual.esAdministradorCuenta(),

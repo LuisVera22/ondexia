@@ -337,6 +337,8 @@ export class ConfiguracionApiService {
   invitarUsuario(datos: {
     readonly email: string;
     readonly nombre: string;
+    /** Solo se usa si la persona aún no existe en la cuenta. */
+    readonly apellido: string;
     readonly rolId: string;
     readonly sucursalId: string | null;
   }): Promise<UsuarioApi> {

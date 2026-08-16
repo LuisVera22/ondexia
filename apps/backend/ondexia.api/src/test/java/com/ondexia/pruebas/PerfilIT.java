@@ -51,10 +51,10 @@ class PerfilIT extends PruebaIntegracion {
     }
 
     /** Deja a la persona dentro de la cuenta demo con identidad propia. */
-    private void crearUsuarioCon(String sub, String email, String nombre) {
+    private void crearUsuarioCon(String sub, String email, String nombre, String apellido) {
         ContextoDePrueba.comoUsuarioDe(
                 UUID.fromString(USUARIO_DEMO), CUENTA, UUID.fromString(EMPRESA_ADMINISTRADA));
-        usuarios.invitar(email, nombre,
+        usuarios.invitar(email, nombre, apellido,
                 roles.buscarPredefinido("VENDEDOR").orElseThrow().id(), SUCURSAL_MATRIZ);
         ContextoDePrueba.limpiar();
 
@@ -75,20 +75,71 @@ class PerfilIT extends PruebaIntegracion {
     }
 
     @Test
+    @DisplayName("Una fila anterior a la V11 conserva su nombre entero y sin apellido")
+    void laFilaViejaLlegaSinApellido() throws Exception {
+        /*
+         * El demo es de antes de que el campo existiera. La migracion NO parte
+         * su nombre por el espacio: daria "Usuario" y "de demostracion", y con
+         * "Maria del Carmen Rojas" seria peor. Un dato inventado que parece
+         * correcto cuesta mas de detectar que uno ausente.
+         *
+         * El frontend usa este nulo para avisar de que hay que repartirlo a
+         * mano, asi que tiene que seguir llegando nulo y no cadena vacia.
+         */
+        mockMvc.perform(get(PERFIL).header("Authorization", autorizacionDemo()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nombre").value("Usuario de demostracion"))
+                .andExpect(jsonPath("$.apellido").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("El apellido es obligatorio aunque la columna admita nulo")
+    void elApellidoEsObligatorio() throws Exception {
+        /*
+         * La columna acepta nulo por las filas viejas; el formulario no, porque
+         * esta pantalla es justo donde se arreglan. Aceptarlo en blanco las
+         * dejaria a medias para siempre: nada mas las vuelve a tocar.
+         */
+        mockMvc.perform(put(PERFIL)
+                        .header("Authorization", autorizacionDemo())
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"nombre":"Usuario","apellido":"  ","telefono":null}"""))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("El nombre completo del contexto une las dos columnas")
+    void elContextoUneNombreYApellido() throws Exception {
+        // La barra superior y la bitacora muestran la persona, no editan sus
+        // campos: el contexto entrega el nombre ya unido para que ninguna
+        // pantalla tenga que decidir como se concatena.
+        crearUsuarioCon("sub-perfil-contexto", "perfil.contexto@ejemplo.com", "Ana", "Quispe");
+
+        mockMvc.perform(get("/api/v1/contexto")
+                        .header("Authorization", "Bearer " + tokenPara("sub-perfil-contexto"))
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.usuario.nombre").value("Ana Quispe"));
+    }
+
+    @Test
     @DisplayName("Guarda el nombre y el telefono, y deja el correo intacto")
     void guardaNombreYTelefono() throws Exception {
-        crearUsuarioCon("sub-perfil-edita", "perfil.edita@ejemplo.com", "Nombre Viejo");
+        crearUsuarioCon("sub-perfil-edita", "perfil.edita@ejemplo.com", "Nombre", "Viejo");
 
         mockMvc.perform(put(PERFIL)
                         .header("Authorization", "Bearer " + tokenPara("sub-perfil-edita"))
                         .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"nombre":"  Nombre Nuevo  ","telefono":"987 654 321"}"""))
+                                {"nombre":"  Nombre Nuevo  ","apellido":" Apellido Nuevo ","telefono":"987 654 321"}"""))
                 .andExpect(status().isOk())
                 // Los espacios se recortan en el servidor: si se devolviera lo
                 // enviado, un refresco "cambiaria" el dato sin que nadie lo tocara.
                 .andExpect(jsonPath("$.nombre").value("Nombre Nuevo"))
+                .andExpect(jsonPath("$.apellido").value("Apellido Nuevo"))
                 .andExpect(jsonPath("$.telefono").value("987 654 321"))
                 .andExpect(jsonPath("$.email").value("perfil.edita@ejemplo.com"));
     }
@@ -102,14 +153,14 @@ class PerfilIT extends PruebaIntegracion {
          * pensarlo, cambiar el correo dejaria a la persona sin poder entrar, y
          * este endpoint no exige contrasena ni verificacion de nada.
          */
-        crearUsuarioCon("sub-perfil-correo", "perfil.correo@ejemplo.com", "Quien Sea");
+        crearUsuarioCon("sub-perfil-correo", "perfil.correo@ejemplo.com", "Quien", "Sea");
 
         mockMvc.perform(put(PERFIL)
                         .header("Authorization", "Bearer " + tokenPara("sub-perfil-correo"))
                         .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"nombre":"Quien Sea","email":"secuestrado@ejemplo.com",
+                                {"nombre":"Quien","apellido":"Sea","email":"secuestrado@ejemplo.com",
                                  "telefono":null}"""))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("perfil.correo@ejemplo.com"));
@@ -123,14 +174,14 @@ class PerfilIT extends PruebaIntegracion {
          * contexto y el endpoint no acepta ningun id— y de eso se trata: si
          * manana alguien anade un parametro "por comodidad", esto se pone rojo.
          */
-        crearUsuarioCon("sub-perfil-otra", "perfil.otra@ejemplo.com", "La Otra Persona");
+        crearUsuarioCon("sub-perfil-otra", "perfil.otra@ejemplo.com", "La Otra", "Persona");
 
         mockMvc.perform(put(PERFIL)
                         .header("Authorization", "Bearer " + tokenPara("sub-perfil-otra"))
                         .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"nombre":"Renombrada","telefono":"111"}"""))
+                                {"nombre":"Renombrada","apellido":"Del Todo","telefono":"111"}"""))
                 .andExpect(status().isOk());
 
         // El demo, con su propio token, sigue como estaba.
@@ -146,12 +197,12 @@ class PerfilIT extends PruebaIntegracion {
     void elTelefonoEnBlancoBorra() throws Exception {
         // Una columna opcional con dos formas de decir «sin dato» —null y cadena
         // vacia— produce consultas que se olvidan de una.
-        crearUsuarioCon("sub-perfil-borra", "perfil.borra@ejemplo.com", "Con Telefono");
+        crearUsuarioCon("sub-perfil-borra", "perfil.borra@ejemplo.com", "Con", "Telefono");
 
         var conTelefono = """
-                {"nombre":"Con Telefono","telefono":"999888777"}""";
+                {"nombre":"Con","apellido":"Telefono","telefono":"999888777"}""";
         var sinTelefono = """
-                {"nombre":"Con Telefono","telefono":"   "}""";
+                {"nombre":"Con","apellido":"Telefono","telefono":"   "}""";
 
         mockMvc.perform(put(PERFIL)
                         .header("Authorization", "Bearer " + tokenPara("sub-perfil-borra"))
@@ -180,7 +231,7 @@ class PerfilIT extends PruebaIntegracion {
                         .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"nombre":"   ","telefono":null}"""))
+                                {"nombre":"   ","apellido":"Apellido","telefono":null}"""))
                 .andExpect(status().isBadRequest());
     }
 

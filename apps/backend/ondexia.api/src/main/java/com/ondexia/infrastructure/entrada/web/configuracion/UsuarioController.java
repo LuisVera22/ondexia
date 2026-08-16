@@ -71,7 +71,8 @@ public class UsuarioController {
     @ResponseStatus(HttpStatus.CREATED)
     public RespuestaUsuario invitar(@Valid @RequestBody PeticionNuevo peticion) {
         return RespuestaUsuario.desde(usuarios.invitar(
-                peticion.email(), peticion.nombre(), peticion.rolId(), peticion.sucursalId()));
+                peticion.email(), peticion.nombre(), peticion.apellido(), peticion.rolId(),
+                peticion.sucursalId()));
     }
 
     @Operation(
@@ -123,6 +124,14 @@ public class UsuarioController {
             @Size(max = 150)
             String nombre,
 
+            /**
+             * Solo se usa si la persona todavía no existe en la cuenta. Añadir a
+             * alguien que ya está a otra empresa no le cambia el nombre.
+             */
+            @NotBlank(message = "El apellido es obligatorio.")
+            @Size(max = 150)
+            String apellido,
+
             @NotNull(message = "Hay que indicar un rol.")
             UUID rolId,
 
@@ -164,7 +173,9 @@ public class UsuarioController {
                     miembro.asignacionId(),
                     miembro.usuarioId(),
                     miembro.email(),
-                    miembro.nombre(),
+                    // El listado enseña el nombre completo; partirlo en dos
+                    // columnas solo añadiría ruido a una tabla que ya tiene seis.
+                    miembro.nombreCompleto(),
                     miembro.activo(),
                     !miembro.cognitoVinculado(),
                     miembro.rolId(),
