@@ -25,6 +25,7 @@ public record MiembroEmpresa(
         UUID usuarioId,
         String email,
         String nombre,
+        String apellido,
         boolean activo,
         boolean cognitoVinculado,
         UUID rolId,
@@ -41,10 +42,20 @@ public record MiembroEmpresa(
      * en JPQL: se lee peor que esta línea y su tipado depende del dialecto.
      */
     public MiembroEmpresa(UUID asignacionId, UUID usuarioId, String email, String nombre,
-            boolean activo, String cognitoSub, UUID rolId, String rolCodigo, String rolNombre,
-            UUID sucursalId, String sucursalNombre) {
-        this(asignacionId, usuarioId, email, nombre, activo, cognitoSub != null,
+            String apellido, boolean activo, String cognitoSub, UUID rolId, String rolCodigo,
+            String rolNombre, UUID sucursalId, String sucursalNombre) {
+        this(asignacionId, usuarioId, email, nombre, apellido, activo, cognitoSub != null,
                 rolId, rolCodigo, rolNombre, sucursalId, sucursalNombre);
+    }
+
+    /**
+     * Como se muestra en el listado. Une las dos columnas igual que
+     * {@code Usuario.nombreCompleto()}, y por el mismo motivo devuelve solo el
+     * nombre cuando el apellido está en nulo: las filas anteriores a la V11 se
+     * siguen viendo como siempre.
+     */
+    public String nombreCompleto() {
+        return apellido == null || apellido.isBlank() ? nombre : nombre + " " + apellido;
     }
 
     public boolean alcanzaTodosLosEstablecimientos() {

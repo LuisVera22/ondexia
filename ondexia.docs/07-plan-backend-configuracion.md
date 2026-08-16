@@ -452,9 +452,9 @@ componente y ninguno conectado a nada.
 
 Al conectarla, tres de esos campos resultaron no poder existir tal cual:
 
-- **Nombres + apellidos → un solo nombre.** El modelo guarda un `nombre` y el
-  alta de usuarios pide uno. Partirlo exigiría migración y dejaría las dos
-  pantallas contradiciéndose.
+- **Nombres + apellidos se colapsaron primero en uno solo**, porque el modelo
+  guardaba un `nombre` y partirlo exigía migración. Duró una revisión: se pidió
+  el apellido de vuelta y se hizo bien (V11, más abajo).
 - **La contraseña no pasa por la API, y no es una fase pendiente.** No la
   guardamos, no la vemos y no la queremos. El bloque lleva al flujo alojado de
   Cognito, que es quien sabe si el correo existe, manda el código y valida la
@@ -493,6 +493,45 @@ subconjunto de usuarios — el peor reparto posible de un fallo.
 
 7 pruebas, incluida una de aislamiento que hoy es imposible de fallar. Está para
 ponerse roja el día que alguien añada un `id` al endpoint «por comodidad».
+
+### El apellido, separado (V11)
+
+Se partió `usuario.nombre` en `nombre` + `apellido`. Una persona se ordena, se
+busca y se saluda por partes distintas: el listado se ordena por apellido, y un
+«Hola, Luis» no sale de «Luis David Vera Vilchez» sin adivinar dónde acaba el
+nombre.
+
+**La columna admite nulo y la migración no rellena nada.** La tentación obvia es
+partir los valores existentes por el primer espacio; no se hace porque «María del
+Carmen Rojas» daría un resultado que *parece* correcto, y un dato inventado que
+parece correcto cuesta más de detectar que uno ausente. Las filas de antes
+conservan su nombre completo en `nombre`, se muestran igual que siempre —el
+nombre para mostrar es la unión de las dos columnas, y unir con nulo no cambia
+nada— y su dueño las reparte a mano la primera vez que entra a Mi perfil, donde
+un aviso lo explica.
+
+**Obligatorio en los formularios, opcional en la base.** La restricción vive
+donde entra el dato nuevo, no donde vive el viejo. Un `NOT NULL` obligaría a
+inventar un valor para cada fila existente, que es justo lo que se evita.
+
+**Se partió en los tres sitios donde se escribe un nombre**, no solo en Mi
+perfil: el registro de la cuenta y el alta de usuarios del administrador. Hacerlo
+en uno solo dejaría al administrador creando gente con todo metido en `nombre` —
+la incoherencia que la propia V11 venía a quitar.
+
+**Dónde NO se partió.** El listado de usuarios y el contexto entregan el nombre
+ya unido. El contexto alimenta la barra superior y la bitácora, que *muestran* a
+la persona; quien necesita las partes por separado es Mi perfil, que las pide a
+su propio endpoint. Y editando la asignación de alguien, el nombre sale entero y
+en solo lectura: repartirlo en dos casillas deshabilitadas obligaría a adivinar,
+otra vez, dónde acaba.
+
+**El alta no rebautiza a nadie.** Nombre y apellido solo se usan si la persona es
+nueva en la cuenta. Si ya existe, el administrador la está añadiendo a *otra*
+empresa: dejar que esos campos pisaran los suyos permitiría cambiarle el nombre a
+alguien desde una empresa en la que ni siquiera trabaja todavía.
+
+10 pruebas en `PerfilIT`, tres de ellas sobre este reparto.
 
 ## 6. Qué queda después
 

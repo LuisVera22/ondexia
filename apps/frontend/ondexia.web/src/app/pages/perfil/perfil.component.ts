@@ -2,7 +2,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { mensajeDeError } from '../../nucleo/configuracion.api.service';
-import { PerfilApiService } from '../../nucleo/perfil.api.service';
+import { DatosDePerfil, PerfilApiService } from '../../nucleo/perfil.api.service';
 import { SesionService } from '../../nucleo/sesion.service';
 import { ContextoService } from '../../shared/services/contexto.service';
 
@@ -52,6 +52,12 @@ export class PerfilComponent implements OnInit {
   readonly nombreGuardado = signal('');
   readonly correo = signal('');
 
+  /**
+   * Si esta cuenta viene de antes de que existiera el apellido y hay que
+   * repartir el nombre a mano. Solo se enseña el aviso mientras dure.
+   */
+  readonly faltaPartirElNombre = signal(false);
+
   /** Asignados por el administrador de la cuenta. Nunca editables aquí. */
   readonly empresas = computed(() => this.contexto.empresasConRol());
   readonly rolActivo = computed(() => this.contexto.rolEnEmpresaActiva());
@@ -61,6 +67,7 @@ export class PerfilComponent implements OnInit {
 
   formulario = this.constructorFormulario.nonNullable.group({
     nombre: ['', [Validators.required, Validators.maxLength(150)]],
+    apellido: ['', [Validators.required, Validators.maxLength(150)]],
     telefono: ['', [Validators.maxLength(30)]],
   });
 
@@ -71,9 +78,19 @@ export class PerfilComponent implements OnInit {
   async ngOnInit(): Promise<void> {
     try {
       const perfil = await this.api.ver();
-      this.nombreGuardado.set(perfil.nombre);
+      this.aplicar(perfil);
       this.correo.set(perfil.email);
-      this.formulario.setValue({ nombre: perfil.nombre, telefono: perfil.telefono ?? '' });
+
+      /*
+       * Sin apellido es una cuenta anterior a que el campo existiera: su nombre
+       * completo está entero en `nombre`. No se parte por el espacio para
+       * repartirlo —«María del Carmen Rojas» no tiene forma de acertar—, se
+       * marca el campo como tocado para que salga en rojo y se explica arriba.
+       */
+      if (!perfil.apellido) {
+        this.controles.apellido.markAsTouched();
+        this.faltaPartirElNombre.set(true);
+      }
     } catch (fallo: unknown) {
       this.error.set(mensajeDeError(fallo, 'No se pudieron cargar tus datos.'));
     } finally {
@@ -96,6 +113,7 @@ export class PerfilComponent implements OnInit {
     try {
       const perfil = await this.api.guardar({
         nombre: valores.nombre,
+        apellido: valores.apellido,
         telefono: valores.telefono.trim() || null,
       });
 
@@ -103,8 +121,8 @@ export class PerfilComponent implements OnInit {
       // backend recorta espacios y convierte el teléfono en blanco a nulo, y
       // quedarse con la versión local haría que un simple refresco «cambiara»
       // el dato sin que nadie lo tocara.
-      this.nombreGuardado.set(perfil.nombre);
-      this.formulario.setValue({ nombre: perfil.nombre, telefono: perfil.telefono ?? '' });
+      this.aplicar(perfil);
+      this.faltaPartirElNombre.set(false);
       this.formulario.markAsPristine();
       this.guardado.set(true);
     } catch (fallo: unknown) {
@@ -112,6 +130,18 @@ export class PerfilComponent implements OnInit {
     } finally {
       this.guardando.set(false);
     }
+  }
+
+  /** Vuelca la respuesta del servidor en el formulario y en la tarjeta. */
+  private aplicar(perfil: DatosDePerfil): void {
+    this.nombreGuardado.set(
+      perfil.apellido ? `${perfil.nombre} ${perfil.apellido}` : perfil.nombre
+    );
+    this.formulario.setValue({
+      nombre: perfil.nombre,
+      apellido: perfil.apellido ?? '',
+      telefono: perfil.telefono ?? '',
+    });
   }
 
   /**

@@ -62,7 +62,7 @@ class UsuariosIT extends PruebaIntegracion {
     @DisplayName("Quien se da de alta figura como invitado hasta su primer ingreso")
     void elAltaDejaAlUsuarioInvitado() throws Exception {
         String cuerpo = """
-                {"email":"nueva.persona@ejemplo.com","nombre":"Nueva Persona",
+                {"email":"nueva.persona@ejemplo.com","nombre":"Nueva","apellido":"Persona",
                  "rolId":"%s","sucursalId":"%s"}""".formatted(rol("VENDEDOR"), SUCURSAL_MATRIZ);
 
         mockMvc.perform(post(USUARIOS)
@@ -72,6 +72,10 @@ class UsuariosIT extends PruebaIntegracion {
                         .content(cuerpo))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.email").value("nueva.persona@ejemplo.com"))
+                // El listado enseña el nombre unido: se dan de alta por separado
+                // porque partirlos después obligaría a adivinar dónde acaba cada
+                // uno, pero la tabla no gana nada con dos columnas.
+                .andExpect(jsonPath("$.nombre").value("Nueva Persona"))
                 // Lo que explica que alguien «no pueda entrar» estando activo: la
                 // fila existe, la identidad de Cognito todavía no.
                 .andExpect(jsonPath("$.invitado").value(true))
@@ -91,7 +95,7 @@ class UsuariosIT extends PruebaIntegracion {
          * de suerte.
          */
         comoDemo();
-        var primera = usuarios.invitar("Repetido@Ejemplo.com", "Con Mayúsculas",
+        var primera = usuarios.invitar("Repetido@Ejemplo.com", "Con Mayúsculas", "Apellido",
                 rol("ALMACENERO"), null);
 
         assertThat(primera.email()).isEqualTo("repetido@ejemplo.com");
@@ -99,7 +103,7 @@ class UsuariosIT extends PruebaIntegracion {
         // El mismo correo en otra empresa de la cuenta reutiliza a la persona.
         ContextoDePrueba.comoUsuarioDe(
                 UUID.fromString(USUARIO_DEMO), CUENTA, UUID.fromString(EMPRESA_COMO_VENDEDOR));
-        var segunda = usuarios.invitar("REPETIDO@ejemplo.com", "Da igual el nombre",
+        var segunda = usuarios.invitar("REPETIDO@ejemplo.com", "Da igual el nombre", "Apellido",
                 rol("VENDEDOR"), null);
 
         assertThat(segunda.usuarioId())
@@ -111,7 +115,8 @@ class UsuariosIT extends PruebaIntegracion {
     @DisplayName("Agregar dos veces a la misma persona en la misma empresa es conflicto")
     void asignacionRepetida() throws Exception {
         String cuerpo = """
-                {"email":"duplicada@ejemplo.com","nombre":"Duplicada","rolId":"%s"}"""
+                {"email":"duplicada@ejemplo.com","nombre":"Duplicada","apellido":"Otra Vez",
+                 "rolId":"%s"}"""
                 .formatted(rol("VENDEDOR"));
 
         mockMvc.perform(post(USUARIOS)
@@ -134,7 +139,7 @@ class UsuariosIT extends PruebaIntegracion {
     @DisplayName("Sin establecimiento, la persona alcanza todos")
     void sinSucursalAlcanzaTodo() {
         comoDemo();
-        var miembro = usuarios.invitar("global@ejemplo.com", "Alcance Total",
+        var miembro = usuarios.invitar("global@ejemplo.com", "Alcance Total", "Apellido",
                 rol("ALMACENERO"), null);
 
         assertThat(miembro.alcanzaTodosLosEstablecimientos()).isTrue();
@@ -185,7 +190,7 @@ class UsuariosIT extends PruebaIntegracion {
          * administrador lo intentara sobre sí.
          */
         comoDemo();
-        var otra = usuarios.invitar("otro.admin@ejemplo.com", "Otro Cualquiera",
+        var otra = usuarios.invitar("otro.admin@ejemplo.com", "Otro Cualquiera", "Apellido",
                 rol("ADMINISTRADOR"), null);
 
         // Ahora opera esa otra persona, que no es administradora de la cuenta.
@@ -209,7 +214,7 @@ class UsuariosIT extends PruebaIntegracion {
     @DisplayName("Cambiar el rol y el alcance de alguien")
     void reasignar() throws Exception {
         comoDemo();
-        var miembro = usuarios.invitar("reasignable@ejemplo.com", "Se Mueve",
+        var miembro = usuarios.invitar("reasignable@ejemplo.com", "Se Mueve", "Apellido",
                 rol("VENDEDOR"), SUCURSAL_MATRIZ);
         ContextoDePrueba.limpiar();
 
@@ -229,7 +234,7 @@ class UsuariosIT extends PruebaIntegracion {
     @DisplayName("Retirar el acceso deja a la persona en la cuenta")
     void retirarNoBorraALaPersona() throws Exception {
         comoDemo();
-        var miembro = usuarios.invitar("de.paso@ejemplo.com", "De Paso",
+        var miembro = usuarios.invitar("de.paso@ejemplo.com", "De Paso", "Apellido",
                 rol("VENDEDOR"), null);
         ContextoDePrueba.limpiar();
 
@@ -246,7 +251,7 @@ class UsuariosIT extends PruebaIntegracion {
 
         // Pero sigue existiendo: se la puede volver a agregar sin recrearla.
         comoDemo();
-        var devuelta = usuarios.invitar("de.paso@ejemplo.com", "Da igual",
+        var devuelta = usuarios.invitar("de.paso@ejemplo.com", "Da igual", "Apellido",
                 rol("VENDEDOR"), null);
         assertThat(devuelta.usuarioId()).isEqualTo(miembro.usuarioId());
     }
@@ -261,7 +266,7 @@ class UsuariosIT extends PruebaIntegracion {
         UUID ajena = UUID.fromString("00000000-0000-4000-8000-000000000022");
 
         assertThatThrownBy(() ->
-                usuarios.invitar("con.sucursal.ajena@ejemplo.com", "Ajena",
+                usuarios.invitar("con.sucursal.ajena@ejemplo.com", "Ajena", "Apellido",
                         rol("VENDEDOR"), ajena))
                 .isInstanceOf(ReglaDeNegocioViolada.class)
                 .hasMessageContaining("no existe en esta empresa");
@@ -272,7 +277,7 @@ class UsuariosIT extends PruebaIntegracion {
     void rolInexistente() {
         comoDemo();
         assertThatThrownBy(() ->
-                usuarios.invitar("con.rol.raro@ejemplo.com", "Rara",
+                usuarios.invitar("con.rol.raro@ejemplo.com", "Rara", "Apellido",
                         UUID.randomUUID(), null))
                 .isInstanceOf(ReglaDeNegocioViolada.class)
                 .hasMessageContaining("no está disponible");

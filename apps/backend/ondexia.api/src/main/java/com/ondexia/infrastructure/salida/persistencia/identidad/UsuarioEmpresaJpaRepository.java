@@ -53,7 +53,7 @@ public interface UsuarioEmpresaJpaRepository extends JpaRepository<UsuarioEmpres
      */
     @Query("""
             select new com.ondexia.domain.identidad.MiembroEmpresa(
-                ue.id, u.id, u.email, u.nombre, u.activo, u.cognitoSub,
+                ue.id, u.id, u.email, u.nombre, u.apellido, u.activo, u.cognitoSub,
                 r.id, r.codigo, r.nombre,
                 s.id, s.nombre)
             from UsuarioEmpresaJpa ue
@@ -61,7 +61,7 @@ public interface UsuarioEmpresaJpaRepository extends JpaRepository<UsuarioEmpres
                 join RolJpa r on r.id = ue.rolId
                 left join SucursalJpa s on s.id = ue.sucursalId
             where ue.empresaId = :empresaId
-            order by u.nombre
+            order by coalesce(u.apellido, u.nombre), u.nombre
             """)
     List<MiembroEmpresa> findMiembrosByEmpresaId(UUID empresaId);
 

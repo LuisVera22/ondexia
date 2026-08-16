@@ -126,6 +126,7 @@ public class RegistrarCuenta {
                 cognitoSub,
                 email,
                 datos.nombreTitular(),
+                datos.apellidoTitular(),
                 // El teléfono no se pide en el alta: son cinco campos para poder
                 // empezar, y uno más que no bloquea nada es uno menos que se
                 // rellena. Se añade desde Mi perfil.
@@ -194,15 +195,20 @@ public class RegistrarCuenta {
     }
 
     /**
-     * @param nombreTitular de la persona, no de la empresa. Es quien firma el
-     *                      alta y queda como administrador
-     * @param ubigeo        opcional mientras no haya integración con SUNAT
+     * @param nombreTitular   de la persona, no de la empresa. Es quien firma el
+     *                        alta y queda como administrador
+     * @param apellidoTitular se pide aparte y no como «nombre completo» porque
+     *                        partirlo después obligaría a adivinar dónde acaba
+     *                        el nombre, y en «María del Carmen Rojas» no hay
+     *                        forma de acertar
+     * @param ubigeo          opcional mientras no haya integración con SUNAT
      */
     public record DatosDeRegistro(
             String ruc,
             String razonSocial,
             String domicilioFiscal,
             String ubigeo,
-            String nombreTitular) {
+            String nombreTitular,
+            String apellidoTitular) {
     }
 }

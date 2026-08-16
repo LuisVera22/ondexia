@@ -24,6 +24,10 @@ public class UsuarioJpa extends EntidadJpaBase {
     @Column(name = "nombre", nullable = false, length = 150)
     private String nombre;
 
+    /** Nulo en las filas anteriores a la V11: conservan el nombre completo arriba. */
+    @Column(name = "apellido", length = 150)
+    private String apellido;
+
     /** Contacto de la persona, opcional. No autentica: eso es el cognito_sub. */
     @Column(name = "telefono", length = 30)
     private String telefono;
@@ -35,17 +39,18 @@ public class UsuarioJpa extends EntidadJpaBase {
     }
 
     public UsuarioJpa(UUID id, UUID cuentaId, String cognitoSub, String email, String nombre,
-            String telefono, boolean activo) {
+            String apellido, String telefono, boolean activo) {
         this.id = id;
         this.cuentaId = cuentaId;
-        actualizarDesde(cognitoSub, email, nombre, telefono, activo);
+        actualizarDesde(cognitoSub, email, nombre, apellido, telefono, activo);
     }
 
     public final void actualizarDesde(String cognitoSub, String email, String nombre,
-            String telefono, boolean activo) {
+            String apellido, String telefono, boolean activo) {
         this.cognitoSub = cognitoSub;
         this.email = email;
         this.nombre = nombre;
+        this.apellido = apellido;
         this.telefono = telefono;
         this.activo = activo;
     }
@@ -64,6 +69,10 @@ public class UsuarioJpa extends EntidadJpaBase {
 
     public String getNombre() {
         return nombre;
+    }
+
+    public String getApellido() {
+        return apellido;
     }
 
     public String getTelefono() {

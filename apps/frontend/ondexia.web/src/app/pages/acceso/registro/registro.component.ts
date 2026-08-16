@@ -82,6 +82,7 @@ export class RegistroComponent implements OnInit {
 
   formulario = this.constructorFormulario.nonNullable.group({
     nombreTitular: [this.sesion.usuario()?.nombre ?? '', [Validators.required]],
+    apellidoTitular: ['', [Validators.required]],
     ruc: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]],
     razonSocial: ['', [Validators.required]],
     domicilioFiscal: ['', [Validators.required]],
@@ -111,6 +112,7 @@ export class RegistroComponent implements OnInit {
           domicilioFiscal: valores.domicilioFiscal,
           ubigeo: valores.ubigeo || null,
           nombreTitular: valores.nombreTitular,
+          apellidoTitular: valores.apellidoTitular,
           // El token de ACCESO de Cognito no lleva el correo —eso vive en el de
           // identidad, que el SPA sí tiene— así que se envía. El backend lo usa
           // solo para mostrar: la identidad con la que se opera es el `sub`.

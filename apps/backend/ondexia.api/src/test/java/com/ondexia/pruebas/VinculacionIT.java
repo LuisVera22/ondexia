@@ -66,7 +66,7 @@ class VinculacionIT extends PruebaIntegracion {
         ContextoDePrueba.comoUsuarioDe(
                 UUID.fromString(USUARIO_DEMO), CUENTA, UUID.fromString(EMPRESA_ADMINISTRADA));
         var miembro = usuarios.invitar(
-                email, "Persona Invitada",
+                email, "Persona", "Invitada",
                 roles.buscarPredefinido("VENDEDOR").orElseThrow().id(),
                 SUCURSAL_MATRIZ);
         ContextoDePrueba.limpiar();

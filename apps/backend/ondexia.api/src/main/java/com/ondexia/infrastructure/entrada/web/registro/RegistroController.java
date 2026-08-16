@@ -166,7 +166,8 @@ public class RegistroController {
                         peticion.razonSocial(),
                         peticion.domicilioFiscal(),
                         peticion.ubigeo(),
-                        peticion.nombreTitular()));
+                        peticion.nombreTitular(),
+                        peticion.apellidoTitular()));
 
         return new RespuestaRegistro(cuentaId);
     }
@@ -195,6 +196,10 @@ public class RegistroController {
             @NotBlank(message = "Falta tu nombre.")
             @Size(max = 150)
             String nombreTitular,
+
+            @NotBlank(message = "Falta tu apellido.")
+            @Size(max = 150)
+            String apellidoTitular,
 
             /**
              * Solo se usa si el token no trae la reclamación {@code email}, que

@@ -78,11 +78,27 @@
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
         <h2 class="mb-5 text-lg font-semibold text-gray-800 dark:text-white/90">Datos personales</h2>
 
+        @if (faltaPartirElNombre()) {
+        <!--
+          Solo para las cuentas creadas antes de que el apellido existiera. Su
+          nombre completo está entero en el primer campo y hay que repartirlo a
+          mano: hacerlo por código partiendo por el espacio daría «María» y «del
+          Carmen Rojas», que es peor que pedirlo.
+        -->
+        <div
+          class="mb-5 rounded-lg border border-warning-500/30 bg-warning-500/10 px-4 py-3 text-sm text-warning-600 dark:text-warning-400"
+          role="status"
+        >
+          Tu cuenta se creó antes de que separáramos nombre y apellidos, así que
+          los tienes juntos en el primer campo. Repártelos y guarda.
+        </div>
+        }
+
         <form [formGroup]="formulario" (ngSubmit)="guardar()" novalidate class="space-y-5">
           <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <div>
               <label for="nombre" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                Nombre <span class="text-error-500">*</span>
+                Nombres <span class="text-error-500">*</span>
               </label>
               <input
                 id="nombre"
@@ -99,6 +115,24 @@
               <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
                 Como apareces en el sistema y en la bitácora.
               </p>
+              }
+            </div>
+
+            <div>
+              <label for="apellido" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Apellidos <span class="text-error-500">*</span>
+              </label>
+              <input
+                id="apellido"
+                type="text"
+                formControlName="apellido"
+                autocomplete="family-name"
+                maxlength="150"
+                class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90 dark:placeholder:text-white/30"
+                [class]="controles.apellido.touched && controles.apellido.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+              />
+              @if (controles.apellido.touched && controles.apellido.invalid) {
+              <p class="mt-1.5 text-xs text-error-500">El apellido es obligatorio.</p>
               }
             </div>
 
