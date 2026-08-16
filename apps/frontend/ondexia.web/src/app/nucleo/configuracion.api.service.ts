@@ -202,10 +202,34 @@ export class ConfiguracionApiService {
     return `${this.config.api}/api/v1/configuracion`;
   }
 
+  /** Las empresas que alcanza el usuario, para el listado. */
+  empresas(): Promise<Empresa[]> {
+    return firstValueFrom(this.http.get<Empresa[]>(`${this.base}/empresas`));
+  }
+
+  /**
+   * Ficha de una empresa cualquiera de las suyas, sea o no la activa.
+   *
+   * Es lo que permite abrir una fila del listado sin cambiar de empresa de
+   * trabajo. El servidor comprueba que el id esté entre las asignaciones del
+   * usuario y responde 403 si no lo está.
+   */
+  empresaPorId(id: string): Promise<Empresa> {
+    return firstValueFrom(this.http.get<Empresa>(`${this.base}/empresas/${id}`));
+  }
+
   empresa(): Promise<Empresa> {
     return firstValueFrom(this.http.get<Empresa>(`${this.base}/empresa`));
   }
 
+  /**
+   * Guarda **la empresa activa**, y por eso no recibe id.
+   *
+   * No es una limitación del cliente: no existe `PUT /empresas/{id}`. La
+   * bitácora archiva cada cambio bajo la empresa activa, así que editar otra
+   * dejaría el rastro en el historial equivocado. La ficha de una empresa que
+   * no es la activa se muestra en solo lectura por este motivo.
+   */
   guardarEmpresa(datos: DatosEmpresa): Promise<Empresa> {
     return firstValueFrom(this.http.put<Empresa>(`${this.base}/empresa`, datos));
   }

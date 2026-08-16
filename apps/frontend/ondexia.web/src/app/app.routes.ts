@@ -10,6 +10,7 @@ import { NoEncontradoComponent } from './pages/no-encontrado/no-encontrado.compo
 import { IngresarComponent } from './pages/acceso/ingresar/ingresar.component';
 import { RecuperarComponent } from './pages/acceso/recuperar/recuperar.component';
 import { SinPermisosComponent } from './pages/acceso/sin-permisos/sin-permisos.component';
+import { EmpresasComponent } from './pages/configuracion/empresas/empresas.component';
 import { EmpresaComponent } from './pages/configuracion/empresa/empresa.component';
 import { IdentidadComponent } from './pages/configuracion/identidad/identidad.component';
 import { EstablecimientosComponent } from './pages/configuracion/establecimientos/establecimientos.component';
@@ -165,7 +166,12 @@ export const routes: Routes = [
       { path: 'ventas/comprobantes/:id', component: DetalleComprobanteComponent, title: `Detalle de comprobante | ${TITULO}` },
 
       // ── Configuración ────────────────────────────────────────────────────
-      { path: 'configuracion/empresa', component: EmpresaComponent, title: `Datos de la empresa | ${TITULO}` },
+      // La ruta en singular era el formulario de la empresa activa. Se mantiene
+      // como redirección porque está enlazada desde el menú de usuario de
+      // cualquier pestaña abierta y en los marcadores de quien ya la usaba.
+      { path: 'configuracion/empresa', redirectTo: 'configuracion/empresas', pathMatch: 'full' },
+      { path: 'configuracion/empresas', component: EmpresasComponent, title: `Empresas | ${TITULO}` },
+      { path: 'configuracion/empresas/:id', component: EmpresaComponent, title: `Datos de la empresa | ${TITULO}` },
       { path: 'configuracion/identidad', component: IdentidadComponent, title: `Identidad visual | ${TITULO}` },
       { path: 'configuracion/establecimientos', component: EstablecimientosComponent, title: `Establecimientos | ${TITULO}` },
       { path: 'configuracion/series', component: SeriesComponent, title: `Series y correlativos | ${TITULO}` },

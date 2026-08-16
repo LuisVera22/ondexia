@@ -3,14 +3,13 @@ package com.ondexia.application.configuracion;
 import com.ondexia.domain.auditoria.RegistroDeAuditoria;
 import com.ondexia.domain.comun.ProveedorDeContexto;
 import com.ondexia.domain.comun.Ubigeo;
-import com.ondexia.domain.comun.error.RecursoNoEncontrado;
 import com.ondexia.domain.identidad.Empresa;
 import com.ondexia.domain.identidad.EmpresaRepositorio;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Cambia los datos fiscales de la empresa activa.
+ * Cambia los datos fiscales de una empresa del usuario.
  *
  * <h2>El RUC no se toca</h2>
  *
@@ -28,17 +27,36 @@ import org.springframework.transaction.annotation.Transactional;
 public class ActualizarEmpresa {
 
     private final EmpresaRepositorio empresas;
+    private final EmpresasDelUsuario empresasDelUsuario;
     private final RegistroDeAuditoria auditoria;
     private final ProveedorDeContexto contexto;
 
-    public ActualizarEmpresa(EmpresaRepositorio empresas, RegistroDeAuditoria auditoria,
-            ProveedorDeContexto contexto) {
+    public ActualizarEmpresa(EmpresaRepositorio empresas, EmpresasDelUsuario empresasDelUsuario,
+            RegistroDeAuditoria auditoria, ProveedorDeContexto contexto) {
         this.empresas = empresas;
+        this.empresasDelUsuario = empresasDelUsuario;
         this.auditoria = auditoria;
         this.contexto = contexto;
     }
 
     /**
+     * Siempre sobre la empresa activa, aunque el listado deje abrir cualquiera.
+     *
+     * <h2>Por qué no hay una variante que reciba el id</h2>
+     *
+     * <p>Sería fácil de escribir —{@link EmpresasDelUsuario} ya comprueba el
+     * acceso— y quedaría mal. La bitácora archiva cada anotación bajo la
+     * <em>empresa activa</em>, no bajo la entidad tocada
+     * ({@code RegistroDeAuditoriaJpa}), y la política de aislamiento de
+     * {@code auditoria} solo admite ese valor. Editar la empresa B mientras la
+     * activa es A dejaría el rastro del cambio en la bitácora de A: no falla
+     * nada, y el historial de B queda incompleto para siempre.
+     *
+     * <p>Arreglarlo de verdad es cambiar el modelo de auditoría y su política
+     * RLS. Mientras tanto la ficha de una empresa que no es la activa se sirve
+     * en solo lectura, y editarla exige pasar a trabajar en ella — que es
+     * exactamente la condición que esta clase necesita.
+     *
      * @param ubigeo puede ser {@code null}: es opcional mientras no haya
      *               integración con SUNAT, que es quien lo exige
      */
@@ -46,10 +64,7 @@ public class ActualizarEmpresa {
     public Empresa ejecutar(String razonSocial, String nombreComercial, String domicilioFiscal,
             String ubigeo) {
         var empresaId = contexto.obligatorio().empresaActivaObligatoria();
-
-        var empresa = empresas.buscarPorId(empresaId)
-                .orElseThrow(() -> RecursoNoEncontrado.con(
-                        "empresa_no_encontrada", "La empresa activa ya no existe."));
+        var empresa = empresasDelUsuario.exigirAcceso(empresaId);
 
         // Se copia el estado ANTES de mutar. La auditoría necesita las dos
         // caras, y el agregado es mutable: leerlo después daría dos veces lo

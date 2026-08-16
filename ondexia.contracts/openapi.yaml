@@ -784,6 +784,47 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/RespuestaLogo"
+  /api/v1/configuracion/empresas:
+    get:
+      tags:
+      - Empresa
+      summary: Empresas que alcanza el usuario
+      description: "Las de la cuenta a las que tiene asignación, que son las mismas\
+        \ que ofrece el selector de contexto. No las de la cuenta entera: dos usuarios\
+        \ de la misma cuenta pueden alcanzar empresas distintas."
+      operationId: listar_5
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaEmpresa"
+  /api/v1/configuracion/empresas/{id}:
+    get:
+      tags:
+      - Empresa
+      summary: Datos de una empresa del usuario
+      description: "Responde 403 si el id no es de una empresa que el usuario alcance,\
+        \ y 404 si no existe. Ninguno de los dos mensajes distingue «no es tuya» de\
+        \ «no existe» más de lo imprescindible."
+      operationId: consultar_4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaEmpresa"
   /api/v1/configuracion/comprobantes:
     get:
       tags:
@@ -791,7 +832,7 @@ paths:
       summary: Los cinco tipos del catálogo 01 con su estado
       description: "Vienen todos, habilitados y deshabilitados: la pantalla es un\
         \ panel de interruptores, no una lista de los activos."
-      operationId: listar_5
+      operationId: listar_6
       responses:
         "200":
           description: OK

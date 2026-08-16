@@ -31,6 +31,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 class ConfiguracionEmpresaIT extends PruebaIntegracion {
 
     private static final String EMPRESA = "/api/v1/configuracion/empresa";
+    private static final String EMPRESAS = "/api/v1/configuracion/empresas";
     private static final String ESTABLECIMIENTOS = "/api/v1/configuracion/establecimientos";
 
     @Autowired
@@ -166,6 +167,48 @@ class ConfiguracionEmpresaIT extends PruebaIntegracion {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"razonSocial\":\"OTRA\",\"domicilioFiscal\":\"Av. Dos\"}"))
                 .andExpect(status().isForbidden());
+    }
+
+    // ── Listado y ficha de empresas ────────────────────────────────────────
+
+    @Test
+    @DisplayName("El listado trae las dos empresas del usuario, no solo la activa")
+    void elListadoTraeLasEmpresasDelUsuario() throws Exception {
+        mockMvc.perform(get(EMPRESAS)
+                        .header("Authorization", autorizacionDemo())
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[?(@.ruc == '20100000009')]").exists())
+                .andExpect(jsonPath("$[?(@.ruc == '20100000017')]").exists());
+    }
+
+    @Test
+    @DisplayName("La ficha de otra empresa del usuario se lee sin cambiar la activa")
+    void laFichaDeOtraEmpresaDelUsuarioSeLee() throws Exception {
+        // Es el motivo de que exista el endpoint. La empresa activa sigue siendo
+        // la administrada —la cabecera no cambia— y aun así se leen los datos de
+        // la segunda. Sin esto, el listado no podría abrir ninguna ficha salvo
+        // la de la empresa en la que ya se está trabajando.
+        mockMvc.perform(get(EMPRESAS + "/" + EMPRESA_COMO_VENDEDOR)
+                        .header("Authorization", autorizacionDemo())
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ruc").value("20100000017"))
+                .andExpect(jsonPath("$.razonSocial").value("DISTRIBUIDORA DEMO E.I.R.L."));
+    }
+
+    @Test
+    @DisplayName("Una empresa que no es del usuario responde 403, no sus datos")
+    void unaEmpresaAjenaNoSeLee() throws Exception {
+        // El id no está entre las asignaciones del usuario, así que la
+        // comprobación corta antes de tocar el repositorio. Importa que sea 403
+        // y no 404: el 404 confirmaría, por descarte, qué UUID sí existen.
+        mockMvc.perform(get(EMPRESAS + "/" + UUID.randomUUID())
+                        .header("Authorization", autorizacionDemo())
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("acceso_denegado"));
     }
 
     // ── Establecimientos ───────────────────────────────────────────────────

@@ -146,7 +146,7 @@ export class MenuLateralComponent {
           icono: ICONO.configuracion,
           nombre: 'Configuración',
           submenu: [
-            { nombre: 'Empresa', ruta: '/configuracion/empresa', permiso: 'configuracion.empresa' },
+            { nombre: 'Empresas', ruta: '/configuracion/empresas', permiso: 'configuracion.empresa' },
             { nombre: 'Identidad visual', ruta: '/configuracion/identidad', permiso: 'configuracion.identidad' },
             // `sucursal` en la base, «Establecimientos» en pantalla: es el
             // termino de SUNAT. El codigo NO se deduce del nombre.
