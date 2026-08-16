@@ -1230,6 +1230,16 @@ components:
           format: uuid
         sucursalNombre:
           type: string
+    EstablecimientoResumen:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        codigo:
+          type: string
+        nombre:
+          type: string
     RespuestaContexto:
       type: object
       properties:
@@ -1243,6 +1253,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EmpresaResumen"
+        establecimientos:
+          type: array
+          items:
+            $ref: "#/components/schemas/EstablecimientoResumen"
         permisos:
           type: array
           items:

@@ -110,6 +110,48 @@ class ContextoIT extends PruebaIntegracion {
     }
 
     @Test
+    @DisplayName("Los establecimientos del contexto son los que el usuario alcanza")
+    void losEstablecimientosSonLosQueElUsuarioAlcanza() throws Exception {
+        // Es lo que alimenta el selector de la barra superior, y hasta que estuvo
+        // aqui no habia forma de construirlo: la respuesta traia la ASIGNACION
+        // del usuario —«todas» o «solo esta»— y de «todas» no se deduce cuales.
+        // El resultado era el contrario del correcto: quien alcanzaba todos los
+        // establecimientos se quedaba sin selector.
+
+        // Administrador sin sucursal asignada: alcanza las de la empresa, no solo
+        // una. No se afirma un numero exacto porque otras pruebas de la suite dan
+        // de alta establecimientos en esta misma empresa —el contenedor y los
+        // datos son unicos para toda la ejecucion—, y un recuento exacto fallaria
+        // segun el orden en que corran, que es justo lo que una prueba no debe
+        // hacer.
+        mockMvc.perform(get("/api/v1/contexto")
+                        .header(HttpHeaders.AUTHORIZATION, autorizacionDemo())
+                        .header(ContextoInterceptor.CABECERA_EMPRESA, EMPRESA_ADMINISTRADA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.establecimientos[*].codigo",
+                        Matchers.hasItems("0000", "0001")));
+
+        // Vendedor acotado a una: solo esa, aunque la empresa tuviera mas. El
+        // recorte lo hace el servidor; si se dejara al frontend, bastaria con
+        // abrir las herramientas del navegador para emitir desde otro local.
+        mockMvc.perform(get("/api/v1/contexto")
+                        .header(HttpHeaders.AUTHORIZATION, autorizacionDemo())
+                        .header(ContextoInterceptor.CABECERA_EMPRESA, EMPRESA_COMO_VENDEDOR))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.establecimientos.length()").value(1))
+                .andExpect(jsonPath("$.establecimientos[0].nombre").value("Principal"));
+    }
+
+    @Test
+    @DisplayName("Sin empresa activa no hay establecimientos que ofrecer")
+    void sinEmpresaActivaNoHayEstablecimientos() throws Exception {
+        mockMvc.perform(get("/api/v1/contexto")
+                        .header(HttpHeaders.AUTHORIZATION, autorizacionDemo()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.establecimientos.length()").value(0));
+    }
+
+    @Test
     @DisplayName("Pedir una empresa que no es tuya se rechaza")
     void empresaAjenaDevuelve403() throws Exception {
         // Es el control que impide lo peor que puede pasar en este sistema: la

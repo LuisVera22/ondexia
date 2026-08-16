@@ -56,6 +56,7 @@ public class ContextoController {
             CuentaResumen cuenta,
             EmpresaResumen empresaActiva,
             List<EmpresaResumen> empresas,
+            List<EstablecimientoResumen> establecimientos,
             List<String> permisos) {
 
         static RespuestaContexto desde(ContextoResuelto resuelto) {
@@ -74,6 +75,9 @@ public class ContextoController {
                             resuelto.estadoSuscripcion(), resuelto.soloLectura()),
                     activa,
                     empresas,
+                    resuelto.establecimientos().stream()
+                            .map(EstablecimientoResumen::desde)
+                            .toList(),
                     // Ordenados para que la respuesta sea estable entre llamadas.
                     // Un conjunto sin orden hace que el cuerpo cambie sin que
                     // cambie nada, y eso arruina el cacheado y el diagnostico.
@@ -129,6 +133,28 @@ public class ContextoController {
                     asignacion.rolNombre(),
                     asignacion.sucursalId(),
                     asignacion.sucursalNombre());
+        }
+    }
+
+    /**
+     * Un establecimiento entre los que el usuario puede elegir.
+     *
+     * <p>Lleva el {@code codigo} y no solo el nombre porque es el dato con
+     * efecto tributario: son los cuatro dígitos que asigna SUNAT y que prefijan
+     * la serie del comprobante. El frontend lo necesita para mostrar la serie
+     * que corresponde al establecimiento activo; deducirlo del nombre sería
+     * inventarse un dato fiscal.
+     *
+     * @param codigo cuatro dígitos. El de la casa matriz es {@code 0000}
+     */
+    public record EstablecimientoResumen(
+            java.util.UUID id,
+            String codigo,
+            String nombre) {
+
+        static EstablecimientoResumen desde(com.ondexia.domain.identidad.Sucursal sucursal) {
+            return new EstablecimientoResumen(
+                    sucursal.id(), sucursal.codigo(), sucursal.nombre());
         }
     }
 }
