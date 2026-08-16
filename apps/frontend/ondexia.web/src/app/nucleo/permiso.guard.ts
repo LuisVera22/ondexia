@@ -26,7 +26,16 @@ import { ContextoService } from '../shared/services/contexto.service';
  * es el peor modo de fallar que existe. Deduciéndolo de la URL, una ruta nueva
  * bajo {@code almacen/} nace protegida sin que haya que hacer nada.
  */
-const MODULOS = new Set(['almacen', 'compras', 'ventas', 'configuracion']);
+/**
+ * Los primeros segmentos de URL que son un módulo.
+ *
+ * <p>Se exporta porque el menú lateral filtra con la misma regla. Si cada uno
+ * tuviera su lista, el día que se añada un módulo se actualizaría una y no la
+ * otra: o el menú ofrece una entrada que la guarda rechaza, o la guarda protege
+ * algo que el menú ya no enseña. Las dos formas de desincronizarse son
+ * confusas, y ninguna da error.
+ */
+export const MODULOS = new Set(['almacen', 'compras', 'ventas', 'configuracion']);
 
 export const permisoGuard: CanActivateFn = async (_ruta, estado) => {
   const contexto = inject(ContextoService);

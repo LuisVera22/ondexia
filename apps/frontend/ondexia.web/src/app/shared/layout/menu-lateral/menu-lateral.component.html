@@ -17,7 +17,7 @@
   </div>
 
   <nav class="flex flex-col gap-6 overflow-y-auto pb-6 sin-barra">
-    @for (grupo of grupos; track grupo.titulo) {
+    @for (grupo of grupos(); track grupo.titulo) {
     <div>
       <h2
         class="mb-4 flex text-menudo uppercase leading-5 text-gray-400 dark:text-gray-500"
