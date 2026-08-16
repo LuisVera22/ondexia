@@ -25,9 +25,17 @@ import org.springframework.transaction.annotation.Transactional;
  * <h2>El alta no crea la cuenta de acceso, y eso se nota</h2>
  *
  * <p>Aquí se crea la fila {@code usuario} y su asignación; la identidad la crea
- * la propia persona registrándose en Cognito, y se vincula sola en su primer
- * ingreso. Mientras eso no ocurra, {@code cognito_sub} es nulo y la pantalla
- * muestra «invitado» en vez de «activo».
+ * la propia persona registrándose en Cognito, y la engancha
+ * {@code VincularInvitacion} cuando llega. Mientras eso no ocurra,
+ * {@code cognito_sub} es nulo y la pantalla muestra «invitado» en vez de
+ * «activo».
+ *
+ * <p>Ese enganche no existió durante un tiempo, aunque este párrafo ya lo daba
+ * por hecho: la fila se creaba, la persona se registraba, y como nadie
+ * relacionaba su {@code sub} nuevo con este correo, terminaba en el formulario
+ * de empresa nueva creándose una segunda cuenta. Vale la pena recordarlo — una
+ * invitación que no se puede aceptar no da ningún error, solo un cliente
+ * confundido.
  *
  * <p>No es una simplificación: la Lambda no tiene salida a internet (DTE §4.8) y
  * llamar a la API de Cognito exigiría un endpoint de interfaz a ~7.30 USD/mes,

@@ -468,6 +468,23 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaRegistro"
+  /api/v1/registro/vinculo:
+    post:
+      tags:
+      - Registro
+      summary: Vincula la identidad recién creada con una invitación pendiente
+      description: "Exige el token de IDENTIDAD de Cognito (token_use=id) con el correo\
+        \ verificado: el correo decide en qué empresa entra la persona, así que tiene\
+        \ que venir firmado por Cognito y no del cuerpo de la petición. Responde 404\
+        \ si no hay ninguna invitación para ese correo."
+      operationId: vincular
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaRegistro"
   /api/v1/configuracion/usuarios:
     get:
       tags:
