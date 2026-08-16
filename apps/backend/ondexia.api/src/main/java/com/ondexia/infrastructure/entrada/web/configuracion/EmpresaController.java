@@ -22,6 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
  * <p>No hay {@code POST}: las empresas se dan de alta desde la administración de
  * la cuenta, que es otra cosa —afecta a la suscripción y a lo que se factura— y
  * no la gobierna un permiso de configuración.
+ *
+ * <p>El listado y la ficha de las <em>demás</em> empresas del usuario están en
+ * {@link EmpresasController}, y son de solo lectura. Escribir sigue estando
+ * aquí, sobre la activa, porque es la única empresa bajo la que la bitácora
+ * puede archivar el cambio.
  */
 @RestController
 @RequestMapping("/api/v1/configuracion/empresa")
