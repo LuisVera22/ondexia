@@ -255,6 +255,51 @@ Con esto, el cimiento de C1 está completo.
 > interfaz a ~7.30 USD/mes — más caro que la NAT que se evitó. El backend crea la
 > fila `usuario` sin `cognito_sub`; se vincula en el primer acceso.
 
+#### El «se vincula en el primer acceso» que no vinculaba nada
+
+Esa frase estuvo escrita —aquí y en tres javadoc— durante toda la Entrega 4 sin
+que existiera el código que la cumpliera. `ResolverContexto` solo buscaba por
+`cognito_sub`, y nadie buscaba nunca por correo para rellenarlo.
+
+El efecto, visto en producción: se da de alta a alguien, se registra en Cognito,
+`/contexto` responde `usuario_no_registrado` y el SPA lo lleva al formulario de
+empresa nueva. La persona invitada rellena un RUC, **se crea una segunda cuenta
+con su propia suscripción**, y la invitación se queda colgada para siempre. No
+hay ningún error en ningún log: se reporta como «no me aparece la empresa».
+
+Vale la pena anotarlo porque el modo de fallar se repite: una invitación que no
+se puede aceptar no rompe nada, solo confunde a un cliente.
+
+**Lo que lo cierra:** `POST /api/v1/registro/vinculo` (`VincularInvitacion`).
+Busca invitaciones pendientes por correo, y si hay exactamente una, la engancha
+al `sub` del token. El SPA lo llama antes de pintar el formulario, que es la
+única puerta a esa pantalla.
+
+**De dónde sale el correo, y por qué no del cuerpo.** Este es el único endpoint
+del sistema que decide en qué empresa entra alguien a partir de su correo.
+`RegistrarCuenta` sí lo acepta del cuerpo y ahí es inofensivo —la identidad con
+la que se opera es el `sub`, y quien mienta solo se engaña a sí mismo—; aquí
+sería una toma de cuenta completa: cualquiera se registra con un correo suyo,
+envía el ajeno y entra en la empresa de otro con el rol de esa invitación.
+
+Como el token de **acceso** de Cognito no lleva `email`, este endpoint —y solo
+este— exige el de **identidad**, que lo lleva junto a `email_verified` y firmado.
+La pasarela valida los dos por igual (el `aud` de un token de identidad es el
+identificador del cliente, que es justo lo que comprueba el autorizador), pero no
+distingue cuál es cuál: la comprobación de `token_use=id` y `email_verified=true`
+vive en el controlador. Sin la segunda, darse de alta declarando el correo de
+otra persona bastaría para reclamar su invitación.
+
+Se descartaron dos alternativas: el disparador *pre-token-generation* V2 de
+Cognito, que añadiría `email` al token de acceso pero exige el nivel Essentials
+del pool (coste mensual) y otra Lambda; y un código de invitación de un solo uso,
+que es el flujo definitivo cuando exista SES pero hoy habría que pasar a mano.
+
+**Lo que queda sin resolver a propósito:** si dos cuentas invitan al mismo correo
+—`email` es único por cuenta, no en la instalación— se responde 409 y lo arregla
+un humano. Elegir por la persona la metería en la empresa equivocada sin que
+nadie se entere.
+
 ---
 
 ### Entrega 5 · Roles a medida · **M** — **ENTREGADA**

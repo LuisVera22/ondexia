@@ -75,6 +75,13 @@ public final class AdaptadoresIdentidad {
         }
 
         @Override
+        public List<Usuario> buscarInvitacionesPendientes(String email) {
+            return filas.findByEmailIgnoreCaseAndCognitoSubIsNull(email).stream()
+                    .map(MapeadoresIdentidad::aDominio)
+                    .toList();
+        }
+
+        @Override
         @Transactional
         public Usuario guardar(Usuario usuario) {
             return MapeadoresIdentidad.aDominio(filas.save(MapeadoresIdentidad.aFila(usuario)));

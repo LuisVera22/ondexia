@@ -1,4 +1,18 @@
 <app-marco-acceso>
+  @if (comprobando()) {
+  <!--
+    Mientras se comprueba si a esta persona la invitaron. Dura una llamada, pero
+    sin este bloque se vería el formulario de empresa nueva y desaparecería —
+    justo lo que no debe ver quien viene invitado.
+  -->
+  <div class="flex w-full max-w-md flex-col items-center gap-4 text-center">
+    <svg class="h-6 w-6 animate-spin text-brand-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25" />
+      <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+    </svg>
+    <p class="text-sm text-gray-500 dark:text-gray-400">Comprobando tu acceso…</p>
+  </div>
+  } @else {
   <div class="w-full max-w-md">
     <div class="mb-8 flex flex-col items-center text-center">
       <img src="/images/logo/logo-icon.svg" alt="" width="48" height="48" class="mb-5" />
@@ -147,4 +161,5 @@
       </button>
     </p>
   </div>
+  }
 </app-marco-acceso>

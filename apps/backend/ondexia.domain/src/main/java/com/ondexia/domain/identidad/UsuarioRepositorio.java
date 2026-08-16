@@ -1,5 +1,6 @@
 package com.ondexia.domain.identidad;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,6 +34,23 @@ public interface UsuarioRepositorio {
     Optional<Usuario> buscarPorCognitoSub(String cognitoSub);
 
     Optional<Usuario> buscarPorEmailEnCuenta(UUID cuentaId, String email);
+
+    /**
+     * Las invitaciones pendientes de un correo: filas sin {@code cognito_sub}.
+     *
+     * <p>Es la única búsqueda del sistema que <strong>cruza cuentas</strong>, y
+     * lo hace a propósito: quien acaba de registrarse en Cognito todavía no
+     * pertenece a ninguna, así que no hay cuenta por la que filtrar. Justo por
+     * eso devuelve una lista y no un {@code Optional} — el correo es único
+     * dentro de cada cuenta, pero nada impide que dos cuentas distintas hayan
+     * invitado a la misma persona. Esconder esa ambigüedad detrás de un «el
+     * primero que salga» metería a alguien en la empresa equivocada.
+     *
+     * <p>Solo devuelve las no vinculadas. Una fila con {@code cognito_sub} ya
+     * puesto es de otra persona que usa ese correo, y reclamarla sería
+     * apropiarse de su historial.
+     */
+    List<Usuario> buscarInvitacionesPendientes(String email);
 
     Usuario guardar(Usuario usuario);
 }
