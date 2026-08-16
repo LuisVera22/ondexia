@@ -14,6 +14,7 @@ import { ContextoService } from '../shared/services/contexto.service';
  */
 describe('permisoGuard', () => {
   let permisos: string[];
+  let cargas: number;
 
   function correr(url: string): Promise<boolean | UrlTree> {
     return TestBed.runInInjectionContext(
@@ -26,13 +27,17 @@ describe('permisoGuard', () => {
 
   beforeEach(() => {
     permisos = ['almacen:acceder', 'ventas:acceder'];
+    cargas = 0;
 
     // `permisos` se lee dentro de la funcion, no se copia: cada prueba puede
     // reasignarlo antes de correr la guarda sin rehacer el modulo de prueba
     // —configurarlo dos veces revienta una vez instanciado—.
     const contexto = {
       puede: (permiso: string) => permisos.includes(permiso),
-      asegurarCargado: () => Promise.resolve(),
+      asegurarCargado: () => {
+        cargas += 1;
+        return Promise.resolve();
+      },
     };
 
     TestBed.configureTestingModule({
@@ -67,5 +72,20 @@ describe('permisoGuard', () => {
 
   it('los parametros de la URL no confunden al modulo', async () => {
     await expectAsync(correr('/almacen/productos?pagina=2')).toBeResolvedTo(true);
+  });
+
+  it('carga el contexto tambien fuera de los modulos', async () => {
+    /*
+     * ContextoService.cargar() solo se llama al registrarse y al volver de
+     * Cognito. Quien recarga con la sesion guardada no pasa por ninguno de los
+     * dos, y sin esta llamada se quedaba con los permisos vacios: el menu
+     * aparecia sin ningun modulo, como si estuvieran todos apagados.
+     *
+     * Se comprueba sobre «/» a proposito, que es la ruta que sale antes por el
+     * atajo de «esto no es un modulo».
+     */
+    await correr('/');
+
+    expect(cargas).toBe(1);
   });
 });

@@ -41,6 +41,25 @@ export const permisoGuard: CanActivateFn = async (_ruta, estado) => {
   const contexto = inject(ContextoService);
   const router = inject(Router);
 
+  /*
+   * Antes de mirar la ruta, y no solo para las de módulo.
+   *
+   * `ContextoService.cargar()` solo se invoca al terminar el registro y al
+   * volver de Cognito, o sea: UNA vez, justo despues de iniciar sesion. Quien
+   * recarga la pagina con la sesion ya guardada no pasa por ninguno de los dos
+   * sitios, asi que el contexto se queda vacio para siempre.
+   *
+   * Mientras el menu fue una lista fija eso no se notaba. Al hacerlo depender
+   * de los permisos, una simple recarga dejaba la barra lateral sin ningun
+   * modulo: no es que estuvieran apagados, es que nadie habia preguntado.
+   *
+   * Se hace aqui porque esta guarda corre en CADA navegacion —lo garantiza
+   * runGuardsAndResolvers: 'always'— y porque tiene que ocurrir antes de que se
+   * construya cualquier pantalla. Cargar desde el marco de la aplicacion
+   * llegaria tarde: las guardas deciden primero.
+   */
+  await contexto.asegurarCargado();
+
   const primerSegmento = estado.url.split(/[?#]/)[0].split('/').filter(Boolean)[0];
 
   // El escritorio, el perfil y cualquier cosa que no sea un módulo pasan. Pedir
@@ -49,16 +68,6 @@ export const permisoGuard: CanActivateFn = async (_ruta, estado) => {
   if (!primerSegmento || !MODULOS.has(primerSegmento)) {
     return true;
   }
-
-  /*
-   * Sin esto, la PRIMERA navegación se rechaza siempre.
-   *
-   * El contexto lo carga el marco de la aplicación, que se construye despues de
-   * que las guardas decidan. Consultar los permisos aqui sin esperar devuelve
-   * una lista vacia, y entrar por un enlace directo a /almacen/productos —o
-   * recargar estando ahi— acabaria en el escritorio sin explicacion.
-   */
-  await contexto.asegurarCargado();
 
   if (contexto.puede(`${primerSegmento}:acceder`)) {
     return true;
