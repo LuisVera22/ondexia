@@ -10,7 +10,29 @@ export interface EntradaMenu {
   icono: string;
   /** Ruta directa, para entradas sin submenú. */
   ruta?: string;
-  submenu?: { nombre: string; ruta: string }[];
+  submenu?: EntradaSubmenu[];
+}
+
+export interface EntradaSubmenu {
+  nombre: string;
+  ruta: string;
+
+  /**
+   * El submódulo al que pertenece, SIN la acción: {@code almacen.guia_remision}.
+   *
+   * <p>Va escrito y no deducido de la ruta a propósito. No hay regla que lleve
+   * de {@code /almacen/guias-remision} a {@code almacen.guia_remision}, y
+   * {@code /configuracion/establecimientos} corresponde a
+   * {@code configuracion.sucursal} —«establecimiento» es el término de SUNAT y
+   * «sucursal» el de la base—. Cualquier conversión automática acertaría en
+   * casi todas y fallaría en silencio en las demás.
+   *
+   * <p>Ausente significa <strong>siempre visible</strong>, y hay entradas que no
+   * tienen submódulo en la tabla {@code permiso}. Se muestra por omisión porque
+   * el error contrario —esconder una pantalla porque alguien olvidó anotarla—
+   * es el que nadie detecta.
+   */
+  permiso?: string;
 }
 
 export interface GrupoMenu {
@@ -68,43 +90,51 @@ export class MenuLateralComponent {
           icono: ICONO.almacen,
           nombre: 'Almacén',
           submenu: [
-            { nombre: 'Productos', ruta: '/almacen/productos' },
-            { nombre: 'Presentaciones', ruta: '/almacen/presentaciones' },
+            { nombre: 'Productos', ruta: '/almacen/productos', permiso: 'almacen.producto' },
+            { nombre: 'Presentaciones', ruta: '/almacen/presentaciones', permiso: 'almacen.presentacion' },
+            // Sin submódulo propio en la tabla `permiso`: es una vista de
+            // existencias, pero mapearla a almacen.stock seria suponerlo.
             { nombre: 'Productos por agotarse', ruta: '/almacen/por-agotarse' },
-            { nombre: 'Guías de remisión', ruta: '/almacen/guias-remision' },
-            { nombre: 'Guías de ingreso', ruta: '/almacen/guias-ingreso' },
-            { nombre: 'Tipos de precio', ruta: '/almacen/tipos-precio' },
-            { nombre: 'Marcas', ruta: '/almacen/marcas' },
-            { nombre: 'Modelos', ruta: '/almacen/modelos' },
+            { nombre: 'Guías de remisión', ruta: '/almacen/guias-remision', permiso: 'almacen.guia_remision' },
+            { nombre: 'Guías de ingreso', ruta: '/almacen/guias-ingreso', permiso: 'almacen.guia_ingreso' },
+            { nombre: 'Tipos de precio', ruta: '/almacen/tipos-precio', permiso: 'almacen.tipo_precio' },
+            { nombre: 'Marcas', ruta: '/almacen/marcas', permiso: 'almacen.marca' },
+            { nombre: 'Modelos', ruta: '/almacen/modelos', permiso: 'almacen.modelo' },
+            // Sin submódulo propio.
             { nombre: 'Unidades', ruta: '/almacen/unidades' },
-            { nombre: 'Almacenes', ruta: '/almacen/almacenes' },
+            { nombre: 'Almacenes', ruta: '/almacen/almacenes', permiso: 'almacen.almacen' },
           ],
         },
         {
           icono: ICONO.compras,
           nombre: 'Compras',
           submenu: [
-            { nombre: 'Facturas', ruta: '/compras/facturas' },
-            { nombre: 'Notas de pedido', ruta: '/compras/notas-pedido' },
-            { nombre: 'Liquidación de compra', ruta: '/compras/liquidaciones' },
-            { nombre: 'Notas de compra', ruta: '/compras/notas-compra' },
-            { nombre: 'Órdenes de compra', ruta: '/compras/ordenes-compra' },
-            { nombre: 'Órdenes de servicio', ruta: '/compras/ordenes-servicio' },
-            { nombre: 'Proveedores', ruta: '/compras/proveedores' },
+            { nombre: 'Facturas', ruta: '/compras/facturas', permiso: 'compras.factura_compra' },
+            { nombre: 'Notas de pedido', ruta: '/compras/notas-pedido', permiso: 'compras.nota_pedido' },
+            { nombre: 'Liquidación de compra', ruta: '/compras/liquidaciones', permiso: 'compras.liquidacion' },
+            { nombre: 'Notas de compra', ruta: '/compras/notas-compra', permiso: 'compras.nota_compra' },
+            { nombre: 'Órdenes de compra', ruta: '/compras/ordenes-compra', permiso: 'compras.orden_compra' },
+            { nombre: 'Órdenes de servicio', ruta: '/compras/ordenes-servicio', permiso: 'compras.orden_servicio' },
+            { nombre: 'Proveedores', ruta: '/compras/proveedores', permiso: 'compras.proveedor' },
           ],
         },
         {
           icono: ICONO.ventas,
           nombre: 'Ventas',
           submenu: [
-            { nombre: 'Clientes', ruta: '/ventas/clientes' },
-            { nombre: 'Cotizaciones', ruta: '/ventas/cotizaciones' },
-            { nombre: 'Facturas', ruta: '/ventas/facturas' },
-            { nombre: 'Boletas', ruta: '/ventas/boletas' },
-            { nombre: 'Notas de crédito', ruta: '/ventas/notas-credito' },
-            { nombre: 'Notas de preventa', ruta: '/ventas/preventas' },
+            { nombre: 'Clientes', ruta: '/ventas/clientes', permiso: 'ventas.cliente' },
+            { nombre: 'Cotizaciones', ruta: '/ventas/cotizaciones', permiso: 'ventas.cotizacion' },
+            // Facturas y boletas son el mismo submódulo: `ventas.comprobante`.
+            // La tabla no las separa, y separarlas aqui sugeriria que se pueden
+            // contratar por separado, que no es cierto.
+            { nombre: 'Facturas', ruta: '/ventas/facturas', permiso: 'ventas.comprobante' },
+            { nombre: 'Boletas', ruta: '/ventas/boletas', permiso: 'ventas.comprobante' },
+            { nombre: 'Notas de crédito', ruta: '/ventas/notas-credito', permiso: 'ventas.nota_credito' },
+            { nombre: 'Notas de preventa', ruta: '/ventas/preventas', permiso: 'ventas.nota_preventa' },
+            // Sin submódulo propio.
             { nombre: 'Comunicación de baja', ruta: '/ventas/comunicacion-baja' },
-            { nombre: 'Resumen diario', ruta: '/ventas/resumen-diario' },
+            { nombre: 'Resumen diario', ruta: '/ventas/resumen-diario', permiso: 'ventas.resumen_diario' },
+            // Sin submódulo propio.
             { nombre: 'Formas de pago', ruta: '/ventas/formas-pago' },
           ],
         },
@@ -117,13 +147,17 @@ export class MenuLateralComponent {
           icono: ICONO.configuracion,
           nombre: 'Configuración',
           submenu: [
-            { nombre: 'Empresa', ruta: '/configuracion/empresa' },
-            { nombre: 'Identidad visual', ruta: '/configuracion/identidad' },
-            { nombre: 'Establecimientos', ruta: '/configuracion/establecimientos' },
-            { nombre: 'Series y correlativos', ruta: '/configuracion/series' },
-            { nombre: 'Usuarios', ruta: '/configuracion/usuarios' },
-            { nombre: 'Roles y permisos', ruta: '/configuracion/roles' },
-            { nombre: 'Comprobantes', ruta: '/configuracion/comprobantes' },
+            { nombre: 'Empresa', ruta: '/configuracion/empresa', permiso: 'configuracion.empresa' },
+            { nombre: 'Identidad visual', ruta: '/configuracion/identidad', permiso: 'configuracion.identidad' },
+            // `sucursal` en la base, «Establecimientos» en pantalla: es el
+            // termino de SUNAT. El codigo NO se deduce del nombre.
+            { nombre: 'Establecimientos', ruta: '/configuracion/establecimientos', permiso: 'configuracion.sucursal' },
+            { nombre: 'Series y correlativos', ruta: '/configuracion/series', permiso: 'configuracion.serie' },
+            { nombre: 'Usuarios', ruta: '/configuracion/usuarios', permiso: 'configuracion.usuario' },
+            { nombre: 'Roles y permisos', ruta: '/configuracion/roles', permiso: 'configuracion.rol' },
+            { nombre: 'Comprobantes', ruta: '/configuracion/comprobantes', permiso: 'configuracion.comprobante' },
+            // Sin submódulo: la suscripcion es de la CUENTA y la gobierna su
+            // administrador, no un permiso de empresa.
             { nombre: 'Suscripción', ruta: '/configuracion/suscripcion' },
           ],
         },
@@ -149,21 +183,52 @@ export class MenuLateralComponent {
    * salte la guarda editando su navegador topa con la API, que recorta los
    * permisos en cada petición. Esto solo evita ofrecer una puerta cerrada.
    *
-   * <h2>Lo que todavía no filtra</h2>
+   * <h2>Dos niveles, dos criterios</h2>
    *
-   * <p>Los submenús se muestran enteros mientras el módulo esté contratado. La
-   * ruta de un submódulo no permite deducir su permiso —{@code
-   * almacen/guias-remision} corresponde a {@code almacen.guia_remision}, y
-   * ninguna regla mecánica lleva de una a otro—, así que hace falta que cada
-   * entrada lleve su código escrito. Queda pendiente y anotado: mientras tanto
-   * la guarda solo cubre el nivel de módulo, no el de submódulo.
+   * <p>El módulo sale de la ruta. El submódulo va escrito en cada entrada,
+   * porque de la ruta no se deduce — ver {@link EntradaSubmenu#permiso}.
+   *
+   * <p>Una entrada cuyo submenú se queda vacío desaparece, y un grupo sin
+   * entradas también: un módulo desplegable que no despliega nada, o un título
+   * de sección sobre un hueco, se leen como que algo se rompió.
+   *
+   * <h2>El guardián sigue cubriendo solo el módulo</h2>
+   *
+   * <p>Esconder la entrada de un submódulo apagado no impide llegar escribiendo
+   * la URL: eso lo para la API, que responde 403. Cerrar también esa puerta
+   * exige que {@code permisoGuard} conozca este mismo mapa, y entonces conviene
+   * que deje de vivir en un componente de presentación.
    */
   readonly grupos = computed(() =>
     this.TODOS.map((grupo) => ({
       ...grupo,
-      entradas: grupo.entradas.filter((entrada) => this.alcanzable(entrada)),
+      entradas: grupo.entradas
+        .map((entrada) => this.recortar(entrada))
+        .filter((entrada): entrada is EntradaMenu => entrada !== null),
     })).filter((grupo) => grupo.entradas.length > 0)
   );
+
+  /** El menú sin filtrar. Solo para que la prueba compruebe los códigos. */
+  get todosParaPruebas(): GrupoMenu[] {
+    return this.TODOS;
+  }
+
+  /** La entrada sin lo que no se alcanza, o {@code null} si no queda nada. */
+  private recortar(entrada: EntradaMenu): EntradaMenu | null {
+    if (!this.alcanzable(entrada)) {
+      return null;
+    }
+
+    if (!entrada.submenu) {
+      return entrada;
+    }
+
+    const submenu = entrada.submenu.filter(
+      (sub) => !sub.permiso || this.contexto.puede(`${sub.permiso}:acceder`)
+    );
+
+    return submenu.length > 0 ? { ...entrada, submenu } : null;
+  }
 
   private alcanzable(entrada: EntradaMenu): boolean {
     const ruta = entrada.ruta ?? entrada.submenu?.[0]?.ruta;
