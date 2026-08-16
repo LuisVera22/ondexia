@@ -33,6 +33,8 @@ tags:
   description: Ubicaciones físicas de las existencias
 - name: Establecimientos
   description: Anexos de la empresa ante SUNAT
+- name: Perfil
+  description: Los datos que cada persona edita de sí misma
 - name: Identidad visual
   description: Logos de la empresa
 - name: Roles
@@ -44,6 +46,40 @@ tags:
 - name: Series
   description: Series de comprobante y su correlativo
 paths:
+  /api/v1/perfil:
+    get:
+      tags:
+      - Perfil
+      summary: Mis datos
+      operationId: ver
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/DatosDePerfil"
+    put:
+      tags:
+      - Perfil
+      summary: Actualiza mi nombre y mi teléfono
+      description: "El correo no se puede cambiar: es la credencial de Cognito, y\
+        \ cambiarlo aquí dejaría la fila apuntando a un buzón con el que ya no se\
+        \ puede entrar. La contraseña tampoco pasa por la API — vive en Cognito."
+      operationId: actualizar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionPerfil"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/DatosDePerfil"
   /api/v1/configuracion/usuarios/{asignacionId}:
     put:
       tags:
@@ -302,7 +338,7 @@ paths:
       - Establecimientos
       summary: Actualiza un establecimiento
       description: "El código no se puede cambiar: identifica al anexo ante SUNAT."
-      operationId: actualizar
+      operationId: actualizar_1
       parameters:
       - name: id
         in: path
@@ -360,7 +396,7 @@ paths:
       description: "El RUC no se puede cambiar y por eso no está en el cuerpo. Cambiarlo\
         \ no es corregir un dato: es decir que los comprobantes ya emitidos pertenecen\
         \ a otro contribuyente."
-      operationId: actualizar_1
+      operationId: actualizar_2
       requestBody:
         content:
           application/json:
@@ -408,7 +444,7 @@ paths:
       summary: Actualiza un almacén
       description: "El código no cambia: identifica al almacén en los movimientos\
         \ ya registrados."
-      operationId: actualizar_2
+      operationId: actualizar_3
       parameters:
       - name: id
         in: path
@@ -861,6 +897,28 @@ paths:
                   $ref: "#/components/schemas/RespuestaTipo"
 components:
   schemas:
+    PeticionPerfil:
+      required:
+      - nombre
+      type: object
+      properties:
+        nombre:
+          maxLength: 150
+          minLength: 0
+          type: string
+        telefono:
+          maxLength: 30
+          minLength: 0
+          type: string
+    DatosDePerfil:
+      type: object
+      properties:
+        nombre:
+          type: string
+        email:
+          type: string
+        telefono:
+          type: string
     PeticionReasignacion:
       required:
       - rolId

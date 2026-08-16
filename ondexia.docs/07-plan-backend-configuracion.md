@@ -444,6 +444,56 @@ hablaba con él en vez de con el contenedor. Testcontainers publica en un puerto
 libre al azar, así que la suite pasaba en verde mientras la aplicación local no
 arrancaba. El contenedor pasó a publicar en **5433**.
 
+## 5.ter Mi perfil — lo que cada persona edita de sí misma
+
+`GET`/`PUT /api/v1/perfil`. La pantalla existía como maqueta: nombres,
+apellidos, correo, teléfono y tres campos de contraseña, todos literales en el
+componente y ninguno conectado a nada.
+
+Al conectarla, tres de esos campos resultaron no poder existir tal cual:
+
+- **Nombres + apellidos → un solo nombre.** El modelo guarda un `nombre` y el
+  alta de usuarios pide uno. Partirlo exigiría migración y dejaría las dos
+  pantallas contradiciéndose.
+- **La contraseña no pasa por la API, y no es una fase pendiente.** No la
+  guardamos, no la vemos y no la queremos. El bloque lleva al flujo alojado de
+  Cognito, que es quien sabe si el correo existe, manda el código y valida la
+  nueva. Sustituir tres campos muertos por tres que sí enviaran habría sido
+  peor que dejarlos muertos.
+- **El último acceso se quitó.** No se guarda en ninguna parte. Registrarlo
+  sería una escritura por petición sobre `usuario` —el peor sitio para eso, que
+  se lee en cada llamada— y mostrarlo sin guardarlo es inventar un dato.
+
+**El correo se pinta y no se edita.** Es la credencial con la que se entra a
+Cognito: cambiarlo en nuestra fila dejaría al usuario apuntando a un buzón con
+el que ya no puede iniciar sesión, y se vería el cambio guardado y el acceso
+roto, en ese orden. Cambiarlo de verdad es cambiarlo en Cognito, que exige
+verificar el nuevo — y eso no lo puede hacer una Lambda sin salida a internet.
+
+**El teléfono es nuevo en el modelo** (V10). Va en `usuario` y no en `empresa`:
+el de la empresa es el que sale en los comprobantes y ya vive en su ficha. Es
+opcional, sin `CHECK` de formato —conviven el móvil de nueve dígitos, el fijo con
+área, el internacional y los anexos— y **no lo rellena ningún administrador**.
+Escribir el teléfono de otra persona en su ficha produce un dato que nadie
+mantiene y en el que todos confían. Por eso el alta de usuarios no lo pide.
+
+Queda anotado en la migración porque la tentación llegará: **el teléfono no
+autentica**. El día que alguien quiera «recuperar la cuenta por SMS», eso es un
+cambio de modelo de amenazas, no un uso más de esta columna.
+
+**Sin `@RequierePermiso` y sin empresa activa.** No hay permiso que exigir para
+editar lo propio, y crear uno —`perfil:editar`— significaría que un
+administrador puede quitártelo y dejarte sin poder corregir tu nombre. Lo que
+protege el endpoint es que el usuario sale del contexto y no de un parámetro: no
+hay forma de nombrar a otro. Y no exige empresa activa porque quien tiene varias
+cae en el escritorio sin haber elegido ninguna y desde ahí puede entrar a Mi
+perfil; exigirla lo dejaría fuera justo a él. Por lo mismo **no escribe en la
+bitácora**: `auditoria` tiene RLS por empresa y la fila se rechazaría para ese
+subconjunto de usuarios — el peor reparto posible de un fallo.
+
+7 pruebas, incluida una de aislamiento que hoy es imposible de fallar. Está para
+ponerse roja el día que alguien añada un `id` al endpoint «por comodidad».
+
 ## 6. Qué queda después
 
 Terminado este módulo, lo que falta para C1 es: producto (mínimo), cliente,

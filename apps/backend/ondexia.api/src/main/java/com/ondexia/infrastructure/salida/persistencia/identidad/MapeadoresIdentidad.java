@@ -86,12 +86,12 @@ final class MapeadoresIdentidad {
 
     static Usuario aDominio(UsuarioJpa fila) {
         return new Usuario(fila.getId(), fila.getCuentaId(), fila.getCognitoSub(), fila.getEmail(),
-                fila.getNombre(), fila.isActivo());
+                fila.getNombre(), fila.getTelefono(), fila.isActivo());
     }
 
     static UsuarioJpa aFila(Usuario usuario) {
         return new UsuarioJpa(usuario.id(), usuario.cuentaId(), usuario.cognitoSub(),
-                usuario.email(), usuario.nombre(), usuario.estaActivo());
+                usuario.email(), usuario.nombre(), usuario.telefono(), usuario.estaActivo());
     }
 
     // ── Asignación ─────────────────────────────────────────────────────────

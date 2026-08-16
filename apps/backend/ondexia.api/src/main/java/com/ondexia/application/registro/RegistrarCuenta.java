@@ -126,6 +126,10 @@ public class RegistrarCuenta {
                 cognitoSub,
                 email,
                 datos.nombreTitular(),
+                // El teléfono no se pide en el alta: son cinco campos para poder
+                // empezar, y uno más que no bloquea nada es uno menos que se
+                // rellena. Se añade desde Mi perfil.
+                null,
                 true));
 
         // Quien registra es administrador de su cuenta: gobierna la suscripción

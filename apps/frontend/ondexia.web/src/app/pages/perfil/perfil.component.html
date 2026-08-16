@@ -1,170 +1,183 @@
 <div>
   <app-encabezado-pagina titulo="Mi perfil" />
 
+  @if (error()) {
+  <div
+    class="mb-5 rounded-lg border border-error-500/30 bg-error-500/10 px-4 py-3 text-sm text-error-500"
+    role="alert"
+  >
+    {{ error() }}
+  </div>
+  }
+
+  @if (cargando()) {
+  <div class="rounded-2xl border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+    <p class="text-sm text-gray-500 dark:text-gray-400">Cargando tus datos…</p>
+  </div>
+  } @else {
   <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
-    <!-- Identidad y permisos -->
+    <!-- Identidad y permisos. Todo de aquí es de solo lectura: lo define el
+         administrador de la cuenta, y editarlo sería darse permisos a uno mismo. -->
     <div class="lg:col-span-1">
       <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
         <div class="mb-5 flex items-center gap-4">
           <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-500 text-lg font-semibold text-white">
-            {{ iniciales }}
+            {{ iniciales() }}
           </span>
           <div class="min-w-0">
-            <p class="truncate font-medium text-gray-800 dark:text-white/90">
-              {{ formularioDatos.getRawValue().nombres }}
-              {{ formularioDatos.getRawValue().apellidos }}
-            </p>
-            <p class="truncate text-sm text-gray-500 dark:text-gray-400">
-              {{ formularioDatos.getRawValue().correo }}
-            </p>
+            <p class="truncate font-medium text-gray-800 dark:text-white/90">{{ nombreGuardado() }}</p>
+            <p class="truncate text-sm text-gray-500 dark:text-gray-400">{{ correo() }}</p>
           </div>
         </div>
 
         <dl class="space-y-4 border-t border-gray-200 pt-5 text-sm dark:border-gray-800">
+          @if (rolActivo()) {
           <div>
-            <dt class="text-gray-500 dark:text-gray-400">Rol</dt>
-            <dd class="mt-0.5 text-gray-800 dark:text-white/90">{{ rol }}</dd>
+            <dt class="text-gray-500 dark:text-gray-400">Rol en la empresa activa</dt>
+            <dd class="mt-0.5 text-gray-800 dark:text-white/90">{{ rolActivo() }}</dd>
           </div>
+          }
+
+          @if (administraLaCuenta()) {
+          <!-- Administrar la cuenta no es un rol de la matriz de permisos: gobierna
+               la suscripción y el alta de empresas. Se dice aparte a propósito. -->
           <div>
-            <dt class="text-gray-500 dark:text-gray-400">Empresas asignadas</dt>
-            <dd class="mt-1 space-y-1">
-              @for (empresa of empresasAsignadas; track empresa) {
-              <span class="block text-gray-800 dark:text-white/90">{{ empresa }}</span>
-              }
+            <dt class="text-gray-500 dark:text-gray-400">Cuenta</dt>
+            <dd class="mt-0.5 text-gray-800 dark:text-white/90">
+              Administras la suscripción y el alta de empresas.
             </dd>
           </div>
+          }
+
           <div>
-            <dt class="text-gray-500 dark:text-gray-400">Último acceso</dt>
-            <dd class="mt-0.5 text-gray-800 dark:text-white/90">{{ ultimoAcceso }}</dd>
+            <dt class="text-gray-500 dark:text-gray-400">Empresas asignadas</dt>
+            <dd class="mt-1 space-y-2">
+              @for (empresa of empresas(); track empresa.id) {
+              <span class="block">
+                <span class="block text-gray-800 dark:text-white/90">{{ empresa.nombre }}</span>
+                <span class="block text-xs text-gray-500 dark:text-gray-400">
+                  {{ empresa.rol }}@if (empresa.establecimiento) { · {{ empresa.establecimiento }} }
+                </span>
+              </span>
+              } @empty {
+              <span class="block text-gray-500 dark:text-gray-400">Ninguna todavía.</span>
+              }
+            </dd>
           </div>
         </dl>
 
         <p class="mt-5 border-t border-gray-200 pt-4 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
           El rol y las empresas asignadas los define el administrador de la
-          cuenta. Si necesita acceso a otra empresa, solicítelo.
+          cuenta. Si necesitas acceso a otra empresa, solicítalo.
         </p>
       </div>
     </div>
 
-    <!-- Datos y seguridad -->
     <div class="space-y-5 lg:col-span-2">
       <!-- Datos personales -->
-      <form [formGroup]="formularioDatos" (ngSubmit)="guardarDatos()" novalidate
-        class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] xl:p-6">
-        <h3 class="mb-5 font-medium text-gray-800 dark:text-white/90">Datos personales</h3>
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <h2 class="mb-5 text-lg font-semibold text-gray-800 dark:text-white/90">Datos personales</h2>
 
-        @if (datosGuardados) {
-        <div class="mb-5 rounded-lg border border-success-200 bg-success-50 p-3 dark:border-success-500/30 dark:bg-success-500/10">
-          <p class="text-sm text-success-700 dark:text-success-400">Sus datos se actualizaron.</p>
-        </div>
-        }
+        <form [formGroup]="formulario" (ngSubmit)="guardar()" novalidate class="space-y-5">
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div>
+              <label for="nombre" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Nombre <span class="text-error-500">*</span>
+              </label>
+              <input
+                id="nombre"
+                type="text"
+                formControlName="nombre"
+                autocomplete="name"
+                maxlength="150"
+                class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90 dark:placeholder:text-white/30"
+                [class]="controles.nombre.touched && controles.nombre.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+              />
+              @if (controles.nombre.touched && controles.nombre.invalid) {
+              <p class="mt-1.5 text-xs text-error-500">El nombre es obligatorio.</p>
+              } @else {
+              <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                Como apareces en el sistema y en la bitácora.
+              </p>
+              }
+            </div>
 
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div>
-            <label for="nombres" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Nombres <span class="text-error-500">*</span>
-            </label>
-            <input id="nombres" type="text" formControlName="nombres"
-              class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
-          </div>
-
-          <div>
-            <label for="apellidos" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Apellidos <span class="text-error-500">*</span>
-            </label>
-            <input id="apellidos" type="text" formControlName="apellidos"
-              class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+            <div>
+              <label for="telefono" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Teléfono
+              </label>
+              <input
+                id="telefono"
+                type="tel"
+                formControlName="telefono"
+                autocomplete="tel"
+                maxlength="30"
+                placeholder="987 654 321"
+                class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90 dark:placeholder:text-white/30"
+              />
+              <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                Opcional, para que podamos localizarte. No sirve para entrar.
+              </p>
+            </div>
           </div>
 
           <div>
             <label for="correo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
               Correo electrónico
             </label>
-            <input id="correo" type="email" formControlName="correo"
-              class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-500 disabled:cursor-not-allowed disabled:bg-gray-50 dark:border-gray-700 dark:disabled:bg-white/[0.03]" />
+            <!-- Deshabilitado y fuera del formulario: es la credencial de Cognito.
+                 Cambiarlo aquí dejaría la fila apuntando a un buzón con el que ya
+                 no se puede iniciar sesión. -->
+            <input
+              id="correo"
+              type="email"
+              [value]="correo()"
+              disabled
+              class="h-11 w-full rounded-lg border border-gray-300 bg-gray-50 px-4 text-sm text-gray-500 shadow-apoyo dark:border-gray-700 dark:bg-white/[0.02] dark:text-gray-400"
+            />
             <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-              Es su credencial de acceso. Para cambiarlo, solicítelo al administrador.
+              Es tu credencial de acceso, así que no se cambia desde aquí.
             </p>
           </div>
 
-          <div>
-            <label for="telefono" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Teléfono</label>
-            <input id="telefono" type="tel" formControlName="telefono"
-              class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+          <div class="flex items-center justify-end gap-4">
+            @if (guardado()) {
+            <p class="text-sm text-success-500" role="status">Cambios guardados.</p>
+            }
+            <button
+              type="submit"
+              [disabled]="guardando()"
+              class="flex h-11 items-center justify-center rounded-lg bg-brand-500 px-5 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
+            >
+              {{ guardando() ? 'Guardando…' : 'Guardar cambios' }}
+            </button>
           </div>
-        </div>
-
-        <div class="mt-6 flex justify-end">
-          <button type="submit"
-            class="rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600">
-            Guardar cambios
-          </button>
-        </div>
-      </form>
+        </form>
+      </div>
 
       <!-- Contraseña -->
-      <form [formGroup]="formularioContrasena" (ngSubmit)="cambiarContrasena()" novalidate
-        class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] xl:p-6">
-        <h3 class="mb-1 font-medium text-gray-800 dark:text-white/90">Contraseña</h3>
-        <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
-          Al cambiarla se cerrarán las demás sesiones activas.
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <h2 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">Contraseña</h2>
+        <!--
+          Aquí había tres campos que no enviaban nada. No se sustituyen por tres
+          que sí envíen: la contraseña no pasa por nuestro servidor ni debe. Quien
+          sabe si el correo existe, manda el código y valida la nueva es Cognito.
+        -->
+        <p class="mb-5 max-w-prose text-sm text-gray-500 dark:text-gray-400">
+          Tu contraseña la guarda y la comprueba nuestro proveedor de acceso, no
+          Ondexia: aquí no se ve ni se puede cambiar. Al pulsar el botón te
+          llevamos a su pantalla, que te enviará un código a
+          <span class="font-medium text-gray-700 dark:text-gray-300">{{ correo() }}</span>.
         </p>
-
-        @if (contrasenaGuardada) {
-        <div class="mb-5 rounded-lg border border-success-200 bg-success-50 p-3 dark:border-success-500/30 dark:bg-success-500/10">
-          <p class="text-sm text-success-700 dark:text-success-400">Su contraseña se actualizó.</p>
-        </div>
-        }
-
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <div class="sm:col-span-2">
-            <label for="actual" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Contraseña actual <span class="text-error-500">*</span>
-            </label>
-            <input id="actual" type="password" formControlName="actual" autocomplete="current-password"
-              class="h-11 w-full max-w-sm rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
-          </div>
-
-          <div>
-            <label for="nueva" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Nueva contraseña <span class="text-error-500">*</span>
-            </label>
-            <input id="nueva" [type]="contrasenaVisible ? 'text' : 'password'" formControlName="nueva" autocomplete="new-password"
-              class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 focus:outline-hidden focus:ring-3 dark:text-white/90"
-              [class]="controlesContrasena.nueva.touched && controlesContrasena.nueva.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'" />
-            @if (controlesContrasena.nueva.touched && controlesContrasena.nueva.hasError('minlength')) {
-            <p class="mt-1.5 text-xs text-error-500">Debe tener al menos 8 caracteres.</p>
-            }
-          </div>
-
-          <div>
-            <label for="confirmacion" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Repetir contraseña <span class="text-error-500">*</span>
-            </label>
-            <input id="confirmacion" [type]="contrasenaVisible ? 'text' : 'password'" formControlName="confirmacion" autocomplete="new-password"
-              class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 focus:outline-hidden focus:ring-3 dark:text-white/90"
-              [class]="noCoinciden ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'" />
-            @if (noCoinciden) {
-            <p class="mt-1.5 text-xs text-error-500">Las contraseñas no coinciden.</p>
-            }
-          </div>
-
-          <div class="sm:col-span-2">
-            <label class="flex cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-400">
-              <input type="checkbox" [(ngModel)]="contrasenaVisible" [ngModelOptions]="{ standalone: true }"
-                class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800" />
-              Mostrar contraseñas
-            </label>
-          </div>
-        </div>
-
-        <div class="mt-6 flex justify-end">
-          <button type="submit"
-            class="rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600">
-            Cambiar contraseña
-          </button>
-        </div>
-      </form>
+        <button
+          type="button"
+          (click)="cambiarContrasena()"
+          class="flex h-11 items-center justify-center rounded-lg border border-gray-300 px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+        >
+          Cambiar mi contraseña
+        </button>
+      </div>
     </div>
   </div>
+  }
 </div>
