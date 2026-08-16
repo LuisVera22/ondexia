@@ -1,6 +1,8 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
+import { MODULOS } from '../../../nucleo/permiso.guard';
 import { MenuLateralService } from '../../services/menu-lateral.service';
+import { ContextoService } from '../../services/contexto.service';
 import { HtmlSeguroPipe } from '../../pipe/html-seguro.pipe';
 
 export interface EntradaMenu {
@@ -51,12 +53,13 @@ const ICONO = {
 })
 export class MenuLateralComponent {
   readonly menu = inject(MenuLateralService);
+  private readonly contexto = inject(ContextoService);
   private readonly router = inject(Router);
 
   /** Nombre del grupo desplegado, o `null` si están todos cerrados. */
   readonly abierto = signal<string | null>(null);
 
-  readonly grupos: GrupoMenu[] = [
+  private readonly TODOS: GrupoMenu[] = [
     {
       titulo: 'Operación',
       entradas: [
@@ -128,6 +131,48 @@ export class MenuLateralComponent {
       ],
     },
   ];
+
+  /**
+   * El menú, sin lo que esta cuenta no tiene contratado.
+   *
+   * <h2>El módulo sale de la ruta, igual que en la guarda</h2>
+   *
+   * <p>El primer segmento de {@code ruta} es el código del módulo, así que una
+   * entrada nueva se filtra sola. Es a propósito la misma regla que aplica
+   * {@code permisoGuard}: si el menú y la guarda dedujeran el módulo de formas
+   * distintas, tarde o temprano una entrada visible llevaría a una redirección,
+   * que es justo lo que esto viene a evitar.
+   *
+   * <h2>Esconder no es proteger</h2>
+   *
+   * <p>Quien escriba la URL a mano sigue topándose con la guarda, y quien se
+   * salte la guarda editando su navegador topa con la API, que recorta los
+   * permisos en cada petición. Esto solo evita ofrecer una puerta cerrada.
+   *
+   * <h2>Lo que todavía no filtra</h2>
+   *
+   * <p>Los submenús se muestran enteros mientras el módulo esté contratado. La
+   * ruta de un submódulo no permite deducir su permiso —{@code
+   * almacen/guias-remision} corresponde a {@code almacen.guia_remision}, y
+   * ninguna regla mecánica lleva de una a otro—, así que hace falta que cada
+   * entrada lleve su código escrito. Queda pendiente y anotado: mientras tanto
+   * la guarda solo cubre el nivel de módulo, no el de submódulo.
+   */
+  readonly grupos = computed(() =>
+    this.TODOS.map((grupo) => ({
+      ...grupo,
+      entradas: grupo.entradas.filter((entrada) => this.alcanzable(entrada)),
+    })).filter((grupo) => grupo.entradas.length > 0)
+  );
+
+  private alcanzable(entrada: EntradaMenu): boolean {
+    const ruta = entrada.ruta ?? entrada.submenu?.[0]?.ruta;
+    const modulo = ruta?.split('/').filter(Boolean)[0];
+
+    // Sin ruta reconocible, o ruta que no es de un módulo —el panel, el
+    // perfil—, se muestra: no hay permiso que consultar.
+    return !modulo || !MODULOS.has(modulo) || this.contexto.puede(`${modulo}:acceder`);
+  }
 
   /** Las etiquetas solo se leen si el menú está a su ancho completo. */
   get muestraTexto(): boolean {
