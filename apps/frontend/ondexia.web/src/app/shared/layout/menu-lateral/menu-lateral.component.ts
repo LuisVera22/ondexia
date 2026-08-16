@@ -53,7 +53,6 @@ const ICONO = {
   compras: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 3.5h1.6a1 1 0 0 1 .98.8L5.4 7m0 0 1.85 7.4a2 2 0 0 0 1.94 1.52h7.24a2 2 0 0 0 1.94-1.5L20.1 8.25A1 1 0 0 0 19.13 7H5.4Z"/><circle cx="9.5" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>`,
   ventas: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M6 2.5h12a1 1 0 0 1 1 1v18l-2.6-1.7-2.6 1.7-2.6-1.7-2.6 1.7L5 21.5v-18a1 1 0 0 1 1-1Z"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/></svg>`,
   configuracion: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="3"/><path d="M19.14 12.94a1.5 1.5 0 0 1 0-1.88l1.2-1.5-1.74-3-1.83.62a1.5 1.5 0 0 1-1.63-.94L14.5 4.4h-5l-.64 1.84a1.5 1.5 0 0 1-1.63.94l-1.83-.62-1.74 3 1.2 1.5a1.5 1.5 0 0 1 0 1.88l-1.2 1.5 1.74 3 1.83-.62a1.5 1.5 0 0 1 1.63.94l.64 1.84h5l.64-1.84a1.5 1.5 0 0 1 1.63-.94l1.83.62 1.74-3Z"/></svg>`,
-  componentes: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.5l4 2.5-4 2.5-4-2.5 4-2.5Z"/><path d="M12 16.5l4 2.5-4 2.5-4-2.5 4-2.5Z"/><path d="M5 9.5l4 2.5-4 2.5-4-2.5 4-2.5Z" transform="translate(-0.5 0)"/><path d="M19 9.5l4 2.5-4 2.5-4-2.5 4-2.5Z" transform="translate(-0.5 0)"/></svg>`,
 };
 
 /**
@@ -161,7 +160,6 @@ export class MenuLateralComponent {
             { nombre: 'Suscripción', ruta: '/configuracion/suscripcion' },
           ],
         },
-        { icono: ICONO.componentes, nombre: 'Componentes', ruta: '/componentes' },
       ],
     },
   ];
