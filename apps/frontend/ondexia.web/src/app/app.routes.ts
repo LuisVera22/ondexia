@@ -10,7 +10,6 @@ import { NoEncontradoComponent } from './pages/no-encontrado/no-encontrado.compo
 import { IngresarComponent } from './pages/acceso/ingresar/ingresar.component';
 import { RecuperarComponent } from './pages/acceso/recuperar/recuperar.component';
 import { SinPermisosComponent } from './pages/acceso/sin-permisos/sin-permisos.component';
-import { ComponentesComponent } from './pages/componentes/componentes.component';
 import { EmpresaComponent } from './pages/configuracion/empresa/empresa.component';
 import { IdentidadComponent } from './pages/configuracion/identidad/identidad.component';
 import { EstablecimientosComponent } from './pages/configuracion/establecimientos/establecimientos.component';
@@ -182,8 +181,6 @@ export const routes: Routes = [
         title: `Sin permisos | ${TITULO}`,
       },
 
-      // ── Referencia interna ───────────────────────────────────────────────
-      { path: 'componentes', component: ComponentesComponent, title: `Componentes | ${TITULO}` },
     ],
   },
 

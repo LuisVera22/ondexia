@@ -8,7 +8,6 @@ const MODULOS: Record<string, string> = {
   ventas: 'Ventas',
   configuracion: 'Configuración',
   perfil: 'Mi perfil',
-  componentes: 'Componentes',
 };
 
 /**
