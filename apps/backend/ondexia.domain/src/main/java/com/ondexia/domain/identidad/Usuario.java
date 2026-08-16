@@ -21,6 +21,7 @@ public class Usuario {
     private String cognitoSub;
     private String email;
     private String nombre;
+    private String telefono;
     private boolean activo;
 
     public Usuario(UUID id, UUID cuentaId, String email, String nombre) {
@@ -32,12 +33,13 @@ public class Usuario {
     }
 
     public Usuario(UUID id, UUID cuentaId, String cognitoSub, String email, String nombre,
-            boolean activo) {
+            String telefono, boolean activo) {
         this.id = id;
         this.cuentaId = cuentaId;
         this.cognitoSub = cognitoSub;
         this.email = email;
         this.nombre = nombre;
+        this.telefono = telefono;
         this.activo = activo;
     }
 
@@ -69,6 +71,14 @@ public class Usuario {
         return nombre;
     }
 
+    /**
+     * Contacto, no credencial. Opcional y sin formato impuesto: conviven el
+     * móvil de nueve dígitos, el fijo con área, el internacional y los anexos.
+     */
+    public String telefono() {
+        return telefono;
+    }
+
     public boolean estaActivo() {
         return activo;
     }
@@ -88,6 +98,22 @@ public class Usuario {
 
     public void renombrar(String nombre) {
         this.nombre = nombre;
+    }
+
+    /**
+     * Lo que cada persona edita de sí misma. No incluye el correo, y no es un
+     * olvido: el correo es la credencial con la que se entra a Cognito, así que
+     * cambiarlo aquí dejaría la fila apuntando a un buzón con el que ya no se
+     * puede iniciar sesión. Tampoco incluye rol ni empresas — los define el
+     * administrador de la cuenta.
+     *
+     * <p>El teléfono en blanco se guarda como nulo. Distinguir «vacío» de «sin
+     * dato» en una columna opcional solo produce dos formas de escribir lo
+     * mismo y consultas que se olvidan de una.
+     */
+    public void actualizarPerfil(String nombre, String telefono) {
+        this.nombre = nombre;
+        this.telefono = telefono == null || telefono.isBlank() ? null : telefono.trim();
     }
 
     /**

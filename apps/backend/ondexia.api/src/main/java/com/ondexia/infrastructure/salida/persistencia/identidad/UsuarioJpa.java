@@ -24,6 +24,10 @@ public class UsuarioJpa extends EntidadJpaBase {
     @Column(name = "nombre", nullable = false, length = 150)
     private String nombre;
 
+    /** Contacto de la persona, opcional. No autentica: eso es el cognito_sub. */
+    @Column(name = "telefono", length = 30)
+    private String telefono;
+
     @Column(name = "activo", nullable = false)
     private boolean activo;
 
@@ -31,17 +35,18 @@ public class UsuarioJpa extends EntidadJpaBase {
     }
 
     public UsuarioJpa(UUID id, UUID cuentaId, String cognitoSub, String email, String nombre,
-            boolean activo) {
+            String telefono, boolean activo) {
         this.id = id;
         this.cuentaId = cuentaId;
-        actualizarDesde(cognitoSub, email, nombre, activo);
+        actualizarDesde(cognitoSub, email, nombre, telefono, activo);
     }
 
     public final void actualizarDesde(String cognitoSub, String email, String nombre,
-            boolean activo) {
+            String telefono, boolean activo) {
         this.cognitoSub = cognitoSub;
         this.email = email;
         this.nombre = nombre;
+        this.telefono = telefono;
         this.activo = activo;
     }
 
@@ -59,6 +64,10 @@ public class UsuarioJpa extends EntidadJpaBase {
 
     public String getNombre() {
         return nombre;
+    }
+
+    public String getTelefono() {
+        return telefono;
     }
 
     public boolean isActivo() {
