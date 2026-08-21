@@ -1,8 +1,11 @@
 package com.ondexia.infrastructure.configuration;
 
 import java.util.List;
+import java.util.stream.Stream;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -51,10 +54,52 @@ public class SeguridadConfig {
         "/swagger-ui/**",
     };
 
-    private final PropiedadesCors propiedadesCors;
+    /**
+     * El emisor de tokens de desarrollo, abierto <strong>solo</strong> con el
+     * perfil {@code local}. Ver {@link #rutasPublicas()}.
+     */
+    private static final String RUTA_TOKEN_DESARROLLO = "/desarrollo/**";
 
-    public SeguridadConfig(PropiedadesCors propiedadesCors) {
+    private final PropiedadesCors propiedadesCors;
+    private final Environment entorno;
+
+    public SeguridadConfig(PropiedadesCors propiedadesCors, Environment entorno) {
         this.propiedadesCors = propiedadesCors;
+        this.entorno = entorno;
+    }
+
+    /**
+     * Las rutas abiertas, mas la de desarrollo si el perfil es {@code local}.
+     *
+     * <h2>Por que hace falta</h2>
+     *
+     * <p>Sin abrirla, el perfil {@code local} es inservible desde un navegador,
+     * y de una forma que cuesta atribuir: {@code SeguridadDesarrolloConfig}
+     * instala tambien su propio {@code JwtDecoder}, de modo que la API local
+     * <strong>solo</strong> acepta tokens firmados con su clave en memoria —los
+     * de Cognito no valen— y la unica ruta que emite uno exigia ya llevarlo.
+     * Para pedir el primer token hacia falta un token.
+     *
+     * <p>Paso inadvertido porque ninguna prueba tocaba el endpoint: las de
+     * integracion se sirven el {@code JwtEncoder} directamente, sin pasar por
+     * HTTP. Lo cubre ahora {@code TokenDesarrolloIT}.
+     *
+     * <h2>Por que se comprueba el perfil</h2>
+     *
+     * <p>{@code TokenDesarrolloController} ya lleva {@code @Profile("local")},
+     * asi que en {@code aws} la ruta no existe y responderia 404 igualmente.
+     * Pero una ruta abierta cuya seguridad depende de que una clase no este
+     * presente es una garantia mas debil de lo que conviene aqui: si alguien le
+     * quita el {@code @Profile}, el endpoint queda publico en produccion sin
+     * que nada en esta clase haya cambiado. Comprobando el perfil, el patron no
+     * llega a registrarse.
+     */
+    private String[] rutasPublicas() {
+        if (!entorno.acceptsProfiles(Profiles.of("local"))) {
+            return RUTAS_PUBLICAS;
+        }
+        return Stream.concat(Stream.of(RUTAS_PUBLICAS), Stream.of(RUTA_TOKEN_DESARROLLO))
+                .toArray(String[]::new);
     }
 
     /**
@@ -96,7 +141,7 @@ public class SeguridadConfig {
                         // Las peticiones de sondeo de CORS no llevan cabecera
                         // Authorization por definicion del navegador.
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers(RUTAS_PUBLICAS).permitAll()
+                        .requestMatchers(rutasPublicas()).permitAll()
                         // Denegar por defecto: cualquier ruta que no se haya
                         // nombrado arriba exige token. Anadir un endpoint no
                         // puede dejarlo abierto por olvido.
