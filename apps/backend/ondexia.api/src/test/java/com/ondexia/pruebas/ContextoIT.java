@@ -129,7 +129,13 @@ class ContextoIT extends PruebaIntegracion {
                         .header(ContextoInterceptor.CABECERA_EMPRESA, EMPRESA_ADMINISTRADA))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.establecimientos[*].codigo",
-                        Matchers.hasItems("0000", "0001")));
+                        Matchers.hasItems("0000", "0001")))
+                // La casa matriz primero. El frontend toma el primero como
+                // establecimiento activo mientras nadie elija otro, y eso decide
+                // la serie del comprobante: ordenados por nombre se entraba
+                // trabajando en «Miraflores» —el anexo 0001— en vez de en la
+                // matriz. Por codigo no depende de como se llame un local.
+                .andExpect(jsonPath("$.establecimientos[0].codigo").value("0000"));
 
         // Vendedor acotado a una: solo esa, aunque la empresa tuviera mas. El
         // recorte lo hace el servidor; si se dejara al frontend, bastaria con
