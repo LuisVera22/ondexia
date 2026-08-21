@@ -130,7 +130,24 @@ public class SeguridadConfig {
                 // correcto, y dejarlo activo obligaria a un token adicional que
                 // no protege de nada.
                 .csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults())
+                // La fuente se pasa explicitamente, y no con
+                // Customizer.withDefaults(). Aquello la busca por NOMBRE de bean
+                // —«corsConfigurationSource» o «corsFilter»—, y el metodo de
+                // abajo se llama de otra forma: Spring Security no encontraba
+                // ninguno, no instalaba el filtro y no se quejaba. El preflight
+                // respondia 200 sin una sola cabecera Access-Control-*, el
+                // navegador bloqueaba la peticion, y en el servidor no aparecia
+                // nada raro. En AWS pasa inadvertido porque API Gateway pone las
+                // suyas; se nota al servir el SPA contra la API local.
+                //
+                // Tampoco se inyecta por tipo: hay DOS beans que implementan
+                // CorsConfigurationSource —el de abajo y el
+                // mvcHandlerMappingIntrospector de Spring MVC—, asi que por tipo
+                // es ambiguo y el contexto no arranca. Que haya dos es
+                // precisamente el motivo de que Spring Security resuelva por
+                // nombre. Se pasa el metodo directamente: sin nombre magico, sin
+                // cualificador y sin ambiguedad. Lo cubre CorsIT.
+                .cors(cors -> cors.configurationSource(fuenteConfiguracionCors()))
 
                 // Sin sesion en servidor. Cada peticion se autentica sola. Es
                 // requisito de Lambda: no hay dos invocaciones que compartan
