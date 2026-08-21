@@ -1,5 +1,6 @@
 package com.ondexia.infrastructure.salida.persistencia.identidad;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,6 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioJpa, UUID> {
     Optional<UsuarioJpa> findByCognitoSub(String cognitoSub);
 
     Optional<UsuarioJpa> findByCuentaIdAndEmailIgnoreCase(UUID cuentaId, String email);
+
+    List<UsuarioJpa> findByEmailIgnoreCaseAndCognitoSubIsNull(String email);
 }

@@ -36,6 +36,10 @@ public class WebConfig implements WebMvcConfigurer {
         // sin fila en la base — resolver su contexto es imposible por
         // definicion, porque el contexto es justo lo que va a crear.
         "/api/v1/registro",
+        // La vinculacion de una invitacion, por lo mismo: quien llega aqui tiene
+        // token pero todavia no tiene `cognito_sub` en ninguna fila, que es
+        // justo lo que viene a rellenar.
+        "/api/v1/registro/vinculo",
     };
 
     private final ContextoInterceptor contextoInterceptor;

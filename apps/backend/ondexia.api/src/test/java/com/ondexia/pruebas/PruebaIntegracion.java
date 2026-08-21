@@ -185,6 +185,32 @@ public abstract class PruebaIntegracion {
         return emisorTokens.encode(JwtEncoderParameters.from(claims)).getTokenValue();
     }
 
+    /**
+     * Token de IDENTIDAD, el unico que lleva el correo firmado por Cognito.
+     *
+     * <p>Lo exige {@code POST /api/v1/registro/vinculo} y nada mas. Se separa de
+     * {@code tokenPara} en vez de anadirle parametros porque la diferencia entre
+     * los dos —{@code token_use} y {@code email_verified}— es justo lo que decide
+     * si alguien puede reclamar la invitacion de otra persona: mezclarlos haria
+     * que una prueba pasara por el camino equivocado sin que se note.
+     *
+     * @param verificado a false emula a quien se registro y aun no confirmo su
+     *                   buzon, o a quien puso el correo de otro
+     */
+    protected String tokenDeIdentidad(String sub, String email, boolean verificado) {
+        Instant ahora = Instant.now();
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("https://desarrollo.ondexia.local")
+                .subject(sub)
+                .issuedAt(ahora)
+                .expiresAt(ahora.plus(Duration.ofMinutes(10)))
+                .claim("token_use", "id")
+                .claim("email", email)
+                .claim("email_verified", verificado)
+                .build();
+        return emisorTokens.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+    }
+
     protected String autorizacionDemo() {
         return "Bearer " + tokenPara(SUB_DEMO);
     }

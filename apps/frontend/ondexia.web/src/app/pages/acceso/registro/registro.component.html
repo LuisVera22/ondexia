@@ -1,4 +1,18 @@
 <app-marco-acceso>
+  @if (comprobando()) {
+  <!--
+    Mientras se comprueba si a esta persona la invitaron. Dura una llamada, pero
+    sin este bloque se vería el formulario de empresa nueva y desaparecería —
+    justo lo que no debe ver quien viene invitado.
+  -->
+  <div class="flex w-full max-w-md flex-col items-center gap-4 text-center">
+    <svg class="h-6 w-6 animate-spin text-brand-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25" />
+      <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+    </svg>
+    <p class="text-sm text-gray-500 dark:text-gray-400">Comprobando tu acceso…</p>
+  </div>
+  } @else {
   <div class="w-full max-w-md">
     <div class="mb-8 flex flex-col items-center text-center">
       <img src="/images/logo/logo-icon.svg" alt="" width="48" height="48" class="mb-5" />
@@ -21,27 +35,45 @@
     }
 
     <form [formGroup]="formulario" (ngSubmit)="registrar()" novalidate class="space-y-5">
-      <div>
-        <label for="nombreTitular" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-          Tu nombre <span class="text-error-500">*</span>
-        </label>
-        <input
-          id="nombreTitular"
-          type="text"
-          formControlName="nombreTitular"
-          autocomplete="name"
-          placeholder="Como quieres aparecer en el sistema"
-          class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90 dark:placeholder:text-white/30"
-          [class]="controles.nombreTitular.touched && controles.nombreTitular.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
-        />
-        @if (controles.nombreTitular.touched && controles.nombreTitular.invalid) {
-        <p class="mt-1.5 text-xs text-error-500">Falta tu nombre.</p>
-        } @else {
-        <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-          Quedarás como administrador de la cuenta.
-        </p>
-        }
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div>
+          <label for="nombreTitular" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Tus nombres <span class="text-error-500">*</span>
+          </label>
+          <input
+            id="nombreTitular"
+            type="text"
+            formControlName="nombreTitular"
+            autocomplete="given-name"
+            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90 dark:placeholder:text-white/30"
+            [class]="controles.nombreTitular.touched && controles.nombreTitular.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+          />
+          @if (controles.nombreTitular.touched && controles.nombreTitular.invalid) {
+          <p class="mt-1.5 text-xs text-error-500">Falta tu nombre.</p>
+          }
+        </div>
+
+        <div>
+          <label for="apellidoTitular" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Tus apellidos <span class="text-error-500">*</span>
+          </label>
+          <input
+            id="apellidoTitular"
+            type="text"
+            formControlName="apellidoTitular"
+            autocomplete="family-name"
+            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90 dark:placeholder:text-white/30"
+            [class]="controles.apellidoTitular.touched && controles.apellidoTitular.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+          />
+          @if (controles.apellidoTitular.touched && controles.apellidoTitular.invalid) {
+          <p class="mt-1.5 text-xs text-error-500">Falta tu apellido.</p>
+          }
+        </div>
       </div>
+
+      <p class="-mt-1 text-xs text-gray-500 dark:text-gray-400">
+        Quedarás como administrador de la cuenta.
+      </p>
 
       <div>
         <label for="ruc" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
@@ -147,4 +179,5 @@
       </button>
     </p>
   </div>
+  }
 </app-marco-acceso>

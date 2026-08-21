@@ -25,9 +25,17 @@ import org.springframework.transaction.annotation.Transactional;
  * <h2>El alta no crea la cuenta de acceso, y eso se nota</h2>
  *
  * <p>Aquí se crea la fila {@code usuario} y su asignación; la identidad la crea
- * la propia persona registrándose en Cognito, y se vincula sola en su primer
- * ingreso. Mientras eso no ocurra, {@code cognito_sub} es nulo y la pantalla
- * muestra «invitado» en vez de «activo».
+ * la propia persona registrándose en Cognito, y la engancha
+ * {@code VincularInvitacion} cuando llega. Mientras eso no ocurra,
+ * {@code cognito_sub} es nulo y la pantalla muestra «invitado» en vez de
+ * «activo».
+ *
+ * <p>Ese enganche no existió durante un tiempo, aunque este párrafo ya lo daba
+ * por hecho: la fila se creaba, la persona se registraba, y como nadie
+ * relacionaba su {@code sub} nuevo con este correo, terminaba en el formulario
+ * de empresa nueva creándose una segunda cuenta. Vale la pena recordarlo — una
+ * invitación que no se puede aceptar no da ningún error, solo un cliente
+ * confundido.
  *
  * <p>No es una simplificación: la Lambda no tiene salida a internet (DTE §4.8) y
  * llamar a la API de Cognito exigiría un endpoint de interfaz a ~7.30 USD/mes,
@@ -86,7 +94,8 @@ public class Usuarios {
      * @param sucursalId {@code null} = alcanza todos los establecimientos
      */
     @Transactional
-    public MiembroEmpresa invitar(String email, String nombre, UUID rolId, UUID sucursalId) {
+    public MiembroEmpresa invitar(String email, String nombre, String apellido, UUID rolId,
+            UUID sucursalId) {
         var cuentaId = cuentaActual();
         var empresaId = empresaActiva();
 
@@ -94,10 +103,19 @@ public class Usuarios {
         var rol = validarRol(rolId);
         var sucursal = validarSucursal(sucursalId);
 
+        /*
+         * El nombre y el apellido solo se usan si la persona es nueva. Si ya
+         * existe en la cuenta se reutiliza su fila tal cual: el administrador la
+         * está añadiendo a OTRA empresa, no rebautizándola. Dejar que estos
+         * campos pisaran los suyos permitiría cambiarle el nombre a alguien
+         * desde una empresa en la que ni siquiera trabaja todavía.
+         */
         var usuario = usuarios.buscarPorEmailEnCuenta(cuentaId, correo)
                 .orElseGet(() -> usuarios.guardar(new Usuario(
                         UUID.randomUUID(), cuentaId, correo,
-                        exigirTexto(nombre, "nombre_requerido", "El nombre es obligatorio."))));
+                        exigirTexto(nombre, "nombre_requerido", "El nombre es obligatorio."),
+                        exigirTexto(apellido, "apellido_requerido",
+                                "El apellido es obligatorio."))));
 
         asignaciones.buscarAsignacion(usuario.id(), empresaId).ifPresent(existente -> {
             throw new Conflicto(

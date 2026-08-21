@@ -102,7 +102,7 @@ class RolesIT extends PruebaIntegracion {
         // token no resolvería a ningún usuario y la prueba fallaría por el
         // motivo equivocado.
         String sub = "sub-rol-a-medida";
-        var miembro = usuarios.invitar("a.medida@ejemplo.com", "Con Rol Propio",
+        var miembro = usuarios.invitar("a.medida@ejemplo.com", "Con Rol Propio", "Apellido",
                 aMedida.id(), null);
         var usuario = repositorioUsuarios.buscarPorId(miembro.usuarioId()).orElseThrow();
         usuario.vincularIdentidad(sub);
@@ -221,7 +221,7 @@ class RolesIT extends PruebaIntegracion {
                 repositorioRoles.buscarPredefinido("VENDEDOR").orElseThrow().id(),
                 "Vendedor ocupado");
 
-        usuarios.invitar("ocupa.rol@ejemplo.com", "Ocupa El Rol", aMedida.id(), null);
+        usuarios.invitar("ocupa.rol@ejemplo.com", "Ocupa El Rol", "Apellido", aMedida.id(), null);
 
         assertThatThrownBy(() -> roles.eliminar(aMedida.id()))
                 .isInstanceOf(Conflicto.class)
@@ -311,7 +311,8 @@ class RolesIT extends PruebaIntegracion {
                 "Almacenero con puerta");
 
         String sub = "sub-puerta-de-modulo";
-        var miembro = usuarios.invitar("puerta@ejemplo.com", "Con Puerta", aMedida.id(), null);
+        var miembro = usuarios.invitar(
+                "puerta@ejemplo.com", "Con Puerta", "Apellido", aMedida.id(), null);
         var usuario = repositorioUsuarios.buscarPorId(miembro.usuarioId()).orElseThrow();
         usuario.vincularIdentidad(sub);
         repositorioUsuarios.guardar(usuario);

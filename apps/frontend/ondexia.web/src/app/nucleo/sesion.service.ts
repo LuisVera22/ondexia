@@ -67,8 +67,29 @@ export class SesionService {
 
   private renovacionEnCurso: Promise<string | null> | null = null;
 
+  /**
+   * El token de identidad, EN MEMORIA y nunca en `sessionStorage`.
+   *
+   * Lo necesita un solo endpoint —la vinculación de una invitación— porque es el
+   * único que lleva el correo firmado por Cognito. A diferencia del de acceso,
+   * este token contiene datos personales (correo y nombre) y no hace falta para
+   * operar, así que no gana nada sobreviviendo a una recarga: si falta, se pide
+   * uno nuevo con el token de refresco, que sí está guardado.
+   */
+  private identidad: string | null = null;
+
   tokenDeAcceso(): string | null {
     return this._sesion()?.acceso ?? null;
+  }
+
+  /** El de identidad, recién renovado si el que había en memoria ya no sirve. */
+  async tokenDeIdentidad(): Promise<string | null> {
+    if (this.identidad && !this.caducado()) {
+      return this.identidad;
+    }
+
+    await this.renovar();
+    return this.identidad;
   }
 
   /** Redirige a la pantalla de acceso de Cognito. No retorna: la pestaña navega fuera. */
@@ -224,6 +245,7 @@ export class SesionService {
 
   limpiar(): void {
     sessionStorage.removeItem(CLAVE_SESION);
+    this.identidad = null;
     this._sesion.set(null);
   }
 
@@ -233,6 +255,7 @@ export class SesionService {
 
   private guardar(respuesta: RespuestaToken): void {
     const identidad = cuerpoDelToken(respuesta.id_token);
+    this.identidad = respuesta.id_token;
 
     const sesion: Sesion = {
       acceso: respuesta.access_token,

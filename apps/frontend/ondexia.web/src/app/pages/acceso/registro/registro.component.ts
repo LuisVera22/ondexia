@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -7,6 +7,7 @@ import { MarcoAccesoComponent } from '../../../shared/layout/marco-acceso/marco-
 import { CONFIGURACION } from '../../../nucleo/configuracion';
 import { mensajeDeError } from '../../../nucleo/configuracion.api.service';
 import { SesionService } from '../../../nucleo/sesion.service';
+import { VinculacionService } from '../../../nucleo/vinculacion.service';
 import { ContextoService } from '../../../shared/services/contexto.service';
 
 /**
@@ -20,27 +21,68 @@ import { ContextoService } from '../../../shared/services/contexto.service';
  * <p>No pide correo ni contraseña: eso ya lo tiene Cognito, y la identidad del
  * alta sale del token — pedirla otra vez aquí sería un campo que el backend
  * ignoraría por diseño.
+ *
+ * <h2>Antes de pintar el formulario se pregunta si le invitaron</h2>
+ *
+ * <p>«Sin fila en nuestra base» tiene dos causas y solo una lleva a este
+ * formulario. La otra es que alguien la diera de alta desde Configuración →
+ * Usuarios: entonces la fila existe, sin identidad de Cognito, esperando a que
+ * la persona se registre. Enseñarle el formulario a esa persona la empuja a
+ * crear una segunda cuenta con su propio RUC y a dejar la invitación colgada
+ * para siempre — que es exactamente lo que pasaba.
+ *
+ * <p>La comprobación va aquí y no en el retorno de Cognito porque esta pantalla
+ * es la única puerta al formulario: se llega desde el retorno y también desde el
+ * interceptor, cuando alguien vuelve al día siguiente con la sesión guardada.
+ * Ponerla en los dos sitios sería la misma decisión escrita dos veces.
  */
 @Component({
   selector: 'app-registro',
   imports: [MarcoAccesoComponent, ReactiveFormsModule],
   templateUrl: './registro.component.html',
 })
-export class RegistroComponent {
+export class RegistroComponent implements OnInit {
   private readonly constructorFormulario = inject(FormBuilder);
   private readonly http = inject(HttpClient);
   private readonly configuracion = inject(CONFIGURACION);
   private readonly sesion = inject(SesionService);
   private readonly contexto = inject(ContextoService);
+  private readonly vinculacion = inject(VinculacionService);
   private readonly router = inject(Router);
 
   readonly enviando = signal(false);
   readonly error = signal<string | null>(null);
 
+  /**
+   * Mientras dura, no se pinta nada. Enseñar el formulario y quitarlo medio
+   * segundo después sería peor que esperar: quien fue invitado vería por un
+   * instante que le piden un RUC que no tiene por qué tener.
+   */
+  readonly comprobando = signal(true);
+
   readonly correo = this.sesion.usuario()?.correo ?? '';
+
+  async ngOnInit(): Promise<void> {
+    const resultado = await this.vinculacion.intentar();
+
+    if (resultado.vinculado) {
+      // Ya está dentro de la cuenta que le invitó. El contexto se carga antes
+      // de navegar, igual que en el retorno, para no pintar el panel vacío.
+      await this.contexto.cargar();
+      await this.router.navigateByUrl('/', { replaceUrl: true });
+      return;
+    }
+
+    // Había invitación pero no se pudo aceptar —dos empresas invitaron al mismo
+    // correo, o la desactivaron—. Se cuenta y se deja el formulario: seguir en
+    // silencio la llevaría a crearse una cuenta duplicada sin saberlo.
+    this.error.set(resultado.aviso);
+    this.comprobando.set(false);
+  }
 
   formulario = this.constructorFormulario.nonNullable.group({
     nombreTitular: [this.sesion.usuario()?.nombre ?? '', [Validators.required]],
+    apellidoTitular: ['', [Validators.required]],
     ruc: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]],
     razonSocial: ['', [Validators.required]],
     domicilioFiscal: ['', [Validators.required]],
@@ -70,6 +112,7 @@ export class RegistroComponent {
           domicilioFiscal: valores.domicilioFiscal,
           ubigeo: valores.ubigeo || null,
           nombreTitular: valores.nombreTitular,
+          apellidoTitular: valores.apellidoTitular,
           // El token de ACCESO de Cognito no lleva el correo —eso vive en el de
           // identidad, que el SPA sí tiene— así que se envía. El backend lo usa
           // solo para mostrar: la identidad con la que se opera es el `sub`.

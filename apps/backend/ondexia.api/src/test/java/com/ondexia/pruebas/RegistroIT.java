@@ -42,7 +42,8 @@ class RegistroIT extends PruebaIntegracion {
                   "razonSocial": "%s",
                   "domicilioFiscal": "Av. Nueva 100, Lima",
                   "ubigeo": "150101",
-                  "nombreTitular": "Titular de Prueba"
+                  "nombreTitular": "Titular",
+                  "apellidoTitular": "De Prueba"
                 }""".formatted(ruc, razonSocial);
     }
 
@@ -162,7 +163,8 @@ class RegistroIT extends PruebaIntegracion {
                                   "ruc": "20100000092",
                                   "razonSocial": "CON CORREO EN EL CUERPO S.A.C.",
                                   "domicilioFiscal": "Av. Nueva 100, Lima",
-                                  "nombreTitular": "Titular de Prueba",
+                                  "nombreTitular": "Titular",
+                                  "apellidoTitular": "De Prueba",
                                   "correo": "titular@ejemplo.com"
                                 }"""))
                 .andExpect(status().isCreated());

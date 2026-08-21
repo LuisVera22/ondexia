@@ -83,6 +83,28 @@ export class ContextoService {
     return codigo && /^\d{4}$/.test(codigo) ? codigo : '0000';
   });
 
+  /**
+   * Las empresas con el rol que se tiene en cada una.
+   *
+   * <p>Existe aparte de `empresas` porque aquella las convierte en
+   * `OpcionContexto` para el selector y por el camino pierde el rol. Lo necesita
+   * Mi perfil, que enseña «en qué empresa entro y como qué» — y ese dato tiene
+   * que salir de aquí, no de una segunda consulta: dos fuentes de la misma
+   * verdad significan que una se queda vieja y miente.
+   */
+  readonly empresasConRol = computed(() =>
+    (this._contexto()?.empresas ?? []).map((empresa) => ({
+      id: empresa.id,
+      nombre: empresa.nombreComercial || empresa.razonSocial,
+      rol: empresa.rol,
+      // Null significa que alcanza TODAS las sucursales, que es lo normal.
+      establecimiento: empresa.sucursalNombre,
+    }))
+  );
+
+  /** El rol en la empresa activa, o null si aún no ha elegido ninguna. */
+  readonly rolEnEmpresaActiva = computed(() => this._contexto()?.empresaActiva?.rol ?? null);
+
   puede(permiso: string): boolean {
     return this.permisos().includes(permiso);
   }

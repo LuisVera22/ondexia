@@ -255,6 +255,51 @@ Con esto, el cimiento de C1 está completo.
 > interfaz a ~7.30 USD/mes — más caro que la NAT que se evitó. El backend crea la
 > fila `usuario` sin `cognito_sub`; se vincula en el primer acceso.
 
+#### El «se vincula en el primer acceso» que no vinculaba nada
+
+Esa frase estuvo escrita —aquí y en tres javadoc— durante toda la Entrega 4 sin
+que existiera el código que la cumpliera. `ResolverContexto` solo buscaba por
+`cognito_sub`, y nadie buscaba nunca por correo para rellenarlo.
+
+El efecto, visto en producción: se da de alta a alguien, se registra en Cognito,
+`/contexto` responde `usuario_no_registrado` y el SPA lo lleva al formulario de
+empresa nueva. La persona invitada rellena un RUC, **se crea una segunda cuenta
+con su propia suscripción**, y la invitación se queda colgada para siempre. No
+hay ningún error en ningún log: se reporta como «no me aparece la empresa».
+
+Vale la pena anotarlo porque el modo de fallar se repite: una invitación que no
+se puede aceptar no rompe nada, solo confunde a un cliente.
+
+**Lo que lo cierra:** `POST /api/v1/registro/vinculo` (`VincularInvitacion`).
+Busca invitaciones pendientes por correo, y si hay exactamente una, la engancha
+al `sub` del token. El SPA lo llama antes de pintar el formulario, que es la
+única puerta a esa pantalla.
+
+**De dónde sale el correo, y por qué no del cuerpo.** Este es el único endpoint
+del sistema que decide en qué empresa entra alguien a partir de su correo.
+`RegistrarCuenta` sí lo acepta del cuerpo y ahí es inofensivo —la identidad con
+la que se opera es el `sub`, y quien mienta solo se engaña a sí mismo—; aquí
+sería una toma de cuenta completa: cualquiera se registra con un correo suyo,
+envía el ajeno y entra en la empresa de otro con el rol de esa invitación.
+
+Como el token de **acceso** de Cognito no lleva `email`, este endpoint —y solo
+este— exige el de **identidad**, que lo lleva junto a `email_verified` y firmado.
+La pasarela valida los dos por igual (el `aud` de un token de identidad es el
+identificador del cliente, que es justo lo que comprueba el autorizador), pero no
+distingue cuál es cuál: la comprobación de `token_use=id` y `email_verified=true`
+vive en el controlador. Sin la segunda, darse de alta declarando el correo de
+otra persona bastaría para reclamar su invitación.
+
+Se descartaron dos alternativas: el disparador *pre-token-generation* V2 de
+Cognito, que añadiría `email` al token de acceso pero exige el nivel Essentials
+del pool (coste mensual) y otra Lambda; y un código de invitación de un solo uso,
+que es el flujo definitivo cuando exista SES pero hoy habría que pasar a mano.
+
+**Lo que queda sin resolver a propósito:** si dos cuentas invitan al mismo correo
+—`email` es único por cuenta, no en la instalación— se responde 409 y lo arregla
+un humano. Elegir por la persona la metería en la empresa equivocada sin que
+nadie se entere.
+
 ---
 
 ### Entrega 5 · Roles a medida · **M** — **ENTREGADA**
@@ -398,6 +443,95 @@ un **PostgreSQL 18 nativo de Windows** ocupaba `0.0.0.0:5432` y la aplicación
 hablaba con él en vez de con el contenedor. Testcontainers publica en un puerto
 libre al azar, así que la suite pasaba en verde mientras la aplicación local no
 arrancaba. El contenedor pasó a publicar en **5433**.
+
+## 5.ter Mi perfil — lo que cada persona edita de sí misma
+
+`GET`/`PUT /api/v1/perfil`. La pantalla existía como maqueta: nombres,
+apellidos, correo, teléfono y tres campos de contraseña, todos literales en el
+componente y ninguno conectado a nada.
+
+Al conectarla, tres de esos campos resultaron no poder existir tal cual:
+
+- **Nombres + apellidos se colapsaron primero en uno solo**, porque el modelo
+  guardaba un `nombre` y partirlo exigía migración. Duró una revisión: se pidió
+  el apellido de vuelta y se hizo bien (V11, más abajo).
+- **La contraseña no pasa por la API, y no es una fase pendiente.** No la
+  guardamos, no la vemos y no la queremos. El bloque lleva al flujo alojado de
+  Cognito, que es quien sabe si el correo existe, manda el código y valida la
+  nueva. Sustituir tres campos muertos por tres que sí enviaran habría sido
+  peor que dejarlos muertos.
+- **El último acceso se quitó.** No se guarda en ninguna parte. Registrarlo
+  sería una escritura por petición sobre `usuario` —el peor sitio para eso, que
+  se lee en cada llamada— y mostrarlo sin guardarlo es inventar un dato.
+
+**El correo se pinta y no se edita.** Es la credencial con la que se entra a
+Cognito: cambiarlo en nuestra fila dejaría al usuario apuntando a un buzón con
+el que ya no puede iniciar sesión, y se vería el cambio guardado y el acceso
+roto, en ese orden. Cambiarlo de verdad es cambiarlo en Cognito, que exige
+verificar el nuevo — y eso no lo puede hacer una Lambda sin salida a internet.
+
+**El teléfono es nuevo en el modelo** (V10). Va en `usuario` y no en `empresa`:
+el de la empresa es el que sale en los comprobantes y ya vive en su ficha. Es
+opcional, sin `CHECK` de formato —conviven el móvil de nueve dígitos, el fijo con
+área, el internacional y los anexos— y **no lo rellena ningún administrador**.
+Escribir el teléfono de otra persona en su ficha produce un dato que nadie
+mantiene y en el que todos confían. Por eso el alta de usuarios no lo pide.
+
+Queda anotado en la migración porque la tentación llegará: **el teléfono no
+autentica**. El día que alguien quiera «recuperar la cuenta por SMS», eso es un
+cambio de modelo de amenazas, no un uso más de esta columna.
+
+**Sin `@RequierePermiso` y sin empresa activa.** No hay permiso que exigir para
+editar lo propio, y crear uno —`perfil:editar`— significaría que un
+administrador puede quitártelo y dejarte sin poder corregir tu nombre. Lo que
+protege el endpoint es que el usuario sale del contexto y no de un parámetro: no
+hay forma de nombrar a otro. Y no exige empresa activa porque quien tiene varias
+cae en el escritorio sin haber elegido ninguna y desde ahí puede entrar a Mi
+perfil; exigirla lo dejaría fuera justo a él. Por lo mismo **no escribe en la
+bitácora**: `auditoria` tiene RLS por empresa y la fila se rechazaría para ese
+subconjunto de usuarios — el peor reparto posible de un fallo.
+
+7 pruebas, incluida una de aislamiento que hoy es imposible de fallar. Está para
+ponerse roja el día que alguien añada un `id` al endpoint «por comodidad».
+
+### El apellido, separado (V11)
+
+Se partió `usuario.nombre` en `nombre` + `apellido`. Una persona se ordena, se
+busca y se saluda por partes distintas: el listado se ordena por apellido, y un
+«Hola, Luis» no sale de «Luis David Vera Vilchez» sin adivinar dónde acaba el
+nombre.
+
+**La columna admite nulo y la migración no rellena nada.** La tentación obvia es
+partir los valores existentes por el primer espacio; no se hace porque «María del
+Carmen Rojas» daría un resultado que *parece* correcto, y un dato inventado que
+parece correcto cuesta más de detectar que uno ausente. Las filas de antes
+conservan su nombre completo en `nombre`, se muestran igual que siempre —el
+nombre para mostrar es la unión de las dos columnas, y unir con nulo no cambia
+nada— y su dueño las reparte a mano la primera vez que entra a Mi perfil, donde
+un aviso lo explica.
+
+**Obligatorio en los formularios, opcional en la base.** La restricción vive
+donde entra el dato nuevo, no donde vive el viejo. Un `NOT NULL` obligaría a
+inventar un valor para cada fila existente, que es justo lo que se evita.
+
+**Se partió en los tres sitios donde se escribe un nombre**, no solo en Mi
+perfil: el registro de la cuenta y el alta de usuarios del administrador. Hacerlo
+en uno solo dejaría al administrador creando gente con todo metido en `nombre` —
+la incoherencia que la propia V11 venía a quitar.
+
+**Dónde NO se partió.** El listado de usuarios y el contexto entregan el nombre
+ya unido. El contexto alimenta la barra superior y la bitácora, que *muestran* a
+la persona; quien necesita las partes por separado es Mi perfil, que las pide a
+su propio endpoint. Y editando la asignación de alguien, el nombre sale entero y
+en solo lectura: repartirlo en dos casillas deshabilitadas obligaría a adivinar,
+otra vez, dónde acaba.
+
+**El alta no rebautiza a nadie.** Nombre y apellido solo se usan si la persona es
+nueva en la cuenta. Si ya existe, el administrador la está añadiendo a *otra*
+empresa: dejar que esos campos pisaran los suyos permitiría cambiarle el nombre a
+alguien desde una empresa en la que ni siquiera trabaja todavía.
+
+10 pruebas en `PerfilIT`, tres de ellas sobre este reparto.
 
 ## 6. Qué queda después
 

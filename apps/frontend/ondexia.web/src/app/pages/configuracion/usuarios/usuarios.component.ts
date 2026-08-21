@@ -74,6 +74,7 @@ export class UsuariosComponent {
   formulario = this.constructorFormulario.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     nombre: ['', [Validators.required]],
+    apellido: ['', [Validators.required]],
     rolId: ['', [Validators.required]],
     sucursalId: [''],
   });
@@ -138,9 +139,10 @@ export class UsuariosComponent {
 
   abrirNuevo(): void {
     this.enEdicion.set(null);
-    this.formulario.reset({ email: '', nombre: '', rolId: '', sucursalId: '' });
+    this.formulario.reset({ email: '', nombre: '', apellido: '', rolId: '', sucursalId: '' });
     this.controles.email.enable();
     this.controles.nombre.enable();
+    this.controles.apellido.enable();
     this.formularioAbierto.set(true);
   }
 
@@ -153,7 +155,11 @@ export class UsuariosComponent {
     this.enEdicion.set(usuario);
     this.formulario.reset({
       email: usuario.email,
+      // El listado trae el nombre completo en un solo campo, que es lo que se
+      // enseña aquí en solo lectura. No se parte para repartirlo en dos casillas
+      // deshabilitadas: adivinar dónde acaba el nombre pintaría un dato falso.
       nombre: usuario.nombre,
+      apellido: '',
       rolId: usuario.rolId,
       sucursalId: usuario.sucursalId ?? '',
     });
@@ -161,6 +167,9 @@ export class UsuariosComponent {
     // cambiarlos aquí los cambiaría en todas. Esta pantalla edita la asignación.
     this.controles.email.disable();
     this.controles.nombre.disable();
+    // Deshabilitado además de oculto: un control deshabilitado no cuenta para
+    // la validez del formulario, así que su «obligatorio» no bloquea la edición.
+    this.controles.apellido.disable();
     this.formularioAbierto.set(true);
   }
 
@@ -192,6 +201,7 @@ export class UsuariosComponent {
         await this.api.invitarUsuario({
           email: valores.email,
           nombre: valores.nombre,
+          apellido: valores.apellido,
           rolId: valores.rolId,
           sucursalId,
         });
