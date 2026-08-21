@@ -10,6 +10,7 @@ import com.ondexia.domain.identidad.SucursalRepositorio;
 import com.ondexia.domain.identidad.Usuario;
 import com.ondexia.domain.identidad.UsuarioEmpresaRepositorio;
 import com.ondexia.domain.identidad.UsuarioRepositorio;
+import java.util.Comparator;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -96,6 +97,19 @@ public class ConsultarContexto {
      *
      * <p>Sin empresa activa se devuelve vacío, igual que los permisos: no hay
      * empresa de la que listar establecimientos.
+     *
+     * <h2>Ordenados por código, y eso importa</h2>
+     *
+     * <p>El frontend toma el primero como establecimiento activo mientras el
+     * usuario no elija otro, y el establecimiento activo <strong>decide la serie
+     * del comprobante</strong>. El repositorio los devuelve ordenados por
+     * nombre, que es lo correcto para un listado pero no para esto: con
+     * «Miraflores» y «Principal» se entraba trabajando en el anexo 0001 en vez
+     * de en la casa matriz.
+     *
+     * <p>Por código, el 0000 sale primero siempre. Es el de la casa matriz, el
+     * único que SUNAT garantiza que existe, y no depende de cómo alguien decida
+     * llamar a un local mañana.
      */
     private List<Sucursal> establecimientosAlcanzables(ContextoOperacion actual) {
         if (!actual.tieneEmpresaActiva()) {
@@ -106,6 +120,7 @@ public class ConsultarContexto {
                 .filter(Sucursal::estaActiva)
                 .filter(sucursal -> actual.alcanzaTodasLasSucursales()
                         || sucursal.id().equals(actual.sucursalId()))
+                .sorted(Comparator.comparing(Sucursal::codigo))
                 .toList();
     }
 }
