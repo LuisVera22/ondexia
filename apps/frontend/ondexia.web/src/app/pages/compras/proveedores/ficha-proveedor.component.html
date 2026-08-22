@@ -24,7 +24,7 @@
             </button>
           </div>
           @if (controles.numeroDocumento.touched && controles.numeroDocumento.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">El RUC debe tener 11 dígitos y empezar por 10, 15, 17 o 20.</p>
+          <app-error-campo [control]="controles.numeroDocumento" mensaje="El RUC debe tener 11 dígitos y empezar por 10, 15, 17 o 20." />
           }
         </div>
 

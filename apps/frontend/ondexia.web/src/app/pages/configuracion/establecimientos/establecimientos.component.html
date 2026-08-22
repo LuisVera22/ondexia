@@ -99,7 +99,7 @@
             [class]="controles.codigo.touched && controles.codigo.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.codigo.touched && controles.codigo.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">El código son cuatro dígitos, como aparece en la ficha RUC.</p>
+          <app-error-campo [control]="controles.codigo" mensaje="El código son cuatro dígitos, como aparece en la ficha RUC." />
           }
         </div>
 
@@ -115,7 +115,7 @@
             [class]="controles.nombre.touched && controles.nombre.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.nombre.touched && controles.nombre.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">El nombre es obligatorio.</p>
+          <app-error-campo [control]="controles.nombre" mensaje="El nombre es obligatorio." />
           }
         </div>
 
@@ -131,7 +131,7 @@
             [class]="controles.direccion.touched && controles.direccion.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.direccion.touched && controles.direccion.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">La dirección es obligatoria.</p>
+          <app-error-campo [control]="controles.direccion" mensaje="La dirección es obligatoria." />
           }
         </div>
 
@@ -150,7 +150,7 @@
             [class]="controles.ubigeo.touched && controles.ubigeo.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.ubigeo.touched && controles.ubigeo.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">El ubigeo son seis dígitos.</p>
+          <app-error-campo [control]="controles.ubigeo" mensaje="El ubigeo son seis dígitos." />
           } @else {
           <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
             Código de distrito de SUNAT, seis dígitos.

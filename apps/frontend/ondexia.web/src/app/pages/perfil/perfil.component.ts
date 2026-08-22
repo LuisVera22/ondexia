@@ -5,6 +5,8 @@ import { mensajeDeError } from '../../nucleo/configuracion.api.service';
 import { DatosDePerfil, PerfilApiService } from '../../nucleo/perfil.api.service';
 import { SesionService } from '../../nucleo/sesion.service';
 import { ContextoService } from '../../shared/services/contexto.service';
+import { colocarEnCampos } from '../../shared/formularios/fallo-de-formulario';
+import { ErrorCampoComponent } from '../../shared/components/comunes/error-campo/error-campo.component';
 
 /**
  * Mi perfil.
@@ -34,7 +36,11 @@ import { ContextoService } from '../../shared/services/contexto.service';
  */
 @Component({
   selector: 'app-perfil',
-  imports: [EncabezadoPaginaComponent, ReactiveFormsModule],
+  imports: [
+    EncabezadoPaginaComponent,
+    ReactiveFormsModule,
+    ErrorCampoComponent,
+  ],
   templateUrl: './perfil.component.html',
 })
 export class PerfilComponent implements OnInit {
@@ -126,7 +132,14 @@ export class PerfilComponent implements OnInit {
       this.formulario.markAsPristine();
       this.guardado.set(true);
     } catch (fallo: unknown) {
-      this.error.set(mensajeDeError(fallo, 'No se pudieron guardar los cambios.'));
+      // Lo que el servidor asocia a un campo va al campo; en el banner queda
+      // solo lo que no pertenece a ninguno.
+      const colocado = colocarEnCampos(
+        fallo,
+        this.formulario,
+        'No se pudieron guardar los cambios.'
+      );
+      this.error.set(colocado.mensajeGeneral);
     } finally {
       this.guardando.set(false);
     }

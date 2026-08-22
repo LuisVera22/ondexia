@@ -16,6 +16,8 @@ import {
   mensajeDeError,
 } from '../../../nucleo/configuracion.api.service';
 import { AvisosService } from '../../../shared/services/avisos.service';
+import { repartirFallo } from '../../../shared/formularios/fallo-de-formulario';
+import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
 
 /**
  * Establecimientos anexos de la empresa.
@@ -51,6 +53,7 @@ import { AvisosService } from '../../../shared/services/avisos.service';
     ModalComponent,
     BotonComponent,
     ReactiveFormsModule,
+    ErrorCampoComponent,
   ],
   templateUrl: './establecimientos.component.html',
 })
@@ -174,7 +177,7 @@ export class EstablecimientosComponent {
       // El modal se queda abierto a propósito: el formulario conserva lo que el
       // usuario escribió, y va a querer corregir el código, no teclearlo todo
       // otra vez.
-      this.avisos.error(mensajeDeError(fallo, 'No se pudo registrar el establecimiento.'));
+      repartirFallo(fallo, this.formulario, this.avisos, 'No se pudo registrar el establecimiento.');
       throw fallo;
     }
   });

@@ -18,6 +18,8 @@ import {
   mensajeDeError,
 } from '../../../nucleo/configuracion.api.service';
 import { AvisosService } from '../../../shared/services/avisos.service';
+import { repartirFallo } from '../../../shared/formularios/fallo-de-formulario';
+import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
 
 /**
  * Series de comprobante por establecimiento y tipo de documento.
@@ -54,6 +56,7 @@ import { AvisosService } from '../../../shared/services/avisos.service';
     BotonComponent,
     DesplegableComponent,
     ReactiveFormsModule,
+    ErrorCampoComponent,
   ],
   templateUrl: './series.component.html',
 })
@@ -223,7 +226,7 @@ export class SeriesComponent {
       // El servidor explica bien los dos casos previsibles: la letra que no
       // corresponde al tipo, y el tipo que la empresa tiene deshabilitado en
       // Configuración › Comprobantes. El modal se queda abierto para corregir.
-      this.avisos.error(mensajeDeError(fallo, 'No se pudo crear la serie.'));
+      repartirFallo(fallo, this.formulario, this.avisos, 'No se pudo crear la serie.');
       throw fallo;
     }
   });

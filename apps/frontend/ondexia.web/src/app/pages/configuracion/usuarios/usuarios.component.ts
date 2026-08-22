@@ -19,6 +19,8 @@ import {
   mensajeDeError,
 } from '../../../nucleo/configuracion.api.service';
 import { AvisosService } from '../../../shared/services/avisos.service';
+import { repartirFallo } from '../../../shared/formularios/fallo-de-formulario';
+import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
 
 /** Qué está a punto de confirmarse. Null = no hay nada pendiente. */
 type AccionPendiente = 'desactivar' | 'retirar' | null;
@@ -53,6 +55,7 @@ type AccionPendiente = 'desactivar' | 'retirar' | null;
     BotonComponent,
     DesplegableComponent,
     ReactiveFormsModule,
+    ErrorCampoComponent,
   ],
   templateUrl: './usuarios.component.html',
 })
@@ -223,7 +226,7 @@ export class UsuariosComponent {
     } catch (fallo: unknown) {
       // El modal se queda abierto: el correo repetido es el fallo habitual, y
       // el usuario va a querer corregir ese campo, no teclear todo otra vez.
-      this.avisos.error(mensajeDeError(fallo, 'No se pudo agregar al usuario.'));
+      repartirFallo(fallo, this.formulario, this.avisos, 'No se pudo agregar al usuario.');
       throw fallo;
     }
   });

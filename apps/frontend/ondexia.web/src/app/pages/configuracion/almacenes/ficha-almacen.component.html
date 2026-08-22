@@ -69,7 +69,7 @@
             [class]="controles.nombre.touched && controles.nombre.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.nombre.touched && controles.nombre.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">El nombre es obligatorio.</p>
+          <app-error-campo [control]="controles.nombre" mensaje="El nombre es obligatorio." />
           }
         </div>
 

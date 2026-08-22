@@ -114,7 +114,7 @@
             [class]="controles.nombre.touched && controles.nombre.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.nombre.touched && controles.nombre.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">Los nombres son obligatorios.</p>
+          <app-error-campo [control]="controles.nombre" mensaje="Los nombres son obligatorios." />
           }
         </div>
 
@@ -130,7 +130,7 @@
             [class]="controles.apellido.touched && controles.apellido.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.apellido.touched && controles.apellido.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">Los apellidos son obligatorios.</p>
+          <app-error-campo [control]="controles.apellido" mensaje="Los apellidos son obligatorios." />
           }
         </div>
 
@@ -147,7 +147,7 @@
             [class]="controles.email.touched && controles.email.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.email.touched && controles.email.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">Hace falta un correo válido.</p>
+          <app-error-campo [control]="controles.email" mensaje="Hace falta un correo válido." />
           } @else {
           <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
             Con este correo tendrá que registrarse para que su cuenta se vincule.
@@ -166,7 +166,7 @@
             alto="formulario"
           />
           @if (controles.rolId.touched && controles.rolId.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">El rol es obligatorio.</p>
+          <app-error-campo [control]="controles.rolId" mensaje="El rol es obligatorio." />
           }
         </div>
 

@@ -15,6 +15,8 @@ import {
   mensajeDeError,
 } from '../../../nucleo/configuracion.api.service';
 import { AvisosService } from '../../../shared/services/avisos.service';
+import { repartirFallo } from '../../../shared/formularios/fallo-de-formulario';
+import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
 
 /**
  * Ficha del acceso de una persona a esta empresa.
@@ -39,6 +41,7 @@ import { AvisosService } from '../../../shared/services/avisos.service';
     RouterModule,
     BotonComponent,
     DesplegableComponent,
+    ErrorCampoComponent,
   ],
   templateUrl: './ficha-usuario.component.html',
 })
@@ -175,7 +178,7 @@ export class FichaUsuarioComponent {
     } catch (fallo: unknown) {
       // Aquí llegan las reglas que la pantalla no puede anticipar, como quitarle
       // el rol al último administrador de la cuenta.
-      this.avisos.error(mensajeDeError(fallo, 'No se pudo actualizar el acceso.'));
+      repartirFallo(fallo, this.formulario, this.avisos, 'No se pudo actualizar el acceso.');
       throw fallo;
     }
   });

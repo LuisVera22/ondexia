@@ -18,6 +18,8 @@ import {
   mensajeDeError,
 } from '../../../nucleo/configuracion.api.service';
 import { AvisosService } from '../../../shared/services/avisos.service';
+import { repartirFallo } from '../../../shared/formularios/fallo-de-formulario';
+import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
 
 /**
  * Almacenes: dónde están físicamente las existencias.
@@ -43,6 +45,7 @@ import { AvisosService } from '../../../shared/services/avisos.service';
     BotonComponent,
     DesplegableComponent,
     ReactiveFormsModule,
+    ErrorCampoComponent,
   ],
   templateUrl: './almacenes.component.html',
 })
@@ -181,7 +184,7 @@ export class AlmacenesComponent {
     } catch (fallo: unknown) {
       // El código repetido es el fallo habitual, y el modal se queda abierto
       // para corregir ese campo sin teclear el resto otra vez.
-      this.avisos.error(mensajeDeError(fallo, 'No se pudo crear el almacén.'));
+      repartirFallo(fallo, this.formulario, this.avisos, 'No se pudo crear el almacén.');
       throw fallo;
     }
   });

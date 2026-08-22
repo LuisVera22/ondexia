@@ -6,6 +6,8 @@ import { BotonComponent } from '../../../shared/components/comunes/boton/boton.c
 import { accionConEstado } from '../../../shared/components/comunes/boton/estado-accion';
 import { ConfiguracionApiService, mensajeDeError } from '../../../nucleo/configuracion.api.service';
 import { AvisosService } from '../../../shared/services/avisos.service';
+import { repartirFallo } from '../../../shared/formularios/fallo-de-formulario';
+import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
 
 /**
  * Ficha de un establecimiento. Es donde se edita.
@@ -31,7 +33,13 @@ import { AvisosService } from '../../../shared/services/avisos.service';
  */
 @Component({
   selector: 'app-ficha-establecimiento',
-  imports: [EncabezadoPaginaComponent, ReactiveFormsModule, RouterModule, BotonComponent],
+  imports: [
+    EncabezadoPaginaComponent,
+    ReactiveFormsModule,
+    RouterModule,
+    BotonComponent,
+    ErrorCampoComponent,
+  ],
   templateUrl: './ficha-establecimiento.component.html',
 })
 export class FichaEstablecimientoComponent {
@@ -131,7 +139,7 @@ export class FichaEstablecimientoComponent {
 
       this.avisos.exito(`${this.codigo()} · ${guardado.nombre}`, 'Establecimiento guardado');
     } catch (fallo: unknown) {
-      this.avisos.error(mensajeDeError(fallo, 'No se pudieron guardar los cambios.'));
+      repartirFallo(fallo, this.formulario, this.avisos, 'No se pudieron guardar los cambios.');
       throw fallo;
     }
   });

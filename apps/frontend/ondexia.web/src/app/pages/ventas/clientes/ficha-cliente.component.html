@@ -34,9 +34,7 @@
           </div>
 
           @if (controles.numeroDocumento.touched && controles.numeroDocumento.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">
-            {{ esRuc ? 'El RUC debe tener 11 dígitos y empezar por 10, 15, 17 o 20.' : 'El DNI debe tener 8 dígitos.' }}
-          </p>
+          <app-error-campo [control]="controles.numeroDocumento" mensaje="{{ esRuc ? 'El RUC debe tener 11 dígitos y empezar por 10, 15, 17 o 20.' : 'El DNI debe tener 8 dígitos.' }}" />
           } @else {
           <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
             La consulta al padrón de SUNAT completa los datos automáticamente.

@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
+import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
 
 /**
  * Ficha de cliente.
@@ -13,7 +14,13 @@ import { DesplegableComponent, OpcionDesplegable } from '../../../shared/compone
  */
 @Component({
   selector: 'app-ficha-cliente',
-  imports: [EncabezadoPaginaComponent, ReactiveFormsModule, RouterModule, DesplegableComponent],
+  imports: [
+    EncabezadoPaginaComponent,
+    ReactiveFormsModule,
+    RouterModule,
+    DesplegableComponent,
+    ErrorCampoComponent,
+  ],
   templateUrl: './ficha-cliente.component.html',
 })
 export class FichaClienteComponent {

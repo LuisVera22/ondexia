@@ -5,10 +5,11 @@ import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { MarcoAccesoComponent } from '../../../shared/layout/marco-acceso/marco-acceso.component';
 import { CONFIGURACION } from '../../../nucleo/configuracion';
-import { mensajeDeError } from '../../../nucleo/configuracion.api.service';
 import { SesionService } from '../../../nucleo/sesion.service';
 import { VinculacionService } from '../../../nucleo/vinculacion.service';
 import { ContextoService } from '../../../shared/services/contexto.service';
+import { colocarEnCampos } from '../../../shared/formularios/fallo-de-formulario';
+import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
 
 /**
  * Último paso del alta: los datos de la empresa.
@@ -38,7 +39,11 @@ import { ContextoService } from '../../../shared/services/contexto.service';
  */
 @Component({
   selector: 'app-registro',
-  imports: [MarcoAccesoComponent, ReactiveFormsModule],
+  imports: [
+    MarcoAccesoComponent,
+    ReactiveFormsModule,
+    ErrorCampoComponent,
+  ],
   templateUrl: './registro.component.html',
 })
 export class RegistroComponent implements OnInit {
@@ -131,7 +136,12 @@ export class RegistroComponent implements OnInit {
        * administrador) y el dígito verificador que no cuadra. Ambos están
        * mejor escritos allí que cualquier genérico de aquí.
        */
-      this.error.set(mensajeDeError(fallo, 'No se pudo completar el registro. Inténtalo de nuevo.'));
+      const colocado = colocarEnCampos(
+        fallo,
+        this.formulario,
+        'No se pudo completar el registro. Inténtalo de nuevo.'
+      );
+      this.error.set(colocado.mensajeGeneral);
       this.enviando.set(false);
     }
   }

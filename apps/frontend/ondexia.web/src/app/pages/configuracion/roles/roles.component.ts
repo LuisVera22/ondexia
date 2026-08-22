@@ -13,6 +13,7 @@ import {
   mensajeDeError,
 } from '../../../nucleo/configuracion.api.service';
 import { AvisosService } from '../../../shared/services/avisos.service';
+import { repartirFallo } from '../../../shared/formularios/fallo-de-formulario';
 
 /**
  * Roles y permisos, con la matriz en tres niveles.
@@ -332,7 +333,7 @@ export class RolesComponent {
         'Rol duplicado'
       );
     } catch (fallo: unknown) {
-      this.avisos.error(mensajeDeError(fallo, 'No se pudo duplicar el rol.'));
+      repartirFallo(fallo, this.formularioDuplicado, this.avisos, 'No se pudo duplicar el rol.');
       throw fallo;
     }
   });
@@ -365,7 +366,7 @@ export class RolesComponent {
       await this.cargar();
       this.avisos.exito(`Ahora se llama ${valores.nombre}`, 'Rol renombrado');
     } catch (fallo: unknown) {
-      this.avisos.error(mensajeDeError(fallo, 'No se pudo renombrar el rol.'));
+      repartirFallo(fallo, this.formularioRenombrado, this.avisos, 'No se pudo renombrar el rol.');
       throw fallo;
     }
   });

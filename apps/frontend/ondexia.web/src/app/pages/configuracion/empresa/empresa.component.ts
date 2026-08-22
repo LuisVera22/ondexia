@@ -7,6 +7,8 @@ import { accionConEstado } from '../../../shared/components/comunes/boton/estado
 import { ConfiguracionApiService, mensajeDeError } from '../../../nucleo/configuracion.api.service';
 import { AvisosService } from '../../../shared/services/avisos.service';
 import { ContextoService } from '../../../shared/services/contexto.service';
+import { repartirFallo } from '../../../shared/formularios/fallo-de-formulario';
+import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
 
 /**
  * Datos tributarios de una empresa emisora.
@@ -43,7 +45,13 @@ import { ContextoService } from '../../../shared/services/contexto.service';
  */
 @Component({
   selector: 'app-empresa',
-  imports: [EncabezadoPaginaComponent, ReactiveFormsModule, RouterModule, BotonComponent],
+  imports: [
+    EncabezadoPaginaComponent,
+    ReactiveFormsModule,
+    RouterModule,
+    BotonComponent,
+    ErrorCampoComponent,
+  ],
   templateUrl: './empresa.component.html',
 })
 export class EmpresaComponent {
@@ -224,7 +232,7 @@ export class EmpresaComponent {
         'Datos de la empresa guardados'
       );
     } catch (fallo: unknown) {
-      this.avisos.error(mensajeDeError(fallo, 'No se pudieron guardar los cambios.'));
+      repartirFallo(fallo, this.formulario, this.avisos, 'No se pudieron guardar los cambios.');
       throw fallo;
     }
   });

@@ -93,7 +93,7 @@
             alto="formulario"
           />
           @if (controles.rolId.touched && controles.rolId.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">El rol es obligatorio.</p>
+          <app-error-campo [control]="controles.rolId" mensaje="El rol es obligatorio." />
           }
         </div>
 

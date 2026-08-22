@@ -87,7 +87,7 @@
             alto="formulario"
           />
           @if (controles.tipoDocumento.touched && controles.tipoDocumento.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">Elige el tipo de comprobante.</p>
+          <app-error-campo [control]="controles.tipoDocumento" mensaje="Elige el tipo de comprobante." />
           }
         </div>
 
@@ -105,9 +105,7 @@
             [class]="controles.serie.touched && controles.serie.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.serie.touched && controles.serie.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">
-            Cuatro caracteres: una letra y tres letras o dígitos.
-          </p>
+          <app-error-campo [control]="controles.serie" mensaje="Cuatro caracteres: una letra y tres letras o dígitos." />
           } @else if (letraEsperada) {
           <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
             SUNAT exige que empiece por <strong>{{ letraEsperada }}</strong> para este tipo.

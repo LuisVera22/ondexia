@@ -87,7 +87,7 @@
             [class]="controles.razonSocial.touched && controles.razonSocial.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.razonSocial.touched && controles.razonSocial.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">La razón social es obligatoria.</p>
+          <app-error-campo [control]="controles.razonSocial" mensaje="La razón social es obligatoria." />
           }
         </div>
 
@@ -125,7 +125,7 @@
             [class]="controles.domicilioFiscal.touched && controles.domicilioFiscal.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.domicilioFiscal.touched && controles.domicilioFiscal.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">El domicilio fiscal es obligatorio.</p>
+          <app-error-campo [control]="controles.domicilioFiscal" mensaje="El domicilio fiscal es obligatorio." />
           }
         </div>
 
@@ -144,7 +144,7 @@
             [class]="controles.ubigeo.touched && controles.ubigeo.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.ubigeo.touched && controles.ubigeo.invalid) {
-          <p class="mt-1.5 text-xs text-error-500">El ubigeo son seis dígitos.</p>
+          <app-error-campo [control]="controles.ubigeo" mensaje="El ubigeo son seis dígitos." />
           } @else {
           <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
             Código de distrito de SUNAT, seis dígitos.

@@ -471,13 +471,10 @@ export class ConfiguracionApiService {
 }
 
 /**
- * Saca el mensaje legible de un error de la API.
+ * Se reexporta desde {@code errores.ts}, donde vive ahora.
  *
- * <p>El backend responde con `application/problem+json` y añade un `codigo`
- * estable. Se prefiere `detail` porque es el texto escrito para el usuario;
- * `title` es genérico —«Conflict»— y no dice nada útil.
+ * <p>Estaba aquí, y la lista de pantallas que lo importan de este módulo es
+ * larga. Se deja el puente en lugar de tocar quince ficheros por un cambio de
+ * sitio: lo que cambió es la implementación, no quién la usa.
  */
-export function mensajeDeError(error: unknown, porDefecto: string): string {
-  const cuerpo = (error as { error?: { detail?: string; codigo?: string } })?.error;
-  return cuerpo?.detail ?? porDefecto;
-}
+export { mensajeDeError } from './errores';

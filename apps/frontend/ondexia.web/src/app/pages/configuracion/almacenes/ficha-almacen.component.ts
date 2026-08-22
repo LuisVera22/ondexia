@@ -14,6 +14,8 @@ import {
   mensajeDeError,
 } from '../../../nucleo/configuracion.api.service';
 import { AvisosService } from '../../../shared/services/avisos.service';
+import { repartirFallo } from '../../../shared/formularios/fallo-de-formulario';
+import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
 
 /**
  * Ficha de un almacén. Es donde se edita.
@@ -36,6 +38,7 @@ import { AvisosService } from '../../../shared/services/avisos.service';
     RouterModule,
     BotonComponent,
     DesplegableComponent,
+    ErrorCampoComponent,
   ],
   templateUrl: './ficha-almacen.component.html',
 })
@@ -151,7 +154,7 @@ export class FichaAlmacenComponent {
 
       this.avisos.exito(`${this.codigo()} · ${guardado.nombre}`, 'Almacén guardado');
     } catch (fallo: unknown) {
-      this.avisos.error(mensajeDeError(fallo, 'No se pudieron guardar los cambios.'));
+      repartirFallo(fallo, this.formulario, this.avisos, 'No se pudieron guardar los cambios.');
       throw fallo;
     }
   });
