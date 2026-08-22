@@ -56,7 +56,7 @@ export class AlmacenesComponent {
   private readonly router = inject(Router);
   private readonly constructorFormulario = inject(FormBuilder);
   readonly accionesDeFila: AccionDeFila[] = [
-    { id: 'abrir', etiqueta: 'Abrir', icono: 'abrir' },
+    { id: 'ver', etiqueta: 'Ver', icono: 'ver' },
     {
       id: 'desactivar',
       etiqueta: 'Desactivar',
@@ -252,7 +252,7 @@ export class AlmacenesComponent {
   }
 
   ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
-    if (evento.accion === 'abrir') {
+    if (evento.accion === 'ver') {
       this.abrirFicha(evento.registro);
     } else if (evento.accion === 'desactivar') {
       this.pedirDesactivacion(evento.registro);

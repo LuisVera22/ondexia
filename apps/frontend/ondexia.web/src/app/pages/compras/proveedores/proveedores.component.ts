@@ -28,7 +28,7 @@ export class ProveedoresComponent {
   pagina = 1;
   readonly tamanoPagina = 10;
   readonly accionesDeFila: AccionDeFila[] = [
-    { id: 'abrir', etiqueta: 'Abrir ficha', icono: 'abrir' },
+    { id: 'ver', etiqueta: 'Ver', icono: 'ver' },
   ];
 
 
@@ -69,7 +69,7 @@ export class ProveedoresComponent {
   }
 
   ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
-    if (evento.accion === 'abrir') {
+    if (evento.accion === 'ver') {
       this.abrirFicha(evento.registro);
     }
   }

@@ -44,7 +44,7 @@ export class ProductosComponent {
     { valor: 'Descontinuado', etiqueta: 'Descontinuado' },
   ];
   readonly accionesDeFila: AccionDeFila[] = [
-    { id: 'abrir', etiqueta: 'Abrir ficha', icono: 'abrir' },
+    { id: 'ver', etiqueta: 'Ver', icono: 'ver' },
   ];
 
 
@@ -99,7 +99,7 @@ export class ProductosComponent {
   }
 
   ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
-    if (evento.accion === 'abrir') {
+    if (evento.accion === 'ver') {
       this.abrirFicha(evento.registro);
     }
   }

@@ -19,9 +19,17 @@ import { PosicionFlotante, posicionFlotante } from '../panel-flotante/posicion-f
  * <p>Es una lista cerrada y no una ruta SVG suelta a propósito: así «desactivar»
  * se dibuja igual en las seis pantallas que lo ofrecen, y añadir una acción no
  * obliga a buscar de dónde copiar el icono.
+ *
+ * <p>Se usan los símbolos de siempre, no los que quedan bonitos: el ojo para
+ * ver, el lápiz para editar, la papelera para eliminar. Un icono inventado
+ * obliga a leer la etiqueta, y entonces no está aportando nada.
+ *
+ * <p>Activar y desactivar comparten el símbolo de encendido, que es lo que hay
+ * en cualquier interruptor: son el mismo gesto en dos sentidos y nunca aparecen
+ * a la vez. Los distingue el color y el texto.
  */
 export type IconoAccion =
-  | 'abrir'
+  | 'ver'
   | 'editar'
   | 'desactivar'
   | 'reactivar'
@@ -39,7 +47,7 @@ export interface OpcionDeMenu {
    * Que destruya o corte algo. Se pinta en rojo y baja al final, separada.
    *
    * <p>Separada porque la lista se recorre de arriba abajo y con prisa: tener
-   * «Eliminar» pegado a «Abrir» es invitar a pulsarlo de más.
+   * «Eliminar» pegado a «Ver» es invitar a pulsarlo de más.
    */
   readonly peligrosa?: boolean;
 

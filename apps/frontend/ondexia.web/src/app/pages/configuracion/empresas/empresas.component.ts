@@ -44,7 +44,7 @@ export class EmpresasComponent {
   private readonly contexto = inject(ContextoService);
   private readonly router = inject(Router);
   readonly accionesDeFila: AccionDeFila[] = [
-    { id: 'abrir', etiqueta: 'Ver los datos', icono: 'abrir' },
+    { id: 'ver', etiqueta: 'Ver', icono: 'ver' },
   ];
 
 
@@ -118,7 +118,7 @@ export class EmpresasComponent {
   }
 
   ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
-    if (evento.accion === 'abrir') {
+    if (evento.accion === 'ver') {
       this.abrirFicha(evento.registro);
     }
   }

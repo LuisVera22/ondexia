@@ -66,7 +66,7 @@ export class UsuariosComponent {
   private readonly router = inject(Router);
   private readonly constructorFormulario = inject(FormBuilder);
   readonly accionesDeFila: AccionDeFila[] = [
-    { id: 'abrir', etiqueta: 'Abrir el acceso', icono: 'abrir' },
+    { id: 'ver', etiqueta: 'Ver el acceso', icono: 'ver' },
     {
       id: 'reactivar',
       etiqueta: 'Reactivar',
@@ -80,7 +80,7 @@ export class UsuariosComponent {
       peligrosa: true,
       disponible: (registro) => registro['activo'] === true,
     },
-    { id: 'retirar', etiqueta: 'Retirar de esta empresa', icono: 'retirar', peligrosa: true },
+    { id: 'retirar', etiqueta: 'Quitar el acceso', icono: 'retirar', peligrosa: true },
   ];
 
 
@@ -339,7 +339,7 @@ export class UsuariosComponent {
   }
 
   ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
-    if (evento.accion === 'abrir') {
+    if (evento.accion === 'ver') {
       this.abrirFicha(evento.registro);
     } else if (evento.accion === 'desactivar') {
       this.pedirDesactivacion(evento.registro);
