@@ -14,16 +14,29 @@
   class="pointer-events-none fixed right-0 top-0 z-[100000] w-full max-w-[420px] p-4 sm:p-6"
   aria-live="polite"
 >
-  @if (aviso(); as actual) {
   <!--
-    Sin animación de entrada, y por tanto sin señal visual cuando el mensaje que
-    reemplaza es idéntico al anterior: volver a guardar deja la tarjeta quieta.
-    No es un olvido — la señal de «ha vuelto a pasar» la da el botón, que pasa
-    por cargando y resultado en cada pulsación. Duplicarla aquí es lo que
-    llevaba al contador que se descartó.
+    @for sobre una lista de cero o un elemento, en lugar de @if, y no es un
+    rodeo: con @if Angular reutiliza el nodo al cambiar el contenido, y una
+    animación CSS no vuelve a correr sobre un nodo que no se ha recreado. Con
+    `track actual.id` —y el id cambia en cada aviso, incluso repitiendo el mismo
+    mensaje— el nodo se destruye y se crea, así que la entrada se anima siempre.
+    Eso es lo que hace notable el relevo cuando el texto es idéntico.
+
+    Solo se anima la ENTRADA, con animate.enter —nativo desde Angular 20, sin el
+    paquete @angular/animations—. La salida se probó con animate.leave y se
+    descartó: para animar la salida hay que retener el nodo hasta que la
+    animación acabe, y si llega otro aviso antes —pulsar «Guardar» varias veces
+    seguidas, que es el caso que trajo todo esto— quedaban tarjetas huérfanas en
+    el DOM, invisibles pero interceptando clics. Cinco relevos rápidos dejaban
+    dos residuos.
+
+    No se pierde lo que importa: lo que hace notable el relevo es que la tarjeta
+    nueva entre desplazándose, no que la vieja se vaya despacio.
   -->
+  @for (actual of avisoComoLista(); track actual.id) {
   <div
     class="pointer-events-auto flex items-start gap-3 rounded-xl border bg-white p-4 shadow-flotante dark:bg-gray-900"
+    animate.enter="aviso-entra"
     [class]="
       actual.tipo === 'exito'
         ? 'border-success-200 dark:border-success-500/30'

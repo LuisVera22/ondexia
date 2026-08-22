@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { AvisosService } from '../../../services/avisos.service';
 
 /**
@@ -27,6 +27,21 @@ export class AvisosComponent {
   private readonly servicio = inject(AvisosService);
 
   readonly aviso = this.servicio.aviso;
+
+  /**
+   * El aviso como lista de cero o un elemento, para poder recorrerlo con
+   * {@code @for}.
+   *
+   * <p>Parece un rodeo y no lo es. Con {@code @if}, Angular reutiliza el nodo
+   * cuando cambia el contenido, y una animación CSS no vuelve a correr sobre un
+   * nodo que no se ha recreado: al reemplazar un aviso por otro con el mismo
+   * texto, no se movía nada. Recorriendo con {@code track actual.id} el nodo se
+   * destruye y se crea en cada aviso, y la entrada se anima siempre.
+   */
+  readonly avisoComoLista = computed(() => {
+    const actual = this.servicio.aviso();
+    return actual ? [actual] : [];
+  });
 
   cerrar(): void {
     this.servicio.cerrar();
