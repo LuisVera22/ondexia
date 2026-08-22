@@ -1,5 +1,53 @@
 <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-  <h1 class="text-xl font-semibold text-gray-800 dark:text-white/90">{{ titulo }}</h1>
+  <div class="flex items-center gap-2">
+    <h1 class="text-xl font-semibold text-gray-800 dark:text-white/90">{{ titulo }}</h1>
+
+    @if (descripcion) {
+    <!--
+      El signo de interrogación y no el de exclamación. El de exclamación
+      anuncia que algo va mal, y aquí no pasa nada: es una explicación de lo que
+      hace esta pantalla, que es exactamente lo que se pregunta con un «?».
+    -->
+    <button
+      #disparador
+      type="button"
+      (click)="alternar()"
+      (keydown)="alTeclear($event)"
+      [attr.aria-label]="'Qué es ' + titulo"
+      [attr.aria-expanded]="abierto()"
+      aria-controls="descripcion-pagina"
+      class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-gray-300 text-gray-400 transition hover:border-brand-300 hover:bg-brand-50 hover:text-brand-500 focus:outline-hidden focus-visible:ring-3 focus-visible:ring-brand-500/25 dark:border-gray-700 dark:hover:border-brand-500/40 dark:hover:bg-brand-500/10"
+      [class.border-brand-300]="abierto()"
+      [class.bg-brand-50]="abierto()"
+      [class.text-brand-500]="abierto()"
+    >
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+        <path d="M9.2 9a2.9 2.9 0 1 1 4 2.7c-.8.4-1.2 1-1.2 1.8v.5" />
+        <path d="M12 17.5h.01" />
+      </svg>
+    </button>
+    }
+  </div>
+
+  @if (abierto()) {
+  <!--
+    `fixed` colocado desde el botón: el encabezado vive dentro del marco de la
+    aplicación, que se recorta, y un globo `absolute` se cortaría por el borde.
+    Ver `posicionFlotante`.
+  -->
+  <div
+    #globo
+    id="descripcion-pagina"
+    role="note"
+    tabindex="-1"
+    [ngStyle]="posicion()"
+    (keydown)="alTeclear($event)"
+    animate.enter="menu-entra"
+    class="z-99999 max-w-sm overflow-y-auto overscroll-contain rounded-xl border border-gray-200 bg-white p-4 shadow-flotante focus:outline-hidden dark:border-gray-800 dark:bg-gray-900"
+  >
+    <p class="text-sm leading-relaxed text-gray-600 dark:text-gray-300">{{ descripcion }}</p>
+  </div>
+  }
 
   <nav aria-label="Ruta de navegación">
     <ol class="flex flex-wrap items-center gap-1.5 text-dato">

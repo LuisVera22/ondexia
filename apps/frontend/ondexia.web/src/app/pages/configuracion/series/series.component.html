@@ -1,13 +1,12 @@
 <div>
-  <app-encabezado-pagina titulo="Series y correlativos" />
+  <app-encabezado-pagina
+    titulo="Series y correlativos"
+    descripcion="De aquí sale el número de cada comprobante. La serie va atada a un
+    establecimiento y a un tipo de documento, y su correlativo lo lleva el
+    sistema: sin huecos y sin repetidos."
+  />
 
-  <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-    <p class="max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-      De aquí sale el número de cada comprobante. La serie va atada a un
-      establecimiento y a un tipo de documento, y su correlativo lo lleva el
-      sistema: sin huecos y sin repetidos.
-    </p>
-
+  <div class="mb-5 flex justify-end">
     <app-boton class="shrink-0" (accion)="abrirNueva()">Nueva serie</app-boton>
   </div>
 

@@ -1,13 +1,12 @@
 <div>
-  <app-encabezado-pagina titulo="Almacenes" />
+  <app-encabezado-pagina
+    titulo="Almacenes"
+    descripcion="Dónde está físicamente la mercadería. Es distinto del establecimiento: en un
+    mismo local puede haber varios —mostrador, depósito— y los hay que no
+    cuelgan de ninguno, como la mercadería en tránsito."
+  />
 
-  <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-    <p class="max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-      Dónde está físicamente la mercadería. Es distinto del establecimiento: en
-      un mismo local puede haber varios —mostrador, depósito— y los hay que no
-      cuelgan de ninguno, como la mercadería en tránsito.
-    </p>
-
+  <div class="mb-5 flex justify-end">
     <app-boton class="shrink-0" (accion)="abrirNuevo()">Agregar almacén</app-boton>
   </div>
 

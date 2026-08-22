@@ -1,13 +1,12 @@
 <div>
-  <app-encabezado-pagina titulo="Usuarios" />
+  <app-encabezado-pagina
+    titulo="Usuarios"
+    descripcion="Quién entra en esta empresa y qué puede hacer. Al darla de alta, la persona
+    recibe su acceso registrándose por su cuenta: hasta ese momento figura como
+    invitada."
+  />
 
-  <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-    <p class="max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-      Quién entra en esta empresa y qué puede hacer. Al darla de alta, la persona
-      recibe su acceso registrándose por su cuenta: hasta ese momento figura como
-      <span class="font-medium text-gray-700 dark:text-gray-300">invitada</span>.
-    </p>
-
+  <div class="mb-5 flex justify-end">
     <app-boton class="shrink-0" (accion)="abrirNuevo()">Agregar usuario</app-boton>
   </div>
 

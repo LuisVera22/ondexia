@@ -1,18 +1,16 @@
 <div>
-  <app-encabezado-pagina titulo="Empresas" />
+  <app-encabezado-pagina
+    titulo="Empresas"
+    descripcion="Los contribuyentes que emiten con esta cuenta. Abre una para ver sus datos
+    fiscales, que son los que se imprimen en cada comprobante."
+  />
 
-  <div class="mb-5">
-    <p class="max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-      Los contribuyentes que emiten con esta cuenta. Abre una para ver sus datos
-      fiscales, que son los que se imprimen en cada comprobante.
-      <!--
-        No hay botón de «Agregar empresa», y no es un olvido: dar de alta un RUC
-        afecta a la suscripción y se hace desde la administración de la cuenta.
-        Un botón aquí acabaría en un 404 o, peor, en una pantalla que promete
-        algo que este módulo no puede cumplir.
-      -->
-    </p>
-  </div>
+  <!--
+  No hay botón de «Agregar empresa», y no es un olvido: dar de alta un RUC
+  afecta a la suscripción y se hace desde la administración de la cuenta.
+  Un botón aquí acabaría en un 404 o, peor, en una pantalla que promete
+  algo que este módulo no puede cumplir.
+  -->
 
   <!--
     La carga la pinta la propia tabla. Antes se sustituía la tarjeta entera por
