@@ -182,6 +182,12 @@ function enfocar(formulario: FormGroup, control: AbstractControl): void {
   }
 
   const elemento = document.getElementById(nombre);
-  elemento?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+
+  // La preferencia se consulta aquí y no en CSS: el `behavior` que se pasa a
+  // `scrollIntoView` gana sobre `scroll-behavior`, así que la regla global de
+  // `prefers-reduced-motion` no alcanza a este desplazamiento.
+  const sinMovimiento = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  elemento?.scrollIntoView({ block: 'center', behavior: sinMovimiento ? 'auto' : 'smooth' });
   elemento?.focus?.({ preventScroll: true });
 }

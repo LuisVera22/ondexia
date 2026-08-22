@@ -173,6 +173,28 @@
   --shadow-elevado: 0 4px 8px -2px rgb(16 24 40 / 0.1), 0 2px 4px -2px rgb(16 24 40 / 0.06);
   --shadow-flotante: 0 12px 16px -4px rgb(16 24 40 / 0.08), 0 4px 6px -2px rgb(16 24 40 / 0.03);
   --shadow-superpuesto: 0 20px 24px -4px rgb(16 24 40 / 0.08), 0 8px 8px -4px rgb(16 24 40 / 0.03);
+
+  /*
+   * Movimiento. Una curva y tres duraciones, para todo.
+   *
+   * Antes convivian dos curvas inventadas en dos sitios —`ease-in-out` a 300 ms
+   * en el menu, un `cubic-bezier` propio a 220 ms en el aviso— sin que ninguna
+   * decision lo justificara. Dos curvas distintas en la misma pantalla se
+   * perciben como dos calidades distintas de acabado.
+   *
+   * La curva sale rapido y frena al final: es como se mueve algo que responde a
+   * lo que acabas de pulsar. La entrada lineal, en cambio, se lee como una
+   * espera.
+   *
+   * El techo son 250 ms. Por encima, la animacion deja de acompanar la accion y
+   * empieza a hacerse notar — y una animacion que se nota es demasiado lenta.
+   * `--duracion-lenta` es para lo que recorre distancia de verdad, como el menu
+   * lateral entrando desde fuera de la pantalla.
+   */
+  --ease-propia: cubic-bezier(0.22, 0.85, 0.3, 1);
+  --duracion-rapida: 150ms;
+  --duracion-normal: 200ms;
+  --duracion-lenta: 250ms;
 }
 
 @layer base {
@@ -278,7 +300,8 @@
   .marco-menu {
     width: 300px;
     transform: translateX(-100%);
-    transition: width 300ms ease-in-out, transform 300ms ease-in-out;
+    transition: width var(--duracion-lenta) var(--ease-propia),
+      transform var(--duracion-lenta) var(--ease-propia);
   }
 
   .marco.menu-colapsado .marco-menu {
@@ -291,7 +314,7 @@
   }
 
   .marco-contenido {
-    transition: margin-left 300ms ease-in-out;
+    transition: margin-left var(--duracion-lenta) var(--ease-propia);
   }
 
   /*
@@ -323,7 +346,7 @@
   .plegable {
     overflow: hidden;
     max-height: 0;
-    transition: max-height 300ms ease-in-out;
+    transition: max-height var(--duracion-lenta) var(--ease-propia);
   }
 
   .plegable.abierto {
@@ -434,36 +457,69 @@
   }
 }
 
-/*
- * Barra de desplazamiento discreta, para paneles que se desplazan dentro de
- * la página —el menú lateral, la lista de un desplegable—. La del sistema es
- * ancha y rompe el ritmo visual de un panel estrecho.
+/* ── Barras de desplazamiento ─────────────────────────────────────────────
+ *
+ * Global, no opcional. Existia una utilidad `barra-discreta` para aplicarla
+ * panel por panel y no la usaba ni una plantilla: se escribio, nadie se acordo
+ * de ponerla, y el resultado era la barra del sistema en todas partes —ancha,
+ * con flechas, y en el tema oscuro luminosa sobre un panel negro—. Un estilo
+ * que hay que recordar aplicar es un estilo que no se aplica.
+ *
+ * El pulgar se adelgaza con un borde transparente y `content-box` en lugar de
+ * estrechar la barra: asi la zona que se puede agarrar con el raton sigue
+ * teniendo 11 px aunque se vean 4. Estrechar la barra a 4 px la vuelve
+ * dificil de coger.
  */
-@utility barra-discreta {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-gray-300) transparent;
-
-  &::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: var(--color-gray-300);
-    border-radius: 9999px;
-  }
+html {
+  /* Reserva el hueco de la barra siempre, aparezca o no. Sin esto, el
+   * contenido se desplaza lateralmente cada vez que una tabla crece lo
+   * suficiente para necesitarla —y cada vez que se abre un modal, que quita la
+   * del documento. Ese salto es el que se notaba al abrir cualquier modal. */
+  scrollbar-gutter: stable;
 }
 
-.dark .barra-discreta {
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-gray-300) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-gray-300);
+  border-radius: 9999px;
+  border: 3.5px solid transparent;
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-gray-400);
+}
+
+/* Ni esquina ni flechas: son de la epoca en que la rueda del raton no existia,
+ * y la esquina deja un cuadrado gris donde se cruzan las dos barras. */
+*::-webkit-scrollbar-corner,
+*::-webkit-scrollbar-button {
+  display: none;
+}
+
+.dark * {
   scrollbar-color: var(--color-gray-700) transparent;
 }
 
-.dark .barra-discreta::-webkit-scrollbar-thumb {
+.dark *::-webkit-scrollbar-thumb {
   background-color: var(--color-gray-700);
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-gray-600);
 }
 
 /* Sin barra visible: el menú lateral se desplaza, pero mostrar su barra a
@@ -515,14 +571,36 @@ body.sin-desplazamiento {
 }
 
 .aviso-entra {
-  animation: aviso-entra 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  animation: aviso-entra var(--duracion-normal) var(--ease-propia);
 }
 
-/* Quien pide menos movimiento recibe el cambio de opacidad y ningún
- * desplazamiento. No se desactiva del todo: la aparición seguiría necesitando
- * ser perceptible, y un cambio de opacidad no provoca malestar vestibular
- * —el desplazamiento sí—. Es la razón de que la consulta exista. */
+/* ── Menos movimiento ─────────────────────────────────────────────────────
+ *
+ * Estaba respetado solo en la animacion del aviso, que era la unica que se
+ * habia escrito pensando en ello. El resto —el menu entrando, el submenu
+ * plegandose— seguia moviendose igual. Se pone global para que la regla no
+ * dependa de que quien escriba la siguiente animacion se acuerde.
+ *
+ * No se anula el movimiento a cero: se deja en 1 ms. Anularlo del todo hace
+ * que algunas transiciones no emitan `transitionend`, y hay codigo que espera
+ * ese evento para limpiar. Un milisegundo es imperceptible y sigue emitiendo.
+ *
+ * El aviso queda fuera a proposito. Su aparicion tiene que notarse —es lo unico
+ * que distingue «se guardo otra vez» de «no paso nada»— y su version reducida
+ * ya renuncia al desplazamiento y conserva solo la opacidad, que es lo que
+ * provoca malestar vestibular y lo que no.
+ */
 @media (prefers-reduced-motion: reduce) {
+  *:not(.aviso-entra),
+  *:not(.aviso-entra)::before,
+  *:not(.aviso-entra)::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Sigue apareciendo, pero sin recorrer distancia. */
   @keyframes aviso-entra {
     from {
       opacity: 0;
