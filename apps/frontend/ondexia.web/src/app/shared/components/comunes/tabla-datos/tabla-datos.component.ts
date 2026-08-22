@@ -309,17 +309,6 @@ export class TablaDatosComponent implements OnChanges {
   }
 
   /**
-   * Si se pinta el campo de búsqueda.
-   *
-   * <p>Se esconde cuando todo cabe en una página, y el criterio no es un número
-   * inventado: con menos filas que una página están todas en pantalla, así que
-   * buscar no puede revelar nada que no se esté viendo ya. Un campo que no puede
-   * cambiar lo que hay delante es un control que ocupa sitio y no hace nada.
-   *
-   * <p>Con una búsqueda escrita no se va nunca, aunque el resultado deje dos
-   * filas: desaparecería justo el campo que hay que corregir.
-   */
-  /**
    * Qué se puede buscar, dicho con los nombres de las columnas.
    *
    * <p>«Buscar por ubigeo, distrito o provincia…» dice más que «Buscar…», y sale
@@ -331,7 +320,7 @@ export class TablaDatosComponent implements OnChanges {
    * campo y se corta a media palabra.
    */
   get marcadorBusqueda(): string {
-    const nombres = this.columnas.slice(0, 3).map((c) => c.titulo.toLocaleLowerCase('es'));
+    const nombres = this.columnas.slice(0, 3).map((c) => enMinuscula(c.titulo));
     if (nombres.length === 0) {
       return 'Buscar…';
     }
@@ -340,8 +329,22 @@ export class TablaDatosComponent implements OnChanges {
     return `Buscar por ${lista}…`;
   }
 
+  /**
+   * Si se pinta el campo de búsqueda. Siempre que la tabla sea buscable.
+   *
+   * <p>Se probó a esconderlo cuando todo cabía en una página, con el argumento
+   * de que con menos filas que una página están todas a la vista y buscar no
+   * puede revelar nada nuevo. Es cierto y da igual: al abrir una pantalla no se
+   * sabe cuántas filas hay, y encontrarse con que el campo no está lleva a
+   * pensar que esta tabla no busca — cuando la de al lado sí. Se aprende que el
+   * buscador «a veces está», que es lo mismo que no poder contar con él.
+   *
+   * <p>Es el mismo motivo por el que el paginador no se esconde con una sola
+   * página. Un control que aparece y desaparece deja de ser un control y pasa a
+   * ser una sorpresa.
+   */
   get muestraBuscador(): boolean {
-    return this.buscable && (this.hayBusqueda || this.totalSinFiltrar > this.tamanoVigente);
+    return this.buscable;
   }
 
   private recalcularFiltro(): void {
@@ -633,4 +636,23 @@ function normalizar(texto: string): string {
  */
 function compactar(texto: string): string {
   return texto.replace(/[^a-z0-9]/g, '');
+}
+
+/**
+ * Baja la inicial, salvo que el titulo entero sean siglas.
+ *
+ * <p>Pasarlo entero a minusculas destrozaba «Codigo SUNAT», que salia «codigo
+ * sunat». Bajar solo la inicial arreglaba ese y rompia el siguiente: «RUC» se
+ * convertia en «rUC». Aqui casi todos los titulos llevan una sigla —RUC, SUNAT,
+ * CCI, IGV— asi que no es un caso raro, es el caso corriente.
+ *
+ * <p>Un titulo en mayusculas de principio a fin es una sigla y se deja como
+ * esta; en cualquier otro solo baja la primera letra, y lo que venga detras
+ * —«... SUNAT»— se conserva.
+ */
+function enMinuscula(titulo: string): string {
+  if (titulo === titulo.toLocaleUpperCase('es')) {
+    return titulo;
+  }
+  return titulo.charAt(0).toLocaleLowerCase('es') + titulo.slice(1);
 }
