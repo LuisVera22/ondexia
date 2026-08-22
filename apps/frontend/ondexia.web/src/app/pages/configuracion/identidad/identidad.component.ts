@@ -6,6 +6,7 @@ import {
   LogoApi,
   mensajeDeError,
 } from '../../../nucleo/configuracion.api.service';
+import { AvisosService } from '../../../shared/services/avisos.service';
 
 /** Lo que el navegador anuncia para PNG y JPG. Sin SVG, a propósito. */
 const TIPOS_ADMITIDOS = ['image/png', 'image/jpeg'];
@@ -56,9 +57,19 @@ type Formato = 'a4' | 'ticket';
 })
 export class IdentidadComponent {
   private readonly api = inject(ConfiguracionApiService);
+  private readonly avisos = inject(AvisosService);
 
   readonly logos = signal<LogoApi[]>([]);
   readonly cargando = signal(true);
+
+  /**
+   * Solo el fallo al cargar la pantalla. Lo demás va a avisos.
+   *
+   * <p>Incluidas las validaciones del archivo elegido —el SVG rechazado, el
+   * tamaño excedido—, que en otras pantallas irían junto al campo. Aquí no hay
+   * campo al que pegarlas: hay un botón que abre el selector del sistema, y el
+   * mensaje es la respuesta a algo que el usuario acaba de hacer.
+   */
   readonly error = signal<string | null>(null);
 
   /** Cuál está subiendo, para deshabilitar solo ese y no la pantalla entera. */
@@ -157,16 +168,18 @@ export class IdentidadComponent {
     }
 
     if (!TIPOS_ADMITIDOS.includes(archivo.type)) {
-      this.error.set(
-        `El ${logo.nombre.toLowerCase()} admite PNG o JPG. El SVG no se acepta: puede llevar código dentro.`
+      this.avisos.error(
+        `El ${logo.nombre.toLowerCase()} admite PNG o JPG. El SVG no se acepta: puede llevar código dentro.`,
+        'Formato no admitido'
       );
       return;
     }
 
     if (archivo.size > logo.maximoBytes) {
-      this.error.set(
+      this.avisos.error(
         `El ${logo.nombre.toLowerCase()} no puede pasar de ${this.limiteEnKb(logo)} KB. ` +
-          `El tuyo son ${Math.round(archivo.size / 1024)} KB.`
+          `El tuyo son ${Math.round(archivo.size / 1024)} KB.`,
+        'Archivo demasiado grande'
       );
       return;
     }
@@ -176,7 +189,6 @@ export class IdentidadComponent {
 
   private async subir(logo: LogoApi, archivo: File): Promise<void> {
     this.enCurso.set(logo.logo);
-    this.error.set(null);
 
     try {
       const autorizacion = await this.api.autorizarSubidaDeLogo(
@@ -194,8 +206,14 @@ export class IdentidadComponent {
       // Se salta al formato donde se acaba de cambiar algo: mirar la
       // previsualización es el motivo de haber subido.
       this.formato.set(logo.logo === 'logo_ticket' ? 'ticket' : 'a4');
+
+      // Lleva aviso aunque la previsualización cambie a la vista. La subida son
+      // tres pasos —autorizar, subir al almacén, confirmar— y hasta el último no
+      // hay nada guardado; sin el aviso, un cambio de imagen sutil no distingue
+      // «ya está en el servidor» de «lo estoy viendo en local».
+      this.avisos.exito(`Ya se usa en ${this.dondeSeUsa(logo)}`, `${logo.nombre} actualizado`);
     } catch (fallo: unknown) {
-      this.error.set(
+      this.avisos.error(
         mensajeDeError(fallo, `No se pudo subir el ${logo.nombre.toLowerCase()}.`)
       );
     } finally {
@@ -205,15 +223,30 @@ export class IdentidadComponent {
 
   async quitar(logo: LogoApi): Promise<void> {
     this.enCurso.set(logo.logo);
-    this.error.set(null);
     try {
       this.logos.set(await this.api.quitarLogo(logo.logo));
+      this.avisos.exito(
+        'Los comprobantes se emitirán sin él hasta que subas otro',
+        `${logo.nombre} quitado`
+      );
     } catch (fallo: unknown) {
-      this.error.set(
+      this.avisos.error(
         mensajeDeError(fallo, `No se pudo quitar el ${logo.nombre.toLowerCase()}.`)
       );
     } finally {
       this.enCurso.set(null);
+    }
+  }
+
+  /** Dónde aparece cada hueco, para decirlo en el aviso de subida. */
+  private dondeSeUsa(logo: LogoApi): string {
+    switch (logo.logo) {
+      case 'logo_principal':
+        return 'el encabezado y los PDF';
+      case 'logo_ticket':
+        return 'la impresión térmica';
+      default:
+        return 'la barra lateral y la pestaña del navegador';
     }
   }
 
