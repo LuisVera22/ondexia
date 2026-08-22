@@ -2,7 +2,10 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
+import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
+import { accionConEstado } from '../../../shared/components/comunes/boton/estado-accion';
 import { ConfiguracionApiService, mensajeDeError } from '../../../nucleo/configuracion.api.service';
+import { AvisosService } from '../../../shared/services/avisos.service';
 import { ContextoService } from '../../../shared/services/contexto.service';
 
 /**
@@ -40,20 +43,27 @@ import { ContextoService } from '../../../shared/services/contexto.service';
  */
 @Component({
   selector: 'app-empresa',
-  imports: [EncabezadoPaginaComponent, ReactiveFormsModule, RouterModule],
+  imports: [EncabezadoPaginaComponent, ReactiveFormsModule, RouterModule, BotonComponent],
   templateUrl: './empresa.component.html',
 })
 export class EmpresaComponent {
   private readonly constructorFormulario = inject(FormBuilder);
   private readonly api = inject(ConfiguracionApiService);
   private readonly contexto = inject(ContextoService);
+  private readonly avisos = inject(AvisosService);
   private readonly ruta = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
   readonly cargando = signal(true);
-  readonly guardando = signal(false);
-  readonly guardado = signal(false);
-  readonly cambiandoEmpresa = signal(false);
+
+  /**
+   * Solo el fallo al CARGAR la ficha, que se pinta en lugar del formulario.
+   *
+   * <p>El resultado de guardar o de cambiar de empresa ya no vive aquí: va a un
+   * aviso. La diferencia es que esto no es el resultado de una acción del
+   * usuario —no ha pulsado nada— y no hay formulario que mostrar detrás, así
+   * que un aviso flotante sobre una pantalla vacía no diría qué hacer.
+   */
   readonly error = signal<string | null>(null);
 
   readonly id = signal('');
@@ -135,42 +145,57 @@ export class EmpresaComponent {
    * Pasa a trabajar en esta empresa, que es lo que habilita la edición.
    *
    * <p>Recarga el contexto entero —permisos incluidos— porque los permisos son
-   * por empresa. Si en esta el usuario no llega a la configuración, la recarga
-   * siguiente responderá 403 y se verá el mensaje del servidor: es preferible a
-   * adivinarlo aquí con una lista de permisos que habría que mantener a mano.
+   * por empresa.
+   *
+   * <h2>El aviso va antes de recargar la ficha, y es deliberado</h2>
+   *
+   * <p>El cambio de empresa ya ocurrió en ese punto. Si en la nueva el usuario
+   * no alcanza la configuración —el caso del rol Vendedor—, la recarga responde
+   * 403 y el interceptor global lo lleva a {@code /sin-permisos}. Como los
+   * avisos viven en el marco y no en la pantalla, este sobrevive a esa
+   * navegación y es lo único que explica por qué acabó ahí.
+   *
+   * <p>Anunciarlo después, al terminar bien la recarga, dejaba al usuario en una
+   * pantalla de «sin permisos» sin ninguna pista de que había cambiado de
+   * empresa él mismo un segundo antes.
    */
-  async trabajarEnEstaEmpresa(): Promise<void> {
-    this.cambiandoEmpresa.set(true);
-    this.error.set(null);
-    try {
-      await this.contexto.cambiarEmpresa({
-        id: this.id(),
-        nombre: this.razonSocialCargada(),
-        detalle: `RUC ${this.ruc()}`,
-      });
-      await this.cargar();
-    } catch (fallo: unknown) {
-      this.error.set(mensajeDeError(fallo, 'No se pudo cambiar de empresa.'));
-    } finally {
-      this.cambiandoEmpresa.set(false);
-    }
-  }
+  readonly cambiarDeEmpresa = accionConEstado(async () => {
+    await this.contexto.cambiarEmpresa({
+      id: this.id(),
+      nombre: this.razonSocialCargada(),
+      detalle: `RUC ${this.ruc()}`,
+    });
 
-  async guardar(): Promise<void> {
+    // Sin punto final: muchas razones sociales acaban en uno —«E.I.R.L.»,
+    // «S.A.C.»— y quedaban dos seguidos.
+    this.avisos.exito(
+      `Ahora trabajas en ${this.razonSocialCargada()}`,
+      'Empresa activa cambiada'
+    );
+
+    await this.cargar();
+  });
+
+  /**
+   * Guarda los datos fiscales de la empresa activa.
+   *
+   * <p>El aviso es obligatorio aquí y no basta el botón: lo que cambia son los
+   * datos que se imprimen en los comprobantes, y el formulario se queda igual
+   * de aspecto tras guardar. Sin aviso, la única señal sería un check de un
+   * segundo y medio en el botón.
+   */
+  readonly guardar = accionConEstado(async () => {
     if (!this.esActiva()) {
-      return;
+      throw new Error('Solo se puede editar la empresa en la que trabajas.');
     }
 
     if (this.formulario.invalid) {
       // Marcar como tocado revela los mensajes de los campos que el usuario
-      // nunca llegó a visitar.
+      // nunca llegó a visitar. Los errores de validación se quedan junto al
+      // campo: un aviso en la esquina alejaría el mensaje de lo que corregir.
       this.formulario.markAllAsTouched();
-      return;
+      throw new Error('Formulario incompleto');
     }
-
-    this.guardando.set(true);
-    this.guardado.set(false);
-    this.error.set(null);
 
     const valores = this.formulario.getRawValue();
 
@@ -193,11 +218,14 @@ export class EmpresaComponent {
         ubigeo: empresa.ubigeo ?? '',
       });
       this.formulario.markAsPristine();
-      this.guardado.set(true);
+
+      this.avisos.exito(
+        'Se aplicarán a los comprobantes que se emitan desde ahora.',
+        'Datos de la empresa guardados'
+      );
     } catch (fallo: unknown) {
-      this.error.set(mensajeDeError(fallo, 'No se pudieron guardar los cambios.'));
-    } finally {
-      this.guardando.set(false);
+      this.avisos.error(mensajeDeError(fallo, 'No se pudieron guardar los cambios.'));
+      throw fallo;
     }
-  }
+  });
 }
