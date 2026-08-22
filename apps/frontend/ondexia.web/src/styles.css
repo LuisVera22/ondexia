@@ -574,6 +574,18 @@ body.sin-desplazamiento {
   animation: aviso-entra var(--duracion-normal) var(--ease-propia);
 }
 
+/* Campo de busqueda sin el aspa del navegador.
+ *
+ * `type="search"` da el teclado con lupa en movil y el rol correcto para los
+ * lectores de pantalla, pero WebKit le anade ademas su propio boton de borrar
+ * —y Firefox no—. Con el nuestro dentro del campo, eso son dos aspas en Chrome
+ * y una en Firefox: se apaga la suya y queda una en todas partes, con nuestro
+ * color y nuestro tamano. */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  appearance: none;
+}
+
 /* ── Dialogos ─────────────────────────────────────────────────────────────
  *
  * En movil el dialogo es una hoja inferior y entra subiendo; en escritorio es

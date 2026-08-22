@@ -104,6 +104,17 @@ export class AlmacenesComponent {
     return this.formulario.controls;
   }
 
+  /**
+   * Vuelve a traer el listado, a peticion del usuario.
+   *
+   * <p>Existe porque {@code cargar} es privado y la plantilla no lo alcanza.
+   * No es lo mismo que recargar la pagina: no se pierde el orden, ni la
+   * pagina en la que se estaba, ni lo escrito en el buscador.
+   */
+  recargar(): void {
+    void this.cargar();
+  }
+
   private async cargar(): Promise<void> {
     this.cargando.set(true);
     this.error.set(null);

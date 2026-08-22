@@ -1,18 +1,137 @@
 <div
   class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"
 >
-  @if (cargando) {
+  <!--
+    Barra de herramientas. Va DENTRO de la tarjeta y por encima de la cabecera
+    porque lo que hay aquí actúa sobre esta tabla y no sobre la pantalla: el
+    botón de crear, que sí es de la pantalla, vive fuera junto al título.
+
+    Se pinta aunque la tabla esté vacía o cargando. Si se fuera con las filas,
+    quien busca algo que no existe se quedaría sin campo donde corregir lo que
+    escribió, y sin forma de volver atrás salvo recargar la página.
+  -->
+  @if (buscable || recargable) {
+  <div
+    class="flex flex-col gap-3 border-b border-gray-200 px-5 py-3.5 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between"
+  >
+    @if (buscable) {
+    <div class="relative sm:max-w-xs sm:flex-1">
+      <span
+        class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"
+        aria-hidden="true"
+      >
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
+        </svg>
+      </span>
+
+      <!--
+        `type="search"` y no `text`: el teclado del móvil pone la lupa en lugar
+        de «intro», y los lectores de pantalla lo anuncian como campo de
+        búsqueda. El aspa propia del navegador se apaga en el CSS porque solo la
+        pinta WebKit — tener la nuestra en un navegador y dos en otro es peor
+        que tener siempre la nuestra.
+
+        Escape limpia. Es lo que hace todo campo de búsqueda y no cuesta nada;
+        `stopPropagation` evita que la misma tecla cierre además el modal que
+        pudiera haber detrás.
+      -->
+      <input
+        type="search"
+        [value]="busqueda"
+        (input)="filtrar($any($event.target).value)"
+        (keydown.escape)="$event.stopPropagation(); limpiarBusqueda()"
+        [attr.aria-label]="'Buscar ' + nombrePlural + ' en la tabla'"
+        [placeholder]="'Buscar ' + nombrePlural + '…'"
+        class="h-10 w-full rounded-lg border border-gray-300 bg-transparent py-2 pl-9 pr-9 text-sm text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
+      />
+
+      @if (hayBusqueda) {
+      <button
+        type="button"
+        (click)="limpiarBusqueda()"
+        aria-label="Limpiar la búsqueda"
+        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-300"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+          <path d="m6 6 12 12M18 6 6 18" />
+        </svg>
+      </button>
+      }
+    </div>
+    }
+
+    <div class="flex items-center gap-3 sm:justify-end">
+      <!--
+        El recuento va en una región activa: al filtrar cambia el número de
+        filas y quien no ve la tabla no se entera de nada. `polite` espera a que
+        deje de escribir en vez de interrumpir cada tecla.
+      -->
+      @if (hayBusqueda) {
+      <p class="text-sm text-gray-500 dark:text-gray-400" aria-live="polite">
+        {{ total }} de {{ totalSinFiltrar }}
+      </p>
+      }
+
+      @if (recargable) {
+      <button
+        type="button"
+        (click)="actualizar.emit()"
+        [disabled]="cargando"
+        [attr.aria-label]="'Actualizar ' + nombrePlural"
+        [attr.aria-busy]="refrescando"
+        class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-300 text-gray-500 transition hover:bg-gray-50 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-300"
+      >
+        <svg
+          width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"
+          xmlns="http://www.w3.org/2000/svg"
+          [class.animate-spin]="refrescando"
+        >
+          <path d="M21 12a9 9 0 1 1-2.64-6.36" /><path d="M21 4v5h-5" />
+        </svg>
+      </button>
+      }
+    </div>
+  </div>
+  }
+
+  @if (muestraEsqueleto) {
   <div class="p-6">
     @for (fila of [1,2,3,4,5]; track fila) {
     <div class="mb-3 h-11 animate-pulse rounded-lg bg-gray-100 dark:bg-white/[0.05]"></div>
     }
   </div>
-  } @else if (registros.length === 0) {
+  } @else if (hayBusqueda && total === 0) {
+  <!--
+    Vacía por la búsqueda, no por falta de registros. Se dice qué se buscó y se
+    ofrece deshacerlo: «Aún no hay establecimientos» delante de una tabla con
+    cuarenta sería sencillamente falso, y el botón de crear invitaría a dar de
+    alta uno que ya existe.
+  -->
+  <app-pagina-vacia
+    [titulo]="'Ningún resultado para «' + busqueda.trim() + '»'"
+    descripcion="Se busca en todas las columnas que se ven. Revisa cómo está escrito o prueba con menos palabras."
+    textoAccion="Limpiar la búsqueda"
+    [porFiltros]="true"
+    (accion)="limpiarBusqueda()"
+  />
+  } @else if (total === 0 && vacioPorFiltros) {
+  <!--
+    Vacía por los filtros de la PANTALLA, que están fuera de esta tarjeta. No se
+    ofrece acción porque los filtros no son nuestros: el botón para quitarlos
+    está arriba, junto a ellos, que es donde se puso lo que hay que deshacer.
+  -->
+  <app-pagina-vacia
+    titulo="Ningún registro coincide con los filtros"
+    descripcion="Ajusta o quita los filtros de arriba para ver más registros."
+    [porFiltros]="true"
+  />
+  } @else if (total === 0) {
   <app-pagina-vacia
     [titulo]="vacioTitulo"
     [descripcion]="vacioDescripcion"
     [textoAccion]="vacioAccion"
-    [porFiltros]="vacioPorFiltros"
     (accion)="accionVacio.emit()"
   />
   } @else {
@@ -60,7 +179,13 @@
             }
           </th>
           } @if (plantillaAcciones) {
-          <th class="w-24 px-5 py-3.5 text-right text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          <!--
+            Sin ancho fijo. Con `w-24` la celda medía 96 px y una insignia como
+            «En uso» junto a la flecha se partía en dos líneas, subiendo el alto
+            de esa fila y desalineándola de las demás. El contenido lo pone cada
+            pantalla y no se puede saber aquí cuánto ocupa.
+          -->
+          <th class="whitespace-nowrap px-5 py-3.5 text-right text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
             Acciones
           </th>
           }
@@ -93,7 +218,7 @@
             {{ valor(registro, columna) }}
           </td>
           } @if (plantillaAcciones) {
-          <td class="px-5 py-4 text-right">
+          <td class="whitespace-nowrap px-5 py-4 text-right">
             <ng-container
               [ngTemplateOutlet]="plantillaAcciones"
               [ngTemplateOutletContext]="{ $implicit: registro }"

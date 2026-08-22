@@ -21,6 +21,11 @@
     </button>
   </div>
 
+  <!--
+    Sin el buscador de la tabla: esta pantalla ya trae su panel de filtros
+    arriba, con búsqueda por texto y desplegables. Dos campos de búsqueda uno
+    encima de otro obligan a averiguar cuál manda.
+  -->
   <app-tabla-datos
     [columnas]="columnas"
     [registros]="registros"
@@ -29,6 +34,7 @@
     [tamanoPagina]="tamanoPagina"
     [totalRegistros]="registros.length"
     [vacioPorFiltros]="hayFiltrosActivos"
+    [buscable]="false"
     vacioTitulo="Aún no hay proveedores registrados"
     vacioDescripcion="Necesita al menos un proveedor para registrar órdenes y facturas de compra."
     vacioAccion="Nuevo proveedor"

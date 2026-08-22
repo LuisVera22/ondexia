@@ -22,7 +22,14 @@ export class PaginaVaciaComponent {
   /** Texto del botón. Si queda vacío, no se muestra la acción. */
   @Input() textoAccion = '';
 
-  /** Mensaje distinto cuando el listado está vacío por los filtros aplicados. */
+  /**
+   * Que la tabla esté vacía por un filtro y no por falta de registros.
+   *
+   * <p>Cambia el icono —una lupa en vez de una caja— y el aspecto de la acción,
+   * que pasa a ser secundaria: quitar el filtro es volver atrás, no el siguiente
+   * paso. Los textos los sigue poniendo quien llama, porque solo él sabe qué se
+   * filtró.
+   */
   @Input() porFiltros = false;
 
   @Output() accion = new EventEmitter<void>();
