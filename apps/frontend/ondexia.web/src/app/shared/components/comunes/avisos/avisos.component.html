@@ -40,7 +40,22 @@
 
     <div class="min-w-0 flex-1">
       @if (aviso.titulo) {
-      <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ aviso.titulo }}</p>
+      <div class="flex items-center gap-2">
+        <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ aviso.titulo }}</p>
+        <!--
+          El contador aparece cuando la misma accion se repite. Es la alternativa
+          a apilar tarjetas identicas: dice «ha vuelto a pasar» sin ocupar otra
+          tarjeta ni tapar la pantalla.
+        -->
+        @if (aviso.repeticiones > 1) {
+        <span
+          class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium tabular-nums text-gray-500 dark:bg-white/[0.08] dark:text-gray-400"
+          [attr.aria-label]="'Repetido ' + aviso.repeticiones + ' veces'"
+        >
+          ×{{ aviso.repeticiones }}
+        </span>
+        }
+      </div>
       }
       <p
         class="text-sm"
