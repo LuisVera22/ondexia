@@ -4,21 +4,56 @@
   (z-100000) a propósito: un error al guardar tiene que verse aunque el modal
   siga abierto.
 -->
-<div class="fixed inset-0 z-99999 flex items-start justify-center overflow-y-auto p-4 sm:items-center sm:p-6">
+<!--
+  El contenedor no se desplaza: lo hace el panel. Un panel con barra dentro de un
+  contenedor con barra son dos barras para el mismo contenido, y en un teléfono
+  la de fuera queda debajo del borde de la pantalla.
+
+  `overflow-clip` y no `hidden`: con `hidden` el contenedor sigue siendo
+  desplazable por código, y bastaba con que el navegador llevara a la vista el
+  primer campo al abrir para dejarlo corrido — la hoja terminaba la animación
+  asomando por debajo del borde. `clip` no admite desplazamiento de ninguna
+  clase, que es lo que aquí se quiere decir.
+-->
+<div
+  class="fixed inset-0 z-99999 flex items-end justify-center overflow-clip sm:items-center sm:p-6"
+>
   <div
     class="fixed inset-0 bg-gray-900/50 backdrop-blur-[2px]"
+    animate.enter="fondo-dialogo-entra"
     (click)="intentarCerrar()"
     aria-hidden="true"
   ></div>
 
+  <!--
+    En móvil es una hoja inferior: pegada abajo, a todo el ancho y con las
+    esquinas de arriba redondeadas. No es decoración — un cuadro centrado con
+    margen a los lados deja el contenido en el tercio superior de la pantalla,
+    lejos del pulgar, y los 840 px del ancho «ancho» no caben de ninguna manera
+    en un teléfono.
+
+    La altura se limita al 90% de la ventana y el contenido se desplaza dentro:
+    con el teclado abierto, un formulario de cuatro campos ocupa más de lo que
+    queda de pantalla.
+  -->
   <div
     [attr.role]="rol"
     aria-modal="true"
     [attr.aria-labelledby]="titulo ? 'modal-titulo' : null"
     [attr.aria-describedby]="subtitulo ? 'modal-subtitulo' : null"
-    class="relative my-auto w-full rounded-2xl bg-white shadow-flotante dark:bg-gray-900"
+    animate.enter="dialogo-entra"
+    class="relative max-h-[90dvh] w-full overflow-y-auto overscroll-contain rounded-t-2xl bg-white shadow-flotante max-sm:max-w-none sm:max-h-[calc(100dvh-3rem)] sm:rounded-2xl dark:bg-gray-900"
     [class]="clasesAncho"
   >
+    <!--
+      El tirador. No hace nada al arrastrarlo: es la señal de que esto se
+      cierra hacia abajo, que es lo que la gente intenta primero en una hoja
+      inferior. Sin él, el único modo de cerrar es la cruz.
+    -->
+    <div class="flex justify-center pt-3 sm:hidden" aria-hidden="true">
+      <span class="h-1 w-10 rounded-full bg-gray-300 dark:bg-gray-700"></span>
+    </div>
+
     @if (titulo || subtitulo || cerrable) {
     <div class="flex items-start justify-between gap-4 p-5 pb-0 sm:p-6 sm:pb-0">
       <div class="min-w-0">
@@ -65,7 +100,12 @@
       pantalla. El borde superior solo se pinta si hay algo dentro.
     -->
     <div class="empty:hidden border-t border-gray-200 p-5 dark:border-gray-800 sm:p-6">
-      <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+      <!--
+        En móvil los botones van apilados y a todo el ancho: dos botones de 100
+        px uno al lado del otro son dos blancos pequeños y contiguos, y el que
+        se pulsa sin querer es «Cancelar» sobre un formulario recién rellenado.
+      -->
+      <div class="acciones-dialogo flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
         <ng-content select="[acciones]" />
       </div>
     </div>

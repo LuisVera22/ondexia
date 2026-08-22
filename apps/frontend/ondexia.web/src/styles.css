@@ -574,6 +574,74 @@ body.sin-desplazamiento {
   animation: aviso-entra var(--duracion-normal) var(--ease-propia);
 }
 
+/* ── Dialogos ─────────────────────────────────────────────────────────────
+ *
+ * En movil el dialogo es una hoja inferior y entra subiendo; en escritorio es
+ * un cuadro centrado y entra creciendo un punto. Son dos gestos distintos
+ * porque son dos objetos distintos: uno llega desde el borde de la pantalla y
+ * el otro aparece sobre el contenido.
+ *
+ * El ancho de los botones vive aqui y no en utilidades porque hay que alcanzar
+ * al <button> que esta DENTRO de app-boton, y una utilidad de Tailwind aplicada
+ * al componente solo estira el anfitrion.
+ */
+@keyframes dialogo-entra {
+  from {
+    opacity: 0;
+    /* Sube, pero no un alto entero: recorrer 600 px en un cuarto de segundo se
+     * ve como un salto, y el gesto se entiende igual con dos centimetros. */
+    transform: translateY(2rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fondo-dialogo-entra {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.dialogo-entra {
+  animation: dialogo-entra var(--duracion-lenta) var(--ease-propia);
+}
+
+.fondo-dialogo-entra {
+  animation: fondo-dialogo-entra var(--duracion-rapida) var(--ease-propia);
+}
+
+.acciones-dialogo app-boton,
+.acciones-dialogo app-boton > button {
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  @keyframes dialogo-entra {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .dialogo-entra {
+    animation-duration: var(--duracion-normal);
+  }
+
+  .acciones-dialogo app-boton,
+  .acciones-dialogo app-boton > button {
+    width: auto;
+  }
+}
+
 /* ── Menos movimiento ─────────────────────────────────────────────────────
  *
  * Estaba respetado solo en la animacion del aviso, que era la unica que se
@@ -591,16 +659,25 @@ body.sin-desplazamiento {
  * provoca malestar vestibular y lo que no.
  */
 @media (prefers-reduced-motion: reduce) {
-  *:not(.aviso-entra),
-  *:not(.aviso-entra)::before,
-  *:not(.aviso-entra)::after {
+  *:not(.aviso-entra):not(.dialogo-entra),
+  *:not(.aviso-entra):not(.dialogo-entra)::before,
+  *:not(.aviso-entra):not(.dialogo-entra)::after {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 1ms !important;
     scroll-behavior: auto !important;
   }
 
-  /* Sigue apareciendo, pero sin recorrer distancia. */
+  /* Siguen apareciendo, pero sin recorrer distancia. */
+  @keyframes dialogo-entra {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   @keyframes aviso-entra {
     from {
       opacity: 0;
