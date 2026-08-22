@@ -18,6 +18,16 @@
     [class.opacity-0]="muestraIcono"
     [attr.aria-hidden]="muestraIcono"
   >
+    @if (icono === 'mas') {
+    <!--
+      El «+» de crear. `aria-hidden` porque la etiqueta ya dice qué se crea:
+      anunciarlo sería leer «más agregar establecimiento».
+    -->
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+    }
+
     <ng-content />
   </span>
 

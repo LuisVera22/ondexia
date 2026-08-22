@@ -3,6 +3,7 @@ import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/en
 import { TablaDatosComponent, AccionDeFila,
   ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
+import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
 
 /**
  * Listas de precio por segmento de cliente.
@@ -12,7 +13,12 @@ import { ConfirmacionComponent } from '../../../shared/components/comunes/confir
  */
 @Component({
   selector: 'app-tipos-precio',
-  imports: [EncabezadoPaginaComponent, TablaDatosComponent, ConfirmacionComponent],
+  imports: [
+    EncabezadoPaginaComponent,
+    TablaDatosComponent,
+    ConfirmacionComponent,
+    BotonComponent,
+  ],
   templateUrl: './tipos-precio.component.html',
 })
 export class TiposPrecioComponent {

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { TablaDatosComponent, AccionDeFila,
   ColumnaTabla, OrdenTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
+import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
 
 /**
  * Listado de proveedores.
@@ -17,7 +18,12 @@ import { TablaDatosComponent, AccionDeFila,
  */
 @Component({
   selector: 'app-proveedores',
-  imports: [EncabezadoPaginaComponent, TablaDatosComponent, FormsModule],
+  imports: [
+    EncabezadoPaginaComponent,
+    TablaDatosComponent,
+    FormsModule,
+    BotonComponent,
+  ],
   templateUrl: './proveedores.component.html',
 })
 export class ProveedoresComponent {

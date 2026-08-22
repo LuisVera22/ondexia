@@ -5,6 +5,7 @@ import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/en
 import { TablaDatosComponent, AccionDeFila,
   ColumnaTabla, OrdenTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
+import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
 
 /**
  * Listado de productos.
@@ -15,7 +16,13 @@ import { DesplegableComponent, OpcionDesplegable } from '../../../shared/compone
  */
 @Component({
   selector: 'app-productos',
-  imports: [EncabezadoPaginaComponent, TablaDatosComponent, FormsModule, DesplegableComponent],
+  imports: [
+    EncabezadoPaginaComponent,
+    TablaDatosComponent,
+    FormsModule,
+    DesplegableComponent,
+    BotonComponent,
+  ],
   templateUrl: './productos.component.html',
 })
 export class ProductosComponent {

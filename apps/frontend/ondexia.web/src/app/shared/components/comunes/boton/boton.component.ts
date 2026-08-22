@@ -15,6 +15,16 @@ export type EstadoBoton = 'reposo' | 'cargando' | 'exito' | 'error';
 export type VarianteBoton = 'primario' | 'secundario' | 'peligro' | 'icono';
 
 /**
+ * Icono al principio de la etiqueta.
+ *
+ * <p>Lista cerrada y no una ruta SVG suelta: el «+» de crear se dibujaba a mano
+ * en diez pantallas, cada una con su tamaño y su grosor de trazo. Con un nombre,
+ * el de «Agregar marca» y el de «Registrar establecimiento» son el mismo dibujo
+ * sin que nadie tenga que acordarse.
+ */
+export type IconoBoton = '' | 'mas';
+
+/**
  * Botón con estado de la acción que dispara.
  *
  * <h2>Qué problema resuelve, además del aspecto</h2>
@@ -56,6 +66,12 @@ export class BotonComponent {
 
   /** Deshabilitado por reglas del formulario, no por la acción en curso. */
   @Input() deshabilitado = false;
+
+  /**
+   * Icono delante del texto. Se va con la etiqueta mientras hay acción en curso,
+   * que es lo correcto: durante la espera manda el estado, no lo que se pidió.
+   */
+  @Input() icono: IconoBoton = '';
 
   /** Obligatorio en la variante `icono`, donde no hay texto que leer. */
   @Input() etiquetaAccesible = '';

@@ -1,5 +1,9 @@
 <div>
-  <app-encabezado-pagina titulo="Productos por agotarse" />
+  <app-encabezado-pagina
+    titulo="Productos por agotarse"
+    descripcion="Un producto aparece aquí cuando sus existencias igualan o bajan del
+    stock mínimo configurado en su ficha. Registrar un ingreso lo saca de la lista."
+  />
 
   @if (totalAgotados > 0) {
   <div class="mb-5 flex items-start gap-3 rounded-xl border border-error-200 bg-error-50 p-4 dark:border-error-500/30 dark:bg-error-500/10">
@@ -28,8 +32,17 @@
       </label>
     </div>
 
+    <!--
+      Un enlace y no `app-boton`: esto navega a otra vista, no dispara una
+      accion aqui. Pintarlo como boton le quitaria el clic con rueda, el
+      «abrir en pestana nueva» y la direccion en la barra de estado.
+      Por eso lleva el «+» a mano en vez de `icono="mas"`.
+    -->
     <a routerLink="/almacen/guias-ingreso/nueva"
-      class="flex h-10 shrink-0 items-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
+      class="flex h-10 shrink-0 items-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M12 5v14M5 12h14" />
+      </svg>
       Registrar ingreso
     </a>
   </div>
@@ -51,8 +64,4 @@
     vacioDescripcion="Todos los productos tienen existencias por encima de su stock mínimo."
   />
 
-  <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">
-    Un producto aparece aquí cuando sus existencias igualan o bajan del stock
-    mínimo configurado en su ficha.
-  </p>
 </div>

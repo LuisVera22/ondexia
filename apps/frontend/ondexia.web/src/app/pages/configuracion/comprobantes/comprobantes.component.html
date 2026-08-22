@@ -1,11 +1,10 @@
 <div>
-  <app-encabezado-pagina titulo="Comprobantes" />
-
-  <p class="mb-5 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-    Qué documentos emite tu empresa. Lo que apagues aquí deja de ofrecerse al
+  <app-encabezado-pagina
+    titulo="Comprobantes"
+    descripcion="Qué documentos emite tu empresa. Lo que apagues aquí deja de ofrecerse al
     crear series, así que conviene dejar encendido solo lo que de verdad se
-    emite.
-  </p>
+    emite."
+  />
 
   @if (cargando()) {
   <div class="rounded-2xl border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">
