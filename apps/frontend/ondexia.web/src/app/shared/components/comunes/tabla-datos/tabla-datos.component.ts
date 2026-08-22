@@ -17,6 +17,15 @@ import { DesplegableComponent, OpcionDesplegable } from '../desplegable/desplega
 
 export type AlineacionColumna = 'izquierda' | 'centro' | 'derecha';
 
+/**
+ * Qué significa el valor de una insignia, no de qué color es.
+ *
+ * <p>Se nombran por lo que dicen y no por el color —`exito` y no `verde`— para
+ * que cambiar la paleta no obligue a renombrar nada, que es el mismo criterio de
+ * la escala de color del tema.
+ */
+export type TonoInsignia = 'exito' | 'neutro' | 'aviso' | 'error' | 'marca';
+
 export interface ColumnaTabla {
   /** Propiedad del registro que se muestra en la columna. */
   campo: string;
@@ -28,8 +37,35 @@ export interface ColumnaTabla {
   alineacion?: AlineacionColumna;
   /** Ancho fijo opcional, en clases de Tailwind. */
   ancho?: string;
-  /** Formato de presentación del valor. */
-  formato?: 'texto' | 'importe' | 'cantidad' | 'fecha';
+  /**
+   * Formato de presentación del valor.
+   *
+   * <p>`insignia` pinta un punto de color delante del texto. Es para estados:
+   * «Activo» como texto plano se lee igual que cualquier otro dato y obliga a ir
+   * palabra por palabra, mientras que una columna de puntos se recorre de un
+   * vistazo. Necesita {@link #tono}.
+   */
+  formato?: 'texto' | 'importe' | 'cantidad' | 'fecha' | 'insignia';
+
+  /**
+   * De qué color va el punto, según el valor de cada fila.
+   *
+   * <p>Lo decide la pantalla y no el componente: aquí no se sabe si «Anulado» es
+   * un estado normal del ciclo de vida o un problema.
+   */
+  tono?: (registro: Record<string, unknown>) => TonoInsignia;
+
+  /**
+   * La columna que identifica la fila. Se pinta con más peso.
+   *
+   * <p><strong>Una por tabla.</strong> Si hay dos, la segunda se ignora: en el
+   * momento en que todo destaca, nada destaca.
+   *
+   * <p>Destaca esta en lugar de apagar las demás. Apagarlas parece lo mismo y no
+   * lo es — deja el resto de la tabla en gris sobre blanco, y son datos que hay
+   * que leer, no decoración.
+   */
+  principal?: boolean;
 }
 
 /**
@@ -123,6 +159,9 @@ export class TablaDatosComponent implements OnChanges {
    * salía antes de quitarlo.
    */
   @Input() nombrePlural = 'registros';
+
+  /** Para cuando hay uno solo: «1 empresa» y no «1 empresas». */
+  @Input() nombreSingular = 'registro';
 
   /** Textos del estado vacío. */
   @Input() vacioTitulo = 'No hay registros';
@@ -269,6 +308,42 @@ export class TablaDatosComponent implements OnChanges {
     return this.buscable && this.busqueda.trim().length > 0;
   }
 
+  /**
+   * Si se pinta el campo de búsqueda.
+   *
+   * <p>Se esconde cuando todo cabe en una página, y el criterio no es un número
+   * inventado: con menos filas que una página están todas en pantalla, así que
+   * buscar no puede revelar nada que no se esté viendo ya. Un campo que no puede
+   * cambiar lo que hay delante es un control que ocupa sitio y no hace nada.
+   *
+   * <p>Con una búsqueda escrita no se va nunca, aunque el resultado deje dos
+   * filas: desaparecería justo el campo que hay que corregir.
+   */
+  /**
+   * Qué se puede buscar, dicho con los nombres de las columnas.
+   *
+   * <p>«Buscar por ubigeo, distrito o provincia…» dice más que «Buscar…», y sale
+   * de las columnas en lugar de escribirse a mano en cada pantalla: escrito a
+   * mano se queda desfasado en cuanto alguien añade una columna, y nadie se
+   * enteraría — el campo seguiría buscando en ella sin decirlo.
+   *
+   * <p>Se nombran tres como máximo. Con siete columnas el marcador no cabe en el
+   * campo y se corta a media palabra.
+   */
+  get marcadorBusqueda(): string {
+    const nombres = this.columnas.slice(0, 3).map((c) => c.titulo.toLocaleLowerCase('es'));
+    if (nombres.length === 0) {
+      return 'Buscar…';
+    }
+    const ultimo = nombres.pop();
+    const lista = nombres.length ? `${nombres.join(', ')} o ${ultimo}` : ultimo;
+    return `Buscar por ${lista}…`;
+  }
+
+  get muestraBuscador(): boolean {
+    return this.buscable && (this.hayBusqueda || this.totalSinFiltrar > this.tamanoVigente);
+  }
+
   private recalcularFiltro(): void {
     const terminos = normalizar(this.busqueda).split(/\s+/).filter(Boolean);
 
@@ -358,6 +433,21 @@ export class TablaDatosComponent implements OnChanges {
     return Math.min(this.paginaVigente * this.tamanoVigente, this.total);
   }
 
+  /**
+   * Cuántos hay, dicho arriba en la barra.
+   *
+   * <p>Sube desde el pie porque es lo primero que se quiere saber al abrir la
+   * pantalla, y abajo obligaba a recorrer la tabla entera para encontrarlo. Al
+   * filtrar dice «3 de 40», que es más útil que solo el resultado.
+   */
+  get recuento(): string {
+    const uno = this.total === 1;
+    if (this.hayBusqueda) {
+      return `${this.total} de ${this.totalSinFiltrar} ${this.nombrePlural}`;
+    }
+    return `${this.total} ${uno ? this.nombreSingular : this.nombrePlural}`;
+  }
+
   get todosSeleccionados(): boolean {
     const visibles = this.registrosVisibles;
     return (
@@ -424,6 +514,50 @@ export class TablaDatosComponent implements OnChanges {
   descripcionDeFila(registro: Record<string, unknown>): string {
     const bruto = this.campoDescripcion ? registro[this.campoDescripcion] : null;
     return bruto === null || bruto === undefined ? '' : String(bruto);
+  }
+
+  /**
+   * Si esta columna es la destacada.
+   *
+   * <p>Se compara con la primera marcada y no se lee `principal` a secas: así
+   * una tabla con dos marcadas destaca una, en vez de las dos.
+   */
+  esPrincipal(columna: ColumnaTabla): boolean {
+    return columna === this.columnas.find((c) => c.principal);
+  }
+
+  clasesTexto(columna: ColumnaTabla): string {
+    if (this.esPrincipal(columna)) {
+      return 'font-medium text-gray-800 dark:text-white/90';
+    }
+    return 'text-gray-700 dark:text-gray-300';
+  }
+
+  /** Clases del punto de la insignia. */
+  clasesPunto(columna: ColumnaTabla, registro: Record<string, unknown>): string {
+    switch (columna.tono?.(registro) ?? 'neutro') {
+      case 'exito':
+        return 'bg-success-500';
+      case 'aviso':
+        return 'bg-warning-500';
+      case 'error':
+        return 'bg-error-500';
+      case 'marca':
+        return 'bg-brand-500';
+      default:
+        return 'bg-gray-300 dark:bg-gray-600';
+    }
+  }
+
+  /**
+   * El texto de una insignia neutra se atenúa.
+   *
+   * <p>Un «Inactivo» es información de segundo orden —lo que se busca en esa
+   * columna es lo que sí está en servicio— y atenuarlo hace que los activos
+   * salten a la vista sin tener que leer la palabra.
+   */
+  esNeutra(columna: ColumnaTabla, registro: Record<string, unknown>): boolean {
+    return (columna.tono?.(registro) ?? 'neutro') === 'neutro';
   }
 
   clasesAlineacion(columna: ColumnaTabla): string {

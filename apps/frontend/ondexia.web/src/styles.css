@@ -574,6 +574,29 @@ body.sin-desplazamiento {
   animation: aviso-entra var(--duracion-normal) var(--ease-propia);
 }
 
+/* ── Rayado de la tabla ───────────────────────────────────────────────────
+ *
+ * Sustituye a la linea entre filas: separar con linea Y con fondo es separar dos
+ * veces. Con el rayado, recorrer una fila larga de izquierda a derecha sin
+ * saltar a la de abajo deja de necesitar el dedo en la pantalla.
+ *
+ * Vive aqui y no como `odd:bg-gray-50` en la plantilla por el orden de capas de
+ * Tailwind: las utilidades van despues de los componentes, asi que el `hover` y
+ * el fondo de la fila seleccionada —que son utilidades— ganan a esto. Escrito
+ * como utilidad, `odd:` anade la especificidad de `:nth-child` y ganaria el
+ * rayado: la fila marcada dejaria de verse marcada en las filas impares, y el
+ * hover no se notaria en la mitad de la tabla.
+ */
+@layer components {
+  .tabla-cebra tr:nth-child(even) {
+    background-color: var(--color-gray-50);
+  }
+
+  .dark .tabla-cebra tr:nth-child(even) {
+    background-color: rgb(255 255 255 / 0.02);
+  }
+}
+
 /* Entrada del menu de acciones. Baja un pelo mientras aparece, lo justo para
  * que se lea como algo que sale del boton y no como algo que ya estaba. */
 @keyframes menu-entra {

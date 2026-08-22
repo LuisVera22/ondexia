@@ -22,10 +22,16 @@ export class MarcasComponent {
   ];
 
   columnas: ColumnaTabla[] = [
-    { campo: 'nombre', titulo: 'Marca', ordenable: true },
+    { campo: 'nombre', titulo: 'Marca', ordenable: true, principal: true },
     { campo: 'modelos', titulo: 'Modelos', formato: 'cantidad', ancho: 'w-28' },
     { campo: 'productos', titulo: 'Productos', formato: 'cantidad', ancho: 'w-28' },
-    { campo: 'estado', titulo: 'Estado', ancho: 'w-28' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-32',
+      formato: 'insignia',
+      tono: (registro) => (registro['estado'] === 'Activa' ? 'exito' : 'neutro'),
+    },
   ];
 
   registros = [

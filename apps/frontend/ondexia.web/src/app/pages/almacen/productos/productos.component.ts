@@ -50,7 +50,7 @@ export class ProductosComponent {
 
   columnas: ColumnaTabla[] = [
     { campo: 'codigo', titulo: 'Código', ordenable: true, ancho: 'w-32' },
-    { campo: 'nombre', titulo: 'Producto', ordenable: true },
+    { campo: 'nombre', titulo: 'Producto', ordenable: true, principal: true },
     { campo: 'marca', titulo: 'Marca', ordenable: true, ancho: 'w-40' },
     { campo: 'unidad', titulo: 'Unidad', ancho: 'w-24' },
     { campo: 'stock', titulo: 'Stock', formato: 'cantidad', ordenable: true, ancho: 'w-28' },

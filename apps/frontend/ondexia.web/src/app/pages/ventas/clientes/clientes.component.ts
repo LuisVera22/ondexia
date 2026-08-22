@@ -41,7 +41,7 @@ export class ClientesComponent {
   columnas: ColumnaTabla[] = [
     { campo: 'tipoDocumento', titulo: 'Tipo', ancho: 'w-24' },
     { campo: 'numeroDocumento', titulo: 'Documento', ordenable: true, ancho: 'w-36' },
-    { campo: 'razonSocial', titulo: 'Cliente', ordenable: true },
+    { campo: 'razonSocial', titulo: 'Cliente', ordenable: true, principal: true },
     { campo: 'tipoPrecio', titulo: 'Tipo de precio', ancho: 'w-36' },
     { campo: 'correo', titulo: 'Correo' },
   ];

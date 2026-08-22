@@ -83,12 +83,18 @@ export class SeriesComponent {
 
 
   readonly columnas: ColumnaTabla[] = [
-    { campo: 'serie', titulo: 'Serie', ordenable: true, ancho: 'w-28' },
+    { campo: 'serie', titulo: 'Serie', ordenable: true, ancho: 'w-28', principal: true },
     { campo: 'tipoDocumento', titulo: 'Tipo de comprobante', ordenable: true },
     { campo: 'establecimiento', titulo: 'Establecimiento', ordenable: true },
     { campo: 'ultimoNumero', titulo: 'Último emitido', formato: 'cantidad', ancho: 'w-32' },
     { campo: 'siguiente', titulo: 'Siguiente', ancho: 'w-40' },
-    { campo: 'estado', titulo: 'Estado', ancho: 'w-28' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-32',
+      formato: 'insignia',
+      tono: (registro) => (registro['activa'] === true ? 'exito' : 'neutro'),
+    },
   ];
 
   readonly registros = signal<Record<string, unknown>[]>([]);

@@ -24,7 +24,7 @@ export class UnidadesComponent {
 
   columnas: ColumnaTabla[] = [
     { campo: 'codigoSunat', titulo: 'Código SUNAT', ordenable: true, ancho: 'w-36' },
-    { campo: 'nombre', titulo: 'Nombre', ordenable: true },
+    { campo: 'nombre', titulo: 'Nombre', ordenable: true, principal: true },
     { campo: 'abreviatura', titulo: 'Abreviatura', ancho: 'w-32' },
     { campo: 'productos', titulo: 'Productos', formato: 'cantidad', ancho: 'w-28' },
   ];

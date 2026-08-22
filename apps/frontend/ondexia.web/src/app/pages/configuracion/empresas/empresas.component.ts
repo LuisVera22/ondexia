@@ -50,10 +50,19 @@ export class EmpresasComponent {
 
   readonly columnas: ColumnaTabla[] = [
     { campo: 'ruc', titulo: 'RUC', ordenable: true, ancho: 'w-36' },
-    { campo: 'razonSocial', titulo: 'Razón social', ordenable: true },
+    { campo: 'razonSocial', titulo: 'Razón social', ordenable: true, principal: true },
     { campo: 'nombreComercial', titulo: 'Nombre comercial' },
     { campo: 'domicilioFiscal', titulo: 'Domicilio fiscal' },
-    { campo: 'estado', titulo: 'Estado', ancho: 'w-36' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-32',
+      formato: 'insignia',
+      // Tres casos y no dos: la empresa sobre la que se trabaja se distingue
+      // de las demás activas, que es justo lo que se venía a ver en esta lista.
+      tono: (registro) =>
+        registro['activa'] !== true ? 'neutro' : registro['enUso'] === true ? 'marca' : 'exito',
+    },
   ];
 
   readonly registros = signal<Record<string, unknown>[]>([]);
@@ -104,6 +113,12 @@ export class EmpresasComponent {
           estado:
             (empresa.activa ? 'Activa' : 'Inactiva') +
             (String(empresa.id) === String(activaId) ? ' · en uso' : ''),
+          // El booleano viaja aparte del texto porque de él sale el color del
+          // punto: deducirlo de la cadena obligaría a compararla con «Activa»,
+          // y bastaría reescribir esa palabra para que el punto dejara de
+          // funcionar sin que nada avisara.
+          activa: empresa.activa,
+          enUso: String(empresa.id) === String(activaId),
         }))
       );
     } catch (fallo: unknown) {

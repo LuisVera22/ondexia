@@ -22,7 +22,7 @@ export class FormasPagoComponent {
   ];
 
   columnas: ColumnaTabla[] = [
-    { campo: 'nombre', titulo: 'Forma de pago', ordenable: true },
+    { campo: 'nombre', titulo: 'Forma de pago', ordenable: true, principal: true },
     { campo: 'condicion', titulo: 'Condición', ancho: 'w-32' },
     { campo: 'dias', titulo: 'Días', formato: 'cantidad', ancho: 'w-24' },
     { campo: 'predeterminada', titulo: 'Predeterminada', ancho: 'w-40' },

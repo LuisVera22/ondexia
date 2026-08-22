@@ -34,10 +34,16 @@ export class ProveedoresComponent {
 
   columnas: ColumnaTabla[] = [
     { campo: 'numeroDocumento', titulo: 'RUC', ordenable: true, ancho: 'w-36' },
-    { campo: 'razonSocial', titulo: 'Proveedor', ordenable: true },
+    { campo: 'razonSocial', titulo: 'Proveedor', ordenable: true, principal: true },
     { campo: 'contacto', titulo: 'Contacto' },
     { campo: 'condicionPago', titulo: 'Condición de pago', ancho: 'w-40' },
-    { campo: 'estado', titulo: 'Estado', ancho: 'w-28' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-32',
+      formato: 'insignia',
+      tono: (registro) => (registro['estado'] === 'Activo' ? 'exito' : 'neutro'),
+    },
   ];
 
   private readonly todos = [

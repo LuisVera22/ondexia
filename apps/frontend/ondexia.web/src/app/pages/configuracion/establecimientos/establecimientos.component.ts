@@ -84,10 +84,16 @@ export class EstablecimientosComponent {
 
   readonly columnas: ColumnaTabla[] = [
     { campo: 'codigo', titulo: 'Código SUNAT', ordenable: true, ancho: 'w-32' },
-    { campo: 'nombre', titulo: 'Establecimiento', ordenable: true },
+    { campo: 'nombre', titulo: 'Establecimiento', ordenable: true, principal: true },
     { campo: 'direccion', titulo: 'Dirección' },
     { campo: 'ubigeo', titulo: 'Ubigeo', ancho: 'w-28' },
-    { campo: 'estado', titulo: 'Estado', ancho: 'w-28' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-32',
+      formato: 'insignia',
+      tono: (registro) => (registro['activa'] === true ? 'exito' : 'neutro'),
+    },
   ];
 
   readonly registros = signal<Record<string, unknown>[]>([]);

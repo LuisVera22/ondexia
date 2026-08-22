@@ -23,7 +23,7 @@ export class TiposPrecioComponent {
 
   columnas: ColumnaTabla[] = [
     { campo: 'orden', titulo: 'Orden', ordenable: true, formato: 'cantidad', ancho: 'w-24' },
-    { campo: 'nombre', titulo: 'Tipo de precio', ordenable: true },
+    { campo: 'nombre', titulo: 'Tipo de precio', ordenable: true, principal: true },
     { campo: 'descripcion', titulo: 'Descripción' },
     { campo: 'predeterminado', titulo: 'Predeterminado', ancho: 'w-36' },
   ];

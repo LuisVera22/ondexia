@@ -85,11 +85,25 @@ export class UsuariosComponent {
 
 
   readonly columnas: ColumnaTabla[] = [
-    { campo: 'nombre', titulo: 'Nombre', ordenable: true },
+    { campo: 'nombre', titulo: 'Nombre', ordenable: true, principal: true },
     { campo: 'email', titulo: 'Correo', ordenable: true },
     { campo: 'rol', titulo: 'Rol', ordenable: true, ancho: 'w-40' },
     { campo: 'alcance', titulo: 'Alcance', ancho: 'w-48' },
-    { campo: 'estado', titulo: 'Estado', ancho: 'w-32' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-32',
+      formato: 'insignia',
+      // La columna tiene tres estados y el punto también: «Invitado» no es un
+      // acceso en marcha —todavía no ha creado su cuenta— pero tampoco está
+      // desactivado, y pintarlo verde haría creer que ya puede entrar.
+      tono: (registro) =>
+        registro['activo'] !== true
+          ? 'neutro'
+          : registro['invitado'] === true
+            ? 'aviso'
+            : 'exito',
+    },
   ];
 
   readonly registros = signal<Record<string, unknown>[]>([]);

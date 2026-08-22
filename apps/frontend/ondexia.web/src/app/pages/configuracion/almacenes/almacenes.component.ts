@@ -75,9 +75,15 @@ export class AlmacenesComponent {
 
   readonly columnas: ColumnaTabla[] = [
     { campo: 'codigo', titulo: 'Código', ordenable: true, ancho: 'w-32' },
-    { campo: 'nombre', titulo: 'Almacén', ordenable: true },
+    { campo: 'nombre', titulo: 'Almacén', ordenable: true, principal: true },
     { campo: 'establecimiento', titulo: 'Establecimiento' },
-    { campo: 'estado', titulo: 'Estado', ancho: 'w-28' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-32',
+      formato: 'insignia',
+      tono: (registro) => (registro['activo'] === true ? 'exito' : 'neutro'),
+    },
   ];
 
   readonly registros = signal<Record<string, unknown>[]>([]);

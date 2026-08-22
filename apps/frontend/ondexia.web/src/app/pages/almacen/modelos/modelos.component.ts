@@ -21,10 +21,16 @@ export class ModelosComponent {
   ];
 
   columnas: ColumnaTabla[] = [
-    { campo: 'nombre', titulo: 'Modelo', ordenable: true },
+    { campo: 'nombre', titulo: 'Modelo', ordenable: true, principal: true },
     { campo: 'marca', titulo: 'Marca', ordenable: true },
     { campo: 'productos', titulo: 'Productos', formato: 'cantidad', ancho: 'w-28' },
-    { campo: 'estado', titulo: 'Estado', ancho: 'w-28' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-32',
+      formato: 'insignia',
+      tono: (registro) => (registro['estado'] === 'Activo' ? 'exito' : 'neutro'),
+    },
   ];
 
   registros = [

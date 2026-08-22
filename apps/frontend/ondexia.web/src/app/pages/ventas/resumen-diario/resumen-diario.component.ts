@@ -41,7 +41,7 @@ export class ResumenDiarioComponent {
   ];
 
   columnas: ColumnaTabla[] = [
-    { campo: 'correlativo', titulo: 'Resumen', ordenable: true, ancho: 'w-44' },
+    { campo: 'correlativo', titulo: 'Resumen', ordenable: true, ancho: 'w-44', principal: true },
     { campo: 'fechaReferencia', titulo: 'Fecha de las boletas', ordenable: true, ancho: 'w-44' },
     { campo: 'boletas', titulo: 'Boletas', formato: 'cantidad', ancho: 'w-28' },
     { campo: 'total', titulo: 'Total declarado', formato: 'importe', ancho: 'w-40' },

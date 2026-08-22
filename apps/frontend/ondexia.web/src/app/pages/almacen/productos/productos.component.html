@@ -54,6 +54,8 @@
     encima de otro obligan a averiguar cuál manda.
   -->
   <app-tabla-datos
+    nombrePlural="productos"
+    nombreSingular="producto"
     [acciones]="accionesDeFila"
     campoDescripcion="nombre"
     (accionElegida)="ejecutarAccion($event)"

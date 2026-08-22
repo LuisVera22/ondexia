@@ -10,12 +10,28 @@
     quien busca algo que no existe se quedaría sin campo donde corregir lo que
     escribió, y sin forma de volver atrás salvo recargar la página.
   -->
-  @if (buscable || recargable) {
+  @if (muestraBuscador || recargable || !muestraEsqueleto) {
   <div
     class="flex flex-col gap-3 border-b border-gray-200 px-5 py-3.5 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between"
   >
-    @if (buscable) {
-    <div class="relative sm:max-w-xs sm:flex-1">
+    <!--
+      Cuantos hay. Estaba en el pie, y abajo obligaba a recorrer la tabla entera
+      para encontrar el dato con el que uno se hace la primera idea de lo que
+      tiene delante. No lleva titulo: la pantalla ya pone el suyo justo encima,
+      con su miga de pan, y repetirlo seria decir «Ubigeos» dos veces en quince
+      centimetros.
+
+      En region activa porque al filtrar cambia y quien no ve la tabla no se
+      entera; `polite` espera a que se deje de escribir en vez de interrumpir
+      en cada tecla.
+    -->
+    @if (!muestraEsqueleto) {
+    <p class="text-sm text-gray-500 dark:text-gray-400" aria-live="polite">{{ recuento }}</p>
+    }
+
+    <div class="flex items-center gap-3 sm:justify-end">
+    @if (muestraBuscador) {
+    <div class="relative w-full sm:w-80">
       <span
         class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"
         aria-hidden="true"
@@ -42,7 +58,7 @@
         (input)="filtrar($any($event.target).value)"
         (keydown.escape)="$event.stopPropagation(); limpiarBusqueda()"
         [attr.aria-label]="'Buscar ' + nombrePlural + ' en la tabla'"
-        [placeholder]="'Buscar ' + nombrePlural + '…'"
+        [placeholder]="marcadorBusqueda"
         class="h-10 w-full rounded-lg border border-gray-300 bg-transparent py-2 pl-9 pr-9 text-sm text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
       />
 
@@ -60,18 +76,6 @@
       }
     </div>
     }
-
-    <div class="flex items-center gap-3 sm:justify-end">
-      <!--
-        El recuento va en una región activa: al filtrar cambia el número de
-        filas y quien no ve la tabla no se entera de nada. `polite` espera a que
-        deje de escribir en vez de interrumpir cada tecla.
-      -->
-      @if (hayBusqueda) {
-      <p class="text-sm text-gray-500 dark:text-gray-400" aria-live="polite">
-        {{ total }} de {{ totalSinFiltrar }}
-      </p>
-      }
 
       @if (recargable) {
       <button
@@ -192,10 +196,16 @@
         </tr>
       </thead>
 
-      <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+      <!--
+        Sin `divide-y`: la cebra ya separa las filas, y hacerlo con linea y con
+        fondo es separarlas dos veces. La regla del rayado vive en styles.css
+        porque tiene que perder contra el `hover` y contra la fila seleccionada,
+        que son utilidades — ver alli.
+      -->
+      <tbody class="tabla-cebra">
         @for (registro of registrosVisibles; track registro[campoClave]) {
         <tr
-          class="transition hover:bg-gray-50 dark:hover:bg-white/[0.02]"
+          class="transition hover:bg-gray-100 dark:hover:bg-white/[0.05]"
           [class.bg-brand-25]="estaSeleccionado(registro)"
         >
           @if (seleccionable) {
@@ -210,12 +220,37 @@
           </td>
           } @for (columna of columnas; track columna.campo) {
           <td
-            class="cursor-pointer px-5 py-4 text-sm text-gray-700 dark:text-gray-300"
-            [class]="clasesAlineacion(columna)"
+            class="cursor-pointer px-5 py-4 text-sm"
+            [class]="clasesAlineacion(columna) + ' ' + clasesTexto(columna)"
             [class.tabular-nums]="columna.formato === 'importe' || columna.formato === 'cantidad'"
             (click)="filaClic.emit(registro)"
           >
+            @if (columna.formato === 'insignia') {
+            <!--
+              El punto va antes del texto y no lo sustituye: el color solo no
+              dice nada a quien no lo distingue, y de eso no se entera nadie
+              hasta que se queja. `aria-hidden` porque la palabra ya esta ahi.
+            -->
+            <span class="inline-flex items-center gap-2">
+              <span
+                class="h-2 w-2 shrink-0 rounded-full"
+                [class]="clasesPunto(columna, registro)"
+                aria-hidden="true"
+              ></span>
+              <!--
+                `gray-500` y no `gray-400`, que era lo primero que se puso:
+                sobre blanco daba 2,6:1 y el mínimo legible es 4,5:1. Atenuar es
+                bajar el peso de un dato, no dejarlo a medio leer. Este da 4,98:1
+                sobre blanco y 4,78:1 sobre la fila rayada, que es el otro fondo
+                sobre el que puede caer.
+              -->
+              <span [class]="esNeutra(columna, registro) ? 'text-gray-500 dark:text-gray-400' : ''">
+                {{ valor(registro, columna) }}
+              </span>
+            </span>
+            } @else {
             {{ valor(registro, columna) }}
+            }
           </td>
           } @if (acciones.length > 0) {
           <td class="w-16 whitespace-nowrap px-5 py-4 text-right">
@@ -236,9 +271,13 @@
     class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between"
   >
     <div class="flex flex-wrap items-center gap-3">
+      <!--
+        Solo la pagina. Cuantos hay se dice arriba, y decir «Mostrando 1 a 6 de
+        12 registros» ademas era la misma cuenta contada dos veces en la misma
+        tarjeta.
+      -->
       <p class="text-sm text-gray-500 dark:text-gray-400">
-        Mostrando {{ desde }} a {{ hasta }} de {{ total }}
-        {{ total === 1 ? 'registro' : 'registros' }}
+        Página {{ paginaVigente }} de {{ totalPaginas }}
       </p>
 
       @if (total > tamanosPagina[0]) {

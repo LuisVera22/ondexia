@@ -42,6 +42,8 @@
     encima de otro obligan a averiguar cuál manda.
   -->
   <app-tabla-datos
+    nombrePlural="clientes"
+    nombreSingular="cliente"
     [acciones]="accionesDeFila"
     campoDescripcion="razonSocial"
     (accionElegida)="ejecutarAccion($event)"

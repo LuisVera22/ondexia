@@ -24,7 +24,7 @@ export class PresentacionesComponent {
 
   columnas: ColumnaTabla[] = [
     { campo: 'producto', titulo: 'Producto', ordenable: true },
-    { campo: 'descripcion', titulo: 'Presentación', ordenable: true },
+    { campo: 'descripcion', titulo: 'Presentación', ordenable: true, principal: true },
     { campo: 'factor', titulo: 'Factor', formato: 'cantidad', ancho: 'w-28' },
     { campo: 'codigoBarras', titulo: 'Código de barras', ancho: 'w-44' },
     { campo: 'base', titulo: 'Base', ancho: 'w-24' },
