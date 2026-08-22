@@ -359,13 +359,16 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaEstablecimiento"
-    delete:
+  /api/v1/configuracion/establecimientos/{id}/estado:
+    put:
       tags:
       - Establecimientos
-      summary: Desactiva un establecimiento
-      description: "No lo borra. Un establecimiento aparece en los comprobantes ya\
-        \ emitidos: borrarlo dejaría documentos apuntando a nada."
-      operationId: desactivar
+      summary: Activa o desactiva un establecimiento
+      description: "Nunca borra. Un establecimiento aparece en los comprobantes ya\
+        \ emitidos: borrarlo dejaria documentos apuntando a nada. Desactivarlo lo\
+        \ saca de los desplegables y conserva su codigo, sus series y su numeracion,\
+        \ de modo que reactivarlo lo devuelve tal como estaba."
+      operationId: cambiarEstado_2
       parameters:
       - name: id
         in: path
@@ -373,9 +376,19 @@ paths:
         schema:
           type: string
           format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionEstado"
+        required: true
       responses:
-        "204":
-          description: No Content
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaEstablecimiento"
   /api/v1/configuracion/empresa:
     get:
       tags:
@@ -417,7 +430,7 @@ paths:
       summary: Habilita o deshabilita un tipo
       description: "No se puede deshabilitar un tipo con series activas: la pantalla\
         \ diría una cosa y el sistema haría otra. Responde 400 con `tipo_con_series_activas`."
-      operationId: cambiarEstado_2
+      operationId: cambiarEstado_3
       parameters:
       - name: codigo
         in: path
@@ -465,12 +478,13 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaAlmacen"
-    delete:
+  /api/v1/almacen/almacenes/{id}/estado:
+    put:
       tags:
       - Almacenes
-      summary: Desactiva un almacén
-      description: "No lo borra: aparece en cada movimiento de stock que lo tocó."
-      operationId: desactivar_1
+      summary: Activa o desactiva un almacen
+      description: "Nunca borra: aparece en cada movimiento de stock que lo toco."
+      operationId: cambiarEstado_4
       parameters:
       - name: id
         in: path
@@ -478,9 +492,19 @@ paths:
         schema:
           type: string
           format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionEstado"
+        required: true
       responses:
-        "204":
-          description: No Content
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaAlmacen"
   /api/v1/registro:
     post:
       tags:

@@ -66,6 +66,12 @@ export class EstablecimientosComponent {
   readonly accionesDeFila: AccionDeFila[] = [
     { id: 'ver', etiqueta: 'Ver', icono: 'ver' },
     {
+      id: 'reactivar',
+      etiqueta: 'Reactivar',
+      icono: 'reactivar',
+      disponible: (registro) => registro['activa'] !== true,
+    },
+    {
       id: 'desactivar',
       etiqueta: 'Desactivar',
       icono: 'desactivar',
@@ -226,7 +232,7 @@ export class EstablecimientosComponent {
     }
 
     try {
-      await this.api.desactivarEstablecimiento(establecimiento.id);
+      await this.api.cambiarEstadoEstablecimiento(establecimiento.id, false);
       this.confirmacionAbierta.set(false);
       this.aDesactivar = null;
       await this.cargar();
@@ -245,11 +251,34 @@ export class EstablecimientosComponent {
     this.aDesactivar = null;
   }
 
+  /**
+   * Vuelve a ponerlo en servicio. Sin confirmar, al contrario que desactivar.
+   *
+   * <p>Se confirma lo que quita algo, no lo que lo devuelve: reactivar por error
+   * se deshace desactivando otra vez, y preguntar en los dos sentidos entrena a
+   * aceptar sin leer — que es justo lo que no queremos en el sentido que sí
+   * importa.
+   */
+  async reactivar(fila: Record<string, unknown>): Promise<void> {
+    try {
+      await this.api.cambiarEstadoEstablecimiento(String(fila['id']), true);
+      await this.cargar();
+      this.avisos.exito(
+        `${fila['nombre']} vuelve a estar disponible para emitir`,
+        'Establecimiento reactivado'
+      );
+    } catch (fallo: unknown) {
+      this.avisos.error(mensajeDeError(fallo, 'No se pudo reactivar el establecimiento.'));
+    }
+  }
+
   ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
     if (evento.accion === 'ver') {
       this.abrirFicha(evento.registro);
     } else if (evento.accion === 'desactivar') {
       this.pedirDesactivacion(evento.registro);
+    } else if (evento.accion === 'reactivar') {
+      void this.reactivar(evento.registro);
     }
   }
 }

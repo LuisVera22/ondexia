@@ -100,26 +100,37 @@ public class Establecimientos {
     }
 
     /**
-     * Desactiva, nunca borra.
+     * Pone o quita de servicio. Nunca borra.
      *
      * <p>Un establecimiento aparece en los comprobantes que ya se emitieron.
      * Borrarlo dejaría documentos apuntando a nada y rompería el libro
      * electrónico; desactivarlo lo saca de los desplegables y conserva la
      * historia.
+     *
+     * <p>Va en los dos sentidos, y antes no: solo existía el camino de ida, así
+     * que quien se equivocaba de fila perdía el local para siempre. Reactivar no
+     * restaura nada porque no se había perdido nada — el código y las series
+     * siguieron ahí todo el tiempo.
      */
     @Transactional
-    public void desactivar(UUID id) {
+    public Sucursal cambiarEstado(UUID id, boolean activa) {
         var sucursal = exigirDeEstaEmpresa(id);
 
-        if (!sucursal.estaActiva()) {
-            return; // Idempotente: repetir la operación no es un error.
+        if (sucursal.estaActiva() == activa) {
+            return sucursal; // Idempotente: repetir la operación no es un error.
         }
 
         var antes = Instantanea.de(sucursal);
-        sucursal.desactivar();
+        if (activa) {
+            sucursal.activar();
+        } else {
+            sucursal.desactivar();
+        }
         var guardada = sucursales.guardar(sucursal);
 
-        auditoria.registrar("sucursal", id, "DESACTIVAR", antes, Instantanea.de(guardada));
+        auditoria.registrar("sucursal", id, activa ? "ACTIVAR" : "DESACTIVAR",
+                antes, Instantanea.de(guardada));
+        return guardada;
     }
 
     private UUID empresaActiva() {

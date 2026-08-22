@@ -83,6 +83,21 @@ public class Sucursal {
         this.activa = false;
     }
 
+    /**
+     * Vuelve a ponerlo en servicio.
+     *
+     * <p>Faltaba, y no era un olvido inocuo: sin esto, desactivar un
+     * establecimiento no tenia vuelta atras en ninguna capa. Quien se equivocara
+     * de fila perdia el local para siempre, con sus series colgando de el.
+     *
+     * <p>No hay nada que restaurar al reactivar. El codigo, las series y su
+     * numeracion siguieron ahi todo el tiempo: desactivar solo lo saca de los
+     * desplegables.
+     */
+    public void activar() {
+        this.activa = true;
+    }
+
     @Override
     public boolean equals(Object otro) {
         return otro instanceof Sucursal otra && id.equals(otra.id);

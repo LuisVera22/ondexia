@@ -257,10 +257,17 @@ export class ConfiguracionApiService {
     );
   }
 
-  /** Desactiva, no borra: el establecimiento aparece en los comprobantes emitidos. */
-  desactivarEstablecimiento(id: string): Promise<void> {
+  /**
+   * Pone o quita de servicio. Nunca borra: el establecimiento aparece en los
+   * comprobantes ya emitidos.
+   *
+   * <p>Era un `DELETE`, y por tanto un camino de ida. Reactivar no restaura
+   * nada, porque nada se había perdido: el código, las series y su numeración
+   * siguieron ahí.
+   */
+  cambiarEstadoEstablecimiento(id: string, activa: boolean): Promise<Establecimiento> {
     return firstValueFrom(
-      this.http.delete<void>(`${this.base}/establecimientos/${id}`)
+      this.http.put<Establecimiento>(`${this.base}/establecimientos/${id}/estado`, { activa })
     );
   }
 
@@ -289,8 +296,11 @@ export class ConfiguracionApiService {
   }
 
   /** Desactiva, no borra: el almacén aparece en cada movimiento de stock que lo tocó. */
-  desactivarAlmacen(id: string): Promise<void> {
-    return firstValueFrom(this.http.delete<void>(`${this.baseAlmacen}/almacenes/${id}`));
+  /** Pone o quita de servicio. Nunca borra: el kardex lo sigue referenciando. */
+  cambiarEstadoAlmacen(id: string, activo: boolean): Promise<AlmacenApi> {
+    return firstValueFrom(
+      this.http.put<AlmacenApi>(`${this.baseAlmacen}/almacenes/${id}/estado`, { activo })
+    );
   }
 
   // ── Series ───────────────────────────────────────────────────────────────

@@ -58,6 +58,12 @@ export class AlmacenesComponent {
   readonly accionesDeFila: AccionDeFila[] = [
     { id: 'ver', etiqueta: 'Ver', icono: 'ver' },
     {
+      id: 'reactivar',
+      etiqueta: 'Reactivar',
+      icono: 'reactivar',
+      disponible: (registro) => registro['activo'] !== true,
+    },
+    {
       id: 'desactivar',
       etiqueta: 'Desactivar',
       icono: 'desactivar',
@@ -232,7 +238,7 @@ export class AlmacenesComponent {
     }
 
     try {
-      await this.api.desactivarAlmacen(almacen.id);
+      await this.api.cambiarEstadoAlmacen(almacen.id, false);
       this.confirmacionAbierta.set(false);
       this.aDesactivar = null;
       await this.cargar();
@@ -251,11 +257,27 @@ export class AlmacenesComponent {
     this.aDesactivar = null;
   }
 
+  /** Sin confirmar: se confirma lo que quita algo, no lo que lo devuelve. */
+  async reactivar(fila: Record<string, unknown>): Promise<void> {
+    try {
+      await this.api.cambiarEstadoAlmacen(String(fila['id']), true);
+      await this.cargar();
+      this.avisos.exito(
+        `${fila['nombre']} vuelve a admitir movimientos`,
+        'Almacén reactivado'
+      );
+    } catch (fallo: unknown) {
+      this.avisos.error(mensajeDeError(fallo, 'No se pudo reactivar el almacén.'));
+    }
+  }
+
   ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
     if (evento.accion === 'ver') {
       this.abrirFicha(evento.registro);
     } else if (evento.accion === 'desactivar') {
       this.pedirDesactivacion(evento.registro);
+    } else if (evento.accion === 'reactivar') {
+      void this.reactivar(evento.registro);
     }
   }
 }
