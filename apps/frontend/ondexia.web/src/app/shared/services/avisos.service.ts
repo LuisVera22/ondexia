@@ -3,17 +3,16 @@ import { Injectable, signal } from '@angular/core';
 export type TipoAviso = 'exito' | 'error' | 'info';
 
 export interface Aviso {
+  /** Identifica esta aparición concreta. Útil para depurar y para pruebas. */
   readonly id: number;
   readonly tipo: TipoAviso;
   readonly mensaje: string;
   /** Opcional. Sin él, el mensaje va solo, que es lo normal. */
   readonly titulo?: string;
-  /** Cuántas veces se ha pedido este mismo aviso. Se pinta desde 2. */
-  readonly repeticiones: number;
 }
 
 /**
- * Cuánto vive cada aviso en pantalla.
+ * Cuánto vive el aviso en pantalla.
  *
  * <p>El error dura más del doble, y no es arbitrario: un acierto solo confirma
  * lo que el usuario esperaba y se lee de un vistazo, mientras que un error trae
@@ -28,18 +27,20 @@ const DURACION_MS: Record<TipoAviso, number> = {
 };
 
 /**
- * Cuántos avisos se muestran a la vez.
+ * El aviso flotante de la esquina superior derecha. Uno, y solo uno.
  *
- * <p>Tres. Es un tope de presentación, no de cortesía: la pila crece hacia
- * abajo desde la esquina y a partir del cuarto empieza a tapar el contenido de
- * la pantalla — y nadie lee siete tarjetas, así que las de abajo solo estorban.
- * Al llegar al límite se retira la más antigua, que es la que ya ha tenido su
- * tiempo en pantalla.
- */
-const MAXIMO_VISIBLES = 3;
-
-/**
- * Avisos flotantes de la esquina superior derecha.
+ * <h2>Uno a la vez, y el nuevo desplaza al anterior</h2>
+ *
+ * <p>La primera versión apilaba. Siete pulsaciones de «Guardar» producían siete
+ * tarjetas idénticas que desbordaban la ventana y tapaban el formulario. Se
+ * intentó arreglar con un tope de tres, un contador de repeticiones y una regla
+ * para no descartar errores sin leer — tres mecanismos para un problema que no
+ * existe si solo hay un aviso.
+ *
+ * <p>Con uno, el más reciente es el que vale. Y en la práctica eso es también lo
+ * correcto: la secuencia habitual es «falla el guardado, corrijo, vuelvo a
+ * guardar», donde el acierto que desplaza al error lo hace porque el error ya
+ * no describe la situación.
  *
  * <h2>Cuándo un aviso y cuándo no</h2>
  *
@@ -62,13 +63,11 @@ const MAXIMO_VISIBLES = 3;
  */
 @Injectable({ providedIn: 'root' })
 export class AvisosService {
-  private readonly _avisos = signal<Aviso[]>([]);
-  readonly avisos = this._avisos.asReadonly();
+  private readonly _aviso = signal<Aviso | null>(null);
+  readonly aviso = this._aviso.asReadonly();
 
   private siguienteId = 1;
-
-  /** Los temporizadores se guardan para poder cancelarlos al cerrar a mano. */
-  private readonly temporizadores = new Map<number, ReturnType<typeof setTimeout>>();
+  private temporizador: ReturnType<typeof setTimeout> | null = null;
 
   exito(mensaje: string, titulo?: string): void {
     this.mostrar('exito', mensaje, titulo);
@@ -82,100 +81,25 @@ export class AvisosService {
     this.mostrar('info', mensaje, titulo);
   }
 
-  cerrar(id: number): void {
-    this.cancelarTemporizador(id);
-    this._avisos.update((avisos) => avisos.filter((aviso) => aviso.id !== id));
-  }
-
-  /** Al cambiar de pantalla, lo que quedaba en cola ya no viene al caso. */
-  limpiar(): void {
-    this.temporizadores.forEach((temporizador) => clearTimeout(temporizador));
-    this.temporizadores.clear();
-    this._avisos.set([]);
+  cerrar(): void {
+    this.detenerCuentaAtras();
+    this._aviso.set(null);
   }
 
   private mostrar(tipo: TipoAviso, mensaje: string, titulo?: string): void {
-    // Guardar dos veces seguidas produce el mismo aviso dos veces, y la segunda
-    // tarjeta no dice nada que no dijera la primera. En vez de apilar un
-    // duplicado se cuenta la repetición y se le devuelve el tiempo completo en
-    // pantalla: lo único nuevo es que ha vuelto a pasar, y eso cabe en un
-    // número. Sin esto, pulsar «Guardar» siete veces llenaba la pantalla de
-    // tarjetas idénticas.
-    const repetido = this._avisos().find(
-      (aviso) => aviso.tipo === tipo && aviso.mensaje === mensaje && aviso.titulo === titulo
-    );
+    // Reemplaza sin preguntar: el más reciente es el que vale. Repetir el mismo
+    // mensaje no cambia nada visible, y la señal de que la acción se ha vuelto a
+    // ejecutar la da el estado del botón, no esta tarjeta.
+    this._aviso.set({ id: this.siguienteId++, tipo, mensaje, titulo });
 
-    if (repetido) {
-      this._avisos.update((avisos) =>
-        avisos.map((aviso) =>
-          aviso.id === repetido.id
-            ? { ...aviso, repeticiones: aviso.repeticiones + 1 }
-            : aviso
-        )
-      );
-      this.programarCierre(repetido.id, tipo);
-      return;
-    }
-
-    const id = this.siguienteId++;
-
-    // El nuevo va primero: aparece pegado a la barra superior, donde está
-    // mirando quien acaba de pulsar. Añadiéndolo al final, el aviso recién
-    // creado saldría debajo de los que ya estaban.
-    this._avisos.update((avisos) =>
-      this.recortarAlMaximo([{ id, tipo, mensaje, titulo, repeticiones: 1 }, ...avisos])
-    );
-
-    this.programarCierre(id, tipo);
+    this.detenerCuentaAtras();
+    this.temporizador = setTimeout(() => this.cerrar(), DURACION_MS[tipo]);
   }
 
-  /**
-   * Deja la pila en {@link MAXIMO_VISIBLES}, sacrificando primero lo prescindible.
-   *
-   * <h2>Los errores se descartan últimos</h2>
-   *
-   * <p>El orden de llegada no es el criterio. Con un simple «fuera el más
-   * antiguo», un «guardado» podía expulsar de la pantalla un error que el
-   * usuario todavía no había leído — y perder un aviso de éxito solo cuesta una
-   * confirmación de algo que ya se esperaba, mientras que perder un error deja a
-   * alguien sin saber que su operación no se hizo.
-   *
-   * <p>Así que se retira el más antiguo de entre los que no son errores, y solo
-   * cuando los tres son errores se retira el error más antiguo.
-   */
-  private recortarAlMaximo(avisos: Aviso[]): Aviso[] {
-    const restantes = [...avisos];
-
-    while (restantes.length > MAXIMO_VISIBLES) {
-      // La lista va del más nuevo al más viejo, así que se busca desde el final.
-      let indice = restantes.length - 1;
-      for (let i = restantes.length - 1; i >= 0; i--) {
-        if (restantes[i].tipo !== 'error') {
-          indice = i;
-          break;
-        }
-      }
-      this.cancelarTemporizador(restantes[indice].id);
-      restantes.splice(indice, 1);
-    }
-
-    return restantes;
-  }
-
-  /** Reinicia la cuenta atrás de un aviso, o la arranca si no la tenía. */
-  private programarCierre(id: number, tipo: TipoAviso): void {
-    this.cancelarTemporizador(id);
-    this.temporizadores.set(
-      id,
-      setTimeout(() => this.cerrar(id), DURACION_MS[tipo])
-    );
-  }
-
-  private cancelarTemporizador(id: number): void {
-    const temporizador = this.temporizadores.get(id);
-    if (temporizador) {
-      clearTimeout(temporizador);
-      this.temporizadores.delete(id);
+  private detenerCuentaAtras(): void {
+    if (this.temporizador) {
+      clearTimeout(this.temporizador);
+      this.temporizador = null;
     }
   }
 }

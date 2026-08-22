@@ -2,33 +2,43 @@
   Por encima del modal (z-99999) a propósito: un error al guardar tiene que
   verse aunque el modal siga abierto, que es justo cuando ocurre.
 
-  pointer-events-none en el contenedor y auto en cada aviso: la columna ocupa
-  una franja alta de la pantalla, y sin esto interceptaría los clics del
-  contenido que hay debajo aunque no haya ningún aviso visible.
+  pointer-events-none en el contenedor y auto en la tarjeta: la franja ocupa
+  ancho de pantalla, y sin esto interceptaría los clics del contenido que hay
+  debajo aunque no haya ningún aviso.
+
+  La región existe siempre, con aviso o sin él. Un aria-live que aparece y
+  desaparece del DOM no se anuncia: el lector de pantalla tiene que estar
+  observándola de antes.
 -->
 <div
-  class="pointer-events-none fixed right-0 top-0 z-[100000] flex w-full max-w-[420px] flex-col gap-3 p-4 sm:p-6"
+  class="pointer-events-none fixed right-0 top-0 z-[100000] w-full max-w-[420px] p-4 sm:p-6"
   aria-live="polite"
-  aria-relevant="additions"
 >
-  @for (aviso of avisos(); track aviso.id) {
+  @if (aviso(); as actual) {
+  <!--
+    Sin animación de entrada, y por tanto sin señal visual cuando el mensaje que
+    reemplaza es idéntico al anterior: volver a guardar deja la tarjeta quieta.
+    No es un olvido — la señal de «ha vuelto a pasar» la da el botón, que pasa
+    por cargando y resultado en cada pulsación. Duplicarla aquí es lo que
+    llevaba al contador que se descartó.
+  -->
   <div
     class="pointer-events-auto flex items-start gap-3 rounded-xl border bg-white p-4 shadow-flotante dark:bg-gray-900"
     [class]="
-      aviso.tipo === 'exito'
+      actual.tipo === 'exito'
         ? 'border-success-200 dark:border-success-500/30'
-        : aviso.tipo === 'error'
+        : actual.tipo === 'error'
           ? 'border-error-500/30'
           : 'border-gray-200 dark:border-gray-800'
     "
-    [attr.role]="aviso.tipo === 'error' ? 'alert' : 'status'"
-    [attr.aria-live]="aviso.tipo === 'error' ? 'assertive' : 'polite'"
+    [attr.role]="actual.tipo === 'error' ? 'alert' : 'status'"
+    [attr.aria-live]="actual.tipo === 'error' ? 'assertive' : 'polite'"
   >
-    @if (aviso.tipo === 'exito') {
+    @if (actual.tipo === 'exito') {
     <svg class="mt-0.5 shrink-0 text-success-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
       <circle cx="12" cy="12" r="9" /><path d="m8.5 12.5 2.5 2.5 4.5-5" />
     </svg>
-    } @else if (aviso.tipo === 'error') {
+    } @else if (actual.tipo === 'error') {
     <svg class="mt-0.5 shrink-0 text-error-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
       <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
     </svg>
@@ -39,29 +49,14 @@
     }
 
     <div class="min-w-0 flex-1">
-      @if (aviso.titulo) {
-      <div class="flex items-center gap-2">
-        <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ aviso.titulo }}</p>
-        <!--
-          El contador aparece cuando la misma accion se repite. Es la alternativa
-          a apilar tarjetas identicas: dice «ha vuelto a pasar» sin ocupar otra
-          tarjeta ni tapar la pantalla.
-        -->
-        @if (aviso.repeticiones > 1) {
-        <span
-          class="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium tabular-nums text-gray-500 dark:bg-white/[0.08] dark:text-gray-400"
-          [attr.aria-label]="'Repetido ' + aviso.repeticiones + ' veces'"
-        >
-          ×{{ aviso.repeticiones }}
-        </span>
-        }
-      </div>
+      @if (actual.titulo) {
+      <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ actual.titulo }}</p>
       }
       <p
         class="text-sm"
-        [class]="aviso.titulo ? 'mt-0.5 text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'"
+        [class]="actual.titulo ? 'mt-0.5 text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'"
       >
-        {{ aviso.mensaje }}
+        {{ actual.mensaje }}
       </p>
     </div>
 
@@ -72,7 +67,7 @@
     -->
     <button
       type="button"
-      (click)="cerrar(aviso.id)"
+      (click)="cerrar()"
       aria-label="Cerrar aviso"
       class="-mr-1 -mt-1 shrink-0 rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.05] dark:hover:text-gray-300"
     >
