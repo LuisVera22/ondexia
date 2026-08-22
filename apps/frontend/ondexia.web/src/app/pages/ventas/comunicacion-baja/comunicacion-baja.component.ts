@@ -21,7 +21,7 @@ import { ConfirmacionComponent } from '../../../shared/components/comunes/confir
 })
 export class ComunicacionBajaComponent {
   columnas: ColumnaTabla[] = [
-    { campo: 'numero', titulo: 'Comprobante', ordenable: true, ancho: 'w-40' },
+    { campo: 'numero', titulo: 'Comprobante', ordenable: true, ancho: 'w-40', principal: true },
     { campo: 'cliente', titulo: 'Cliente', ordenable: true },
     { campo: 'fecha', titulo: 'Emisión', ordenable: true, ancho: 'w-32' },
     { campo: 'diasRestantes', titulo: 'Días restantes', formato: 'cantidad', ancho: 'w-36' },

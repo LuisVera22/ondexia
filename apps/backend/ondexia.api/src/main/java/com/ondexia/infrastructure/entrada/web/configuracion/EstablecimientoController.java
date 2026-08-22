@@ -7,12 +7,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -72,15 +72,32 @@ public class EstablecimientoController {
     }
 
     @Operation(
-            summary = "Desactiva un establecimiento",
+            summary = "Activa o desactiva un establecimiento",
             description = """
-                    No lo borra. Un establecimiento aparece en los comprobantes ya emitidos: \
-                    borrarlo dejaría documentos apuntando a nada.""")
+                    Nunca borra. Un establecimiento aparece en los comprobantes ya emitidos: \
+                    borrarlo dejaria documentos apuntando a nada. Desactivarlo lo saca de los \
+                    desplegables y conserva su codigo, sus series y su numeracion, de modo que \
+                    reactivarlo lo devuelve tal como estaba.""")
     @RequierePermiso(modulo = "configuracion.sucursal", accion = "desactivar")
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void desactivar(@PathVariable UUID id) {
-        establecimientos.desactivar(id);
+    @PutMapping("/{id}/estado")
+    public RespuestaEstablecimiento cambiarEstado(
+            @PathVariable UUID id, @Valid @RequestBody PeticionEstado peticion) {
+        return RespuestaEstablecimiento.desde(
+                establecimientos.cambiarEstado(id, peticion.activa()));
+    }
+
+    /**
+     * Sustituye al {@code DELETE} que habia.
+     *
+     * <p>Era un camino de ida: desactivado, el establecimiento no se podia
+     * recuperar desde ninguna capa — ni la API lo ofrecia, ni el dominio tenia un
+     * {@code activar}. Un {@code PUT} sobre el estado dice lo que de verdad
+     * pasa, va en los dos sentidos, y es como ya funcionaban las series y los
+     * usuarios.
+     */
+    public record PeticionEstado(
+            @NotNull(message = "Indica si el establecimiento queda activo.")
+            Boolean activa) {
     }
 
     public record PeticionNuevo(

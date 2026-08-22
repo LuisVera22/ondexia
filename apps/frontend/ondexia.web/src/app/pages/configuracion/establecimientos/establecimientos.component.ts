@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import {
   TablaDatosComponent,
+  AccionDeFila,
   ColumnaTabla,
 } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
@@ -62,13 +63,37 @@ export class EstablecimientosComponent {
   private readonly avisos = inject(AvisosService);
   private readonly router = inject(Router);
   private readonly constructorFormulario = inject(FormBuilder);
+  readonly accionesDeFila: AccionDeFila[] = [
+    { id: 'ver', etiqueta: 'Ver', icono: 'ver' },
+    {
+      id: 'reactivar',
+      etiqueta: 'Reactivar',
+      icono: 'reactivar',
+      disponible: (registro) => registro['activa'] !== true,
+    },
+    {
+      id: 'desactivar',
+      etiqueta: 'Desactivar',
+      icono: 'desactivar',
+      peligrosa: true,
+      // La casa matriz no se desactiva: sin ella la empresa no puede emitir.
+      disponible: (registro) => registro['activa'] === true && registro['esMatriz'] !== true,
+    },
+  ];
+
 
   readonly columnas: ColumnaTabla[] = [
     { campo: 'codigo', titulo: 'Código SUNAT', ordenable: true, ancho: 'w-32' },
-    { campo: 'nombre', titulo: 'Establecimiento', ordenable: true },
+    { campo: 'nombre', titulo: 'Establecimiento', ordenable: true, principal: true },
     { campo: 'direccion', titulo: 'Dirección' },
     { campo: 'ubigeo', titulo: 'Ubigeo', ancho: 'w-28' },
-    { campo: 'estado', titulo: 'Estado', ancho: 'w-28' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-32',
+      formato: 'insignia',
+      tono: (registro) => (registro['activa'] === true ? 'exito' : 'neutro'),
+    },
   ];
 
   readonly registros = signal<Record<string, unknown>[]>([]);
@@ -103,6 +128,17 @@ export class EstablecimientosComponent {
 
   get controles() {
     return this.formulario.controls;
+  }
+
+  /**
+   * Vuelve a traer el listado, a peticion del usuario.
+   *
+   * <p>Existe porque {@code cargar} es privado y la plantilla no lo alcanza.
+   * No es lo mismo que recargar la pagina: no se pierde el orden, ni la
+   * pagina en la que se estaba, ni lo escrito en el buscador.
+   */
+  recargar(): void {
+    void this.cargar();
   }
 
   private async cargar(): Promise<void> {
@@ -202,7 +238,7 @@ export class EstablecimientosComponent {
     }
 
     try {
-      await this.api.desactivarEstablecimiento(establecimiento.id);
+      await this.api.cambiarEstadoEstablecimiento(establecimiento.id, false);
       this.confirmacionAbierta.set(false);
       this.aDesactivar = null;
       await this.cargar();
@@ -219,5 +255,36 @@ export class EstablecimientosComponent {
   cancelarDesactivacion(): void {
     this.confirmacionAbierta.set(false);
     this.aDesactivar = null;
+  }
+
+  /**
+   * Vuelve a ponerlo en servicio. Sin confirmar, al contrario que desactivar.
+   *
+   * <p>Se confirma lo que quita algo, no lo que lo devuelve: reactivar por error
+   * se deshace desactivando otra vez, y preguntar en los dos sentidos entrena a
+   * aceptar sin leer — que es justo lo que no queremos en el sentido que sí
+   * importa.
+   */
+  async reactivar(fila: Record<string, unknown>): Promise<void> {
+    try {
+      await this.api.cambiarEstadoEstablecimiento(String(fila['id']), true);
+      await this.cargar();
+      this.avisos.exito(
+        `${fila['nombre']} vuelve a estar disponible para emitir`,
+        'Establecimiento reactivado'
+      );
+    } catch (fallo: unknown) {
+      this.avisos.error(mensajeDeError(fallo, 'No se pudo reactivar el establecimiento.'));
+    }
+  }
+
+  ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
+    if (evento.accion === 'ver') {
+      this.abrirFicha(evento.registro);
+    } else if (evento.accion === 'desactivar') {
+      this.pedirDesactivacion(evento.registro);
+    } else if (evento.accion === 'reactivar') {
+      void this.reactivar(evento.registro);
+    }
   }
 }

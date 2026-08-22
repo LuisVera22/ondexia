@@ -75,16 +75,34 @@ class AlmacenesIT extends PruebaIntegracion {
                 .andExpect(jsonPath("$.nombre").value("Almacén central"))
                 .andExpect(jsonPath("$.codigo").value("PRINC"));
 
-        mockMvc.perform(delete(ALMACENES + "/" + id)
+        mockMvc.perform(put(ALMACENES + "/" + id + "/estado")
                         .header("Authorization", autorizacionDemo())
-                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA))
-                .andExpect(status().isNoContent());
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"activo\":false}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.activo").value(false));
 
         mockMvc.perform(get(ALMACENES)
                         .header("Authorization", autorizacionDemo())
                         .header("X-Empresa-Id", EMPRESA_ADMINISTRADA))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.codigo == 'PRINC')].activo").value(false));
+
+        /*
+         * Y vuelve. Antes era un DELETE sin vuelta atras, con el agravante de que
+         * el dialogo prometia que el almacen «no se borra» al desactivarlo: era
+         * cierto, y aun asi no habia ninguna forma de volver a usarlo.
+         */
+        mockMvc.perform(put(ALMACENES + "/" + id + "/estado")
+                        .header("Authorization", autorizacionDemo())
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"activo\":true}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.activo").value(true))
+                .andExpect(jsonPath("$.codigo").value("PRINC"))
+                .andExpect(jsonPath("$.nombre").value("Almacén central"));
     }
 
     @Test

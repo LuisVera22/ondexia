@@ -2,7 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
-import { TablaDatosComponent, ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
+import { TablaDatosComponent, AccionDeFila,
+  ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
 import { ModalComponent } from '../../../shared/components/comunes/modal/modal.component';
 import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
@@ -64,13 +65,45 @@ export class UsuariosComponent {
   private readonly avisos = inject(AvisosService);
   private readonly router = inject(Router);
   private readonly constructorFormulario = inject(FormBuilder);
+  readonly accionesDeFila: AccionDeFila[] = [
+    { id: 'ver', etiqueta: 'Ver el acceso', icono: 'ver' },
+    {
+      id: 'reactivar',
+      etiqueta: 'Reactivar',
+      icono: 'reactivar',
+      disponible: (registro) => registro['activo'] !== true,
+    },
+    {
+      id: 'desactivar',
+      etiqueta: 'Desactivar',
+      icono: 'desactivar',
+      peligrosa: true,
+      disponible: (registro) => registro['activo'] === true,
+    },
+    { id: 'retirar', etiqueta: 'Quitar el acceso', icono: 'retirar', peligrosa: true },
+  ];
+
 
   readonly columnas: ColumnaTabla[] = [
-    { campo: 'nombre', titulo: 'Nombre', ordenable: true },
+    { campo: 'nombre', titulo: 'Nombre', ordenable: true, principal: true },
     { campo: 'email', titulo: 'Correo', ordenable: true },
     { campo: 'rol', titulo: 'Rol', ordenable: true, ancho: 'w-40' },
     { campo: 'alcance', titulo: 'Alcance', ancho: 'w-48' },
-    { campo: 'estado', titulo: 'Estado', ancho: 'w-32' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-32',
+      formato: 'insignia',
+      // La columna tiene tres estados y el punto también: «Invitado» no es un
+      // acceso en marcha —todavía no ha creado su cuenta— pero tampoco está
+      // desactivado, y pintarlo verde haría creer que ya puede entrar.
+      tono: (registro) =>
+        registro['activo'] !== true
+          ? 'neutro'
+          : registro['invitado'] === true
+            ? 'aviso'
+            : 'exito',
+    },
   ];
 
   readonly registros = signal<Record<string, unknown>[]>([]);
@@ -140,6 +173,17 @@ export class UsuariosComponent {
       return `${this.objetivo?.nombre ?? 'La persona'} dejará de ver esta empresa. Sigue existiendo en la cuenta y conserva las demás empresas a las que tenga acceso.`;
     }
     return `${this.objetivo?.nombre ?? 'La persona'} no podrá entrar a ninguna empresa de la cuenta, aunque su sesión siga abierta. Es la única forma de cortar el acceso de inmediato.`;
+  }
+
+  /**
+   * Vuelve a traer el listado, a peticion del usuario.
+   *
+   * <p>Existe porque {@code cargar} es privado y la plantilla no lo alcanza.
+   * No es lo mismo que recargar la pagina: no se pierde el orden, ni la
+   * pagina en la que se estaba, ni lo escrito en el buscador.
+   */
+  recargar(): void {
+    void this.cargar();
   }
 
   private async cargar(): Promise<void> {
@@ -305,6 +349,18 @@ export class UsuariosComponent {
       this.avisos.exito(`${fila['nombre']} vuelve a poder entrar`, 'Persona reactivada');
     } catch (fallo: unknown) {
       this.avisos.error(mensajeDeError(fallo, 'No se pudo reactivar a la persona.'));
+    }
+  }
+
+  ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
+    if (evento.accion === 'ver') {
+      this.abrirFicha(evento.registro);
+    } else if (evento.accion === 'desactivar') {
+      this.pedirDesactivacion(evento.registro);
+    } else if (evento.accion === 'reactivar') {
+      void this.reactivar(evento.registro);
+    } else if (evento.accion === 'retirar') {
+      this.pedirRetirada(evento.registro);
     }
   }
 }

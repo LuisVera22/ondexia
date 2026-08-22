@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import {
+  AccionDeFila,
   ColumnaTabla,
   TablaDatosComponent,
 } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
@@ -42,13 +43,26 @@ export class EmpresasComponent {
   private readonly api = inject(ConfiguracionApiService);
   private readonly contexto = inject(ContextoService);
   private readonly router = inject(Router);
+  readonly accionesDeFila: AccionDeFila[] = [
+    { id: 'ver', etiqueta: 'Ver', icono: 'ver' },
+  ];
+
 
   readonly columnas: ColumnaTabla[] = [
     { campo: 'ruc', titulo: 'RUC', ordenable: true, ancho: 'w-36' },
-    { campo: 'razonSocial', titulo: 'Razón social', ordenable: true },
+    { campo: 'razonSocial', titulo: 'Razón social', ordenable: true, principal: true },
     { campo: 'nombreComercial', titulo: 'Nombre comercial' },
     { campo: 'domicilioFiscal', titulo: 'Domicilio fiscal' },
-    { campo: 'estado', titulo: 'Estado', ancho: 'w-28' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-32',
+      formato: 'insignia',
+      // Tres casos y no dos: la empresa sobre la que se trabaja se distingue
+      // de las demás activas, que es justo lo que se venía a ver en esta lista.
+      tono: (registro) =>
+        registro['activa'] !== true ? 'neutro' : registro['enUso'] === true ? 'marca' : 'exito',
+    },
   ];
 
   readonly registros = signal<Record<string, unknown>[]>([]);
@@ -67,6 +81,17 @@ export class EmpresasComponent {
     void this.cargar();
   }
 
+  /**
+   * Vuelve a traer el listado, a peticion del usuario.
+   *
+   * <p>Existe porque {@code cargar} es privado y la plantilla no lo alcanza.
+   * No es lo mismo que recargar la pagina: no se pierde el orden, ni la
+   * pagina en la que se estaba, ni lo escrito en el buscador.
+   */
+  recargar(): void {
+    void this.cargar();
+  }
+
   private async cargar(): Promise<void> {
     this.cargando.set(true);
     this.error.set(null);
@@ -81,9 +106,18 @@ export class EmpresasComponent {
           razonSocial: empresa.razonSocial,
           nombreComercial: empresa.nombreComercial ?? '—',
           domicilioFiscal: empresa.domicilioFiscal,
-          estado: empresa.activa ? 'Activa' : 'Inactiva',
-          // La empresa sobre la que se está trabajando: es la única que se
-          // puede editar, y conviene que se vea antes de entrar a la ficha.
+          // La empresa sobre la que se está trabajando se dice aquí y no con una
+          // insignia en la columna de acciones, que es donde estaba: un dato que
+          // se lee no pertenece a la columna de lo que se pulsa, y allí obligaba
+          // a ensanchar esa columna hasta partir la insignia en dos líneas.
+          estado:
+            (empresa.activa ? 'Activa' : 'Inactiva') +
+            (String(empresa.id) === String(activaId) ? ' · en uso' : ''),
+          // El booleano viaja aparte del texto porque de él sale el color del
+          // punto: deducirlo de la cadena obligaría a compararla con «Activa»,
+          // y bastaría reescribir esa palabra para que el punto dejara de
+          // funcionar sin que nada avisara.
+          activa: empresa.activa,
           enUso: String(empresa.id) === String(activaId),
         }))
       );
@@ -96,5 +130,11 @@ export class EmpresasComponent {
 
   abrirFicha(fila: Record<string, unknown>): void {
     void this.router.navigate(['/configuracion/empresas', fila['id']]);
+  }
+
+  ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
+    if (evento.accion === 'ver') {
+      this.abrirFicha(evento.registro);
+    }
   }
 }

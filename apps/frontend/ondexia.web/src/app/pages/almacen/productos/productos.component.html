@@ -48,7 +48,17 @@
     </div>
   </div>
 
+  <!--
+    Sin el buscador de la tabla: esta pantalla ya trae su panel de filtros
+    arriba, con búsqueda por texto y desplegables. Dos campos de búsqueda uno
+    encima de otro obligan a averiguar cuál manda.
+  -->
   <app-tabla-datos
+    nombrePlural="productos"
+    nombreSingular="producto"
+    [acciones]="accionesDeFila"
+    campoDescripcion="nombre"
+    (accionElegida)="ejecutarAccion($event)"
     [columnas]="columnas"
     [registros]="registros"
     [orden]="orden"
@@ -56,6 +66,7 @@
     [tamanoPagina]="tamanoPagina"
     [totalRegistros]="registros.length"
     [vacioPorFiltros]="hayFiltrosActivos"
+    [buscable]="false"
     vacioTitulo="Aún no hay productos registrados"
     vacioDescripcion="Los productos son la base de cotizaciones, comprobantes y control de existencias."
     vacioAccion="Nuevo producto"
@@ -63,18 +74,5 @@
     (cambiarPagina)="pagina = $event"
     (filaClic)="abrirFicha($event)"
     (accionVacio)="nuevo()"
-  >
-    <ng-template #acciones let-registro>
-      <button
-        type="button"
-        (click)="abrirFicha(registro)"
-        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.05]"
-        aria-label="Abrir ficha"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-          <path d="m9 6 6 6-6 6" />
-        </svg>
-      </button>
-    </ng-template>
-  </app-tabla-datos>
+   />
 </div>

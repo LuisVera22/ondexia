@@ -45,7 +45,7 @@ export class PorAgotarseComponent {
 
   columnas: ColumnaTabla[] = [
     { campo: 'codigo', titulo: 'Código', ordenable: true, ancho: 'w-32' },
-    { campo: 'nombre', titulo: 'Producto', ordenable: true },
+    { campo: 'nombre', titulo: 'Producto', ordenable: true, principal: true },
     { campo: 'almacen', titulo: 'Almacén', ordenable: true, ancho: 'w-44' },
     { campo: 'stock', titulo: 'Existencias', formato: 'cantidad', ordenable: true, ancho: 'w-32' },
     { campo: 'stockMinimo', titulo: 'Mínimo', formato: 'cantidad', ancho: 'w-28' },

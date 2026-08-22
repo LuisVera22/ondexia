@@ -246,10 +246,13 @@ class ConfiguracionEmpresaIT extends PruebaIntegracion {
                 // El código no está en el cuerpo de edición y debe sobrevivir.
                 .andExpect(jsonPath("$.codigo").value("0007"));
 
-        mockMvc.perform(delete(ESTABLECIMIENTOS + "/" + id)
+        mockMvc.perform(put(ESTABLECIMIENTOS + "/" + id + "/estado")
                         .header("Authorization", autorizacionDemo())
-                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA))
-                .andExpect(status().isNoContent());
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"activa\":false}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.activa").value(false));
 
         // Sigue apareciendo en el listado, desactivado. Desaparecer seria
         // perder la referencia de los comprobantes ya emitidos.
@@ -258,6 +261,46 @@ class ConfiguracionEmpresaIT extends PruebaIntegracion {
                         .header("X-Empresa-Id", EMPRESA_ADMINISTRADA))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.codigo == '0007')].activa").value(false));
+
+        /*
+         * Y vuelve. Esto es lo que faltaba: solo existia el camino de ida —un
+         * DELETE—, asi que desactivar un establecimiento no se podia deshacer
+         * desde ninguna capa, ni siquiera desde el dominio, que no tenia un
+         * `activar`. El dialogo de la pantalla llegaba a prometer «se puede
+         * volver a activar», y era falso.
+         *
+         * Se comprueba que el codigo sobrevive: es lo que ata la serie al anexo
+         * ante SUNAT, y reactivar tiene que devolver el mismo local y no uno
+         * nuevo que se llame igual.
+         */
+        mockMvc.perform(put(ESTABLECIMIENTOS + "/" + id + "/estado")
+                        .header("Authorization", autorizacionDemo())
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"activa\":true}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.activa").value(true))
+                .andExpect(jsonPath("$.codigo").value("0007"))
+                .andExpect(jsonPath("$.nombre").value("Tienda Surco 2"));
+
+        // Repetirlo no es un error: la pantalla puede reintentar tras un fallo
+        // de red sin saber si la primera peticion llego.
+        mockMvc.perform(put(ESTABLECIMIENTOS + "/" + id + "/estado")
+                        .header("Authorization", autorizacionDemo())
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"activa\":true}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.activa").value(true));
+
+        // Y el estado no se adivina: sin el, la peticion no dice que se quiere.
+        mockMvc.perform(put(ESTABLECIMIENTOS + "/" + id + "/estado")
+                        .header("Authorization", autorizacionDemo())
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.activa").exists());
     }
 
     @Test

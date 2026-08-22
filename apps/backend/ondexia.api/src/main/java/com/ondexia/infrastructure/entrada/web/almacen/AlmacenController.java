@@ -7,12 +7,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -72,13 +72,24 @@ public class AlmacenController {
     }
 
     @Operation(
-            summary = "Desactiva un almacén",
-            description = "No lo borra: aparece en cada movimiento de stock que lo tocó.")
+            summary = "Activa o desactiva un almacen",
+            description = "Nunca borra: aparece en cada movimiento de stock que lo toco.")
     @RequierePermiso(modulo = "almacen.almacen", accion = "desactivar")
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void desactivar(@PathVariable UUID id) {
-        almacenes.desactivar(id);
+    @PutMapping("/{id}/estado")
+    public RespuestaAlmacen cambiarEstado(
+            @PathVariable UUID id, @Valid @RequestBody PeticionEstado peticion) {
+        return RespuestaAlmacen.desde(almacenes.cambiarEstado(id, peticion.activo()));
+    }
+
+    /**
+     * Sustituye al {@code DELETE} que habia, por el mismo motivo que en
+     * establecimientos: era un camino de ida. La pantalla llegaba a prometer que
+     * el almacen «no se borra» al desactivarlo, y era cierto — pero no habia
+     * ninguna forma de volver a usarlo.
+     */
+    public record PeticionEstado(
+            @NotNull(message = "Indica si el almacen queda activo.")
+            Boolean activo) {
     }
 
     /**

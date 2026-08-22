@@ -1,7 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
-import { TablaDatosComponent, ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
+import { TablaDatosComponent, AccionDeFila,
+  ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
 import { ModalComponent } from '../../../shared/components/comunes/modal/modal.component';
 import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
@@ -64,14 +65,36 @@ export class SeriesComponent {
   private readonly api = inject(ConfiguracionApiService);
   private readonly avisos = inject(AvisosService);
   private readonly constructorFormulario = inject(FormBuilder);
+  readonly accionesDeFila: AccionDeFila[] = [
+    {
+      id: 'reactivar',
+      etiqueta: 'Reactivar',
+      icono: 'reactivar',
+      disponible: (registro) => registro['activa'] !== true,
+    },
+    {
+      id: 'desactivar',
+      etiqueta: 'Desactivar',
+      icono: 'desactivar',
+      peligrosa: true,
+      disponible: (registro) => registro['activa'] === true,
+    },
+  ];
+
 
   readonly columnas: ColumnaTabla[] = [
-    { campo: 'serie', titulo: 'Serie', ordenable: true, ancho: 'w-28' },
+    { campo: 'serie', titulo: 'Serie', ordenable: true, ancho: 'w-28', principal: true },
     { campo: 'tipoDocumento', titulo: 'Tipo de comprobante', ordenable: true },
     { campo: 'establecimiento', titulo: 'Establecimiento', ordenable: true },
     { campo: 'ultimoNumero', titulo: 'Último emitido', formato: 'cantidad', ancho: 'w-32' },
     { campo: 'siguiente', titulo: 'Siguiente', ancho: 'w-40' },
-    { campo: 'estado', titulo: 'Estado', ancho: 'w-28' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-32',
+      formato: 'insignia',
+      tono: (registro) => (registro['activa'] === true ? 'exito' : 'neutro'),
+    },
   ];
 
   readonly registros = signal<Record<string, unknown>[]>([]);
@@ -140,6 +163,17 @@ export class SeriesComponent {
       default:
         return '';
     }
+  }
+
+  /**
+   * Vuelve a traer el listado, a peticion del usuario.
+   *
+   * <p>Existe porque {@code cargar} es privado y la plantilla no lo alcanza.
+   * No es lo mismo que recargar la pagina: no se pierde el orden, ni la
+   * pagina en la que se estaba, ni lo escrito en el buscador.
+   */
+  recargar(): void {
+    void this.cargar();
   }
 
   private async cargar(): Promise<void> {
@@ -275,6 +309,14 @@ export class SeriesComponent {
       this.avisos.exito(`${fila['serie']} vuelve a ofrecerse al emitir`, 'Serie reactivada');
     } catch (fallo: unknown) {
       this.avisos.error(mensajeDeError(fallo, 'No se pudo reactivar la serie.'));
+    }
+  }
+
+  ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
+    if (evento.accion === 'desactivar') {
+      this.pedirDesactivacion(evento.registro);
+    } else if (evento.accion === 'reactivar') {
+      void this.reactivar(evento.registro);
     }
   }
 }

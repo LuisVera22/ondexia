@@ -2,7 +2,8 @@ import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
-import { TablaDatosComponent, ColumnaTabla, OrdenTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
+import { TablaDatosComponent, AccionDeFila,
+  ColumnaTabla, OrdenTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 
 /**
  * Listado de proveedores.
@@ -26,13 +27,23 @@ export class ProveedoresComponent {
   orden: OrdenTabla | null = { campo: 'razonSocial', direccion: 'asc' };
   pagina = 1;
   readonly tamanoPagina = 10;
+  readonly accionesDeFila: AccionDeFila[] = [
+    { id: 'ver', etiqueta: 'Ver', icono: 'ver' },
+  ];
+
 
   columnas: ColumnaTabla[] = [
     { campo: 'numeroDocumento', titulo: 'RUC', ordenable: true, ancho: 'w-36' },
-    { campo: 'razonSocial', titulo: 'Proveedor', ordenable: true },
+    { campo: 'razonSocial', titulo: 'Proveedor', ordenable: true, principal: true },
     { campo: 'contacto', titulo: 'Contacto' },
     { campo: 'condicionPago', titulo: 'Condición de pago', ancho: 'w-40' },
-    { campo: 'estado', titulo: 'Estado', ancho: 'w-28' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-32',
+      formato: 'insignia',
+      tono: (registro) => (registro['estado'] === 'Activo' ? 'exito' : 'neutro'),
+    },
   ];
 
   private readonly todos = [
@@ -61,5 +72,11 @@ export class ProveedoresComponent {
 
   nuevo(): void {
     this.router.navigate(['/compras/proveedores', 'nuevo']);
+  }
+
+  ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
+    if (evento.accion === 'ver') {
+      this.abrirFicha(evento.registro);
+    }
   }
 }

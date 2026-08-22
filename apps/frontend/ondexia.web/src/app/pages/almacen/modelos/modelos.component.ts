@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
-import { TablaDatosComponent, ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
+import { TablaDatosComponent, AccionDeFila,
+  ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
 
 /**
@@ -14,11 +15,22 @@ import { ConfirmacionComponent } from '../../../shared/components/comunes/confir
   templateUrl: './modelos.component.html',
 })
 export class ModelosComponent {
+  readonly accionesDeFila: AccionDeFila[] = [
+    { id: 'editar', etiqueta: 'Editar', icono: 'editar' },
+    { id: 'eliminar', etiqueta: 'Eliminar', icono: 'eliminar', peligrosa: true },
+  ];
+
   columnas: ColumnaTabla[] = [
-    { campo: 'nombre', titulo: 'Modelo', ordenable: true },
+    { campo: 'nombre', titulo: 'Modelo', ordenable: true, principal: true },
     { campo: 'marca', titulo: 'Marca', ordenable: true },
     { campo: 'productos', titulo: 'Productos', formato: 'cantidad', ancho: 'w-28' },
-    { campo: 'estado', titulo: 'Estado', ancho: 'w-28' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-32',
+      formato: 'insignia',
+      tono: (registro) => (registro['estado'] === 'Activo' ? 'exito' : 'neutro'),
+    },
   ];
 
   registros = [
@@ -40,5 +52,12 @@ export class ModelosComponent {
     this.registros = this.registros.filter((r) => r.id !== this.aEliminar?.['id']);
     this.confirmacionAbierta = false;
     this.aEliminar = null;
+  }
+
+  ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
+    if (evento.accion === 'eliminar') {
+      this.pedirEliminacion(evento.registro);
+    }
+    // «Editar» todavia no hace nada: esta pantalla trabaja con datos de ejemplo.
   }
 }

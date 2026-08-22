@@ -83,21 +83,32 @@ public class Almacenes {
     }
 
     /**
-     * Desactiva, nunca borra: el almacén aparece en cada movimiento de stock que
-     * lo tocó, y borrarlo dejaría el kardex apuntando a nada.
+     * Pone o quita de servicio. Nunca borra: el almacén aparece en cada
+     * movimiento de stock que lo tocó, y borrarlo dejaría el kardex apuntando a
+     * nada.
+     *
+     * <p>Va en los dos sentidos, y antes solo existía el de ida. La pantalla
+     * llegaba a prometer que «no se borra» al desactivar, y era cierto — pero no
+     * había ninguna forma de volver a usarlo.
      */
     @Transactional
-    public void desactivar(UUID id) {
+    public Almacen cambiarEstado(UUID id, boolean activo) {
         var almacen = exigir(id);
-        if (!almacen.estaActivo()) {
-            return; // Idempotente.
+        if (almacen.estaActivo() == activo) {
+            return almacen; // Idempotente.
         }
 
         var antes = Instantanea.de(almacen);
-        almacen.desactivar();
+        if (activo) {
+            almacen.activar();
+        } else {
+            almacen.desactivar();
+        }
         var guardado = almacenes.guardar(almacen);
 
-        auditoria.registrar("almacen", id, "DESACTIVAR", antes, Instantanea.de(guardado));
+        auditoria.registrar("almacen", id, activo ? "ACTIVAR" : "DESACTIVAR",
+                antes, Instantanea.de(guardado));
+        return guardado;
     }
 
     /**

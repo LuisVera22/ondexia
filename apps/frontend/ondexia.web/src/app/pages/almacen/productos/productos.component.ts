@@ -2,7 +2,8 @@ import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
-import { TablaDatosComponent, ColumnaTabla, OrdenTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
+import { TablaDatosComponent, AccionDeFila,
+  ColumnaTabla, OrdenTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
 
 /**
@@ -42,10 +43,14 @@ export class ProductosComponent {
     { valor: 'Activo', etiqueta: 'Activo' },
     { valor: 'Descontinuado', etiqueta: 'Descontinuado' },
   ];
+  readonly accionesDeFila: AccionDeFila[] = [
+    { id: 'ver', etiqueta: 'Ver', icono: 'ver' },
+  ];
+
 
   columnas: ColumnaTabla[] = [
     { campo: 'codigo', titulo: 'Código', ordenable: true, ancho: 'w-32' },
-    { campo: 'nombre', titulo: 'Producto', ordenable: true },
+    { campo: 'nombre', titulo: 'Producto', ordenable: true, principal: true },
     { campo: 'marca', titulo: 'Marca', ordenable: true, ancho: 'w-40' },
     { campo: 'unidad', titulo: 'Unidad', ancho: 'w-24' },
     { campo: 'stock', titulo: 'Stock', formato: 'cantidad', ordenable: true, ancho: 'w-28' },
@@ -91,5 +96,11 @@ export class ProductosComponent {
 
   nuevo(): void {
     this.router.navigate(['/almacen/productos', 'nuevo']);
+  }
+
+  ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
+    if (evento.accion === 'ver') {
+      this.abrirFicha(evento.registro);
+    }
   }
 }
