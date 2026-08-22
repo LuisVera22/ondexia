@@ -16,6 +16,7 @@ import { IdentidadComponent } from './pages/configuracion/identidad/identidad.co
 import { EstablecimientosComponent } from './pages/configuracion/establecimientos/establecimientos.component';
 import { FichaEstablecimientoComponent } from './pages/configuracion/establecimientos/ficha-establecimiento.component';
 import { AlmacenesComponent } from './pages/configuracion/almacenes/almacenes.component';
+import { FichaAlmacenComponent } from './pages/configuracion/almacenes/ficha-almacen.component';
 import { SeriesComponent } from './pages/configuracion/series/series.component';
 import { UsuariosComponent } from './pages/configuracion/usuarios/usuarios.component';
 import { FichaUsuarioComponent } from './pages/configuracion/usuarios/ficha-usuario.component';
@@ -132,6 +133,7 @@ export const routes: Routes = [
       { path: 'almacen/modelos', component: ModelosComponent, title: `Modelos | ${TITULO}` },
       { path: 'almacen/unidades', component: UnidadesComponent, title: `Unidades de medida | ${TITULO}` },
       { path: 'almacen/almacenes', component: AlmacenesComponent, title: `Almacenes | ${TITULO}` },
+      { path: 'almacen/almacenes/:id', component: FichaAlmacenComponent, title: `Almacén | ${TITULO}` },
 
       // ── Compras ──────────────────────────────────────────────────────────
       { path: 'compras/notas-pedido', component: NotasPedidoComponent, title: `Notas de pedido | ${TITULO}` },
