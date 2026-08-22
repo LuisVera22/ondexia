@@ -121,7 +121,8 @@ public class Usuarios {
             throw new Conflicto(
                     "usuario_ya_asignado",
                     correo + " ya tiene acceso a esta empresa. Edita su rol en vez de "
-                            + "volver a agregarlo.");
+                            + "volver a agregarlo.",
+                    "email");
         });
 
         var asignacion = asignaciones.guardar(new UsuarioEmpresa(

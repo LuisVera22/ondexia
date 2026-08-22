@@ -2,12 +2,14 @@ import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
-import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
 import { accionConEstado } from '../../../shared/components/comunes/boton/estado-accion';
 import { ConfiguracionApiService, mensajeDeError } from '../../../nucleo/configuracion.api.service';
 import { AvisosService } from '../../../shared/services/avisos.service';
 import { repartirFallo } from '../../../shared/formularios/fallo-de-formulario';
 import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
+import { AccionesGuardadoComponent } from '../../../shared/components/comunes/acciones-guardado/acciones-guardado.component';
+import { seguirCambios } from '../../../shared/formularios/cambios';
+import { ConCambiosSinGuardar } from '../../../shared/formularios/salida-con-cambios.guard';
 
 /**
  * Ficha de un establecimiento. Es donde se edita.
@@ -37,12 +39,12 @@ import { ErrorCampoComponent } from '../../../shared/components/comunes/error-ca
     EncabezadoPaginaComponent,
     ReactiveFormsModule,
     RouterModule,
-    BotonComponent,
     ErrorCampoComponent,
+    AccionesGuardadoComponent,
   ],
   templateUrl: './ficha-establecimiento.component.html',
 })
-export class FichaEstablecimientoComponent {
+export class FichaEstablecimientoComponent implements ConCambiosSinGuardar {
   private readonly api = inject(ConfiguracionApiService);
   private readonly avisos = inject(AvisosService);
   private readonly ruta = inject(ActivatedRoute);
@@ -62,6 +64,13 @@ export class FichaEstablecimientoComponent {
     direccion: ['', [Validators.required]],
     ubigeo: ['', [Validators.pattern(/^$|^\d{6}$/)]],
   });
+
+  /**
+   * Se declara aquí y no dentro de {@code cargar} porque se suscribe a los
+   * cambios del formulario, y eso necesita el contexto de inyección del campo
+   * para darse de baja cuando la pantalla se destruye.
+   */
+  readonly cambios = seguirCambios(this.formulario);
 
   constructor() {
     const id = this.ruta.snapshot.paramMap.get('id');
@@ -104,6 +113,9 @@ export class FichaEstablecimientoComponent {
         direccion: establecimiento.direccion,
         ubigeo: establecimiento.ubigeo ?? '',
       });
+      // Lo que se acaba de cargar es el punto de partida: a partir de aquí,
+      // cualquier diferencia es un cambio del usuario.
+      this.cambios.fijarBase();
     } catch (fallo: unknown) {
       this.error.set(mensajeDeError(fallo, 'No se pudo cargar el establecimiento.'));
     } finally {
@@ -135,7 +147,7 @@ export class FichaEstablecimientoComponent {
         direccion: guardado.direccion,
         ubigeo: guardado.ubigeo ?? '',
       });
-      this.formulario.markAsPristine();
+      this.cambios.fijarBase();
 
       this.avisos.exito(`${this.codigo()} · ${guardado.nombre}`, 'Establecimiento guardado');
     } catch (fallo: unknown) {
@@ -143,4 +155,8 @@ export class FichaEstablecimientoComponent {
       throw fallo;
     }
   });
+
+  hayCambiosSinGuardar(): boolean {
+    return this.cambios.hayCambios();
+  }
 }

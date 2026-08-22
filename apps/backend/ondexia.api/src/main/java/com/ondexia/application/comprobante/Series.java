@@ -94,7 +94,8 @@ public class Series {
             throw new Conflicto(
                     "serie_duplicada",
                     "Ya existe una serie " + nueva.serie() + " para " + tipo.nombre().toLowerCase()
-                            + " en esta empresa.");
+                            + " en esta empresa.",
+                    "serie");
         });
 
         aplicarNumeroInicial(nueva, numeroInicial);

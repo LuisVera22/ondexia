@@ -122,9 +122,12 @@
       </div>
     </section>
 
-    <div class="flex justify-end">
-      <app-boton tipo="submit" [estado]="guardar.estado()">Guardar cambios</app-boton>
-    </div>
+    <app-acciones-guardado
+      [hayCambios]="cambios.hayCambios()"
+      [estado]="guardar.estado()"
+      [procesando]="guardar.estado() === 'cargando'"
+      (descartar)="cambios.descartarConConfirmacion()"
+    />
   </form>
   }
 </div>

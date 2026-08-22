@@ -2,7 +2,6 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
-import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
 import { accionConEstado } from '../../../shared/components/comunes/boton/estado-accion';
 import {
   DesplegableComponent,
@@ -17,6 +16,9 @@ import {
 import { AvisosService } from '../../../shared/services/avisos.service';
 import { repartirFallo } from '../../../shared/formularios/fallo-de-formulario';
 import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
+import { AccionesGuardadoComponent } from '../../../shared/components/comunes/acciones-guardado/acciones-guardado.component';
+import { seguirCambios } from '../../../shared/formularios/cambios';
+import { ConCambiosSinGuardar } from '../../../shared/formularios/salida-con-cambios.guard';
 
 /**
  * Ficha del acceso de una persona a esta empresa.
@@ -39,13 +41,13 @@ import { ErrorCampoComponent } from '../../../shared/components/comunes/error-ca
     EncabezadoPaginaComponent,
     ReactiveFormsModule,
     RouterModule,
-    BotonComponent,
     DesplegableComponent,
     ErrorCampoComponent,
+    AccionesGuardadoComponent,
   ],
   templateUrl: './ficha-usuario.component.html',
 })
-export class FichaUsuarioComponent {
+export class FichaUsuarioComponent implements ConCambiosSinGuardar {
   private readonly api = inject(ConfiguracionApiService);
   private readonly avisos = inject(AvisosService);
   private readonly ruta = inject(ActivatedRoute);
@@ -106,6 +108,13 @@ export class FichaUsuarioComponent {
     sucursalId: [''],
   });
 
+  /**
+   * Se declara aqui y no dentro de {@code cargar} porque se suscribe a los
+   * cambios del formulario, y eso necesita el contexto de inyeccion del campo
+   * para darse de baja cuando la pantalla se destruye.
+   */
+  readonly cambios = seguirCambios(this.formulario);
+
   constructor() {
     const id = this.ruta.snapshot.paramMap.get('id');
     if (!id) {
@@ -148,6 +157,9 @@ export class FichaUsuarioComponent {
         rolId: usuario.rolId,
         sucursalId: usuario.sucursalId ?? '',
       });
+      // Lo que se acaba de cargar es el punto de partida: a partir de aqui,
+      // cualquier diferencia es un cambio del usuario.
+      this.cambios.fijarBase();
     } catch (fallo: unknown) {
       this.error.set(mensajeDeError(fallo, 'No se pudo cargar el acceso.'));
     } finally {
@@ -169,7 +181,7 @@ export class FichaUsuarioComponent {
         sucursalId: valores.sucursalId || null,
       });
 
-      this.formulario.markAsPristine();
+      this.cambios.fijarBase();
       // Se vuelve a cargar para reflejar el nombre del rol y del establecimiento
       // tal como los devuelve el servidor, no como los tenía la pantalla.
       await this.cargar();
@@ -182,4 +194,8 @@ export class FichaUsuarioComponent {
       throw fallo;
     }
   });
+
+  hayCambiosSinGuardar(): boolean {
+    return this.cambios.hayCambios();
+  }
 }

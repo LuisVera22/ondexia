@@ -155,14 +155,12 @@
     </section>
 
     @if (esActiva()) {
-    <div class="flex justify-end">
-      <!--
-        Sin (accion): lo dispara el ngSubmit del formulario. Enlazando las dos
-        cosas, un clic ejecutaria la accion dos veces — y aqui el segundo cerrojo
-        de accionConEstado lo atajaria, pero es mejor no montar la trampa.
-      -->
-      <app-boton tipo="submit" [estado]="guardar.estado()">Guardar cambios</app-boton>
-    </div>
+    <app-acciones-guardado
+      [hayCambios]="cambios.hayCambios()"
+      [estado]="guardar.estado()"
+      [procesando]="guardar.estado() === 'cargando'"
+      (descartar)="cambios.descartarConConfirmacion()"
+    />
     }
   </form>
   }

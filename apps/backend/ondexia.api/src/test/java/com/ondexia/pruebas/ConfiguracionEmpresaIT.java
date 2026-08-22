@@ -270,7 +270,27 @@ class ConfiguracionEmpresaIT extends PruebaIntegracion {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"codigo\":\"0000\",\"nombre\":\"Duplicada\",\"direccion\":\"Av. Uno 1\"}"))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.codigo").value("codigo_duplicado"));
+                .andExpect(jsonPath("$.codigo").value("codigo_duplicado"))
+                // El campo importa tanto como el codigo: el cliente coloca el
+                // mensaje debajo del cuadro que lo tiene, y sin esto acababa en
+                // un aviso de la esquina sin decir cual de los tres corregir.
+                .andExpect(jsonPath("$.campos.codigo").exists());
+    }
+
+    @Test
+    @DisplayName("El mensaje de un campo demasiado largo es nuestro, no el de la libreria")
+    void mensajeDeLongitudEsPropio() throws Exception {
+        // Sin ValidationMessages.properties, aqui salia «el tamano debe estar
+        // entre 0 y 200»: el texto de fabrica de Hibernate Validator, que no
+        // escribio nadie para que un usuario lo leyera.
+        mockMvc.perform(post(ESTABLECIMIENTOS)
+                        .header("Authorization", autorizacionDemo())
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"codigo\":\"0091\",\"nombre\":\"" + "N".repeat(400)
+                                + "\",\"direccion\":\"Av. Uno 1\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos.nombre").value("No puede pasar de 200 caracteres."));
     }
 
     @Test

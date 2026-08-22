@@ -9,6 +9,9 @@ import { AvisosService } from '../../../shared/services/avisos.service';
 import { ContextoService } from '../../../shared/services/contexto.service';
 import { repartirFallo } from '../../../shared/formularios/fallo-de-formulario';
 import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
+import { AccionesGuardadoComponent } from '../../../shared/components/comunes/acciones-guardado/acciones-guardado.component';
+import { seguirCambios } from '../../../shared/formularios/cambios';
+import { ConCambiosSinGuardar } from '../../../shared/formularios/salida-con-cambios.guard';
 
 /**
  * Datos tributarios de una empresa emisora.
@@ -51,10 +54,11 @@ import { ErrorCampoComponent } from '../../../shared/components/comunes/error-ca
     RouterModule,
     BotonComponent,
     ErrorCampoComponent,
+    AccionesGuardadoComponent,
   ],
   templateUrl: './empresa.component.html',
 })
-export class EmpresaComponent {
+export class EmpresaComponent implements ConCambiosSinGuardar {
   private readonly constructorFormulario = inject(FormBuilder);
   private readonly api = inject(ConfiguracionApiService);
   private readonly contexto = inject(ContextoService);
@@ -97,6 +101,13 @@ export class EmpresaComponent {
     ubigeo: ['', [Validators.pattern(/^$|^\d{6}$/)]],
   });
 
+  /**
+   * Se declara aqui y no dentro de {@code cargar} porque se suscribe a los
+   * cambios del formulario, y eso necesita el contexto de inyeccion del campo
+   * para darse de baja cuando la pantalla se destruye.
+   */
+  readonly cambios = seguirCambios(this.formulario);
+
   constructor() {
     const id = this.ruta.snapshot.paramMap.get('id');
     if (!id) {
@@ -127,6 +138,9 @@ export class EmpresaComponent {
         ubigeo: empresa.ubigeo ?? '',
       });
       this.aplicarModoLectura();
+      // Lo que se acaba de cargar es el punto de partida: a partir de aqui,
+      // cualquier diferencia es un cambio del usuario.
+      this.cambios.fijarBase();
     } catch (fallo: unknown) {
       this.error.set(mensajeDeError(fallo, 'No se pudieron cargar los datos de la empresa.'));
     } finally {
@@ -225,7 +239,7 @@ export class EmpresaComponent {
         domicilioFiscal: empresa.domicilioFiscal,
         ubigeo: empresa.ubigeo ?? '',
       });
-      this.formulario.markAsPristine();
+      this.cambios.fijarBase();
 
       this.avisos.exito(
         'Se aplicarán a los comprobantes que se emitan desde ahora.',
@@ -236,4 +250,8 @@ export class EmpresaComponent {
       throw fallo;
     }
   });
+
+  hayCambiosSinGuardar(): boolean {
+    return this.cambios.hayCambios();
+  }
 }

@@ -33,26 +33,43 @@ import org.springframework.dao.DataIntegrityViolationException;
  */
 public final class TraductorRestricciones {
 
-    /** Lo que se le cuenta al cliente cuando salta una restricción concreta. */
-    private record Traduccion(String codigo, String mensaje) {
+    /**
+     * Lo que se le cuenta al cliente cuando salta una restricción concreta.
+     *
+     * @param campo el campo de la petición al que pertenece el choque, o
+     *     {@code null} si no es de ninguno. El cliente coloca el mensaje junto
+     *     a ese campo en vez de en un aviso de la esquina, que es donde acababa
+     *     un «ya existe ese código» sin decir cuál de los cuatro cuadros de
+     *     texto lo tiene.
+     */
+    private record Traduccion(String codigo, String mensaje, String campo) {
+        Traduccion(String codigo, String mensaje) {
+            this(codigo, mensaje, null);
+        }
     }
 
     private static final Map<String, Traduccion> CONOCIDAS = Map.ofEntries(
             Map.entry("empresa_ruc_key", new Traduccion(
                     "ruc_duplicado",
                     "Ese RUC ya está registrado en Ondexia. Si crees que es un error, "
-                            + "escríbenos: puede pertenecer a otra cuenta.")),
+                            + "escríbenos: puede pertenecer a otra cuenta.",
+                    "ruc")),
             Map.entry("empresa_ruc_formato", new Traduccion(
-                    "ruc_invalido", "El RUC debe tener exactamente 11 dígitos.")),
+                    "ruc_invalido", "El RUC debe tener exactamente 11 dígitos.",
+                    "ruc")),
             Map.entry("empresa_ubigeo_formato", new Traduccion(
-                    "ubigeo_invalido", "El ubigeo debe tener exactamente 6 dígitos.")),
+                    "ubigeo_invalido", "El ubigeo debe tener exactamente 6 dígitos.",
+                    "ubigeo")),
             Map.entry("sucursal_ubigeo_formato", new Traduccion(
-                    "ubigeo_invalido", "El ubigeo debe tener exactamente 6 dígitos.")),
+                    "ubigeo_invalido", "El ubigeo debe tener exactamente 6 dígitos.",
+                    "ubigeo")),
             Map.entry("sucursal_codigo_unico", new Traduccion(
                     "codigo_duplicado",
-                    "Ya existe un establecimiento con ese código en esta empresa.")),
+                    "Ya existe un establecimiento con ese código en esta empresa.",
+                    "codigo")),
             Map.entry("usuario_email_por_cuenta", new Traduccion(
-                    "email_duplicado", "Ya hay un usuario con ese correo en esta cuenta.")),
+                    "email_duplicado", "Ya hay un usuario con ese correo en esta cuenta.",
+                    "email")),
             Map.entry("usuario_cognito_sub_key", new Traduccion(
                     "identidad_duplicada",
                     "Esa identidad ya está vinculada a otro usuario.")),
@@ -63,7 +80,8 @@ public final class TraductorRestricciones {
                     "administrador_duplicado",
                     "Ese usuario ya es administrador de la cuenta.")),
             Map.entry("rol_codigo_por_cuenta", new Traduccion(
-                    "codigo_duplicado", "Ya existe un rol con ese código en esta cuenta.")),
+                    "codigo_duplicado", "Ya existe un rol con ese código en esta cuenta.",
+                    "codigo")),
             Map.entry("permiso_codigo_key", new Traduccion(
                     "permiso_duplicado", "Ese permiso ya existe en el catálogo.")));
 
@@ -98,15 +116,16 @@ public final class TraductorRestricciones {
         if (restriccion != null) {
             Traduccion conocida = CONOCIDAS.get(restriccion);
             if (conocida != null) {
-                return Optional.of(new Conflicto(conocida.codigo(), conocida.mensaje()));
+                return Optional.of(new Conflicto(
+                        conocida.codigo(), conocida.mensaje(), conocida.campo()));
             }
         }
 
         String texto = textoCompleto(error).toLowerCase(java.util.Locale.ROOT);
         for (var entrada : POR_MENSAJE.entrySet()) {
             if (texto.contains(entrada.getKey())) {
-                return Optional.of(new Conflicto(
-                        entrada.getValue().codigo(), entrada.getValue().mensaje()));
+                return Optional.of(new Conflicto(entrada.getValue().codigo(),
+                        entrada.getValue().mensaje(), entrada.getValue().campo()));
             }
         }
 

@@ -65,6 +65,7 @@ import { FacturasCompraComponent } from './pages/compras/facturas/facturas.compo
 import { RegistrarFacturaCompraComponent } from './pages/compras/facturas/registrar-factura-compra.component';
 import { LiquidacionesComponent } from './pages/compras/liquidaciones/liquidaciones.component';
 import { EmitirLiquidacionComponent } from './pages/compras/liquidaciones/emitir-liquidacion.component';
+import { salidaConCambios } from './shared/formularios/salida-con-cambios.guard';
 
 // Páginas de demostración de la plantilla. Se conservan bajo /kit como
 // referencia visual mientras se construyen las vistas reales, y se eliminan
@@ -133,7 +134,7 @@ export const routes: Routes = [
       { path: 'almacen/modelos', component: ModelosComponent, title: `Modelos | ${TITULO}` },
       { path: 'almacen/unidades', component: UnidadesComponent, title: `Unidades de medida | ${TITULO}` },
       { path: 'almacen/almacenes', component: AlmacenesComponent, title: `Almacenes | ${TITULO}` },
-      { path: 'almacen/almacenes/:id', component: FichaAlmacenComponent, title: `Almacén | ${TITULO}` },
+      { path: 'almacen/almacenes/:id', component: FichaAlmacenComponent, title: `Almacén | ${TITULO}`, canDeactivate: [salidaConCambios] },
 
       // ── Compras ──────────────────────────────────────────────────────────
       { path: 'compras/notas-pedido', component: NotasPedidoComponent, title: `Notas de pedido | ${TITULO}` },
@@ -175,13 +176,13 @@ export const routes: Routes = [
       // cualquier pestaña abierta y en los marcadores de quien ya la usaba.
       { path: 'configuracion/empresa', redirectTo: 'configuracion/empresas', pathMatch: 'full' },
       { path: 'configuracion/empresas', component: EmpresasComponent, title: `Empresas | ${TITULO}` },
-      { path: 'configuracion/empresas/:id', component: EmpresaComponent, title: `Datos de la empresa | ${TITULO}` },
+      { path: 'configuracion/empresas/:id', component: EmpresaComponent, title: `Datos de la empresa | ${TITULO}`, canDeactivate: [salidaConCambios] },
       { path: 'configuracion/identidad', component: IdentidadComponent, title: `Identidad visual | ${TITULO}` },
       { path: 'configuracion/establecimientos', component: EstablecimientosComponent, title: `Establecimientos | ${TITULO}` },
-      { path: 'configuracion/establecimientos/:id', component: FichaEstablecimientoComponent, title: `Establecimiento | ${TITULO}` },
+      { path: 'configuracion/establecimientos/:id', component: FichaEstablecimientoComponent, title: `Establecimiento | ${TITULO}`, canDeactivate: [salidaConCambios] },
       { path: 'configuracion/series', component: SeriesComponent, title: `Series y correlativos | ${TITULO}` },
       { path: 'configuracion/usuarios', component: UsuariosComponent, title: `Usuarios | ${TITULO}` },
-      { path: 'configuracion/usuarios/:id', component: FichaUsuarioComponent, title: `Acceso de usuario | ${TITULO}` },
+      { path: 'configuracion/usuarios/:id', component: FichaUsuarioComponent, title: `Acceso de usuario | ${TITULO}`, canDeactivate: [salidaConCambios] },
       { path: 'configuracion/roles', component: RolesComponent, title: `Roles y permisos | ${TITULO}` },
       { path: 'configuracion/comprobantes', component: ComprobantesComponent, title: `Configuración de comprobantes | ${TITULO}` },
       { path: 'configuracion/suscripcion', component: SuscripcionComponent, title: `Suscripción y consumo | ${TITULO}` },

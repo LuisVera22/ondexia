@@ -83,7 +83,22 @@ public class ManejadorGlobalErrores extends ResponseEntityExceptionHandler {
         LOG.warn("{} en {} {}: {}", error.getCodigo(), peticion.getMethod(),
                 peticion.getRequestURI(), error.getMessage());
 
-        return construir(estadoDe(error), error.getCodigo(), error.getMessage(), peticion);
+        ProblemDetail problema =
+                construir(estadoDe(error), error.getCodigo(), error.getMessage(), peticion);
+
+        /*
+         * Un conflicto de un campo concreto viaja en `campos`, igual que los de
+         * validacion. No es solo comodidad para el cliente: es lo que hace que
+         * «ya existe un establecimiento con ese codigo» aparezca debajo del
+         * cuadro del codigo en vez de en un aviso de la esquina, donde no dice
+         * cual de los cuatro campos hay que corregir.
+         */
+        if (error instanceof Conflicto conflicto && conflicto.getCampo() != null) {
+            problema.setProperty("campos",
+                    Map.of(conflicto.getCampo(), error.getMessage()));
+        }
+
+        return problema;
     }
 
     /**
