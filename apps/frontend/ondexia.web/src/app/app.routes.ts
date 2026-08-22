@@ -18,6 +18,7 @@ import { FichaEstablecimientoComponent } from './pages/configuracion/establecimi
 import { AlmacenesComponent } from './pages/configuracion/almacenes/almacenes.component';
 import { SeriesComponent } from './pages/configuracion/series/series.component';
 import { UsuariosComponent } from './pages/configuracion/usuarios/usuarios.component';
+import { FichaUsuarioComponent } from './pages/configuracion/usuarios/ficha-usuario.component';
 import { RolesComponent } from './pages/configuracion/roles/roles.component';
 import { ComprobantesComponent } from './pages/configuracion/comprobantes/comprobantes.component';
 import { SuscripcionComponent } from './pages/configuracion/suscripcion/suscripcion.component';
@@ -178,6 +179,7 @@ export const routes: Routes = [
       { path: 'configuracion/establecimientos/:id', component: FichaEstablecimientoComponent, title: `Establecimiento | ${TITULO}` },
       { path: 'configuracion/series', component: SeriesComponent, title: `Series y correlativos | ${TITULO}` },
       { path: 'configuracion/usuarios', component: UsuariosComponent, title: `Usuarios | ${TITULO}` },
+      { path: 'configuracion/usuarios/:id', component: FichaUsuarioComponent, title: `Acceso de usuario | ${TITULO}` },
       { path: 'configuracion/roles', component: RolesComponent, title: `Roles y permisos | ${TITULO}` },
       { path: 'configuracion/comprobantes', component: ComprobantesComponent, title: `Configuración de comprobantes | ${TITULO}` },
       { path: 'configuracion/suscripcion', component: SuscripcionComponent, title: `Suscripción y consumo | ${TITULO}` },
