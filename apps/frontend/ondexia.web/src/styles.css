@@ -79,88 +79,148 @@
   --color-black: #101828;
 
   /* Marca — acciones primarias, elemento activo del menú, foco. */
-  --color-brand-25: #f2f7ff;
-  --color-brand-50: #ecf3ff;
-  --color-brand-100: #dde9ff;
-  --color-brand-200: #c2d6ff;
-  --color-brand-300: #9cb9ff;
-  --color-brand-400: #7592ff;
-  --color-brand-500: #465fff;
-  --color-brand-600: #3641f5;
-  --color-brand-700: #2a31d8;
-  --color-brand-800: #252dae;
-  --color-brand-900: #262e89;
-  --color-brand-950: #161950;
+  /*
+   * Marca — indigo.
+   *
+   * Sustituye al azul #465fff que veniamos arrastrando de la plantilla en la
+   * que nos inspiramos. No es un cambio de gusto: el 500 pasa de 4,84:1 a
+   * 6,29:1 contra el blanco, asi que el boton primario deja de aprobar por los
+   * pelos y queda margen para la variante deshabilitada y para el hover.
+   *
+   * Nuestro 500 es el indigo-600 de Tailwind, no el 500. Un paso mas oscuro de
+   * lo que el nombre sugiere, a proposito: el 500 es el tono que va bajo texto
+   * blanco en cada boton, y ahi el contraste manda sobre la simetria de la
+   * escala.
+   */
+  --color-brand-25: #f7f8fe;
+  --color-brand-50: #eef0fd;
+  --color-brand-100: #dde1fb;
+  --color-brand-200: #c7d2fe;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #4f46e5;
+  --color-brand-600: #4338ca;
+  --color-brand-700: #3730a3;
+  --color-brand-800: #312e81;
+  --color-brand-900: #26235e;
+  --color-brand-950: #1a1840;
 
-  /* Neutros — texto, bordes, fondos. Es la escala que más se usa. */
-  --color-gray-25: #fcfcfd;
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f2f4f7;
-  --color-gray-200: #e4e7ec;
-  --color-gray-300: #d0d5dd;
-  --color-gray-400: #98a2b3;
-  --color-gray-500: #667085;
-  --color-gray-600: #475467;
-  --color-gray-700: #344054;
-  --color-gray-800: #1d2939;
-  --color-gray-900: #101828;
-  --color-gray-950: #0c111d;
+  /*
+   * Neutros — texto, bordes, fondos. Es la escala que mas se usa.
+   *
+   * Cada paso conserva el papel que ya tenia. Se cambiaron los valores, no la
+   * estructura, y por eso ninguna de las vistas necesito tocarse: `gray-700`
+   * sigue siendo el texto secundario y `gray-300` el borde de campo. Moverlos
+   * de sitio —poner el gris de marcador de posicion en el 500, por ejemplo—
+   * habria dejado ilegible cada `text-gray-500` de la aplicacion sin que nada
+   * fallara al compilar, que es la peor clase de cambio.
+   *
+   * Los neutros tiran a azul, como el indigo. Un gris neutro puro al lado de un
+   * primario frio se ve sucio.
+   *
+   * El 500 va dos unidades mas oscuro que el tono propuesto —#697083 y no
+   * #6b7285—. Con el original daba 4,80:1 sobre blanco, que aprueba, pero 4,41
+   * sobre la fila rayada de las tablas, que no: es el mismo fondo sobre el que
+   * cae la mitad de las ayudas de un listado. Asi da 4,95 y 4,54.
+   */
+  --color-gray-25: #f8f9fb;
+  --color-gray-50: #f4f5f9;
+  --color-gray-100: #eef0f4;
+  --color-gray-200: #e8eaf1;
+  --color-gray-300: #c2c8d4;
+  --color-gray-400: #9aa0b2;
+  --color-gray-500: #697083;
+  --color-gray-600: #545b6e;
+  --color-gray-700: #3d4457;
+  --color-gray-800: #262c3c;
+  --color-gray-900: #171c2d;
+  --color-gray-950: #0e121d;
 
-  /* Estados. `success` y `error` cargan significado contable —una entrada, una
-   * salida, un comprobante aceptado o rechazado—, así que nunca se usan por
-   * decoración. */
-  --color-success-25: #f6fef9;
-  --color-success-50: #ecfdf3;
-  --color-success-100: #d1fadf;
-  --color-success-200: #a6f4c5;
-  --color-success-300: #6ce9a6;
-  --color-success-400: #32d583;
-  --color-success-500: #12b76a;
-  --color-success-600: #039855;
-  --color-success-700: #027a48;
-  --color-success-800: #05603a;
-  --color-success-900: #054f31;
-  --color-success-950: #053321;
+  /*
+   * Exito — verde.
+   *
+   * El 500 es el punto del estado activo y el 600 su texto: 5,02:1 sobre
+   * blanco, cuando el verde anterior daba 2,62:1 y no se podia usar para
+   * escribir. Por eso el estado «Activo» tenia el punto de color y la palabra
+   * en gris — ahora la palabra puede ir en verde si hace falta.
+   */
+  --color-success-25: #f4fdf7;
+  --color-success-50: #e8f7ee;
+  --color-success-100: #dcfce7;
+  --color-success-200: #bbf7d0;
+  --color-success-300: #86efac;
+  --color-success-400: #4ade80;
+  --color-success-500: #16a34a;
+  --color-success-600: #15803d;
+  --color-success-700: #166534;
+  --color-success-800: #14532d;
+  --color-success-900: #0f3f22;
+  --color-success-950: #082b16;
 
-  --color-error-25: #fffbfa;
-  --color-error-50: #fef3f2;
-  --color-error-100: #fee4e2;
-  --color-error-200: #fecdca;
-  --color-error-300: #fda29b;
-  --color-error-400: #f97066;
-  --color-error-500: #f04438;
-  --color-error-600: #d92d20;
-  --color-error-700: #b42318;
-  --color-error-800: #912018;
-  --color-error-900: #7a271a;
-  --color-error-950: #55160c;
+  /*
+   * Error — rojo.
+   *
+   * La paleta propuesta no traia ninguno, y el sistema lo usa en todas partes:
+   * «Desactivar» y «Eliminar» en el menu de fila, el mensaje bajo cada campo
+   * invalido, el banner de fallo, el boton de peligro. Se completa con la misma
+   * familia que el resto.
+   *
+   * El 500 sube a 4,95:1 desde los 3,76:1 de antes, que es lo que faltaba: el
+   * mensaje de validacion se pinta con el 500 y no llegaba al minimo legible.
+   *
+   * Es un pelo mas oscuro que el rojo de la familia (#d92525 y no #dc2626)
+   * porque tiene que aprobar sobre DOS fondos: el blanco de la ficha y el
+   * #fef2f2 de la opcion peligrosa resaltada en el menu de fila. Sobre el
+   * segundo, el tono de la familia se quedaba en 4,41.
+   */
+  --color-error-25: #fffafa;
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #d92525;
+  --color-error-600: #b91c1c;
+  --color-error-700: #991b1b;
+  --color-error-800: #7f1d1d;
+  --color-error-900: #651b1b;
+  --color-error-950: #450a0a;
 
+  /*
+   * Aviso — ambar.
+   *
+   * El 500 es el tono de la propuesta, y sirve para puntos y bordes pero NO
+   * para texto: sobre blanco da 2,15:1. Lo que se escriba en ambar usa el 700,
+   * que da 4,52:1 — es el caso del aviso de periodo de prueba y del estado
+   * «Invitado».
+   */
   --color-warning-25: #fffcf5;
-  --color-warning-50: #fffaeb;
-  --color-warning-100: #fef0c7;
-  --color-warning-200: #fedf89;
-  --color-warning-300: #fec84b;
-  --color-warning-400: #fdb022;
-  --color-warning-500: #f79009;
-  --color-warning-600: #dc6803;
-  --color-warning-700: #b54708;
-  --color-warning-800: #93370d;
-  --color-warning-900: #7a2e0e;
-  --color-warning-950: #4e1d09;
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-200: #fde68a;
+  --color-warning-300: #fcd34d;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-warning-900: #78350f;
+  --color-warning-950: #451a03;
 
-  /* Informativo — avisos y notas explicativas, que no son advertencias. */
+  /* Informacion — azul cielo. Se distingue del indigo de marca porque ahi no
+   * hay nada que hacer: informa, no invita a pulsar. */
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;
   --color-blue-light-100: #e0f2fe;
-  --color-blue-light-200: #b9e6fe;
-  --color-blue-light-300: #7cd4fd;
-  --color-blue-light-400: #36bffa;
-  --color-blue-light-500: #0ba5ec;
-  --color-blue-light-600: #0086c9;
-  --color-blue-light-700: #026aa2;
-  --color-blue-light-800: #065986;
-  --color-blue-light-900: #0b4a6f;
-  --color-blue-light-950: #062c41;
+  --color-blue-light-200: #bae6fd;
+  --color-blue-light-300: #7dd3fc;
+  --color-blue-light-400: #38bdf8;
+  --color-blue-light-500: #0284c7;
+  --color-blue-light-600: #0369a1;
+  --color-blue-light-700: #075985;
+  --color-blue-light-800: #0c4a6e;
+  --color-blue-light-900: #0b3a56;
+  --color-blue-light-950: #082f49;
 
   /*
    * Sombras. Se nombran por elevación, no por tamaño: una tarjeta apoyada en
@@ -195,6 +255,38 @@
   --duracion-rapida: 150ms;
   --duracion-normal: 200ms;
   --duracion-lenta: 250ms;
+}
+
+/*
+ * Los tonos que cambian con el tema.
+ *
+ * <h2>Por que hace falta esto</h2>
+ *
+ * Un color de TEXTO no puede servir en los dos temas. Para aprobar el 4,5:1
+ * sobre blanco, el rojo necesita una luminancia por debajo de 0,183; para
+ * aprobarlo sobre el #171c2d del tema oscuro, por encima de 0,229. La ventana
+ * esta vacia: no existe ningun rojo que valga para los dos, y no es cuestion de
+ * buscar mejor.
+ *
+ * Esto explica el rojo que veniamos usando. El #f04438 daba 3,76:1 sobre blanco
+ * —por debajo del minimo— y 4,51 sobre el fondo oscuro: estaba afinado para el
+ * tema oscuro, y el mensaje de validacion del tema claro, que es el que ve todo
+ * el mundo, se leia peor de lo permitido.
+ *
+ * <h2>Por que se redefine la variable y no se tocan las plantillas</h2>
+ *
+ * Tailwind emite `color: var(--color-error-500)`, no el hexadecimal, asi que
+ * redefinir la variable bajo `.dark` alcanza de una vez los ochenta y tres
+ * sitios que escriben en rojo. La alternativa era anadir `dark:text-error-400`
+ * en cada uno, y el que se olvidara quedaria ilegible sin que nada fallara.
+ *
+ * Vale tambien para los fondos y bordes translucidos —`bg-error-500/10`,
+ * `border-error-500/30`—: un tinte mas claro sobre oscuro es justo lo que se
+ * quiere. La unica excepcion es el rojo SOLIDO con texto blanco encima, y por
+ * eso esos tres sitios piden `dark:bg-error-600` explicitamente.
+ */
+.dark {
+  --color-error-500: #f87171;
 }
 
 @layer base {

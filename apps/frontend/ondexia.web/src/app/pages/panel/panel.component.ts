@@ -91,7 +91,7 @@ export class PanelComponent {
 
   clasesCantidad(severidad: Pendiente['severidad']): string {
     if (severidad === 'error') {
-      return 'bg-error-500 text-white';
+      return 'bg-error-500 text-white dark:bg-error-600';
     }
     if (severidad === 'advertencia') {
       return 'bg-warning-500 text-white';

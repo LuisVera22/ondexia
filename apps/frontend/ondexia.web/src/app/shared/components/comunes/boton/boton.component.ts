@@ -111,7 +111,13 @@ export class BotonComponent {
       return `${base} px-4 py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-white/[0.03]`;
     }
     if (this.variante === 'peligro') {
-      return `${base} px-4 py-2.5 bg-error-500 text-white hover:bg-error-600`;
+      // `dark:bg-error-600`: en el tema oscuro el rojo 500 se aclara para poder
+    // leerse sobre fondo oscuro, y un rojo claro con texto blanco encima no se
+    // lee. El boton se queda con el tono que si aguanta el texto blanco.
+    return (
+      `${base} px-4 py-2.5 bg-error-500 text-white hover:bg-error-600` +
+      ' dark:bg-error-600 dark:hover:bg-error-700'
+    );
     }
     return `${base} px-4 py-2.5 bg-brand-500 text-white hover:bg-brand-600`;
   }
