@@ -159,17 +159,12 @@
           <label for="rolId" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             Rol <span class="text-error-500">*</span>
           </label>
-          <select
-            id="rolId"
+          <app-desplegable
+            idCampo="rolId"
             formControlName="rolId"
-            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:outline-hidden focus:ring-3 dark:text-white/90"
-            [class]="controles.rolId.touched && controles.rolId.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
-          >
-            <option value="">Elige un rol…</option>
-            @for (rol of roles(); track rol.id) {
-            <option [value]="rol.id">{{ rol.nombre }}</option>
-            }
-          </select>
+            [opciones]="opcionesRol()"
+            alto="formulario"
+          />
           @if (controles.rolId.touched && controles.rolId.invalid) {
           <p class="mt-1.5 text-xs text-error-500">El rol es obligatorio.</p>
           }
@@ -179,18 +174,12 @@
           <label for="sucursalId" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             Alcance
           </label>
-          <select
-            id="sucursalId"
+          <app-desplegable
+            idCampo="sucursalId"
             formControlName="sucursalId"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
-          >
-            <option value="">Todos los establecimientos</option>
-            @for (establecimiento of establecimientos(); track establecimiento.id) {
-            <option [value]="establecimiento.id">
-              {{ establecimiento.codigo }} · {{ establecimiento.nombre }}
-            </option>
-            }
-          </select>
+            [opciones]="opcionesAlcance()"
+            alto="formulario"
+          />
           <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
             Acotarlo a un local limita lo que ve y la serie con la que emite.
           </p>

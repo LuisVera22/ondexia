@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { TablaDatosComponent, ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
@@ -6,6 +6,10 @@ import { ConfirmacionComponent } from '../../../shared/components/comunes/confir
 import { ModalComponent } from '../../../shared/components/comunes/modal/modal.component';
 import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
 import { accionConEstado } from '../../../shared/components/comunes/boton/estado-accion';
+import {
+  DesplegableComponent,
+  OpcionDesplegable,
+} from '../../../shared/components/comunes/desplegable/desplegable.component';
 import {
   ConfiguracionApiService,
   Establecimiento,
@@ -48,6 +52,7 @@ import { AvisosService } from '../../../shared/services/avisos.service';
     ConfirmacionComponent,
     ModalComponent,
     BotonComponent,
+    DesplegableComponent,
     ReactiveFormsModule,
   ],
   templateUrl: './series.component.html',
@@ -78,6 +83,24 @@ export class SeriesComponent {
   readonly confirmacionAbierta = signal(false);
 
   private aDesactivar: SerieApi | null = null;
+  readonly opcionesTipo = computed<OpcionDesplegable[]>(() => [
+    { valor: '', etiqueta: 'Elige un tipo…' },
+    ...this.tipos().map((tipo) => ({ valor: tipo.codigo, etiqueta: tipo.nombre })),
+  ]);
+
+  /**
+   * Establecimientos activos.
+   *
+   * <p>Sin opción vacía: SUNAT relaciona la serie con el anexo que emite, así
+   * que es obligatorio. Y sin los desactivados, porque una serie nueva atada a
+   * un local que ya no emite nace inutilizable.
+   */
+  readonly opcionesEstablecimiento = computed<OpcionDesplegable[]>(() =>
+    this.establecimientos()
+      .filter((e) => e.activa)
+      .map((e) => ({ valor: e.id, etiqueta: `${e.codigo} · ${e.nombre}` }))
+  );
+
   private originales: SerieApi[] = [];
 
   formulario = this.constructorFormulario.nonNullable.group({

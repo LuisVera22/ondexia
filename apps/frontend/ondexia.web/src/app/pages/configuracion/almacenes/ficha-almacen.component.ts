@@ -1,9 +1,13 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
 import { accionConEstado } from '../../../shared/components/comunes/boton/estado-accion';
+import {
+  DesplegableComponent,
+  OpcionDesplegable,
+} from '../../../shared/components/comunes/desplegable/desplegable.component';
 import {
   ConfiguracionApiService,
   Establecimiento,
@@ -26,7 +30,13 @@ import { AvisosService } from '../../../shared/services/avisos.service';
  */
 @Component({
   selector: 'app-ficha-almacen',
-  imports: [EncabezadoPaginaComponent, ReactiveFormsModule, RouterModule, BotonComponent],
+  imports: [
+    EncabezadoPaginaComponent,
+    ReactiveFormsModule,
+    RouterModule,
+    BotonComponent,
+    DesplegableComponent,
+  ],
   templateUrl: './ficha-almacen.component.html',
 })
 export class FichaAlmacenComponent {
@@ -44,6 +54,29 @@ export class FichaAlmacenComponent {
   readonly nombreCargado = signal('');
   readonly activo = signal(true);
   readonly establecimientos = signal<Establecimiento[]>([]);
+
+  /** El que tenía asignado al cargar. Señal, para que el computed reaccione. */
+  private readonly asignado = signal<string | null>(null);
+
+  /**
+   * Activos, más el asignado aunque esté desactivado.
+   *
+   * <p>Filtrarlo a secas escondería el valor vigente si el local se desactivó
+   * después, y el desplegable se vería como si nadie hubiera elegido nada.
+   */
+  readonly opcionesEstablecimiento = computed<OpcionDesplegable[]>(() => {
+    const actual = this.asignado();
+    return [
+      { valor: '', etiqueta: 'Sin asignar' },
+      ...this.establecimientos()
+        .filter((e) => e.activa || e.id === actual)
+        .map((e) => ({
+          valor: e.id,
+          etiqueta: `${e.codigo} · ${e.nombre}`,
+          detalle: e.activa ? undefined : 'Desactivado',
+        })),
+    ];
+  });
 
   formulario = this.constructorFormulario.nonNullable.group({
     nombre: ['', [Validators.required]],
@@ -83,6 +116,7 @@ export class FichaAlmacenComponent {
       this.codigo.set(almacen.codigo);
       this.nombreCargado.set(almacen.nombre);
       this.activo.set(almacen.activo);
+      this.asignado.set(almacen.sucursalId);
       this.formulario.patchValue({
         nombre: almacen.nombre,
         sucursalId: almacen.sucursalId ?? '',

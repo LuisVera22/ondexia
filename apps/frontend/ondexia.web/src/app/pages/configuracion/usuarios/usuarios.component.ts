@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
@@ -7,6 +7,10 @@ import { ConfirmacionComponent } from '../../../shared/components/comunes/confir
 import { ModalComponent } from '../../../shared/components/comunes/modal/modal.component';
 import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
 import { accionConEstado } from '../../../shared/components/comunes/boton/estado-accion';
+import {
+  DesplegableComponent,
+  OpcionDesplegable,
+} from '../../../shared/components/comunes/desplegable/desplegable.component';
 import {
   ConfiguracionApiService,
   Establecimiento,
@@ -47,6 +51,7 @@ type AccionPendiente = 'desactivar' | 'retirar' | null;
     ConfirmacionComponent,
     ModalComponent,
     BotonComponent,
+    DesplegableComponent,
     ReactiveFormsModule,
   ],
   templateUrl: './usuarios.component.html',
@@ -85,6 +90,25 @@ export class UsuariosComponent {
 
   private objetivo: UsuarioApi | null = null;
   private originales: UsuarioApi[] = [];
+
+  readonly opcionesRol = computed<OpcionDesplegable[]>(() => [
+    { valor: '', etiqueta: 'Elige un rol…' },
+    ...this.roles().map((rol) => ({ valor: rol.id, etiqueta: rol.nombre })),
+  ]);
+
+  /**
+   * El alcance, con los establecimientos ACTIVOS.
+   *
+   * <p>Los desactivados se quedan fuera: acotar a alguien a un local que ya no
+   * emite le deja sin poder trabajar, y hasta ahora aparecían en la lista porque
+   * el endpoint devuelve activos e inactivos.
+   */
+  readonly opcionesAlcance = computed<OpcionDesplegable[]>(() => [
+    { valor: '', etiqueta: 'Todos los establecimientos' },
+    ...this.establecimientos()
+      .filter((e) => e.activa)
+      .map((e) => ({ valor: e.id, etiqueta: `${e.codigo} · ${e.nombre}` })),
+  ]);
 
   formulario = this.constructorFormulario.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],

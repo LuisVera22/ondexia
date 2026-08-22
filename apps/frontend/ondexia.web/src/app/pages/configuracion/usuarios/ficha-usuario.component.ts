@@ -1,9 +1,13 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
 import { accionConEstado } from '../../../shared/components/comunes/boton/estado-accion';
+import {
+  DesplegableComponent,
+  OpcionDesplegable,
+} from '../../../shared/components/comunes/desplegable/desplegable.component';
 import {
   ConfiguracionApiService,
   Establecimiento,
@@ -29,7 +33,13 @@ import { AvisosService } from '../../../shared/services/avisos.service';
  */
 @Component({
   selector: 'app-ficha-usuario',
-  imports: [EncabezadoPaginaComponent, ReactiveFormsModule, RouterModule, BotonComponent],
+  imports: [
+    EncabezadoPaginaComponent,
+    ReactiveFormsModule,
+    RouterModule,
+    BotonComponent,
+    DesplegableComponent,
+  ],
   templateUrl: './ficha-usuario.component.html',
 })
 export class FichaUsuarioComponent {
@@ -50,6 +60,43 @@ export class FichaUsuarioComponent {
 
   readonly roles = signal<RolAsignable[]>([]);
   readonly establecimientos = signal<Establecimiento[]>([]);
+
+  /**
+   * El establecimiento que tenía asignado al cargar.
+   *
+   * <p>Señal aparte y no una lectura del formulario: un {@code computed} solo
+   * reacciona a señales, y el valor de un control reactivo no lo es. Leyéndolo
+   * de ahí, la lista de opciones no se recalcularía nunca por ese motivo — y
+   * parecería funcionar, que es lo peor de ese error.
+   */
+  private readonly sucursalAsignada = signal<string | null>(null);
+
+  readonly opcionesRol = computed<OpcionDesplegable[]>(() => [
+    { valor: '', etiqueta: 'Elige un rol…' },
+    ...this.roles().map((rol) => ({ valor: rol.id, etiqueta: rol.nombre })),
+  ]);
+
+  /**
+   * El alcance, con los activos más el asignado si estuviera desactivado.
+   *
+   * <p>Filtrar a secas escondería el valor vigente cuando el local se desactivó
+   * después de la asignación, y el desplegable se vería vacío como si nadie
+   * hubiera elegido nada. Se conserva, marcado, para que se vea que hay que
+   * cambiarlo — pero no se ofrece ninguno inactivo más.
+   */
+  readonly opcionesAlcance = computed<OpcionDesplegable[]>(() => {
+    const asignado = this.sucursalAsignada();
+    return [
+      { valor: '', etiqueta: 'Todos los establecimientos' },
+      ...this.establecimientos()
+        .filter((e) => e.activa || e.id === asignado)
+        .map((e) => ({
+          valor: e.id,
+          etiqueta: `${e.codigo} · ${e.nombre}`,
+          detalle: e.activa ? undefined : 'Desactivado: ya no se puede emitir desde aquí',
+        })),
+    ];
+  });
 
   formulario = this.constructorFormulario.nonNullable.group({
     rolId: ['', [Validators.required]],
@@ -93,6 +140,7 @@ export class FichaUsuarioComponent {
       this.activo.set(usuario.activo);
       this.invitado.set(usuario.invitado);
 
+      this.sucursalAsignada.set(usuario.sucursalId);
       this.formulario.patchValue({
         rolId: usuario.rolId,
         sucursalId: usuario.sucursalId ?? '',

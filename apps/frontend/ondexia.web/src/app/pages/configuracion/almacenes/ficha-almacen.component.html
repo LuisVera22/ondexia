@@ -77,20 +77,12 @@
           <label for="sucursalId" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             Establecimiento
           </label>
-          <select
-            id="sucursalId"
+          <app-desplegable
+            idCampo="sucursalId"
             formControlName="sucursalId"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-          >
-            <!-- Opción vacía primera y explícita: no asignar es una decisión
-                 válida, no un descuido. -->
-            <option value="">Sin asignar</option>
-            @for (establecimiento of establecimientos(); track establecimiento.id) {
-            <option [value]="establecimiento.id">
-              {{ establecimiento.codigo }} · {{ establecimiento.nombre }}
-            </option>
-            }
-          </select>
+            [opciones]="opcionesEstablecimiento()"
+            alto="formulario"
+          />
           <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
             Opcional. La mercadería en tránsito, por ejemplo, no pertenece a ningún local.
           </p>

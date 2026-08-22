@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
@@ -7,6 +7,10 @@ import { ConfirmacionComponent } from '../../../shared/components/comunes/confir
 import { ModalComponent } from '../../../shared/components/comunes/modal/modal.component';
 import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
 import { accionConEstado } from '../../../shared/components/comunes/boton/estado-accion';
+import {
+  DesplegableComponent,
+  OpcionDesplegable,
+} from '../../../shared/components/comunes/desplegable/desplegable.component';
 import {
   AlmacenApi,
   ConfiguracionApiService,
@@ -37,6 +41,7 @@ import { AvisosService } from '../../../shared/services/avisos.service';
     ConfirmacionComponent,
     ModalComponent,
     BotonComponent,
+    DesplegableComponent,
     ReactiveFormsModule,
   ],
   templateUrl: './almacenes.component.html',
@@ -65,6 +70,22 @@ export class AlmacenesComponent {
 
   private aDesactivar: AlmacenApi | null = null;
   private originales: AlmacenApi[] = [];
+
+  /**
+   * Establecimientos activos, más «Sin asignar» primero.
+   *
+   * <p>Los desactivados quedan fuera: un almacén que cuelga de un local que ya
+   * no emite no tiene a dónde mover mercadería. Hasta ahora aparecían porque el
+   * endpoint devuelve activos e inactivos.
+   */
+  readonly opcionesEstablecimiento = computed<OpcionDesplegable[]>(() => [
+    // Primera y explícita: no asignar es una decisión válida —la mercadería en
+    // tránsito no pertenece a ningún local— y no un descuido.
+    { valor: '', etiqueta: 'Sin asignar' },
+    ...this.establecimientos()
+      .filter((e) => e.activa)
+      .map((e) => ({ valor: e.id, etiqueta: `${e.codigo} · ${e.nombre}` })),
+  ]);
 
   formulario = this.constructorFormulario.nonNullable.group({
     codigo: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9-]{1,20}$/)]],

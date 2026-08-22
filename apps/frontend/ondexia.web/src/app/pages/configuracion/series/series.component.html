@@ -80,16 +80,12 @@
           <label for="tipoDocumento" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             Tipo de comprobante <span class="text-error-500">*</span>
           </label>
-          <select
-            id="tipoDocumento"
+          <app-desplegable
+            idCampo="tipoDocumento"
             formControlName="tipoDocumento"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-          >
-            <option value="">Elige un tipo…</option>
-            @for (tipo of tipos(); track tipo.codigo) {
-            <option [value]="tipo.codigo">{{ tipo.nombre }}</option>
-            }
-          </select>
+            [opciones]="opcionesTipo()"
+            alto="formulario"
+          />
           @if (controles.tipoDocumento.touched && controles.tipoDocumento.invalid) {
           <p class="mt-1.5 text-xs text-error-500">Elige el tipo de comprobante.</p>
           }
@@ -127,17 +123,12 @@
           <label for="sucursalId" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             Establecimiento <span class="text-error-500">*</span>
           </label>
-          <select
-            id="sucursalId"
+          <app-desplegable
+            idCampo="sucursalId"
             formControlName="sucursalId"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90"
-          >
-            @for (establecimiento of establecimientos(); track establecimiento.id) {
-            <option [value]="establecimiento.id">
-              {{ establecimiento.codigo }} · {{ establecimiento.nombre }}
-            </option>
-            }
-          </select>
+            [opciones]="opcionesEstablecimiento()"
+            alto="formulario"
+          />
           <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
             Obligatorio: SUNAT relaciona la serie con el anexo que emite.
           </p>
