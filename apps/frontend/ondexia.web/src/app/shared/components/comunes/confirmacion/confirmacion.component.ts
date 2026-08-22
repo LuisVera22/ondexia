@@ -1,7 +1,14 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { BotonComponent } from '../boton/boton.component';
+import { ModalComponent } from '../modal/modal.component';
 
 /**
  * Diálogo de confirmación para acciones irreversibles.
+ *
+ * Se construye sobre {@link ModalComponent}, que es el único diálogo del
+ * sistema. Antes tenía su propia implementación: el cierre con `Escape`, la
+ * retención del foco y el bloqueo del desplazamiento estaban escritos dos
+ * veces, y cualquier arreglo había que hacerlo en los dos sitios.
  *
  * Criterio del plan de vistas §9.4: se confirma solo lo irreversible.
  * Anular un comprobante lo exige; guardar un borrador no. Usarlo en todo
@@ -10,7 +17,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
  */
 @Component({
   selector: 'app-confirmacion',
-  imports: [],
+  imports: [ModalComponent, BotonComponent],
   templateUrl: './confirmacion.component.html',
 })
 export class ConfirmacionComponent {

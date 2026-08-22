@@ -5,6 +5,7 @@ import {
   TipoComprobanteApi,
   mensajeDeError,
 } from '../../../nucleo/configuracion.api.service';
+import { AvisosService } from '../../../shared/services/avisos.service';
 
 /**
  * Qué tipos de comprobante emite la empresa.
@@ -35,9 +36,12 @@ import {
 })
 export class ComprobantesComponent {
   private readonly api = inject(ConfiguracionApiService);
+  private readonly avisos = inject(AvisosService);
 
   readonly tipos = signal<TipoComprobanteApi[]>([]);
   readonly cargando = signal(true);
+
+  /** Solo el fallo al cargar, que se pinta en lugar de la lista. */
   readonly error = signal<string | null>(null);
 
   /** Código del tipo cuyo interruptor está en vuelo, para deshabilitarlo. */
@@ -74,12 +78,17 @@ export class ComprobantesComponent {
     }
 
     this.enCurso.set(tipo.codigo);
-    this.error.set(null);
     try {
       await this.api.cambiarEstadoTipoComprobante(tipo.codigo, !tipo.emite);
       await this.cargar();
+
+      // Sin aviso de éxito, y es la regla aplicada, no un olvido: el efecto de
+      // esta acción es el interruptor cambiando de lado, que está justo donde
+      // el usuario acaba de pulsar. Un aviso en la esquina repetiría lo que ya
+      // se ve. El fallo sí lo lleva, porque entonces el interruptor vuelve a su
+      // sitio y sin mensaje eso parece que el clic no llegó a registrarse.
     } catch (fallo: unknown) {
-      this.error.set(mensajeDeError(fallo, 'No se pudo cambiar el tipo de comprobante.'));
+      this.avisos.error(mensajeDeError(fallo, 'No se pudo cambiar el tipo de comprobante.'));
     } finally {
       this.enCurso.set(null);
     }

@@ -108,7 +108,8 @@ public class RegistrarCuenta {
             throw new Conflicto(
                     "ruc_ya_registrado",
                     "El RUC " + ruc.valor() + " ya está registrado en Ondexia. "
-                            + "Si es tu empresa, pide a su administrador que te dé acceso.");
+                            + "Si es tu empresa, pide a su administrador que te dé acceso.",
+                    "ruc");
         });
 
         var cuenta = cuentas.guardar(new Cuenta(

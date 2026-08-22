@@ -1,8 +1,15 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { TablaDatosComponent, ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
+import { ModalComponent } from '../../../shared/components/comunes/modal/modal.component';
+import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
+import { accionConEstado } from '../../../shared/components/comunes/boton/estado-accion';
+import {
+  DesplegableComponent,
+  OpcionDesplegable,
+} from '../../../shared/components/comunes/desplegable/desplegable.component';
 import {
   ConfiguracionApiService,
   Establecimiento,
@@ -10,6 +17,9 @@ import {
   TipoDocumento,
   mensajeDeError,
 } from '../../../nucleo/configuracion.api.service';
+import { AvisosService } from '../../../shared/services/avisos.service';
+import { repartirFallo } from '../../../shared/formularios/fallo-de-formulario';
+import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
 
 /**
  * Series de comprobante por establecimiento y tipo de documento.
@@ -42,12 +52,17 @@ import {
     EncabezadoPaginaComponent,
     TablaDatosComponent,
     ConfirmacionComponent,
+    ModalComponent,
+    BotonComponent,
+    DesplegableComponent,
     ReactiveFormsModule,
+    ErrorCampoComponent,
   ],
   templateUrl: './series.component.html',
 })
 export class SeriesComponent {
   private readonly api = inject(ConfiguracionApiService);
+  private readonly avisos = inject(AvisosService);
   private readonly constructorFormulario = inject(FormBuilder);
 
   readonly columnas: ColumnaTabla[] = [
@@ -63,13 +78,32 @@ export class SeriesComponent {
   readonly establecimientos = signal<Establecimiento[]>([]);
   readonly tipos = signal<TipoDocumento[]>([]);
   readonly cargando = signal(true);
-  readonly guardando = signal(false);
+
+  /** Solo el fallo al cargar el listado. El resto va a avisos. */
   readonly error = signal<string | null>(null);
 
-  readonly formularioAbierto = signal(false);
+  readonly modalAbierto = signal(false);
   readonly confirmacionAbierta = signal(false);
 
   private aDesactivar: SerieApi | null = null;
+  readonly opcionesTipo = computed<OpcionDesplegable[]>(() => [
+    { valor: '', etiqueta: 'Elige un tipo…' },
+    ...this.tipos().map((tipo) => ({ valor: tipo.codigo, etiqueta: tipo.nombre })),
+  ]);
+
+  /**
+   * Establecimientos activos.
+   *
+   * <p>Sin opción vacía: SUNAT relaciona la serie con el anexo que emite, así
+   * que es obligatorio. Y sin los desactivados, porque una serie nueva atada a
+   * un local que ya no emite nace inutilizable.
+   */
+  readonly opcionesEstablecimiento = computed<OpcionDesplegable[]>(() =>
+    this.establecimientos()
+      .filter((e) => e.activa)
+      .map((e) => ({ valor: e.id, etiqueta: `${e.codigo} · ${e.nombre}` }))
+  );
+
   private originales: SerieApi[] = [];
 
   formulario = this.constructorFormulario.nonNullable.group({
@@ -153,42 +187,49 @@ export class SeriesComponent {
       serie: '',
       numeroInicial: 0,
     });
-    this.formularioAbierto.set(true);
+    this.modalAbierto.set(true);
   }
 
-  cerrarFormulario(): void {
-    this.formularioAbierto.set(false);
+  cerrarModal(): void {
+    this.modalAbierto.set(false);
   }
 
-  async guardar(): Promise<void> {
+  /**
+   * Crea la serie y cierra el modal.
+   *
+   * <p>No hay edición de series, y por eso esta pantalla no tiene ficha: una
+   * serie con su correlativo no se corrige, se desactiva y se abre otra. El
+   * número emitido ya está en documentos entregados.
+   */
+  readonly crear = accionConEstado(async () => {
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
-      return;
+      throw new Error('Formulario incompleto');
     }
-
-    this.guardando.set(true);
-    this.error.set(null);
 
     const valores = this.formulario.getRawValue();
 
     try {
-      await this.api.crearSerie({
+      const creada = await this.api.crearSerie({
         sucursalId: valores.sucursalId,
         tipoDocumento: valores.tipoDocumento,
         serie: valores.serie,
         numeroInicial: valores.numeroInicial ?? 0,
       });
-      this.cerrarFormulario();
+
+      this.cerrarModal();
       await this.cargar();
+      // siguienteNumero llega ya formateado por el backend («F001-00000001»),
+      // que es exactamente lo que el usuario verá en el próximo comprobante.
+      this.avisos.exito(`El próximo comprobante será ${creada.siguienteNumero}`, 'Serie creada');
     } catch (fallo: unknown) {
       // El servidor explica bien los dos casos previsibles: la letra que no
       // corresponde al tipo, y el tipo que la empresa tiene deshabilitado en
-      // Configuración › Comprobantes.
-      this.error.set(mensajeDeError(fallo, 'No se pudo crear la serie.'));
-    } finally {
-      this.guardando.set(false);
+      // Configuración › Comprobantes. El modal se queda abierto para corregir.
+      repartirFallo(fallo, this.formulario, this.avisos, 'No se pudo crear la serie.');
+      throw fallo;
     }
-  }
+  });
 
   pedirDesactivacion(fila: Record<string, unknown>): void {
     const serie = this.originales.find((s) => s.id === fila['id']);
@@ -199,31 +240,41 @@ export class SeriesComponent {
     this.confirmacionAbierta.set(true);
   }
 
-  async desactivar(): Promise<void> {
-    if (!this.aDesactivar) {
+  readonly desactivar = accionConEstado(async () => {
+    const serie = this.aDesactivar;
+    if (!serie) {
       return;
     }
-    this.confirmacionAbierta.set(false);
-    this.error.set(null);
 
     try {
-      await this.api.cambiarEstadoSerie(this.aDesactivar.id, false);
-      await this.cargar();
-    } catch (fallo: unknown) {
-      this.error.set(mensajeDeError(fallo, 'No se pudo desactivar la serie.'));
-    } finally {
+      await this.api.cambiarEstadoSerie(serie.id, false);
+      this.confirmacionAbierta.set(false);
       this.aDesactivar = null;
+      await this.cargar();
+      this.avisos.exito(`${serie.serie} ya no se ofrece al emitir`, 'Serie desactivada');
+    } catch (fallo: unknown) {
+      this.avisos.error(mensajeDeError(fallo, 'No se pudo desactivar la serie.'));
+      throw fallo;
     }
+  });
+
+  cancelarDesactivacion(): void {
+    this.confirmacionAbierta.set(false);
+    this.aDesactivar = null;
+  }
+
+  get serieADesactivar(): string {
+    return this.aDesactivar?.serie ?? '';
   }
 
   /** Reactivar no necesita confirmación: no destruye nada y se deshace igual. */
   async reactivar(fila: Record<string, unknown>): Promise<void> {
-    this.error.set(null);
     try {
       await this.api.cambiarEstadoSerie(String(fila['id']), true);
       await this.cargar();
+      this.avisos.exito(`${fila['serie']} vuelve a ofrecerse al emitir`, 'Serie reactivada');
     } catch (fallo: unknown) {
-      this.error.set(mensajeDeError(fallo, 'No se pudo reactivar la serie.'));
+      this.avisos.error(mensajeDeError(fallo, 'No se pudo reactivar la serie.'));
     }
   }
 }

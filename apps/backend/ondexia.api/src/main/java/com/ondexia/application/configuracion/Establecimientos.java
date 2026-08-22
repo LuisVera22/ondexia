@@ -62,7 +62,8 @@ public class Establecimientos {
         sucursales.buscarPorCodigo(empresaId, normalizado).ifPresent(existente -> {
             throw new Conflicto(
                     "codigo_duplicado",
-                    "Ya existe un establecimiento con el código " + normalizado + ".");
+                    "Ya existe un establecimiento con el código " + normalizado + ".",
+                    "codigo");
         });
 
         var sucursal = new Sucursal(

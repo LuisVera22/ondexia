@@ -53,6 +53,14 @@ export class EmpresasComponent {
 
   readonly registros = signal<Record<string, unknown>[]>([]);
   readonly cargando = signal(true);
+
+  /**
+   * El fallo al cargar el listado, que se pinta en lugar de la tabla.
+   *
+   * <p>No va a un aviso flotante: un aviso deja la tabla vacía debajo sin
+   * explicar por qué está vacía, y a los cuatro segundos desaparece dejando una
+   * pantalla que parece decir «no tienes empresas».
+   */
   readonly error = signal<string | null>(null);
 
   constructor() {

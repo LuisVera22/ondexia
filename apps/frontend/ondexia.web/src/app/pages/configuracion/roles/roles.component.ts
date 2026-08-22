@@ -2,6 +2,9 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
+import { ModalComponent } from '../../../shared/components/comunes/modal/modal.component';
+import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
+import { accionConEstado } from '../../../shared/components/comunes/boton/estado-accion';
 import {
   ConfiguracionApiService,
   ModuloApi,
@@ -9,6 +12,8 @@ import {
   SubmoduloApi,
   mensajeDeError,
 } from '../../../nucleo/configuracion.api.service';
+import { AvisosService } from '../../../shared/services/avisos.service';
+import { repartirFallo } from '../../../shared/formularios/fallo-de-formulario';
 
 /**
  * Roles y permisos, con la matriz en tres niveles.
@@ -48,17 +53,25 @@ import {
  */
 @Component({
   selector: 'app-roles',
-  imports: [EncabezadoPaginaComponent, ConfirmacionComponent, ReactiveFormsModule],
+  imports: [
+    EncabezadoPaginaComponent,
+    ConfirmacionComponent,
+    ModalComponent,
+    BotonComponent,
+    ReactiveFormsModule,
+  ],
   templateUrl: './roles.component.html',
 })
 export class RolesComponent {
   private readonly api = inject(ConfiguracionApiService);
+  private readonly avisos = inject(AvisosService);
   private readonly constructorFormulario = inject(FormBuilder);
 
   readonly roles = signal<RolApi[]>([]);
   readonly catalogo = signal<ModuloApi[]>([]);
   readonly cargando = signal(true);
-  readonly guardando = signal(false);
+
+  /** Solo el fallo al cargar. El resultado de cada acción va a un aviso. */
   readonly error = signal<string | null>(null);
 
   /** Rol cuya matriz se está viendo. Null = ninguno seleccionado. */
@@ -259,14 +272,12 @@ export class RolesComponent {
     this.desplegados.set(copia);
   }
 
-  async guardarPermisos(): Promise<void> {
+  readonly guardarPermisos = accionConEstado(async () => {
     const rol = this.seleccionado();
     if (!rol || rol.delSistema) {
       return;
     }
 
-    this.guardando.set(true);
-    this.error.set(null);
     try {
       // El servidor devuelve lo que quedó tras podar. Se adopta su respuesta en
       // vez de dar por buena la selección local: si algo se podó, la pantalla
@@ -274,12 +285,22 @@ export class RolesComponent {
       const vigentes = await this.api.cambiarPermisosDelRol(rol.id, [...this.marcados()]);
       this.marcados.set(new Set(vigentes));
       await this.cargar();
+
+      // El aviso dice cuántas quedaron, no «guardado»: si el servidor podó
+      // funciones por depender de un submódulo sin marcar, el número es la
+      // forma de notarlo sin comparar el árbol a ojo.
+      // «funciones», sin acento: el plural lo pierde. Con la construccion
+      // `función${...'es'}` salia «funciónes».
+      const cuantas = vigentes.length;
+      this.avisos.exito(
+        `${cuantas} ${cuantas === 1 ? 'función vigente' : 'funciones vigentes'} en ${rol.nombre}`,
+        'Permisos guardados'
+      );
     } catch (fallo: unknown) {
-      this.error.set(mensajeDeError(fallo, 'No se pudieron guardar los permisos.'));
-    } finally {
-      this.guardando.set(false);
+      this.avisos.error(mensajeDeError(fallo, 'No se pudieron guardar los permisos.'));
+      throw fallo;
     }
-  }
+  });
 
   // ── Duplicar ─────────────────────────────────────────────────────────────
 
@@ -292,15 +313,13 @@ export class RolesComponent {
     this.duplicandoDe.set(null);
   }
 
-  async duplicar(): Promise<void> {
+  readonly duplicar = accionConEstado(async () => {
     const origen = this.duplicandoDe();
     if (!origen || this.formularioDuplicado.invalid) {
       this.formularioDuplicado.markAllAsTouched();
-      return;
+      throw new Error('Formulario incompleto');
     }
 
-    this.guardando.set(true);
-    this.error.set(null);
     try {
       const copia = await this.api.duplicarRol(
         origen.id,
@@ -309,12 +328,15 @@ export class RolesComponent {
       this.cerrarDuplicado();
       await this.cargar();
       await this.seleccionar(copia);
+      this.avisos.exito(
+        `${copia.nombre} empieza con los permisos de ${origen.nombre} y ya es editable`,
+        'Rol duplicado'
+      );
     } catch (fallo: unknown) {
-      this.error.set(mensajeDeError(fallo, 'No se pudo duplicar el rol.'));
-    } finally {
-      this.guardando.set(false);
+      repartirFallo(fallo, this.formularioDuplicado, this.avisos, 'No se pudo duplicar el rol.');
+      throw fallo;
     }
-  }
+  });
 
   // ── Renombrar ────────────────────────────────────────────────────────────
 
@@ -330,26 +352,24 @@ export class RolesComponent {
     this.renombrando.set(null);
   }
 
-  async renombrar(): Promise<void> {
+  readonly renombrar = accionConEstado(async () => {
     const rol = this.renombrando();
     if (!rol || this.formularioRenombrado.invalid) {
       this.formularioRenombrado.markAllAsTouched();
-      return;
+      throw new Error('Formulario incompleto');
     }
 
-    this.guardando.set(true);
-    this.error.set(null);
     try {
       const valores = this.formularioRenombrado.getRawValue();
       await this.api.renombrarRol(rol.id, valores.nombre, valores.descripcion || null);
       this.cerrarRenombrado();
       await this.cargar();
+      this.avisos.exito(`Ahora se llama ${valores.nombre}`, 'Rol renombrado');
     } catch (fallo: unknown) {
-      this.error.set(mensajeDeError(fallo, 'No se pudo renombrar el rol.'));
-    } finally {
-      this.guardando.set(false);
+      repartirFallo(fallo, this.formularioRenombrado, this.avisos, 'No se pudo renombrar el rol.');
+      throw fallo;
     }
-  }
+  });
 
   // ── Eliminar ─────────────────────────────────────────────────────────────
 
@@ -362,25 +382,31 @@ export class RolesComponent {
     return `El rol «${this.aEliminar?.nombre ?? ''}» se borra y no se recupera. Nadie lo tiene asignado, así que no deja a ninguna persona sin permisos.`;
   }
 
-  async eliminar(): Promise<void> {
+  readonly eliminar = accionConEstado(async () => {
     const rol = this.aEliminar;
     if (!rol) {
       return;
     }
-    this.confirmacionAbierta.set(false);
-    this.error.set(null);
 
     try {
       await this.api.eliminarRol(rol.id);
+      this.confirmacionAbierta.set(false);
+      this.aEliminar = null;
+
       if (this.seleccionado()?.id === rol.id) {
         this.seleccionado.set(null);
         this.marcados.set(new Set());
       }
       await this.cargar();
+      this.avisos.exito(`${rol.nombre} se borró y no se recupera`, 'Rol eliminado');
     } catch (fallo: unknown) {
-      this.error.set(mensajeDeError(fallo, 'No se pudo eliminar el rol.'));
-    } finally {
-      this.aEliminar = null;
+      this.avisos.error(mensajeDeError(fallo, 'No se pudo eliminar el rol.'));
+      throw fallo;
     }
+  });
+
+  cancelarEliminacion(): void {
+    this.confirmacionAbierta.set(false);
+    this.aEliminar = null;
   }
 }

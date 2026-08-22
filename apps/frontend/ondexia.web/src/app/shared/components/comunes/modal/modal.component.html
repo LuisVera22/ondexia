@@ -1,0 +1,114 @@
+@if (abierto) {
+<!--
+  z-99999 es el mismo que usaba la confirmación. Los avisos van por encima
+  (z-100000) a propósito: un error al guardar tiene que verse aunque el modal
+  siga abierto.
+-->
+<!--
+  El contenedor no se desplaza: lo hace el panel. Un panel con barra dentro de un
+  contenedor con barra son dos barras para el mismo contenido, y en un teléfono
+  la de fuera queda debajo del borde de la pantalla.
+
+  `overflow-clip` y no `hidden`: con `hidden` el contenedor sigue siendo
+  desplazable por código, y bastaba con que el navegador llevara a la vista el
+  primer campo al abrir para dejarlo corrido — la hoja terminaba la animación
+  asomando por debajo del borde. `clip` no admite desplazamiento de ninguna
+  clase, que es lo que aquí se quiere decir.
+-->
+<div
+  class="fixed inset-0 z-99999 flex items-end justify-center overflow-clip sm:items-center sm:p-6"
+>
+  <div
+    class="fixed inset-0 bg-gray-900/50 backdrop-blur-[2px]"
+    animate.enter="fondo-dialogo-entra"
+    (click)="intentarCerrar()"
+    aria-hidden="true"
+  ></div>
+
+  <!--
+    En móvil es una hoja inferior: pegada abajo, a todo el ancho y con las
+    esquinas de arriba redondeadas. No es decoración — un cuadro centrado con
+    margen a los lados deja el contenido en el tercio superior de la pantalla,
+    lejos del pulgar, y los 840 px del ancho «ancho» no caben de ninguna manera
+    en un teléfono.
+
+    La altura se limita al 90% de la ventana y el contenido se desplaza dentro:
+    con el teclado abierto, un formulario de cuatro campos ocupa más de lo que
+    queda de pantalla.
+  -->
+  <div
+    [attr.role]="rol"
+    aria-modal="true"
+    [attr.aria-labelledby]="titulo ? 'modal-titulo' : null"
+    [attr.aria-describedby]="subtitulo ? 'modal-subtitulo' : null"
+    animate.enter="dialogo-entra"
+    class="relative max-h-[90dvh] w-full overflow-y-auto overscroll-contain rounded-t-2xl bg-white shadow-flotante max-sm:max-w-none sm:max-h-[calc(100dvh-3rem)] sm:rounded-2xl dark:bg-gray-900"
+    [class]="clasesAncho"
+  >
+    <!--
+      El tirador. No hace nada al arrastrarlo: es la señal de que esto se
+      cierra hacia abajo, que es lo que la gente intenta primero en una hoja
+      inferior. Sin él, el único modo de cerrar es la cruz.
+    -->
+    <div class="flex justify-center pt-3 sm:hidden" aria-hidden="true">
+      <span class="h-1 w-10 rounded-full bg-gray-300 dark:bg-gray-700"></span>
+    </div>
+
+    @if (titulo || subtitulo || cerrable) {
+    <div class="flex items-start justify-between gap-4 p-5 pb-0 sm:p-6 sm:pb-0">
+      <div class="min-w-0">
+        @if (titulo) {
+        <h4 id="modal-titulo" class="font-semibold text-gray-800 dark:text-white/90">
+          {{ titulo }}
+        </h4>
+        }
+        @if (subtitulo) {
+        <p id="modal-subtitulo" class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          {{ subtitulo }}
+        </p>
+        }
+      </div>
+
+      <!--
+        La cruz se deshabilita con una acción en curso, no se esconde: que
+        desaparezca un control mientras esperas parece un fallo de la pantalla.
+      -->
+      @if (cerrable) {
+      <button
+        type="button"
+        (click)="intentarCerrar()"
+        [disabled]="procesando"
+        aria-label="Cerrar"
+        class="-mr-1 -mt-1 shrink-0 rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 disabled:opacity-40 dark:hover:bg-white/[0.05] dark:hover:text-gray-300"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+          <path d="m6 6 12 12M18 6 6 18" />
+        </svg>
+      </button>
+      }
+    </div>
+    }
+
+    <div class="p-5 sm:p-6">
+      <ng-content />
+    </div>
+
+    <!--
+      Las acciones llegan por ranura y no como entradas del componente: cada
+      formulario tiene las suyas —«Crear proveedor», «Consultar y continuar»— y
+      un par de textos configurables acabaría siendo insuficiente en la tercera
+      pantalla. El borde superior solo se pinta si hay algo dentro.
+    -->
+    <div class="empty:hidden border-t border-gray-200 p-5 dark:border-gray-800 sm:p-6">
+      <!--
+        En móvil los botones van apilados y a todo el ancho: dos botones de 100
+        px uno al lado del otro son dos blancos pequeños y contiguos, y el que
+        se pulsa sin querer es «Cancelar» sobre un formulario recién rellenado.
+      -->
+      <div class="acciones-dialogo flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <ng-content select="[acciones]" />
+      </div>
+    </div>
+  </div>
+</div>
+}

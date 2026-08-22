@@ -206,6 +206,11 @@ export class DesplegableComponent implements ControlValueAccessor, OnDestroy {
     switch (tecla) {
       case 'Escape':
         evento.preventDefault();
+        // Se detiene la propagación además de prevenir: dentro de un modal, el
+        // Escape llegaba al document —donde escucha ModalComponent— y cerraba
+        // las dos capas de una vez. Escape cierra lo más interno, y aquí lo más
+        // interno es este panel: quien lo abrió sigue rellenando el formulario.
+        evento.stopPropagation();
         this.cerrar(true);
         return;
       case 'Tab':

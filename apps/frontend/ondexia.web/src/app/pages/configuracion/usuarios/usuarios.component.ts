@@ -1,8 +1,16 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { TablaDatosComponent, ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
+import { ModalComponent } from '../../../shared/components/comunes/modal/modal.component';
+import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
+import { accionConEstado } from '../../../shared/components/comunes/boton/estado-accion';
+import {
+  DesplegableComponent,
+  OpcionDesplegable,
+} from '../../../shared/components/comunes/desplegable/desplegable.component';
 import {
   ConfiguracionApiService,
   Establecimiento,
@@ -10,6 +18,9 @@ import {
   UsuarioApi,
   mensajeDeError,
 } from '../../../nucleo/configuracion.api.service';
+import { AvisosService } from '../../../shared/services/avisos.service';
+import { repartirFallo } from '../../../shared/formularios/fallo-de-formulario';
+import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
 
 /** Qué está a punto de confirmarse. Null = no hay nada pendiente. */
 type AccionPendiente = 'desactivar' | 'retirar' | null;
@@ -40,12 +51,18 @@ type AccionPendiente = 'desactivar' | 'retirar' | null;
     EncabezadoPaginaComponent,
     TablaDatosComponent,
     ConfirmacionComponent,
+    ModalComponent,
+    BotonComponent,
+    DesplegableComponent,
     ReactiveFormsModule,
+    ErrorCampoComponent,
   ],
   templateUrl: './usuarios.component.html',
 })
 export class UsuariosComponent {
   private readonly api = inject(ConfiguracionApiService);
+  private readonly avisos = inject(AvisosService);
+  private readonly router = inject(Router);
   private readonly constructorFormulario = inject(FormBuilder);
 
   readonly columnas: ColumnaTabla[] = [
@@ -60,16 +77,41 @@ export class UsuariosComponent {
   readonly establecimientos = signal<Establecimiento[]>([]);
   readonly roles = signal<RolAsignable[]>([]);
   readonly cargando = signal(true);
-  readonly guardando = signal(false);
+
+  /**
+   * Solo el fallo al cargar el listado, que se pinta en lugar de la tabla.
+   *
+   * <p>El resultado de invitar, desactivar o retirar va a un aviso. Esto no: no
+   * es respuesta a nada que el usuario haya pulsado, y no hay tabla detrás que
+   * explique por qué está vacía.
+   */
   readonly error = signal<string | null>(null);
 
-  readonly formularioAbierto = signal(false);
-  readonly enEdicion = signal<UsuarioApi | null>(null);
+  readonly modalAbierto = signal(false);
   readonly confirmacionAbierta = signal(false);
   readonly accionPendiente = signal<AccionPendiente>(null);
 
   private objetivo: UsuarioApi | null = null;
   private originales: UsuarioApi[] = [];
+
+  readonly opcionesRol = computed<OpcionDesplegable[]>(() => [
+    { valor: '', etiqueta: 'Elige un rol…' },
+    ...this.roles().map((rol) => ({ valor: rol.id, etiqueta: rol.nombre })),
+  ]);
+
+  /**
+   * El alcance, con los establecimientos ACTIVOS.
+   *
+   * <p>Los desactivados se quedan fuera: acotar a alguien a un local que ya no
+   * emite le deja sin poder trabajar, y hasta ahora aparecían en la lista porque
+   * el endpoint devuelve activos e inactivos.
+   */
+  readonly opcionesAlcance = computed<OpcionDesplegable[]>(() => [
+    { valor: '', etiqueta: 'Todos los establecimientos' },
+    ...this.establecimientos()
+      .filter((e) => e.activa)
+      .map((e) => ({ valor: e.id, etiqueta: `${e.codigo} · ${e.nombre}` })),
+  ]);
 
   formulario = this.constructorFormulario.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -138,82 +180,56 @@ export class UsuariosComponent {
   }
 
   abrirNuevo(): void {
-    this.enEdicion.set(null);
     this.formulario.reset({ email: '', nombre: '', apellido: '', rolId: '', sucursalId: '' });
-    this.controles.email.enable();
-    this.controles.nombre.enable();
-    this.controles.apellido.enable();
-    this.formularioAbierto.set(true);
+    this.modalAbierto.set(true);
   }
 
-  abrirEdicion(fila: Record<string, unknown>): void {
-    const usuario = this.originales.find((u) => u.asignacionId === fila['id']);
-    if (!usuario) {
-      return;
-    }
-
-    this.enEdicion.set(usuario);
-    this.formulario.reset({
-      email: usuario.email,
-      // El listado trae el nombre completo en un solo campo, que es lo que se
-      // enseña aquí en solo lectura. No se parte para repartirlo en dos casillas
-      // deshabilitadas: adivinar dónde acaba el nombre pintaría un dato falso.
-      nombre: usuario.nombre,
-      apellido: '',
-      rolId: usuario.rolId,
-      sucursalId: usuario.sucursalId ?? '',
-    });
-    // El correo y el nombre son de la persona, no de su acceso a esta empresa:
-    // cambiarlos aquí los cambiaría en todas. Esta pantalla edita la asignación.
-    this.controles.email.disable();
-    this.controles.nombre.disable();
-    // Deshabilitado además de oculto: un control deshabilitado no cuenta para
-    // la validez del formulario, así que su «obligatorio» no bloquea la edición.
-    this.controles.apellido.disable();
-    this.formularioAbierto.set(true);
+  cerrarModal(): void {
+    this.modalAbierto.set(false);
   }
 
-  cerrarFormulario(): void {
-    this.formularioAbierto.set(false);
-    this.enEdicion.set(null);
+  /** Abrir a alguien lleva a la ficha de su acceso, que es donde se edita. */
+  abrirFicha(fila: Record<string, unknown>): void {
+    void this.router.navigate(['/configuracion/usuarios', fila['id']]);
   }
 
-  async guardar(): Promise<void> {
+  /**
+   * Invita a la persona y cierra el modal.
+   *
+   * <p>El aviso dice que queda como invitada, y no es un detalle de cortesía:
+   * es la respuesta a «le di de alta y no puede entrar». Su cuenta de acceso la
+   * crea ella al registrarse; el alta solo reserva el sitio.
+   */
+  readonly invitar = accionConEstado(async () => {
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
-      return;
+      throw new Error('Formulario incompleto');
     }
-
-    this.guardando.set(true);
-    this.error.set(null);
 
     const valores = this.formulario.getRawValue();
-    const sucursalId = valores.sucursalId || null;
 
     try {
-      const editando = this.enEdicion();
-      if (editando) {
-        await this.api.reasignarUsuario(editando.asignacionId, {
-          rolId: valores.rolId,
-          sucursalId,
-        });
-      } else {
-        await this.api.invitarUsuario({
-          email: valores.email,
-          nombre: valores.nombre,
-          apellido: valores.apellido,
-          rolId: valores.rolId,
-          sucursalId,
-        });
-      }
-      this.cerrarFormulario();
+      await this.api.invitarUsuario({
+        email: valores.email,
+        nombre: valores.nombre,
+        apellido: valores.apellido,
+        rolId: valores.rolId,
+        sucursalId: valores.sucursalId || null,
+      });
+
+      this.cerrarModal();
       await this.cargar();
+      this.avisos.exito(
+        `${valores.nombre} figura como invitada hasta que cree su cuenta con ${valores.email}`,
+        'Usuario agregado'
+      );
     } catch (fallo: unknown) {
-      this.error.set(mensajeDeError(fallo, 'No se pudo guardar el usuario.'));
-    } finally {
-      this.guardando.set(false);
+      // El modal se queda abierto: el correo repetido es el fallo habitual, y
+      // el usuario va a querer corregir ese campo, no teclear todo otra vez.
+      repartirFallo(fallo, this.formulario, this.avisos, 'No se pudo agregar al usuario.');
+      throw fallo;
     }
-  }
+  });
 
   pedirDesactivacion(fila: Record<string, unknown>): void {
     this.prepararConfirmacion(fila, 'desactivar');
@@ -233,15 +249,12 @@ export class UsuariosComponent {
     this.confirmacionAbierta.set(true);
   }
 
-  async confirmar(): Promise<void> {
+  readonly confirmar = accionConEstado(async () => {
     const usuario = this.objetivo;
     const accion = this.accionPendiente();
     if (!usuario || !accion) {
       return;
     }
-
-    this.confirmacionAbierta.set(false);
-    this.error.set(null);
 
     try {
       if (accion === 'retirar') {
@@ -249,16 +262,27 @@ export class UsuariosComponent {
       } else {
         await this.api.cambiarEstadoUsuario(usuario.asignacionId, false);
       }
-      await this.cargar();
-    } catch (fallo: unknown) {
-      // Aquí llegan las reglas que la pantalla no puede anticipar: el último
-      // administrador de la cuenta, y uno mismo si la fila fuera la propia.
-      this.error.set(mensajeDeError(fallo, 'No se pudo completar la acción.'));
-    } finally {
+
+      this.confirmacionAbierta.set(false);
       this.objetivo = null;
       this.accionPendiente.set(null);
+      await this.cargar();
+
+      this.avisos.exito(
+        accion === 'retirar'
+          ? `${usuario.nombre} ya no ve esta empresa`
+          : `${usuario.nombre} no puede entrar a ninguna empresa de la cuenta`,
+        accion === 'retirar' ? 'Acceso retirado' : 'Persona desactivada'
+      );
+    } catch (fallo: unknown) {
+      // Aquí llegan las reglas que la pantalla no puede anticipar: el último
+      // administrador de la cuenta, y uno mismo si la fila fuera la propia. El
+      // diálogo se queda abierto para que el mensaje se lea junto a la acción
+      // que lo provocó.
+      this.avisos.error(mensajeDeError(fallo, 'No se pudo completar la acción.'));
+      throw fallo;
     }
-  }
+  });
 
   cancelarConfirmacion(): void {
     this.confirmacionAbierta.set(false);
@@ -266,14 +290,21 @@ export class UsuariosComponent {
     this.accionPendiente.set(null);
   }
 
-  /** Reactivar no destruye nada y se deshace igual: sin diálogo. */
+  /**
+   * Reactivar no destruye nada y se deshace igual: sin diálogo.
+   *
+   * <p>Método normal y no {@code accionConEstado}: es un botón por fila, y una
+   * sola señal de estado compartida pondría el indicador de carga en todas las
+   * filas a la vez. Los botones de fila con estado propio piden un estado por
+   * registro, y eso es otro trabajo.
+   */
   async reactivar(fila: Record<string, unknown>): Promise<void> {
-    this.error.set(null);
     try {
       await this.api.cambiarEstadoUsuario(String(fila['id']), true);
       await this.cargar();
+      this.avisos.exito(`${fila['nombre']} vuelve a poder entrar`, 'Persona reactivada');
     } catch (fallo: unknown) {
-      this.error.set(mensajeDeError(fallo, 'No se pudo reactivar a la persona.'));
+      this.avisos.error(mensajeDeError(fallo, 'No se pudo reactivar a la persona.'));
     }
   }
 }

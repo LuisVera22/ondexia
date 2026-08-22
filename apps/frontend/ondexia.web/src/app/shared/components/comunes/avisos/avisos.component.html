@@ -1,0 +1,93 @@
+<!--
+  Por encima del modal (z-99999) a propósito: un error al guardar tiene que
+  verse aunque el modal siga abierto, que es justo cuando ocurre.
+
+  pointer-events-none en el contenedor y auto en la tarjeta: la franja ocupa
+  ancho de pantalla, y sin esto interceptaría los clics del contenido que hay
+  debajo aunque no haya ningún aviso.
+
+  La región existe siempre, con aviso o sin él. Un aria-live que aparece y
+  desaparece del DOM no se anuncia: el lector de pantalla tiene que estar
+  observándola de antes.
+-->
+<div
+  class="pointer-events-none fixed right-0 top-0 z-[100000] w-full max-w-[420px] p-4 sm:p-6"
+  aria-live="polite"
+>
+  <!--
+    @for sobre una lista de cero o un elemento, en lugar de @if, y no es un
+    rodeo: con @if Angular reutiliza el nodo al cambiar el contenido, y una
+    animación CSS no vuelve a correr sobre un nodo que no se ha recreado. Con
+    `track actual.id` —y el id cambia en cada aviso, incluso repitiendo el mismo
+    mensaje— el nodo se destruye y se crea, así que la entrada se anima siempre.
+    Eso es lo que hace notable el relevo cuando el texto es idéntico.
+
+    Solo se anima la ENTRADA, con animate.enter —nativo desde Angular 20, sin el
+    paquete @angular/animations—. La salida se probó con animate.leave y se
+    descartó: para animar la salida hay que retener el nodo hasta que la
+    animación acabe, y si llega otro aviso antes —pulsar «Guardar» varias veces
+    seguidas, que es el caso que trajo todo esto— quedaban tarjetas huérfanas en
+    el DOM, invisibles pero interceptando clics. Cinco relevos rápidos dejaban
+    dos residuos.
+
+    No se pierde lo que importa: lo que hace notable el relevo es que la tarjeta
+    nueva entre desplazándose, no que la vieja se vaya despacio.
+  -->
+  @for (actual of avisoComoLista(); track actual.id) {
+  <div
+    class="pointer-events-auto flex items-start gap-3 rounded-xl border bg-white p-4 shadow-flotante dark:bg-gray-900"
+    animate.enter="aviso-entra"
+    [class]="
+      actual.tipo === 'exito'
+        ? 'border-success-200 dark:border-success-500/30'
+        : actual.tipo === 'error'
+          ? 'border-error-500/30'
+          : 'border-gray-200 dark:border-gray-800'
+    "
+    [attr.role]="actual.tipo === 'error' ? 'alert' : 'status'"
+    [attr.aria-live]="actual.tipo === 'error' ? 'assertive' : 'polite'"
+  >
+    @if (actual.tipo === 'exito') {
+    <svg class="mt-0.5 shrink-0 text-success-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" /><path d="m8.5 12.5 2.5 2.5 4.5-5" />
+    </svg>
+    } @else if (actual.tipo === 'error') {
+    <svg class="mt-0.5 shrink-0 text-error-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
+    </svg>
+    } @else {
+    <svg class="mt-0.5 shrink-0 text-brand-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" />
+    </svg>
+    }
+
+    <div class="min-w-0 flex-1">
+      @if (actual.titulo) {
+      <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ actual.titulo }}</p>
+      }
+      <p
+        class="text-sm"
+        [class]="actual.titulo ? 'mt-0.5 text-gray-500 dark:text-gray-400' : 'text-gray-700 dark:text-gray-300'"
+      >
+        {{ actual.mensaje }}
+      </p>
+    </div>
+
+    <!--
+      Se puede cerrar a mano aunque se cierre solo. Un aviso de error tapa
+      contenido durante nueve segundos, y quien ya lo leyó no tiene por qué
+      esperar.
+    -->
+    <button
+      type="button"
+      (click)="cerrar()"
+      aria-label="Cerrar aviso"
+      class="-mr-1 -mt-1 shrink-0 rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.05] dark:hover:text-gray-300"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+        <path d="m6 6 12 12M18 6 6 18" />
+      </svg>
+    </button>
+  </div>
+  }
+</div>

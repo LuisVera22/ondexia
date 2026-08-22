@@ -24,4 +24,20 @@
       <router-outlet />
     </main>
   </div>
+
+  <!--
+    Los avisos van aqui, fuera del <main>, y no dentro de cada pantalla. Si cada
+    pagina montara la suya, un aviso lanzado justo antes de navegar se
+    destruiria con la pantalla que lo pidio — y ese es el caso mas frecuente,
+    porque guardar suele terminar en una navegacion.
+  -->
+  <app-avisos />
+
+  <!--
+    Y aqui la confirmacion que pide quien no tiene plantilla donde ponerla: la
+    guarda que decide si se puede abandonar una ficha con cambios sin guardar
+    esta destruyendo esa pantalla, asi que un dialogo montado en ella
+    desapareceria con la navegacion que intenta detener.
+  -->
+  <app-confirmacion-global />
 </div>

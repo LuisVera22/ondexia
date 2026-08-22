@@ -1,15 +1,6 @@
 <div>
   <app-encabezado-pagina titulo="Comprobantes" />
 
-  @if (error()) {
-  <div class="mb-5 flex items-start gap-3 rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert">
-    <svg class="mt-0.5 shrink-0 text-error-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
-    </svg>
-    <p class="text-sm text-error-500">{{ error() }}</p>
-  </div>
-  }
-
   <p class="mb-5 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
     Qué documentos emite tu empresa. Lo que apagues aquí deja de ofrecerse al
     crear series, así que conviene dejar encendido solo lo que de verdad se
@@ -19,6 +10,13 @@
   @if (cargando()) {
   <div class="rounded-2xl border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">
     <p class="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>
+  </div>
+  } @else if (error()) {
+  <div class="mb-5 flex items-start gap-3 rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert">
+    <svg class="mt-0.5 shrink-0 text-error-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
+    </svg>
+    <p class="text-sm text-error-500">{{ error() }}</p>
   </div>
   } @else {
   <section class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">

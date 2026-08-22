@@ -102,19 +102,14 @@
           </p>
           }
           <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            {{ totalFunciones() }} función{{ totalFunciones() === 1 ? '' : 'es' }} marcada{{ totalFunciones() === 1 ? '' : 's' }}
+            {{ totalFunciones() }} {{ totalFunciones() === 1 ? 'función marcada' : 'funciones marcadas' }}
           </p>
         </div>
 
         @if (!soloLectura) {
-        <button
-          type="button"
-          (click)="guardarPermisos()"
-          [disabled]="guardando()"
-          class="shrink-0 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
-        >
-          {{ guardando() ? 'Guardando…' : 'Guardar permisos' }}
-        </button>
+        <app-boton class="shrink-0" [estado]="guardarPermisos.estado()" (accion)="guardarPermisos.ejecutar()">
+          Guardar permisos
+        </app-boton>
         }
       </div>
 
@@ -265,96 +260,102 @@
   }
 
   <!-- Duplicar -->
-  @if (duplicandoDe()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4">
-    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-      <h3 class="mb-1 font-medium text-gray-800 dark:text-white/90">Duplicar rol</h3>
-      <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
-        La copia empieza con los mismos permisos que «{{ duplicandoDe()!.nombre }}» y ya es editable.
-      </p>
+  <!--
+    Estos dos eran diálogos hechos a mano con `fixed inset-0 z-50`: la tercera y
+    la cuarta implementación de diálogo del proyecto. Con z-50 quedaban además
+    por debajo del modal (z-99999) y de los avisos, así que el apilamiento era
+    incoherente. Ahora los dos usan app-modal y heredan Escape, retención de
+    foco y bloqueo del desplazamiento, que antes no tenían.
 
-      <form [formGroup]="formularioDuplicado" (ngSubmit)="duplicar()" novalidate>
-        <label for="nombreCopia" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-          Nombre del rol nuevo <span class="text-error-500">*</span>
-        </label>
-        <input
-          id="nombreCopia"
-          type="text"
-          formControlName="nombre"
-          maxlength="120"
-          class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
-        />
+    Renombrar es una edición y no una creación, así que por la regla general
+    tocaría vista propia. Aquí no: la vista del rol ES el panel de la derecha con
+    su árbol de permisos, y su nombre son dos campos. Un modal sobre su propia
+    ficha es lo que corresponde.
+  -->
+  <app-modal
+    [abierto]="duplicandoDe() !== null"
+    titulo="Duplicar rol"
+    [subtitulo]="
+      duplicandoDe()
+        ? 'La copia empieza con los mismos permisos que ' + duplicandoDe()!.nombre + ' y ya es editable.'
+        : ''
+    "
+    ancho="estrecho"
+    [procesando]="duplicar.estado() === 'cargando'"
+    (cerrar)="cerrarDuplicado()"
+  >
+    <form [formGroup]="formularioDuplicado" (ngSubmit)="duplicar.ejecutar()" novalidate id="formulario-duplicado">
+      <label for="nombreCopia" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+        Nombre del rol nuevo <span class="text-error-500">*</span>
+      </label>
+      <input
+        id="nombreCopia"
+        type="text"
+        formControlName="nombre"
+        maxlength="120"
+        class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
+      />
+    </form>
 
-        <div class="mt-5 flex justify-end gap-3">
-          <button
-            type="button"
-            (click)="cerrarDuplicado()"
-            class="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            [disabled]="guardando()"
-            class="rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
-          >
-            {{ guardando() ? 'Duplicando…' : 'Duplicar' }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-  }
+    <ng-container acciones>
+      <app-boton
+        variante="secundario"
+        [deshabilitado]="duplicar.estado() === 'cargando'"
+        (accion)="cerrarDuplicado()"
+      >
+        Cancelar
+      </app-boton>
+      <app-boton tipo="submit" [estado]="duplicar.estado()" formulario="formulario-duplicado">
+        Duplicar
+      </app-boton>
+    </ng-container>
+  </app-modal>
 
-  <!-- Renombrar -->
-  @if (renombrando()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/50 p-4">
-    <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-gray-900">
-      <h3 class="mb-5 font-medium text-gray-800 dark:text-white/90">Renombrar rol</h3>
+  <app-modal
+    [abierto]="renombrando() !== null"
+    titulo="Renombrar rol"
+    subtitulo="El nombre es lo que ve quien asigna accesos. La descripción explica para qué sirve."
+    ancho="estrecho"
+    [procesando]="renombrar.estado() === 'cargando'"
+    (cerrar)="cerrarRenombrado()"
+  >
+    <form [formGroup]="formularioRenombrado" (ngSubmit)="renombrar.ejecutar()" novalidate id="formulario-renombrado">
+      <label for="nombreRol" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+        Nombre <span class="text-error-500">*</span>
+      </label>
+      <input
+        id="nombreRol"
+        type="text"
+        formControlName="nombre"
+        maxlength="120"
+        class="mb-4 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
+      />
 
-      <form [formGroup]="formularioRenombrado" (ngSubmit)="renombrar()" novalidate>
-        <label for="nombreRol" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-          Nombre <span class="text-error-500">*</span>
-        </label>
-        <input
-          id="nombreRol"
-          type="text"
-          formControlName="nombre"
-          maxlength="120"
-          class="mb-4 h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
-        />
+      <label for="descripcionRol" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+        Descripción
+      </label>
+      <textarea
+        id="descripcionRol"
+        formControlName="descripcion"
+        rows="3"
+        maxlength="300"
+        class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
+      ></textarea>
+    </form>
 
-        <label for="descripcionRol" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-          Descripción
-        </label>
-        <textarea
-          id="descripcionRol"
-          formControlName="descripcion"
-          rows="3"
-          maxlength="300"
-          class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
-        ></textarea>
-
-        <div class="mt-5 flex justify-end gap-3">
-          <button
-            type="button"
-            (click)="cerrarRenombrado()"
-            class="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
-          >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            [disabled]="guardando()"
-            class="rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
-          >
-            {{ guardando() ? 'Guardando…' : 'Guardar' }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-  }
+    <ng-container acciones>
+      <app-boton
+        variante="secundario"
+        [deshabilitado]="renombrar.estado() === 'cargando'"
+        (accion)="cerrarRenombrado()"
+      >
+        Cancelar
+      </app-boton>
+      <app-boton tipo="submit" [estado]="renombrar.estado()" formulario="formulario-renombrado">
+        Guardar
+      </app-boton>
+    </ng-container>
+  </app-modal>
 
   <app-confirmacion
     [abierto]="confirmacionAbierta()"
@@ -362,7 +363,8 @@
     titulo="¿Eliminar el rol?"
     [mensaje]="mensajeEliminacion"
     textoConfirmar="Eliminar"
-    (confirmar)="eliminar()"
-    (cancelar)="confirmacionAbierta.set(false)"
+    [procesando]="eliminar.estado() === 'cargando'"
+    (confirmar)="eliminar.ejecutar()"
+    (cancelar)="cancelarEliminacion()"
   />
 </div>

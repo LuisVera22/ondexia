@@ -61,7 +61,8 @@ public class Almacenes {
         almacenes.buscarPorCodigo(almacen.codigo()).ifPresent(existente -> {
             throw new Conflicto(
                     "codigo_duplicado",
-                    "Ya existe un almacén con el código " + almacen.codigo() + ".");
+                    "Ya existe un almacén con el código " + almacen.codigo() + ".",
+                    "codigo");
         });
 
         var guardado = almacenes.guardar(almacen);

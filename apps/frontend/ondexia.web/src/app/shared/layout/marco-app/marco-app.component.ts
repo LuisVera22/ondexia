@@ -2,6 +2,8 @@ import { Component, inject } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MenuLateralComponent } from '../menu-lateral/menu-lateral.component';
 import { AvisoSuscripcionComponent } from '../../components/comunes/aviso-suscripcion/aviso-suscripcion.component';
+import { AvisosComponent } from '../../components/comunes/avisos/avisos.component';
+import { ConfirmacionGlobalComponent } from '../../components/comunes/confirmacion/confirmacion-global.component';
 import { BarraSuperiorComponent } from '../barra-superior/barra-superior.component';
 import { MenuLateralService } from '../../services/menu-lateral.service';
 
@@ -15,10 +17,12 @@ import { MenuLateralService } from '../../services/menu-lateral.service';
 @Component({
   selector: 'app-marco-app',
   imports: [
+    AvisosComponent,
     RouterModule,
     MenuLateralComponent,
     BarraSuperiorComponent,
     AvisoSuscripcionComponent,
+    ConfirmacionGlobalComponent,
   ],
   templateUrl: './marco-app.component.html',
 })

@@ -1,14 +1,25 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { TablaDatosComponent, ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
+import { ModalComponent } from '../../../shared/components/comunes/modal/modal.component';
+import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
+import { accionConEstado } from '../../../shared/components/comunes/boton/estado-accion';
+import {
+  DesplegableComponent,
+  OpcionDesplegable,
+} from '../../../shared/components/comunes/desplegable/desplegable.component';
 import {
   AlmacenApi,
   ConfiguracionApiService,
   Establecimiento,
   mensajeDeError,
 } from '../../../nucleo/configuracion.api.service';
+import { AvisosService } from '../../../shared/services/avisos.service';
+import { repartirFallo } from '../../../shared/formularios/fallo-de-formulario';
+import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
 
 /**
  * Almacenes: dónde están físicamente las existencias.
@@ -30,12 +41,18 @@ import {
     EncabezadoPaginaComponent,
     TablaDatosComponent,
     ConfirmacionComponent,
+    ModalComponent,
+    BotonComponent,
+    DesplegableComponent,
     ReactiveFormsModule,
+    ErrorCampoComponent,
   ],
   templateUrl: './almacenes.component.html',
 })
 export class AlmacenesComponent {
   private readonly api = inject(ConfiguracionApiService);
+  private readonly avisos = inject(AvisosService);
+  private readonly router = inject(Router);
   private readonly constructorFormulario = inject(FormBuilder);
 
   readonly columnas: ColumnaTabla[] = [
@@ -48,15 +65,30 @@ export class AlmacenesComponent {
   readonly registros = signal<Record<string, unknown>[]>([]);
   readonly establecimientos = signal<Establecimiento[]>([]);
   readonly cargando = signal(true);
-  readonly guardando = signal(false);
+  /** Solo el fallo al cargar el listado. El resto va a avisos. */
   readonly error = signal<string | null>(null);
 
-  readonly formularioAbierto = signal(false);
-  readonly enEdicion = signal<AlmacenApi | null>(null);
+  readonly modalAbierto = signal(false);
   readonly confirmacionAbierta = signal(false);
 
   private aDesactivar: AlmacenApi | null = null;
   private originales: AlmacenApi[] = [];
+
+  /**
+   * Establecimientos activos, más «Sin asignar» primero.
+   *
+   * <p>Los desactivados quedan fuera: un almacén que cuelga de un local que ya
+   * no emite no tiene a dónde mover mercadería. Hasta ahora aparecían porque el
+   * endpoint devuelve activos e inactivos.
+   */
+  readonly opcionesEstablecimiento = computed<OpcionDesplegable[]>(() => [
+    // Primera y explícita: no asignar es una decisión válida —la mercadería en
+    // tránsito no pertenece a ningún local— y no un descuido.
+    { valor: '', etiqueta: 'Sin asignar' },
+    ...this.establecimientos()
+      .filter((e) => e.activa)
+      .map((e) => ({ valor: e.id, etiqueta: `${e.codigo} · ${e.nombre}` })),
+  ]);
 
   formulario = this.constructorFormulario.nonNullable.group({
     codigo: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9-]{1,20}$/)]],
@@ -111,62 +143,51 @@ export class AlmacenesComponent {
   }
 
   abrirNuevo(): void {
-    this.enEdicion.set(null);
     this.formulario.reset({ codigo: '', nombre: '', sucursalId: '' });
-    this.controles.codigo.enable();
-    this.formularioAbierto.set(true);
+    this.modalAbierto.set(true);
   }
 
-  abrirEdicion(fila: Record<string, unknown>): void {
-    const almacen = this.originales.find((a) => a.id === fila['id']);
-    if (!almacen) {
-      return;
-    }
-
-    this.enEdicion.set(almacen);
-    this.formulario.reset({
-      codigo: almacen.codigo,
-      nombre: almacen.nombre,
-      sucursalId: almacen.sucursalId ?? '',
-    });
-    // El código identifica al almacén en los movimientos de stock ya
-    // registrados. El backend tampoco lo acepta al editar.
-    this.controles.codigo.disable();
-    this.formularioAbierto.set(true);
+  cerrarModal(): void {
+    this.modalAbierto.set(false);
   }
 
-  cerrarFormulario(): void {
-    this.formularioAbierto.set(false);
-    this.enEdicion.set(null);
+  /** Abrir un almacén lleva a su ficha, que es donde se edita. */
+  abrirFicha(fila: Record<string, unknown>): void {
+    void this.router.navigate(['/almacen/almacenes', fila['id']]);
   }
 
-  async guardar(): Promise<void> {
+  /**
+   * Crea el almacén y cierra el modal.
+   *
+   * <p>Solo el caso de alta: el código se elige aquí y en la ficha ya no se
+   * puede cambiar, así que este formulario no necesita habilitarlo y
+   * deshabilitarlo según el caso como hacía el anterior.
+   */
+  readonly crear = accionConEstado(async () => {
     if (this.formulario.invalid) {
       this.formulario.markAllAsTouched();
-      return;
+      throw new Error('Formulario incompleto');
     }
-
-    this.guardando.set(true);
-    this.error.set(null);
 
     const valores = this.formulario.getRawValue();
-    const datos = { nombre: valores.nombre, sucursalId: valores.sucursalId || null };
 
     try {
-      const editando = this.enEdicion();
-      if (editando) {
-        await this.api.actualizarAlmacen(editando.id, datos);
-      } else {
-        await this.api.crearAlmacen({ ...datos, codigo: valores.codigo });
-      }
-      this.cerrarFormulario();
+      const creado = await this.api.crearAlmacen({
+        codigo: valores.codigo,
+        nombre: valores.nombre,
+        sucursalId: valores.sucursalId || null,
+      });
+
+      this.cerrarModal();
       await this.cargar();
+      this.avisos.exito(`${creado.codigo} · ${creado.nombre}`, 'Almacén creado');
     } catch (fallo: unknown) {
-      this.error.set(mensajeDeError(fallo, 'No se pudo guardar el almacén.'));
-    } finally {
-      this.guardando.set(false);
+      // El código repetido es el fallo habitual, y el modal se queda abierto
+      // para corregir ese campo sin teclear el resto otra vez.
+      repartirFallo(fallo, this.formulario, this.avisos, 'No se pudo crear el almacén.');
+      throw fallo;
     }
-  }
+  });
 
   pedirDesactivacion(fila: Record<string, unknown>): void {
     const almacen = this.originales.find((a) => a.id === fila['id']);
@@ -177,20 +198,33 @@ export class AlmacenesComponent {
     this.confirmacionAbierta.set(true);
   }
 
-  async desactivar(): Promise<void> {
-    if (!this.aDesactivar) {
+  get nombreADesactivar(): string {
+    return this.aDesactivar?.nombre ?? '';
+  }
+
+  readonly desactivar = accionConEstado(async () => {
+    const almacen = this.aDesactivar;
+    if (!almacen) {
       return;
     }
-    this.confirmacionAbierta.set(false);
-    this.error.set(null);
 
     try {
-      await this.api.desactivarAlmacen(this.aDesactivar.id);
-      await this.cargar();
-    } catch (fallo: unknown) {
-      this.error.set(mensajeDeError(fallo, 'No se pudo desactivar el almacén.'));
-    } finally {
+      await this.api.desactivarAlmacen(almacen.id);
+      this.confirmacionAbierta.set(false);
       this.aDesactivar = null;
+      await this.cargar();
+      this.avisos.exito(
+        `${almacen.nombre} ya no admite movimientos de mercadería`,
+        'Almacén desactivado'
+      );
+    } catch (fallo: unknown) {
+      this.avisos.error(mensajeDeError(fallo, 'No se pudo desactivar el almacén.'));
+      throw fallo;
     }
+  });
+
+  cancelarDesactivacion(): void {
+    this.confirmacionAbierta.set(false);
+    this.aDesactivar = null;
   }
 }
