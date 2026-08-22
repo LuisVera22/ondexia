@@ -43,22 +43,20 @@ export class ContextoService {
   /**
    * Los establecimientos que el usuario alcanza en la empresa activa.
    *
-   * Hoy solo puede ser uno o ninguno, y no es una simplificación: el contexto
-   * trae la asignación del usuario, no el catálogo de la empresa. Un
-   * `sucursalId` con valor significa «solo esta»; a null significa «todas», y
-   * cuáles son todas es algo que esta respuesta no dice.
-   *
-   * Se resuelve con el listado de establecimientos de la Entrega 1. Mientras
-   * tanto se muestra lo que se sabe con certeza en vez de rellenar con
-   * suposiciones.
+   * Los da el servidor ya recortados a su asignación. Antes se derivaban del
+   * campo `sucursalId` de la empresa activa, que es la ASIGNACIÓN y no el
+   * catálogo: con valor significaba «solo esta» y a null «todas», pero cuáles
+   * eran todas la respuesta no lo decía. El resultado era el contrario del
+   * correcto — quien alcanzaba todos los establecimientos se quedaba sin
+   * selector, y quien estaba acotado a uno era el único que veía algo.
    */
-  readonly establecimientos = computed<OpcionContexto[]>(() => {
-    const activa = this._contexto()?.empresaActiva;
-    if (!activa?.sucursalId) {
-      return [];
-    }
-    return [{ id: activa.sucursalId, nombre: activa.sucursalNombre ?? 'Establecimiento' }];
-  });
+  readonly establecimientos = computed<OpcionContexto[]>(() =>
+    (this._contexto()?.establecimientos ?? []).map((establecimiento) => ({
+      id: establecimiento.id,
+      nombre: establecimiento.nombre,
+      detalle: establecimiento.codigo,
+    }))
+  );
 
   private readonly _establecimientoElegido = signal<OpcionContexto | null>(null);
 
@@ -69,13 +67,19 @@ export class ContextoService {
   /**
    * Serie que corresponde al establecimiento activo.
    *
-   * Devuelve '0000' mientras no se conozca el código real del establecimiento,
-   * que es el de la casa matriz. El código no viene en el contexto —el nombre
-   * sí— y adivinarlo a partir del nombre sería inventar un dato con efecto
-   * tributario.
+   * El código llega ahora en el contexto, así que se lee del dato en crudo y no
+   * troceando el texto que se pinta en el desplegable. Con lo segundo, cambiar
+   * el formato de esa etiqueta —un guion en vez del punto medio— habría
+   * cambiado en silencio la serie de los comprobantes.
+   *
+   * Sigue devolviendo '0000', el de la casa matriz, cuando todavía no hay
+   * establecimiento activo: es el único valor que SUNAT garantiza que existe.
    */
   readonly prefijoSerie = computed(() => {
-    const codigo = this.establecimientoActivo()?.detalle?.split('·')[0]?.trim();
+    const activo = this.establecimientoActivo();
+    const codigo = this._contexto()?.establecimientos?.find(
+      (establecimiento) => establecimiento.id === String(activo?.id)
+    )?.codigo;
     return codigo && /^\d{4}$/.test(codigo) ? codigo : '0000';
   });
 

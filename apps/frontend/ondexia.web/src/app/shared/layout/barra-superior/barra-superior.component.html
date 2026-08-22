@@ -35,7 +35,14 @@
 
     <div class="ml-auto flex items-center gap-2 sm:gap-3">
       <!-- Contexto de trabajo: determina la serie del comprobante y el almacén -->
-      <app-selector-contexto />
+      <app-selector-contexto
+        [empresas]="contexto.empresas()"
+        [empresaActiva]="contexto.empresaActiva()"
+        [establecimientos]="contexto.establecimientos()"
+        [establecimientoActivo]="contexto.establecimientoActivo()"
+        (cambiarEmpresa)="elegirEmpresa($event)"
+        (cambiarEstablecimiento)="contexto.cambiarEstablecimiento($event)"
+      />
 
       <!-- Tema -->
       <button

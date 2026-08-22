@@ -4,7 +4,10 @@ import { MenuLateralService } from '../../services/menu-lateral.service';
 import { TemaService } from '../../services/tema.service';
 import { ContextoService } from '../../services/contexto.service';
 import { SesionService } from '../../../nucleo/sesion.service';
-import { SelectorContextoComponent } from '../../components/comunes/selector-contexto/selector-contexto.component';
+import {
+  OpcionContexto,
+  SelectorContextoComponent,
+} from '../../components/comunes/selector-contexto/selector-contexto.component';
 
 /**
  * Barra superior.
@@ -33,6 +36,18 @@ export class BarraSuperiorComponent {
   readonly sesion = inject(SesionService);
 
   readonly menuUsuarioAbierto = signal(false);
+
+  /**
+   * Cambiar de empresa recarga el contexto entero, permisos incluidos.
+   *
+   * Se envuelve aquí en vez de llamar al servicio desde la plantilla porque
+   * devuelve una promesa: dejarla suelta en un enlace de evento esconde
+   * cualquier fallo de la recarga, que es justo el que no conviene perder —el
+   * usuario se quedaría viendo el menú de la empresa anterior.
+   */
+  async elegirEmpresa(empresa: OpcionContexto): Promise<void> {
+    await this.contexto.cambiarEmpresa(empresa);
+  }
 
   /**
    * El usuario sale del contexto que devuelve la API, no del token.

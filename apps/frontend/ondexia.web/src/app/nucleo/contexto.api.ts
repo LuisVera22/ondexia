@@ -17,6 +17,12 @@ export interface RespuestaContexto {
   /** null cuando el usuario tiene varias empresas y todavía no ha elegido. */
   readonly empresaActiva: EmpresaResumen | null;
   readonly empresas: readonly EmpresaResumen[];
+  /**
+   * Los establecimientos de la empresa activa que el usuario alcanza, ya
+   * recortados a su asignación por el servidor: todos si llega a todos, uno
+   * solo si está acotado a uno. Vacío mientras no haya empresa activa.
+   */
+  readonly establecimientos: readonly EstablecimientoResumen[];
   /** Vacío mientras no haya empresa activa: los permisos son por empresa. */
   readonly permisos: readonly string[];
 }
@@ -51,4 +57,11 @@ export interface EmpresaResumen {
   /** null significa que el usuario alcanza TODAS las sucursales de la empresa. */
   readonly sucursalId: string | null;
   readonly sucursalNombre: string | null;
+}
+
+export interface EstablecimientoResumen {
+  readonly id: string;
+  /** Los cuatro dígitos de SUNAT. Prefijan la serie del comprobante. */
+  readonly codigo: string;
+  readonly nombre: string;
 }
