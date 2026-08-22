@@ -12,8 +12,21 @@ const CORREO_CONTACTO = 'luis26.ml143@gmail.com';
 
 interface Aviso {
   readonly tono: 'informativo' | 'atencion';
+
+  /**
+   * Lo primero que se lee, en negrita y en la misma línea que el resto.
+   *
+   * <p>Lleva punto final: no es un encabezado, es la primera frase. Separarlo en
+   * su propio renglón hacía que se leyera como el titular de una alerta, y esto
+   * no alerta de nada — dice en qué estado está la cuenta.
+   */
   readonly titulo: string;
+
+  /** Hasta el correo, que se pinta aparte porque es un enlace. */
   readonly cuerpo: string;
+
+  /** Lo que va después del correo. Casi siempre un punto. */
+  readonly cierre: string;
 }
 
 /**
@@ -33,6 +46,18 @@ interface Aviso {
  *
  * Y ningún botón que lleve a un formulario de pago: el aviso informa y remite a
  * un correo nuestro. Cobrar no ocurre dentro de la aplicación.
+ *
+ * <h2>Sobre el aspecto</h2>
+ *
+ * <p>Usa los tokens del tema y no colores de Tailwind a pelo. Antes escribía
+ * `bg-amber-50` y `bg-sky-50`, que no existen en nuestra escala: el aviso era lo
+ * único de la aplicación que no cambiaba al cambiar la paleta, y nadie se habría
+ * enterado hasta verlo desentonar.
+ *
+ * <p>El informativo va en el color de marca. No es decoración: un aviso ámbar
+ * dice «algo va mal», y estar en el periodo de prueba no es que algo vaya mal.
+ * El ámbar se reserva para los dos estados en los que de verdad hay algo que
+ * atender.
  */
 @Component({
   selector: 'app-aviso-suscripcion',
@@ -40,22 +65,60 @@ interface Aviso {
   template: `
     @if (aviso(); as a) {
       <div
-        class="mb-4 rounded-lg border px-4 py-3"
+        class="mb-5 flex items-start gap-3 rounded-xl border px-4 py-3.5"
         [class]="
           a.tono === 'atencion'
-            ? 'border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200'
-            : 'border-sky-300 bg-sky-50 text-sky-900 dark:border-sky-500/40 dark:bg-sky-500/10 dark:text-sky-200'
+            ? 'border-warning-200 bg-warning-50 dark:border-warning-500/30 dark:bg-warning-500/10'
+            : 'border-brand-100 bg-brand-50 dark:border-brand-500/30 dark:bg-brand-500/10'
         "
         role="status"
       >
-        <p class="text-sm font-semibold">{{ a.titulo }}</p>
-        <p class="mt-1 text-sm">{{ a.cuerpo }}</p>
+        <!--
+          El icono va en un círculo del color del tono y no dentro del texto:
+          marca dónde empieza el aviso cuando la vista recorre la página de
+          arriba abajo. «aria-hidden» porque no dice nada que el texto no diga.
+        -->
+        <span
+          class="mt-0.5 shrink-0"
+          [class]="
+            a.tono === 'atencion'
+              ? 'text-warning-600 dark:text-warning-400'
+              : 'text-brand-500 dark:text-brand-400'
+          "
+          aria-hidden="true"
+        >
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7.5v5.5M12 16.5h.01" />
+          </svg>
+        </span>
+
+        <!--
+          Un solo párrafo. El estado y lo que se puede hacer son la misma frase,
+          y partirlos en dos renglones daba al aviso la forma de una alerta con
+          titular — que es justo la silueta que este texto evita a propósito.
+        -->
+        <p class="text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+          <strong class="font-semibold text-gray-800 dark:text-white/90">{{ a.titulo }}</strong>
+          {{ a.cuerpo }}<a
+            [href]="'mailto:' + correo"
+            class="font-medium underline-offset-2 hover:underline"
+            [class]="
+              a.tono === 'atencion'
+                ? 'text-warning-700 dark:text-warning-400'
+                : 'text-brand-600 dark:text-brand-400'
+            "
+            >{{ correo }}</a
+          >{{ a.cierre }}
+        </p>
       </div>
     }
   `,
 })
 export class AvisoSuscripcionComponent {
   private readonly contexto = inject(ContextoService);
+
+  readonly correo = CORREO_CONTACTO;
 
   /**
    * El estado manda, no `soloLectura`.
@@ -70,32 +133,34 @@ export class AvisoSuscripcionComponent {
       case 'SUSPENDIDA':
         return {
           tono: 'atencion',
-          titulo: 'Tu suscripción está suspendida',
+          titulo: 'Tu suscripción está suspendida.',
           cuerpo:
-            'Puedes seguir consultando y descargando todos tus comprobantes y reportes. ' +
-            'Mientras esté suspendida no se pueden registrar ni emitir documentos nuevos. ' +
-            `Escríbenos a ${CORREO_CONTACTO} y lo regularizamos.`,
+            'Puedes seguir consultando y descargando todos tus comprobantes y reportes; ' +
+            'mientras esté suspendida no se pueden registrar ni emitir documentos nuevos. ' +
+            'Escríbenos a ',
+          cierre: ' y lo regularizamos.',
         };
 
       case 'CANCELADA':
         return {
           tono: 'atencion',
-          titulo: 'Tu cuenta está cerrada',
+          titulo: 'Tu cuenta está cerrada.',
           cuerpo:
-            'Tus datos siguen aquí: puedes consultarlos y exportarlos cuando quieras. ' +
-            'Los comprobantes electrónicos deben conservarse cinco años y son tuyos. ' +
-            'No se pueden registrar ni emitir documentos nuevos. ' +
-            `Si quieres reactivarla o necesitas ayuda para exportar, escríbenos a ${CORREO_CONTACTO}.`,
+            'Tus datos siguen aquí y puedes consultarlos y exportarlos cuando quieras: los ' +
+            'comprobantes electrónicos deben conservarse cinco años y son tuyos. No se pueden ' +
+            'registrar ni emitir documentos nuevos. Si quieres reactivarla o necesitas ayuda ' +
+            'para exportar, escríbenos a ',
+          cierre: '.',
         };
 
       case 'EN_PRUEBA':
         return {
           tono: 'informativo',
-          titulo: 'Estás en el periodo de prueba',
+          titulo: 'Estás en el periodo de prueba.',
           cuerpo:
-            'Puedes configurar tu empresa y recorrer el sistema completo. ' +
-            'Durante la prueba no se emiten comprobantes hacia SUNAT. ' +
-            `Cuando quieras activar tu cuenta, escríbenos a ${CORREO_CONTACTO}.`,
+            'Puedes configurar tu empresa y recorrer el sistema completo; durante la prueba ' +
+            'no se emiten comprobantes hacia SUNAT. Para activar tu cuenta escríbenos a ',
+          cierre: '.',
         };
 
       default:
