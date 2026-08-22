@@ -14,6 +14,7 @@ import { EmpresasComponent } from './pages/configuracion/empresas/empresas.compo
 import { EmpresaComponent } from './pages/configuracion/empresa/empresa.component';
 import { IdentidadComponent } from './pages/configuracion/identidad/identidad.component';
 import { EstablecimientosComponent } from './pages/configuracion/establecimientos/establecimientos.component';
+import { FichaEstablecimientoComponent } from './pages/configuracion/establecimientos/ficha-establecimiento.component';
 import { AlmacenesComponent } from './pages/configuracion/almacenes/almacenes.component';
 import { SeriesComponent } from './pages/configuracion/series/series.component';
 import { UsuariosComponent } from './pages/configuracion/usuarios/usuarios.component';
@@ -174,6 +175,7 @@ export const routes: Routes = [
       { path: 'configuracion/empresas/:id', component: EmpresaComponent, title: `Datos de la empresa | ${TITULO}` },
       { path: 'configuracion/identidad', component: IdentidadComponent, title: `Identidad visual | ${TITULO}` },
       { path: 'configuracion/establecimientos', component: EstablecimientosComponent, title: `Establecimientos | ${TITULO}` },
+      { path: 'configuracion/establecimientos/:id', component: FichaEstablecimientoComponent, title: `Establecimiento | ${TITULO}` },
       { path: 'configuracion/series', component: SeriesComponent, title: `Series y correlativos | ${TITULO}` },
       { path: 'configuracion/usuarios', component: UsuariosComponent, title: `Usuarios | ${TITULO}` },
       { path: 'configuracion/roles', component: RolesComponent, title: `Roles y permisos | ${TITULO}` },

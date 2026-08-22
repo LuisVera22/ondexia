@@ -4,6 +4,7 @@
   [class]="clases"
   [attr.aria-label]="etiquetaAccesible || null"
   [attr.aria-busy]="estado === 'cargando'"
+  [attr.form]="formulario || null"
   (click)="accion.emit()"
 >
   <!--

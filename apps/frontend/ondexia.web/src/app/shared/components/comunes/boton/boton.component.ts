@@ -50,6 +50,17 @@ export class BotonComponent {
   /** Obligatorio en la variante `icono`, donde no hay texto que leer. */
   @Input() etiquetaAccesible = '';
 
+  /**
+   * Id del formulario que envía, para cuando el botón vive fuera de él.
+   *
+   * <p>Lo necesitan los modales: el formulario va en el cuerpo y el botón en la
+   * ranura de acciones, así que no son ascendiente y descendiente. Sin esto
+   * habría que llamar a la acción con un clic, y entonces pulsar Enter en un
+   * campo no enviaría — que es como la mitad de la gente rellena un formulario
+   * corto.
+   */
+  @Input() formulario = '';
+
   @Output() accion = new EventEmitter<void>();
 
   get bloqueado(): boolean {
