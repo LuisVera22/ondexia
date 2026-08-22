@@ -26,6 +26,9 @@
   </div>
   } @else {
   <app-tabla-datos
+    [acciones]="accionesDeFila"
+    campoDescripcion="nombre"
+    (accionElegida)="ejecutarAccion($event)"
     [cargando]="cargando()"
     nombrePlural="establecimientos"
     (actualizar)="recargar()"
@@ -37,40 +40,7 @@
     vacioAccion="Agregar establecimiento"
     (accionVacio)="abrirNuevo()"
     (filaClic)="abrirFicha($event)"
-  >
-    <ng-template #acciones let-registro>
-      <div class="flex items-center justify-end gap-1">
-        <button
-          type="button"
-          (click)="abrirFicha(registro)"
-          [attr.aria-label]="'Abrir ' + registro.nombre"
-          class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.05]"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-            <path d="m9 6 6 6-6 6" />
-          </svg>
-        </button>
-
-        <!--
-          La casa matriz (0000) no se desactiva: SUNAT la exige siempre y sin
-          ella la empresa no puede emitir. Tampoco se ofrece sobre los que ya
-          están inactivos.
-        -->
-        @if (!registro.esMatriz && registro.activa) {
-        <button
-          type="button"
-          (click)="pedirDesactivacion(registro)"
-          [attr.aria-label]="'Desactivar ' + registro.nombre"
-          class="rounded-lg p-2 text-gray-400 transition hover:bg-error-50 hover:text-error-500 dark:hover:bg-error-500/10"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18.36 6.64A9 9 0 1 1 5.64 6.64M12 3v9" />
-          </svg>
-        </button>
-        }
-      </div>
-    </ng-template>
-  </app-tabla-datos>
+   />
   }
 
   <!--

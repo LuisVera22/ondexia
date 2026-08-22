@@ -26,6 +26,9 @@
   </div>
   } @else {
   <app-tabla-datos
+    [acciones]="accionesDeFila"
+    campoDescripcion="serie"
+    (accionElegida)="ejecutarAccion($event)"
     [cargando]="cargando()"
     nombrePlural="series"
     (actualizar)="recargar()"
@@ -36,33 +39,7 @@
     vacioDescripcion="Sin al menos una serie no se puede emitir ningún comprobante: es de donde sale su número."
     vacioAccion="Agregar serie"
     (accionVacio)="abrirNueva()"
-  >
-    <ng-template #acciones let-registro>
-      <div class="flex items-center justify-end gap-1">
-        @if (registro.activa) {
-        <button
-          type="button"
-          (click)="pedirDesactivacion(registro)"
-          [attr.aria-label]="'Desactivar la serie ' + registro.serie"
-          class="rounded-lg p-2 text-gray-400 transition hover:bg-error-50 hover:text-error-500 dark:hover:bg-error-500/10"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18.36 6.64A9 9 0 1 1 5.64 6.64M12 3v9" />
-          </svg>
-        </button>
-        } @else {
-        <button
-          type="button"
-          (click)="reactivar(registro)"
-          [attr.aria-label]="'Reactivar la serie ' + registro.serie"
-          class="rounded-lg px-3 py-1.5 text-xs font-medium text-brand-500 transition hover:bg-brand-50 dark:hover:bg-brand-500/10"
-        >
-          Reactivar
-        </button>
-        }
-      </div>
-    </ng-template>
-  </app-tabla-datos>
+   />
   }
 
   <!--

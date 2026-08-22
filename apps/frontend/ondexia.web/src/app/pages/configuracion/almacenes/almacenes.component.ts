@@ -2,7 +2,8 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
-import { TablaDatosComponent, ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
+import { TablaDatosComponent, AccionDeFila,
+  ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
 import { ModalComponent } from '../../../shared/components/comunes/modal/modal.component';
 import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
@@ -54,6 +55,17 @@ export class AlmacenesComponent {
   private readonly avisos = inject(AvisosService);
   private readonly router = inject(Router);
   private readonly constructorFormulario = inject(FormBuilder);
+  readonly accionesDeFila: AccionDeFila[] = [
+    { id: 'abrir', etiqueta: 'Abrir', icono: 'abrir' },
+    {
+      id: 'desactivar',
+      etiqueta: 'Desactivar',
+      icono: 'desactivar',
+      peligrosa: true,
+      disponible: (registro) => registro['activo'] === true,
+    },
+  ];
+
 
   readonly columnas: ColumnaTabla[] = [
     { campo: 'codigo', titulo: 'Código', ordenable: true, ancho: 'w-32' },
@@ -237,5 +249,13 @@ export class AlmacenesComponent {
   cancelarDesactivacion(): void {
     this.confirmacionAbierta.set(false);
     this.aDesactivar = null;
+  }
+
+  ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
+    if (evento.accion === 'abrir') {
+      this.abrirFicha(evento.registro);
+    } else if (evento.accion === 'desactivar') {
+      this.pedirDesactivacion(evento.registro);
+    }
   }
 }

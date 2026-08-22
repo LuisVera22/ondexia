@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import {
   TablaDatosComponent,
+  AccionDeFila,
   ColumnaTabla,
 } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
@@ -62,6 +63,18 @@ export class EstablecimientosComponent {
   private readonly avisos = inject(AvisosService);
   private readonly router = inject(Router);
   private readonly constructorFormulario = inject(FormBuilder);
+  readonly accionesDeFila: AccionDeFila[] = [
+    { id: 'abrir', etiqueta: 'Abrir', icono: 'abrir' },
+    {
+      id: 'desactivar',
+      etiqueta: 'Desactivar',
+      icono: 'desactivar',
+      peligrosa: true,
+      // La casa matriz no se desactiva: sin ella la empresa no puede emitir.
+      disponible: (registro) => registro['activa'] === true && registro['esMatriz'] !== true,
+    },
+  ];
+
 
   readonly columnas: ColumnaTabla[] = [
     { campo: 'codigo', titulo: 'Código SUNAT', ordenable: true, ancho: 'w-32' },
@@ -230,5 +243,13 @@ export class EstablecimientosComponent {
   cancelarDesactivacion(): void {
     this.confirmacionAbierta.set(false);
     this.aDesactivar = null;
+  }
+
+  ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
+    if (evento.accion === 'abrir') {
+      this.abrirFicha(evento.registro);
+    } else if (evento.accion === 'desactivar') {
+      this.pedirDesactivacion(evento.registro);
+    }
   }
 }

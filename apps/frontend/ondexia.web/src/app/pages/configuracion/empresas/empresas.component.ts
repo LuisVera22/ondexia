@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import {
+  AccionDeFila,
   ColumnaTabla,
   TablaDatosComponent,
 } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
@@ -42,13 +43,17 @@ export class EmpresasComponent {
   private readonly api = inject(ConfiguracionApiService);
   private readonly contexto = inject(ContextoService);
   private readonly router = inject(Router);
+  readonly accionesDeFila: AccionDeFila[] = [
+    { id: 'abrir', etiqueta: 'Ver los datos', icono: 'abrir' },
+  ];
+
 
   readonly columnas: ColumnaTabla[] = [
     { campo: 'ruc', titulo: 'RUC', ordenable: true, ancho: 'w-36' },
     { campo: 'razonSocial', titulo: 'Razón social', ordenable: true },
     { campo: 'nombreComercial', titulo: 'Nombre comercial' },
     { campo: 'domicilioFiscal', titulo: 'Domicilio fiscal' },
-    { campo: 'estado', titulo: 'Estado', ancho: 'w-28' },
+    { campo: 'estado', titulo: 'Estado', ancho: 'w-36' },
   ];
 
   readonly registros = signal<Record<string, unknown>[]>([]);
@@ -92,10 +97,13 @@ export class EmpresasComponent {
           razonSocial: empresa.razonSocial,
           nombreComercial: empresa.nombreComercial ?? '—',
           domicilioFiscal: empresa.domicilioFiscal,
-          estado: empresa.activa ? 'Activa' : 'Inactiva',
-          // La empresa sobre la que se está trabajando: es la única que se
-          // puede editar, y conviene que se vea antes de entrar a la ficha.
-          enUso: String(empresa.id) === String(activaId),
+          // La empresa sobre la que se está trabajando se dice aquí y no con una
+          // insignia en la columna de acciones, que es donde estaba: un dato que
+          // se lee no pertenece a la columna de lo que se pulsa, y allí obligaba
+          // a ensanchar esa columna hasta partir la insignia en dos líneas.
+          estado:
+            (empresa.activa ? 'Activa' : 'Inactiva') +
+            (String(empresa.id) === String(activaId) ? ' · en uso' : ''),
         }))
       );
     } catch (fallo: unknown) {
@@ -107,5 +115,11 @@ export class EmpresasComponent {
 
   abrirFicha(fila: Record<string, unknown>): void {
     void this.router.navigate(['/configuracion/empresas', fila['id']]);
+  }
+
+  ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
+    if (evento.accion === 'abrir') {
+      this.abrirFicha(evento.registro);
+    }
   }
 }

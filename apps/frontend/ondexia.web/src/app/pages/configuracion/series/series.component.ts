@@ -1,7 +1,8 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
-import { TablaDatosComponent, ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
+import { TablaDatosComponent, AccionDeFila,
+  ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
 import { ModalComponent } from '../../../shared/components/comunes/modal/modal.component';
 import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
@@ -64,6 +65,22 @@ export class SeriesComponent {
   private readonly api = inject(ConfiguracionApiService);
   private readonly avisos = inject(AvisosService);
   private readonly constructorFormulario = inject(FormBuilder);
+  readonly accionesDeFila: AccionDeFila[] = [
+    {
+      id: 'reactivar',
+      etiqueta: 'Reactivar',
+      icono: 'reactivar',
+      disponible: (registro) => registro['activa'] !== true,
+    },
+    {
+      id: 'desactivar',
+      etiqueta: 'Desactivar',
+      icono: 'desactivar',
+      peligrosa: true,
+      disponible: (registro) => registro['activa'] === true,
+    },
+  ];
+
 
   readonly columnas: ColumnaTabla[] = [
     { campo: 'serie', titulo: 'Serie', ordenable: true, ancho: 'w-28' },
@@ -286,6 +303,14 @@ export class SeriesComponent {
       this.avisos.exito(`${fila['serie']} vuelve a ofrecerse al emitir`, 'Serie reactivada');
     } catch (fallo: unknown) {
       this.avisos.error(mensajeDeError(fallo, 'No se pudo reactivar la serie.'));
+    }
+  }
+
+  ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
+    if (evento.accion === 'desactivar') {
+      this.pedirDesactivacion(evento.registro);
+    } else if (evento.accion === 'reactivar') {
+      void this.reactivar(evento.registro);
     }
   }
 }

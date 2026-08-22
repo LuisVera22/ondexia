@@ -29,6 +29,9 @@
   </div>
   } @else {
   <app-tabla-datos
+    [acciones]="accionesDeFila"
+    campoDescripcion="razonSocial"
+    (accionElegida)="ejecutarAccion($event)"
     [cargando]="cargando()"
     nombrePlural="empresas"
     (actualizar)="recargar()"
@@ -38,27 +41,6 @@
     vacioTitulo="No hay empresas a tu alcance"
     vacioDescripcion="Tu usuario no tiene ninguna empresa asignada. Pídeselo a quien administra la cuenta."
     (filaClic)="abrirFicha($event)"
-  >
-    <ng-template #acciones let-registro>
-      <div class="flex items-center justify-end gap-2">
-        @if (registro.enUso) {
-        <span class="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-600 dark:bg-brand-500/15 dark:text-brand-400">
-          En uso
-        </span>
-        }
-
-        <button
-          type="button"
-          (click)="abrirFicha(registro)"
-          [attr.aria-label]="'Ver los datos de ' + registro.razonSocial"
-          class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.05]"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-            <path d="m9 6 6 6-6 6" />
-          </svg>
-        </button>
-      </div>
-    </ng-template>
-  </app-tabla-datos>
+   />
   }
 </div>

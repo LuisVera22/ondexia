@@ -178,15 +178,15 @@
             {{ columna.titulo }}
             }
           </th>
-          } @if (plantillaAcciones) {
+          } @if (acciones.length > 0) {
           <!--
-            Sin ancho fijo. Con `w-24` la celda medía 96 px y una insignia como
-            «En uso» junto a la flecha se partía en dos líneas, subiendo el alto
-            de esa fila y desalineándola de las demás. El contenido lo pone cada
-            pantalla y no se puede saber aquí cuánto ocupa.
+            Estrecha y a la derecha: dentro solo va el botón de tres puntos, que
+            mide 36 px. El título se pone para el lector de pantalla y se esconde
+            a la vista — encabezar una columna de puntos con la palabra
+            «ACCIONES» ocupa cuatro veces lo que ocupa su contenido.
           -->
-          <th class="whitespace-nowrap px-5 py-3.5 text-right text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
-            Acciones
+          <th class="w-16 px-5 py-3.5 text-right">
+            <span class="sr-only">Acciones</span>
           </th>
           }
         </tr>
@@ -217,11 +217,12 @@
           >
             {{ valor(registro, columna) }}
           </td>
-          } @if (plantillaAcciones) {
-          <td class="whitespace-nowrap px-5 py-4 text-right">
-            <ng-container
-              [ngTemplateOutlet]="plantillaAcciones"
-              [ngTemplateOutletContext]="{ $implicit: registro }"
+          } @if (acciones.length > 0) {
+          <td class="w-16 whitespace-nowrap px-5 py-4 text-right">
+            <app-menu-acciones
+              [opciones]="opcionesDeFila(registro)"
+              [descripcionFila]="descripcionDeFila(registro)"
+              (elegir)="accionElegida.emit({ accion: $event, registro })"
             />
           </td>
           }

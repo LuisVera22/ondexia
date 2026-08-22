@@ -3,14 +3,16 @@ import {
   Input,
   Output,
   EventEmitter,
-  TemplateRef,
-  ContentChild,
   OnChanges,
   SimpleChanges,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PaginaVaciaComponent } from '../pagina-vacia/pagina-vacia.component';
+import {
+  MenuAccionesComponent,
+  OpcionDeMenu,
+} from '../menu-acciones/menu-acciones.component';
 import { DesplegableComponent, OpcionDesplegable } from '../desplegable/desplegable.component';
 
 export type AlineacionColumna = 'izquierda' | 'centro' | 'derecha';
@@ -28,6 +30,24 @@ export interface ColumnaTabla {
   ancho?: string;
   /** Formato de presentación del valor. */
   formato?: 'texto' | 'importe' | 'cantidad' | 'fecha';
+}
+
+/**
+ * Una acción que se puede hacer sobre una fila.
+ *
+ * <p>Se declara como dato y no como plantilla porque el componente necesita
+ * decidir cómo presentarlas —hoy en un menú— y con una plantilla suelta no
+ * puede: recibiría marcas ya dibujadas. Es lo que permitió pasar de una hilera
+ * de iconos a un menú sin tocar las quince pantallas que las ofrecen.
+ */
+export interface AccionDeFila extends OpcionDeMenu {
+  /**
+   * Si esta fila la admite. Sin esto, se ofrece siempre.
+   *
+   * <p>Es lo que distingue «Desactivar» de «Reactivar»: son dos acciones con la
+   * misma casilla, cada una con su condición, y nunca aparecen juntas.
+   */
+  readonly disponible?: (registro: Record<string, unknown>) => boolean;
 }
 
 export interface OrdenTabla {
@@ -53,7 +73,13 @@ const TAMANOS_PAGINA = [10, 25, 50, 100];
  */
 @Component({
   selector: 'app-tabla-datos',
-  imports: [CommonModule, FormsModule, PaginaVaciaComponent, DesplegableComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    PaginaVaciaComponent,
+    DesplegableComponent,
+    MenuAccionesComponent,
+  ],
   templateUrl: './tabla-datos.component.html',
 })
 export class TablaDatosComponent implements OnChanges {
@@ -104,8 +130,16 @@ export class TablaDatosComponent implements OnChanges {
   @Input() vacioAccion = '';
   @Input() vacioPorFiltros = false;
 
-  /** Plantilla opcional para la columna de acciones de cada fila. */
-  @ContentChild('acciones') plantillaAcciones?: TemplateRef<unknown>;
+  /** Lo que se puede hacer con una fila. Sin acciones, no hay columna. */
+  @Input() acciones: AccionDeFila[] = [];
+
+  /**
+   * Campo del que sale el nombre de la fila para el lector de pantalla.
+   *
+   * <p>Sin él, veinte filas ofrecen veinte botones que se anuncian «Acciones» y
+   * no hay forma de saber de cuál es cada uno.
+   */
+  @Input() campoDescripcion = '';
 
   @Output() ordenarPor = new EventEmitter<OrdenTabla>();
   @Output() cambiarPagina = new EventEmitter<number>();
@@ -113,6 +147,12 @@ export class TablaDatosComponent implements OnChanges {
   @Output() seleccionCambio = new EventEmitter<unknown[]>();
   @Output() filaClic = new EventEmitter<Record<string, unknown>>();
   @Output() accionVacio = new EventEmitter<void>();
+
+  /** Qué se eligió y sobre qué fila. */
+  @Output() accionElegida = new EventEmitter<{
+    accion: string;
+    registro: Record<string, unknown>;
+  }>();
 
   /**
    * Pide al contenedor que vuelva a traer los datos.
@@ -374,6 +414,16 @@ export class TablaDatosComponent implements OnChanges {
     this.tamanoElegido = tamano;
     this.paginaInterna = 1;
     this.cambiarTamanoPagina.emit(tamano);
+  }
+
+  /** Las acciones que esta fila admite, ya filtradas. */
+  opcionesDeFila(registro: Record<string, unknown>): OpcionDeMenu[] {
+    return this.acciones.filter((accion) => !accion.disponible || accion.disponible(registro));
+  }
+
+  descripcionDeFila(registro: Record<string, unknown>): string {
+    const bruto = this.campoDescripcion ? registro[this.campoDescripcion] : null;
+    return bruto === null || bruto === undefined ? '' : String(bruto);
   }
 
   clasesAlineacion(columna: ColumnaTabla): string {
