@@ -476,3 +476,16 @@
     display: none;
   }
 }
+
+/* Documento sin desplazamiento mientras hay un modal abierto.
+ *
+ * Regla de elemento y no utilidad de Tailwind porque la aplica ModalComponent
+ * sobre <body>, que esta fuera de toda plantilla de Angular: no hay ningun
+ * sitio donde escribirla como clase.
+ *
+ * El componente cuenta los modales abiertos antes de quitarla. Una confirmacion
+ * puede abrirse sobre otro modal, y con un booleano el de encima devolveria el
+ * desplazamiento al documento con uno todavia abierto detras. */
+body.sin-desplazamiento {
+  overflow: hidden;
+}
