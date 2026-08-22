@@ -29,7 +29,17 @@
     <p class="text-sm text-gray-500 dark:text-gray-400" aria-live="polite">{{ recuento }}</p>
     }
 
-    <div class="flex items-center gap-3 sm:justify-end">
+    <!--
+      Buscar y actualizar, juntos y a la derecha. Los dos actúan sobre la tabla
+      —a diferencia del botón de crear, que es de la pantalla y vive fuera—, así
+      que van agrupados en vez de repartidos por la barra.
+
+      `sm:ml-auto` y no solo el `justify-between` del padre: mientras carga no
+      hay recuento a la izquierda, y con un solo hijo `justify-between` lo deja
+      pegado al principio. Se veía: el botón de actualizar aparecía a media
+      barra y saltaba a la derecha al llegar los datos.
+    -->
+    <div class="flex items-center gap-3 sm:ml-auto sm:justify-end">
     @if (muestraBuscador) {
     <div class="relative w-full sm:w-80">
       <span
