@@ -21,6 +21,10 @@
     <ng-content />
   </span>
 
+  @if (estadoEnPalabras) {
+  <span class="sr-only">{{ estadoEnPalabras }}</span>
+  }
+
   @if (muestraIcono) {
   <span class="absolute inset-0 flex items-center justify-center" [class]="clasesIcono">
     @switch (estado) {

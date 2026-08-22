@@ -33,6 +33,16 @@ export type VarianteBoton = 'primario' | 'secundario' | 'peligro' | 'icono';
  * vuelve invisible, con el icono superpuesto en el centro. Sustituyéndola, el
  * botón se encogería a la anchura del icono y todo lo que tiene al lado daría
  * un salto — justo en el instante en que el usuario está mirando ahí.
+ *
+ * <p>Por eso el resultado se dice con un icono y no con un texto
+ * —«Guardado», «No se guardó»—. Un texto de estado obliga a elegir entre dos
+ * males: o el botón cambia de ancho al cambiar de estado, o se reserva desde el
+ * principio el ancho del texto más largo y entonces «Guardar» mide siempre lo
+ * que mide «No se guardó». El icono no plantea ninguna de las dos. Lo que hay
+ * que leer va en el aviso flotante, que tiene sitio para decirlo.
+ *
+ * <p>El estado sí se dice con palabras a quien usa un lector de pantalla, donde
+ * no hay ancho que respetar y un icono no se anuncia.
  */
 @Component({
   selector: 'app-boton',
@@ -69,6 +79,24 @@ export class BotonComponent {
 
   get muestraIcono(): boolean {
     return this.estado !== 'reposo';
+  }
+
+  /**
+   * El estado en palabras, solo para lectores de pantalla.
+   *
+   * <p>Sin esto, el resultado de la acción es un icono y un color: nada que se
+   * pueda anunciar. {@code aria-busy} cubre la espera —y por eso {@code
+   * cargando} no aparece aquí— pero no dice cómo acabó.
+   *
+   * <p>No es una región activa a propósito. El aviso flotante ya interrumpe con
+   * el resultado, y dos regiones anunciando lo mismo a la vez se pisan. Esto se
+   * lee cuando el foco vuelve al botón, que es cuando hace falta.
+   */
+  get estadoEnPalabras(): string {
+    if (this.estado === 'exito') {
+      return 'Listo';
+    }
+    return this.estado === 'error' ? 'No se pudo completar' : '';
   }
 
   get clases(): string {

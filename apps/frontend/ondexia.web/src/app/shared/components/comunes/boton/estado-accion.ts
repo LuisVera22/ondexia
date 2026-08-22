@@ -1,8 +1,19 @@
 import { signal } from '@angular/core';
 import { EstadoBoton } from './boton.component';
 
-/** Cuánto se queda a la vista el resultado antes de volver a reposo. */
-const MS_RESULTADO = 1600;
+/**
+ * Cuánto se queda a la vista el resultado antes de volver a reposo.
+ *
+ * <p>El fallo dura más, y no es un número redondeado a ojo: un acierto solo
+ * confirma lo que el usuario ya esperaba y se lee de un vistazo, mientras que un
+ * fallo hay que leerlo y decidir qué hacer. Si desaparece antes, la única salida
+ * es repetir la acción para volver a verlo.
+ *
+ * <p>Es la misma proporción que ya usaban los avisos flotantes —4 s el acierto,
+ * 9 s el error— y que aquí faltaba: el botón daba 1,6 s a los dos.
+ */
+const MS_EXITO = 1350;
+const MS_ERROR = 1900;
 
 /**
  * La secuencia reposo → cargando → resultado → reposo, en un solo sitio.
@@ -43,11 +54,11 @@ export function accionConEstado<T>(tarea: () => Promise<T>): AccionConEstado<T> 
   let temporizador: ReturnType<typeof setTimeout> | null = null;
   let enCurso = false;
 
-  const aReposoTrasResultado = () => {
+  const aReposoTrasResultado = (ms: number) => {
     if (temporizador) {
       clearTimeout(temporizador);
     }
-    temporizador = setTimeout(() => estado.set('reposo'), MS_RESULTADO);
+    temporizador = setTimeout(() => estado.set('reposo'), ms);
   };
 
   return {
@@ -72,14 +83,16 @@ export function accionConEstado<T>(tarea: () => Promise<T>): AccionConEstado<T> 
       try {
         const resultado = await tarea();
         estado.set('exito');
-        aReposoTrasResultado();
+        aReposoTrasResultado(MS_EXITO);
         return resultado;
       } catch {
         // El estado de error es la única señal que da esta función. El mensaje
         // lo pone la tarea, con el aviso que corresponda: aquí no se sabe si
         // el fallo fue de red, de validación o de permisos.
+        // El botón vuelve a estar disponible: bloquearlo tras el fallo castiga
+        // al usuario por un problema que casi nunca es suyo.
         estado.set('error');
-        aReposoTrasResultado();
+        aReposoTrasResultado(MS_ERROR);
         return undefined;
       } finally {
         enCurso = false;
