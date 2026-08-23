@@ -6,11 +6,31 @@
   />
 
   <!--
-  No hay botón de «Agregar empresa», y no es un olvido: dar de alta un RUC
-  afecta a la suscripción y se hace desde la administración de la cuenta.
-  Un botón aquí acabaría en un 404 o, peor, en una pantalla que promete
-  algo que este módulo no puede cumplir.
+    El botón aparece solo si el plan admite otra empresa.
+    Se consulta al servidor y no se deduce del número de filas: el listado son
+    las empresas que ESTE usuario alcanza, y el límite es de las de la cuenta.
   -->
+  @if (cupo(); as limites) {
+  <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+      @if (limites.maxEmpresas === null) {
+      Tu plan no limita el número de empresas.
+      } @else {
+      {{ limites.empresasUsadas }} de {{ limites.maxEmpresas }} empresas de tu plan.
+      }
+    </p>
+
+    @if (limites.cabeOtra) {
+    <app-boton ruta="/configuracion/empresas/nueva" icono="mas">Agregar empresa</app-boton>
+    } @else {
+    <!--
+      Sin botón, y con el motivo al lado. Un botón deshabilitado sin explicación
+      hace que alguien lo pulse tres veces antes de escribir a soporte.
+    -->
+    <p class="text-sm text-gray-500 dark:text-gray-400">{{ limites.motivo }}</p>
+    }
+  </div>
+  }
 
   <!--
     La carga la pinta la propia tabla. Antes se sustituía la tarjeta entera por

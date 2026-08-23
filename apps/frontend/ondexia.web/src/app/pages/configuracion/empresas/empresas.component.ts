@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
+import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
 import {
   AccionDeFila,
   ColumnaTabla,
@@ -8,6 +9,7 @@ import {
 } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import {
   ConfiguracionApiService,
+  CupoDeEmpresas,
   Empresa,
   mensajeDeError,
 } from '../../../nucleo/configuracion.api.service';
@@ -33,10 +35,23 @@ import { ContextoService } from '../../../shared/services/contexto.service';
  * <p>{@code ContextoService.empresas()} trae los mismos identificadores y
  * costaría cero, pero solo el nombre y el RUC: ni el domicilio, ni el modo
  * SUNAT, ni si la empresa está activa. Media tabla quedaría vacía.
+ *
+ * <h2>El botón de alta depende del plan, y se consulta</h2>
+ *
+ * <p>Aquí decía que no había botón porque el alta «se hace desde la
+ * administración de la cuenta». Allí tampoco estaba: no existía {@code POST} en
+ * ninguna parte, así que una cuenta del plan de dos empresas no podía crear la
+ * segunda por ningún camino.
+ *
+ * <p>Ahora está, y su estado sale de {@code GET /empresas/cupo}. Se pide el cupo
+ * en lugar de deducirlo de la longitud del listado, y la diferencia importa: el
+ * listado son las empresas que <em>este usuario</em> alcanza, y el límite es de
+ * las de la cuenta. Alguien con acceso a una de tres vería sitio donde no lo
+ * hay.
  */
 @Component({
   selector: 'app-empresas',
-  imports: [EncabezadoPaginaComponent, TablaDatosComponent],
+  imports: [EncabezadoPaginaComponent, TablaDatosComponent, BotonComponent],
   templateUrl: './empresas.component.html',
 })
 export class EmpresasComponent {
@@ -69,6 +84,15 @@ export class EmpresasComponent {
   readonly cargando = signal(true);
 
   /**
+   * El cupo del plan. Nulo mientras se pide, o si falló.
+   *
+   * <p>Su fallo no bloquea el listado: son dos peticiones independientes y no
+   * poder decir cuántas empresas caben no es motivo para no enseñar las que hay.
+   * El botón simplemente no aparece.
+   */
+  readonly cupo = signal<CupoDeEmpresas | null>(null);
+
+  /**
    * El fallo al cargar el listado, que se pinta en lugar de la tabla.
    *
    * <p>No va a un aviso flotante: un aviso deja la tabla vacía debajo sin
@@ -79,6 +103,17 @@ export class EmpresasComponent {
 
   constructor() {
     void this.cargar();
+    void this.cargarCupo();
+  }
+
+  private async cargarCupo(): Promise<void> {
+    try {
+      this.cupo.set(await this.api.cupoDeEmpresas());
+    } catch {
+      // Sin cupo no se ofrece el alta. Un boton que lleva a una pantalla que va
+      // a rechazar la operacion es peor que no tener boton.
+      this.cupo.set(null);
+    }
   }
 
   /**
@@ -96,6 +131,9 @@ export class EmpresasComponent {
     this.cargando.set(true);
     this.error.set(null);
     try {
+      // Se refresca tambien el cupo: si se acaba de registrar una empresa, el
+      // numero de usadas cambio y el boton tiene que reflejarlo.
+      void this.cargarCupo();
       const empresas = await this.api.empresas();
       const activaId = this.contexto.empresaActiva()?.id;
 

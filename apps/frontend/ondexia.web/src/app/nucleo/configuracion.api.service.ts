@@ -16,19 +16,75 @@ export interface Empresa {
   readonly id: string;
   /** No se puede cambiar: identifica al contribuyente en los comprobantes emitidos. */
   readonly ruc: string;
+
+  // ── Lo que dice SUNAT. Nada de esto se edita ──────────────────────────────
+  //
+  // No es una convención de la interfaz: el `PUT` no acepta estos campos, así
+  // que un cuerpo que los traiga los pierde. Para cambiarlos hay que volver a
+  // consultar el padrón (`verificarEmpresa`).
+
   readonly razonSocial: string;
-  readonly nombreComercial: string | null;
   readonly domicilioFiscal: string;
   readonly ubigeo: string | null;
+  readonly distrito: string | null;
+  readonly provincia: string | null;
+  readonly departamento: string | null;
+
+  /**
+   * `null` significa **nunca se comprobó**, que no es lo mismo que «está mal».
+   *
+   * Las empresas dadas de alta antes de que existiera la consulta del padrón lo
+   * tienen vacío, y la pantalla necesita distinguirlo para ofrecer comprobarlo
+   * en vez de acusar.
+   */
+  readonly estado: string | null;
+  readonly condicion: string | null;
+  readonly verificadoEn: string | null;
+  readonly tipoSocietario: string | null;
+  readonly esAgenteRetencion: boolean;
+  readonly esBuenContribuyente: boolean;
+
+  // ── Lo nuestro ────────────────────────────────────────────────────────────
+
+  readonly nombreComercial: string | null;
+  readonly cuentaDetracciones: string | null;
+
   readonly modoSunat: string;
   readonly activa: boolean;
+
+  /**
+   * Qué campos acepta el `PUT`, según el servidor.
+   *
+   * Se usa en lugar de repetir la lista aquí: dos implementaciones de «qué es
+   * editable» acabarían discrepando, y la que manda es la del backend.
+   */
+  readonly editable: readonly string[];
 }
 
+/** Lo único editable: ni razón social, ni domicilio, ni ubigeo. */
 export interface DatosEmpresa {
-  readonly razonSocial: string;
   readonly nombreComercial: string | null;
-  readonly domicilioFiscal: string;
-  readonly ubigeo: string | null;
+  readonly cuentaDetracciones: string | null;
+}
+
+/** Lo que hace falta para dar de alta una empresa: la firma y lo nuestro. */
+export interface AltaDeEmpresa {
+  readonly atestacion: string;
+  readonly nombreComercial: string | null;
+  readonly cuentaDetracciones: string | null;
+}
+
+/**
+ * Cuántas empresas admite el plan y cuántas hay.
+ *
+ * `maxEmpresas` nulo es **sin límite** —el plan a demanda—, no cero.
+ */
+export interface CupoDeEmpresas {
+  readonly maxEmpresas: number | null;
+  readonly empresasUsadas: number;
+  readonly cabeOtra: boolean;
+  /** Por qué no cabe, con las cifras dentro. Nulo si cabe. */
+  readonly motivo: string | null;
 }
 
 export interface Establecimiento {
@@ -232,6 +288,38 @@ export class ConfiguracionApiService {
    */
   guardarEmpresa(datos: DatosEmpresa): Promise<Empresa> {
     return firstValueFrom(this.http.put<Empresa>(`${this.base}/empresa`, datos));
+  }
+
+  /**
+   * Trae del padrón lo que no se puede editar.
+   *
+   * <p>Sirve para refrescar una empresa cuando su razón social cambia en SUNAT,
+   * y para verificar por primera vez una creada en el onboarding antiguo, cuyos
+   * datos los tecleó una persona.
+   *
+   * <p>Opera sobre la empresa **activa**, por lo mismo que `guardarEmpresa`: la
+   * bitácora archiva el cambio bajo ella.
+   */
+  verificarEmpresa(atestacion: string): Promise<Empresa> {
+    return firstValueFrom(
+      this.http.post<Empresa>(`${this.base}/empresa/verificacion`, { atestacion })
+    );
+  }
+
+  /** Da de alta una empresa más. Requiere ser administrador de la cuenta. */
+  registrarEmpresa(datos: AltaDeEmpresa): Promise<Empresa> {
+    return firstValueFrom(this.http.post<Empresa>(`${this.base}/empresas`, datos));
+  }
+
+  /**
+   * El cupo del plan, para decidir si se enseña el botón de alta.
+   *
+   * <p>Se consulta antes de ofrecer el formulario. Sin esto, la única forma de
+   * saber que no cabe otra empresa es rellenarlo entero y leer el error al
+   * enviarlo.
+   */
+  cupoDeEmpresas(): Promise<CupoDeEmpresas> {
+    return firstValueFrom(this.http.get<CupoDeEmpresas>(`${this.base}/empresas/cupo`));
   }
 
   establecimientos(): Promise<Establecimiento[]> {

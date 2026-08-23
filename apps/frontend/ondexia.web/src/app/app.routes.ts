@@ -12,6 +12,7 @@ import { RecuperarComponent } from './pages/acceso/recuperar/recuperar.component
 import { SinPermisosComponent } from './pages/acceso/sin-permisos/sin-permisos.component';
 import { EmpresasComponent } from './pages/configuracion/empresas/empresas.component';
 import { EmpresaComponent } from './pages/configuracion/empresa/empresa.component';
+import { NuevaEmpresaComponent } from './pages/configuracion/empresas/nueva-empresa.component';
 import { IdentidadComponent } from './pages/configuracion/identidad/identidad.component';
 import { EstablecimientosComponent } from './pages/configuracion/establecimientos/establecimientos.component';
 import { FichaEstablecimientoComponent } from './pages/configuracion/establecimientos/ficha-establecimiento.component';
@@ -176,6 +177,9 @@ export const routes: Routes = [
       // cualquier pestaña abierta y en los marcadores de quien ya la usaba.
       { path: 'configuracion/empresa', redirectTo: 'configuracion/empresas', pathMatch: 'full' },
       { path: 'configuracion/empresas', component: EmpresasComponent, title: `Empresas | ${TITULO}` },
+      // ANTES de ':id', o el parametro se comeria la palabra «nueva» y esta
+      // pantalla abriria la ficha de una empresa con ese identificador.
+      { path: 'configuracion/empresas/nueva', component: NuevaEmpresaComponent, title: `Registrar empresa | ${TITULO}` },
       { path: 'configuracion/empresas/:id', component: EmpresaComponent, title: `Datos de la empresa | ${TITULO}`, canDeactivate: [salidaConCambios] },
       { path: 'configuracion/identidad', component: IdentidadComponent, title: `Identidad visual | ${TITULO}` },
       { path: 'configuracion/establecimientos', component: EstablecimientosComponent, title: `Establecimientos | ${TITULO}` },
