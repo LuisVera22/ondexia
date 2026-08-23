@@ -45,6 +45,17 @@ export class SelectorContextoComponent {
     return this.establecimientos.length > 1;
   }
 
+  /**
+   * Si nada se puede elegir, el contexto se pinta como texto y sin recuadro.
+   *
+   * El borde es la promesa de que ahi se pulsa. Con una sola empresa y un solo
+   * establecimiento no hay nada que pulsar, y el recuadro invitaba a intentarlo
+   * — que es la version silenciosa de un boton roto.
+   */
+  get hayAlgoQueElegir(): boolean {
+    return this.empresaEsSeleccionable || this.establecimientoEsSeleccionable;
+  }
+
   alternar(cual: 'empresa' | 'establecimiento'): void {
     this.desplegado = this.desplegado === cual ? null : cual;
   }
@@ -64,5 +75,17 @@ export class SelectorContextoComponent {
     if (!this.elemento.nativeElement.contains(evento.target)) {
       this.desplegado = null;
     }
+  }
+
+  /**
+   * Escape cierra la lista sin elegir.
+   *
+   * Faltaba, y es la unica salida de quien navega con el teclado: sin ella,
+   * abierto el desplegable, la tabulacion recorre las empresas una por una
+   * hasta salir por el final.
+   */
+  @HostListener('keydown.escape')
+  alPulsarEscape(): void {
+    this.desplegado = null;
   }
 }

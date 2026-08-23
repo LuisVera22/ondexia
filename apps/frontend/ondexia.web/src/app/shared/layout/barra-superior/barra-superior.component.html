@@ -1,11 +1,16 @@
 <header class="sticky top-0 z-30 flex w-full border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-  <div class="flex w-full items-center gap-3 px-4 py-3 md:px-6">
+  <div class="flex h-barra w-full items-center gap-3 px-4 md:px-6">
+    <!--
+      Sin borde, igual que el del tema. Son utilidades, no datos: el borde se
+      reserva para el buscador y el selector de contexto, que es lo que hay que
+      encontrar primero en esta barra.
+    -->
     <!-- Plegar el menú -->
     <button
       type="button"
       (click)="alternarMenu()"
       aria-label="Plegar o desplegar el menú"
-      class="flex size-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-700 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+      class="flex size-10 shrink-0 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.06] dark:hover:text-gray-200"
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
         <path d="M4 6h16M4 12h16M4 18h16" />
@@ -49,7 +54,7 @@
         type="button"
         (click)="tema.alternar()"
         [attr.aria-label]="tema.tema() === 'oscuro' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'"
-        class="flex size-10 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition hover:bg-gray-50 hover:text-gray-700 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+        class="flex size-10 shrink-0 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.06] dark:hover:text-gray-200"
       >
         @if (tema.tema() === 'oscuro') {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
@@ -63,6 +68,13 @@
         }
       </button>
 
+      <!--
+        La cuenta no es una utilidad más de la fila: el separador la despega de
+        lo que se pulsa a diario para no leer cinco controles seguidos como una
+        cola sin jerarquia.
+      -->
+      <span class="mx-0.5 h-6 w-px shrink-0 bg-gray-200 dark:bg-gray-800" aria-hidden="true"></span>
+
       <!-- Menú del usuario -->
       <div class="relative">
         <button
@@ -71,12 +83,12 @@
           [attr.aria-expanded]="menuUsuarioAbierto()"
           aria-haspopup="menu"
           aria-label="Menú del usuario"
-          class="flex items-center gap-2 rounded-lg p-1 transition hover:bg-gray-50 dark:hover:bg-white/[0.03]"
+          class="flex h-10 items-center gap-2 rounded-lg pl-1 pr-1.5 transition hover:bg-gray-100 dark:hover:bg-white/[0.06]"
         >
-          <span class="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-500 text-menudo font-semibold text-white">
+          <span class="flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-500 text-menudo font-semibold text-white">
             {{ iniciales() }}
           </span>
-          <span class="hidden text-dato font-medium text-gray-700 dark:text-gray-300 sm:block">
+          <span class="hidden max-w-36 truncate text-dato font-medium text-gray-700 dark:text-gray-300 sm:block">
             {{ nombreCorto() }}
           </span>
           <svg

@@ -4,8 +4,12 @@
   (mouseenter)="menu.sobrevolar(true)"
   (mouseleave)="menu.sobrevolar(false)"
 >
-  <!-- Marca -->
-  <div class="flex py-8" [class.justify-center]="!muestraTexto">
+  <!--
+    La banda de la marca mide lo mismo que la barra superior —`h-barra`— para
+    que el logo y los controles del encabezado queden en la misma linea. Antes
+    era `py-8`, que con el logo dentro daba 104 px contra los 64 de la barra.
+  -->
+  <div class="flex h-barra shrink-0 items-center" [class.justify-center]="!muestraTexto">
     <a routerLink="/" (click)="alNavegar()" aria-label="Ir al panel">
       @if (muestraTexto) {
       <img class="dark:hidden" src="/images/logo/logo.svg" alt="Ondexia" width="150" height="40" />
@@ -16,7 +20,7 @@
     </a>
   </div>
 
-  <nav class="flex flex-col gap-6 overflow-y-auto pb-6 sin-barra">
+  <nav class="flex flex-col gap-6 overflow-y-auto pb-6 pt-5 sin-barra">
     @for (grupo of grupos(); track grupo.titulo) {
     <div>
       <h2
