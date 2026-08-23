@@ -23,14 +23,14 @@
       </p>
     </div>
 
-    <div class="flex shrink-0 items-center gap-3">
+    <div class="flex flex-wrap items-center gap-3">
       <!--
         «Registrar compra» y no «Nueva compra»: lo que se hace aquí es anotar la
         factura del proveedor que ya llegó, para el crédito fiscal. Una compra
         «nueva» sería la orden de compra, que es otro momento del ciclo y otro
         módulo.
       -->
-      <app-boton variante="secundario" icono="mas" ruta="/compras/facturas/nueva">
+      <app-boton class="shrink-0" variante="secundario" icono="mas" ruta="/compras/facturas/nueva">
         Registrar compra
       </app-boton>
 
@@ -42,7 +42,7 @@
         menú de dos opciones la hace explícita y, con el apunte del documento de
         identidad, la explica de paso.
       -->
-      <div class="relative">
+      <div class="relative shrink-0">
         <app-boton
           icono="mas"
           [abreMenu]="true"

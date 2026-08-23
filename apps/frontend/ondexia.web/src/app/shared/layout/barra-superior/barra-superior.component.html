@@ -1,5 +1,5 @@
 <header class="flex w-full border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
-  <div class="flex h-barra w-full items-center gap-3 px-4 md:px-6">
+  <div class="relative flex h-barra w-full items-center gap-3 px-4 md:px-6">
     <!--
       Sin borde, igual que el del tema. Son utilidades, no datos: el borde se
       reserva para el buscador y el selector de contexto, que es lo que hay que
@@ -20,24 +20,23 @@
     <!--
       La marca solo en móvil: en escritorio ya está en el menú lateral.
 
-      Y por debajo de 640 px, solo el símbolo. El logotipo completo se lleva 120
-      de los 375 px de un teléfono, y lo que queda no alcanza para el contexto
-      de trabajo, el tema y la cuenta. El símbolo cuesta 32 y conserva el enlace
-      al panel; el nombre completo sigue estando en el menú lateral, que en móvil
-      es justo lo que abre el botón de al lado.
+      Centrada de forma absoluta y no con espaciadores flexibles: los dos lados
+      no miden lo mismo —hamburguesa a la izquierda, botón compacto a la
+      derecha— y con `justify-between` el logotipo quedaría descentrado tanto
+      como difieran. Con `left-1/2` y el desplazamiento de media anchura queda en
+      el centro de la barra sin depender de lo que tenga a los lados.
 
-      Dos envoltorios y no variantes combinadas en el `class` del `img`:
-      `hidden sm:block dark:hidden` deja el resultado a merced del orden en que
-      el empaquetador emita las dos reglas, que tienen el mismo peso.
+      Desde `md` vuelve al flujo, a la izquierda. Ahí los controles del contexto
+      ocupan la mitad derecha y un logotipo centrado se les metería encima: a
+      768 px el centro cae en el píxel 380 y el grupo empieza en el 380.
     -->
-    <a routerLink="/" class="shrink-0 xl:hidden" aria-label="Ir al panel">
-      <span class="block sm:hidden">
-        <img src="/images/logo/logo-icon.svg" alt="Ondexia" width="32" height="32" />
-      </span>
-      <span class="hidden sm:block">
-        <img class="dark:hidden" src="/images/logo/logo.svg" alt="Ondexia" width="120" height="32" />
-        <img class="hidden dark:block" src="/images/logo/logo-dark.svg" alt="Ondexia" width="120" height="32" />
-      </span>
+    <a
+      routerLink="/"
+      class="absolute left-1/2 shrink-0 -translate-x-1/2 md:static md:left-auto md:translate-x-0 xl:hidden"
+      aria-label="Ir al panel"
+    >
+      <img class="dark:hidden" src="/images/logo/logo.svg" alt="Ondexia" width="120" height="32" />
+      <img class="hidden dark:block" src="/images/logo/logo-dark.svg" alt="Ondexia" width="120" height="32" />
     </a>
 
     <!--

@@ -143,7 +143,7 @@ export class BotonComponent {
 
   get clases(): string {
     const base =
-      'relative inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium' +
+      'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium' +
       ' transition disabled:cursor-not-allowed disabled:opacity-60';
 
     if (this.variante === 'icono') {
@@ -157,11 +157,11 @@ export class BotonComponent {
     // leerse sobre fondo oscuro, y un rojo claro con texto blanco encima no se
     // lee. El boton se queda con el tono que si aguanta el texto blanco.
     return (
-      `${base} px-4 py-2.5 bg-error-500 text-white hover:bg-error-600` +
+      `${base} px-4 py-2.5 border border-transparent bg-error-500 text-white hover:bg-error-600` +
       ' dark:bg-error-600 dark:hover:bg-error-700'
     );
     }
-    return `${base} px-4 py-2.5 bg-brand-500 text-white hover:bg-brand-600`;
+    return `${base} px-4 py-2.5 border border-transparent bg-brand-500 text-white hover:bg-brand-600`;
   }
 
   /**
