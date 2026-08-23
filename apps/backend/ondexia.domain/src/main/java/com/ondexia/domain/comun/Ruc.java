@@ -19,9 +19,9 @@ public record Ruc(String valor) {
      * Pesos del algoritmo de SUNAT, aplicados a los diez primeros dígitos.
      *
      * <p>No es un invento nuestro: es el mismo dígito verificador que usa el
-     * padrón. Comprobarlo en local no dice que el RUC exista —para eso haría
-     * falta consultar a SUNAT, y la Lambda no tiene salida a internet
-     * (DTE §4.8)— pero ataja la errata de tecleo, que es el error frecuente.
+     * padrón. Comprobarlo en local no dice que el RUC exista —para eso está
+     * {@code ConsultaDeRuc}— pero ataja la errata de tecleo, que es el error
+     * frecuente, y ahorra una llamada de red por cada una.
      */
     private static final int[] PESOS = {5, 4, 3, 2, 7, 6, 5, 4, 3, 2};
 
