@@ -1,76 +1,4 @@
 <!--
-  Disposicion en lista, para cuando el selector vive dentro de otro menu — la
-  barra compacta del movil.
-
-  Es el mismo componente y no una copia del listado en la barra superior: aqui
-  esta la regla de cuando un nivel se puede elegir y cuando es un dato fijo, y
-  duplicarla garantiza que un dia las dos versiones digan cosas distintas. Lo
-  unico que cambia es la forma: sin desplegables, porque ya estamos dentro de
-  uno, y en vertical, que es como se lee en un telefono.
--->
-@if (disposicion === 'lista') {
-<div class="flex flex-col">
-  <p class="px-2.5 pb-1 pt-1.5 text-menudo font-medium uppercase text-gray-400 dark:text-gray-500">Empresa</p>
-
-  @if (empresaEsSeleccionable) {
-  @for (opcion of empresas; track opcion.id) {
-      <button
-        type="button"
-        role="menuitemradio"
-        [attr.aria-checked]="opcion.id === empresaActiva?.id"
-        (click)="elegirEmpresa(opcion)"
-        class="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left transition hover:bg-gray-100 dark:hover:bg-white/[0.06]"
-      >
-        <span class="min-w-0 flex-1">
-          <span class="block truncate text-dato text-gray-800 dark:text-white/90">{{ opcion.nombre }}</span>
-          @if (opcion.detalle) {
-          <span class="block truncate text-menudo text-gray-500 dark:text-gray-400">{{ opcion.detalle }}</span>
-          }
-        </span>
-        @if (opcion.id === empresaActiva?.id) {
-        <svg class="size-4 shrink-0 text-brand-500" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="m5 12.5 4.5 4.5L19 7" />
-        </svg>
-        }
-      </button>
-  }
-  } @else {
-  <p class="px-2.5 pb-1 text-dato text-gray-800 dark:text-white/90">{{ empresaActiva?.nombre }}</p>
-  }
-
-  @if (establecimientos.length) {
-  <p class="px-2.5 pb-1 pt-1.5 text-menudo font-medium uppercase text-gray-400 dark:text-gray-500">Establecimiento</p>
-
-  @if (establecimientoEsSeleccionable) {
-  @for (opcion of establecimientos; track opcion.id) {
-      <button
-        type="button"
-        role="menuitemradio"
-        [attr.aria-checked]="opcion.id === establecimientoActivo?.id"
-        (click)="elegirEstablecimiento(opcion)"
-        class="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left transition hover:bg-gray-100 dark:hover:bg-white/[0.06]"
-      >
-        <span class="min-w-0 flex-1">
-          <span class="block truncate text-dato text-gray-800 dark:text-white/90">{{ opcion.nombre }}</span>
-          @if (opcion.detalle) {
-          <span class="block truncate text-menudo text-gray-500 dark:text-gray-400">{{ opcion.detalle }}</span>
-          }
-        </span>
-        @if (opcion.id === establecimientoActivo?.id) {
-        <svg class="size-4 shrink-0 text-brand-500" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="m5 12.5 4.5 4.5L19 7" />
-        </svg>
-        }
-      </button>
-  }
-  } @else {
-  <p class="px-2.5 pb-1 text-dato text-gray-800 dark:text-white/90">{{ establecimientoActivo?.nombre }}</p>
-  }
-  }
-</div>
-} @else {
-
-<!--
   Empresa y establecimiento son un solo dato —el contexto de trabajo—, así que
   van en un solo control segmentado y no en dos cajas con un punto suelto entre
   ellas. Con dos bordes independientes se leían como dos ajustes sin relación, y
@@ -125,7 +53,7 @@
       role="menu"
       aria-label="Empresa"
       animate.enter="menu-entra"
-      class="absolute left-0 top-full z-50 mt-2 w-64 rounded-xl border border-gray-200 bg-white p-1.5 shadow-flotante dark:border-gray-700 dark:bg-gray-900"
+      class="absolute left-0 top-full z-50 mt-2 w-56 rounded-xl sm:w-64 border border-gray-200 bg-white p-1.5 shadow-flotante dark:border-gray-700 dark:bg-gray-900"
     >
       <!--
         El título dice de qué es la lista. Es el sitio donde cabe la palabra
@@ -216,7 +144,7 @@
       role="menu"
       aria-label="Establecimiento"
       animate.enter="menu-entra"
-      class="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-gray-200 bg-white p-1.5 shadow-flotante dark:border-gray-700 dark:bg-gray-900"
+      class="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl sm:w-64 border border-gray-200 bg-white p-1.5 shadow-flotante dark:border-gray-700 dark:bg-gray-900"
     >
       <p class="px-2.5 pb-1.5 pt-1 text-menudo font-medium uppercase text-gray-400 dark:text-gray-500">
         Establecimiento
@@ -252,5 +180,3 @@
   </div>
   }
 </div>
-
-}

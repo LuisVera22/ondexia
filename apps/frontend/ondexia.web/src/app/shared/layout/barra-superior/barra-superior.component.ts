@@ -52,14 +52,15 @@ export class BarraSuperiorComponent {
   readonly menuUsuarioAbierto = signal(false);
 
   /**
-   * El menu compacto del movil: contexto, tema y cuenta en uno.
+   * La segunda fila del movil, donde caben los controles que arriba no caben.
    *
-   * <p>Estado propio y no el mismo que el del menu de usuario: son dos
-   * disparadores distintos y solo uno esta a la vista en cada ancho, pero
-   * compartir la senal significaria que abrir uno deja el otro marcado como
-   * expandido, y `aria-expanded` acabaria mintiendo en el que no se ve.
+   * <p>No es un menu: es una region del encabezado que se muestra y se esconde,
+   * y dentro cada control sigue siendo el que es. Por eso no se cierra al
+   * pulsar fuera ni con Escape — eso vale para lo que flota encima del
+   * contenido, no para una franja que forma parte de la pagina. Se recoge con
+   * el mismo boton que la desplego.
    */
-  readonly menuCompactoAbierto = signal(false);
+  readonly filaExtraAbierta = signal(false);
 
   /**
    * Cambiar de empresa recarga el contexto entero, permisos incluidos.
@@ -122,20 +123,12 @@ export class BarraSuperiorComponent {
     this.menuUsuarioAbierto.update((abierto) => !abierto);
   }
 
-  alternarMenuCompacto(): void {
-    this.menuCompactoAbierto.update((abierto) => !abierto);
+  cerrarMenuUsuario(): void {
+    this.menuUsuarioAbierto.set(false);
   }
 
-  /**
-   * Cierra los dos.
-   *
-   * <p>Lo llaman las entradas de la cuenta, que viven en una plantilla
-   * compartida y por tanto no saben desde que menu se las esta pulsando.
-   * Cerrar el que ya estaba cerrado no cuesta nada.
-   */
-  cerrarMenus(): void {
-    this.menuUsuarioAbierto.set(false);
-    this.menuCompactoAbierto.set(false);
+  alternarFilaExtra(): void {
+    this.filaExtraAbierta.update((abierta) => !abierta);
   }
 
   /** El botón de plegado alterna el cajón en móvil y el ancho en escritorio. */
@@ -147,26 +140,18 @@ export class BarraSuperiorComponent {
     }
   }
 
-  async elegirEmpresaYCerrar(empresa: OpcionContexto): Promise<void> {
-    this.cerrarMenus();
-    await this.elegirEmpresa(empresa);
-  }
-
-  elegirEstablecimientoYCerrar(establecimiento: OpcionContexto): void {
-    this.cerrarMenus();
-    this.contexto.cambiarEstablecimiento(establecimiento);
-  }
-
   @HostListener('document:pointerdown', ['$event'])
   alPulsarFuera(evento: PointerEvent): void {
-    const hayAlgunoAbierto = this.menuUsuarioAbierto() || this.menuCompactoAbierto();
-    if (hayAlgunoAbierto && !this.anfitrion.nativeElement.contains(evento.target as Node)) {
-      this.cerrarMenus();
+    if (
+      this.menuUsuarioAbierto() &&
+      !this.anfitrion.nativeElement.contains(evento.target as Node)
+    ) {
+      this.cerrarMenuUsuario();
     }
   }
 
   @HostListener('document:keydown.escape')
   alPulsarEscape(): void {
-    this.cerrarMenus();
+    this.cerrarMenuUsuario();
   }
 }
