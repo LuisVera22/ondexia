@@ -9,6 +9,26 @@ spring:
     # esas migraciones no existen para Flyway y no hay riesgo de que se cuelen.
     locations: classpath:db/migration,classpath:db/local
 
+    # SOLO EN LOCAL, y es consecuencia directa de la linea de arriba.
+    #
+    # Los datos de ejemplo son la version 900 para quedar siempre al final. El
+    # efecto colateral es que, una vez aplicados, CUALQUIER migracion nueva tiene
+    # un numero menor que la ultima aplicada — y Flyway lo llama «fuera de orden»
+    # y se niega a arrancar:
+    #
+    #   Detected resolved migration not applied to database: 12
+    #
+    # No es un aviso sobre nada real aqui: la 900 solo inserta filas de ejemplo,
+    # y una migracion de esquema posterior se aplica igual de bien. La
+    # alternativa era borrar la base local en cada migracion nueva, que es perder
+    # los datos con los que uno estaba trabajando.
+    #
+    # En dev y prod NO se activa, y ahi si importa: sin la carpeta de ejemplos no
+    # existe la 900, el orden es el natural, y permitir aplicar migraciones fuera
+    # de secuencia sobre datos fiscales seria justo la clase de cosa que esta
+    # validacion existe para impedir.
+    out-of-order: true
+
   jpa:
     properties:
       hibernate:
