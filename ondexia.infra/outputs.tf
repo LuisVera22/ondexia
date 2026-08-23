@@ -63,6 +63,22 @@ output "configuracion_spa" {
   TEXTO
   value = {
     api = var.gestionar_dns ? "https://api.${var.dominio}" : aws_apigatewayv2_api.principal.api_endpoint
+
+    /**
+     * El MISMO origen que la API, y no es redundante.
+     *
+     * Desplegado, la consulta del padrón es una ruta más de la misma pasarela
+     * (consultas.tf), así que la URL coincide. En local no: la sirve
+     * ondexia.consultas.ServidorLocal en otro puerto, porque la API de Spring no
+     * tiene esa ruta ni debe tenerla — desplegada no puede salir a internet.
+     *
+     * Con la clave siempre presente, el SPA lee una sola cosa y no distingue los
+     * dos casos. Sin ella, el código tendría que decidir cuándo usar `api` y
+     * cuándo otra cosa, que es la clase de rama que se prueba en un entorno y
+     * falla en el otro.
+     */
+    consultas = var.gestionar_dns ? "https://api.${var.dominio}" : aws_apigatewayv2_api.principal.api_endpoint
+
     cognito = {
       dominio   = "https://${aws_cognito_user_pool_domain.inquilinos.domain}.auth.${var.region}.amazoncognito.com"
       clienteId = aws_cognito_user_pool_client.spa.id
