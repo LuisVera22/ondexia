@@ -10,6 +10,7 @@ import {
   signal,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { posicionFlotante } from '../panel-flotante/posicion-flotante';
 
 export interface OpcionDesplegable {
   valor: string;
@@ -85,6 +86,16 @@ export class DesplegableComponent implements ControlValueAccessor, OnDestroy {
   @Input() alto: AltoDesplegable = 'normal';
 
   @ViewChild('disparador') disparador?: ElementRef<HTMLButtonElement>;
+
+  /** El panel, mientras existe: sin medirlo no se puede recortar por la derecha. */
+  private panel?: ElementRef<HTMLElement>;
+
+  @ViewChild('panel') set panelAparecido(ref: ElementRef<HTMLElement> | undefined) {
+    this.panel = ref;
+    if (ref) {
+      this.calcularPosicion();
+    }
+  }
 
   abierto = signal(false);
   resaltada = signal(-1);
@@ -313,19 +324,17 @@ export class DesplegableComponent implements ControlValueAccessor, OnDestroy {
     if (!boton) {
       return;
     }
-    const marco = boton.getBoundingClientRect();
-    const debajo = window.innerHeight - marco.bottom;
-    const haciaArriba = debajo < ALTO_MAXIMO_PANEL && marco.top > debajo;
-
-    this.posicion.set({
-      position: 'fixed',
-      left: `${marco.left}px`,
-      [haciaArriba ? 'bottom' : 'top']: haciaArriba
-        ? `${window.innerHeight - marco.top + 4}px`
-        : `${marco.bottom + 4}px`,
-      [this.ancho === 'contenido' ? 'min-width' : 'width']: `${marco.width}px`,
-      'max-height': `${Math.max(160, Math.min(ALTO_MAXIMO_PANEL, haciaArriba ? marco.top - 12 : debajo - 12))}px`,
-    });
+    // Se delega en `posicionFlotante` en lugar de repetir la cuenta aqui. Era
+    // la misma logica escrita dos veces, y se noto cuando el globo de la
+    // descripcion se salia por la derecha en un telefono: el arreglo habia que
+    // hacerlo dos veces, y esta copia se habria quedado sin el.
+    this.posicion.set(
+      posicionFlotante(boton, {
+        altoMaximo: ALTO_MAXIMO_PANEL,
+        ancho: this.ancho,
+        anchoPanel: this.panel?.nativeElement.offsetWidth,
+      })
+    );
   }
 
   @HostListener('document:pointerdown', ['$event'])

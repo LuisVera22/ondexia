@@ -73,12 +73,16 @@ export class EncabezadoPaginaComponent implements OnDestroy {
    * es cuando hay algo que enfocar y algo que medir. Es el mismo motivo que en
    * el menú de acciones.
    */
+  /** El globo, mientras existe. Hace falta para poder medirlo al recolocar. */
+  private globo?: ElementRef<HTMLElement>;
+
   @ViewChild('globo') set globoAparecido(ref: ElementRef<HTMLElement> | undefined) {
+    this.globo = ref;
     if (!ref) {
       return;
     }
     ref.nativeElement.focus();
-    this.calcular();
+    this.calcular(ref.nativeElement.offsetWidth);
   }
 
   alternar(): void {
@@ -147,11 +151,23 @@ export class EncabezadoPaginaComponent implements OnDestroy {
     return Boolean(this.modulo) && this.modulo !== this.titulo;
   }
 
-  private calcular(): void {
+  /**
+   * @param anchoGlobo lo que mide el globo, cuando ya se puede medir.
+   *
+   * <p>Sin ese dato no hay forma de saber si se sale por la derecha, y en un
+   * telefono se sale casi siempre: el icono esta a media pantalla y el globo
+   * mide 384. El primer calculo va sin el —el globo aun no existe— y el
+   * segundo, el que cuenta, lo trae desde el `ViewChild`.
+   */
+  private calcular(anchoGlobo?: number): void {
     const boton = this.disparador?.nativeElement;
     if (boton) {
       this.posicion.set(
-        posicionFlotante(boton, { altoMaximo: ALTO_MAXIMO, ancho: 'contenido' })
+        posicionFlotante(boton, {
+          altoMaximo: ALTO_MAXIMO,
+          ancho: 'contenido',
+          anchoPanel: anchoGlobo ?? this.globo?.nativeElement.offsetWidth,
+        })
       );
     }
   }

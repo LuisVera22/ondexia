@@ -63,7 +63,27 @@ export interface OpcionesDePosicion {
  * <p>Hacia abajo, salvo que no quepa y arriba haya más sitio. No se fuerza
  * hacia arriba en cuanto falta un poco: cambiar de lado es desorientador, y con
  * el panel desplazándose por dentro caben igualmente todas las opciones.
+ *
+ * <h2>Y sin salirse por los lados</h2>
+ *
+ * <p>La posición horizontal se recorta contra la ventana. Alinear con el borde
+ * del disparador funciona en un monitor y falla en un teléfono: un globo de
+ * 384 px abierto desde un icono que está en el píxel 165 de una pantalla de 375
+ * se sale por la derecha y se lee la mitad. Al ser `fixed` no genera barra de
+ * desplazamiento, así que el texto sencillamente no existe.
+ *
+ * <p>Para recortar hace falta saber cuánto mide el panel, y eso solo se sabe
+ * cuando ya está en el DOM: quien lo use debe medirlo y volver a llamar con
+ * {@code anchoPanel}. Sin ese dato se hace lo único que se puede sin medir
+ * —no dejar que empiece antes del margen izquierdo— y el resto lo sostiene el
+ * `max-width` del propio panel, que debe estar atado a la ventana.
  */
+/** Aire entre el panel y el borde de la ventana. */
+const MARGEN = 8;
+
+const entre = (minimo: number, valor: number, maximo: number): number =>
+  Math.max(minimo, Math.min(valor, maximo));
+
 export function posicionFlotante(
   disparador: HTMLElement,
   opciones: OpcionesDePosicion
@@ -86,14 +106,21 @@ export function posicionFlotante(
     )}px`,
   };
 
-  if (alineacion === 'derecha') {
-    if (opciones.anchoPanel) {
-      estilos['left'] = `${Math.max(8, marco.right - opciones.anchoPanel)}px`;
-    } else {
-      estilos['right'] = `${window.innerWidth - marco.right}px`;
-    }
+  const anchoPanel = opciones.anchoPanel;
+
+  if (anchoPanel) {
+    // Con la medida en la mano, los dos casos son el mismo: se calcula donde
+    // querria empezar el panel y se recorta a lo que cabe. Y se coloca con
+    // `left` tambien en la alineacion a la derecha, porque `right` mide desde
+    // el borde del bloque contenedor, que `scrollbar-gutter: stable` encoge sin
+    // que ni `innerWidth` ni `clientWidth` lo digan.
+    const deseado = alineacion === 'derecha' ? marco.right - anchoPanel : marco.left;
+    const ultimo = window.innerWidth - anchoPanel - MARGEN;
+    estilos['left'] = `${entre(MARGEN, deseado, Math.max(MARGEN, ultimo))}px`;
+  } else if (alineacion === 'derecha') {
+    estilos['right'] = `${Math.max(MARGEN, window.innerWidth - marco.right)}px`;
   } else {
-    estilos['left'] = `${marco.left}px`;
+    estilos['left'] = `${Math.max(MARGEN, marco.left)}px`;
   }
 
   estilos[ancho === 'contenido' ? 'min-width' : 'width'] = `${marco.width}px`;

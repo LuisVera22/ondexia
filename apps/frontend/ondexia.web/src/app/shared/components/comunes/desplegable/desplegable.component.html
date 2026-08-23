@@ -28,7 +28,7 @@
   </button>
 
   @if (abierto()) {
-  <div [id]="idBase + '-panel'" role="listbox" [style]="posicion()"
+  <div #panel [id]="idBase + '-panel'" role="listbox" [style]="posicion()"
     [attr.aria-label]="etiquetaAccesible || null"
     class="z-9999 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-flotante dark:border-gray-700 dark:bg-gray-900">
     @for (opcion of opciones; track opcion.valor; let i = $index) {
