@@ -1,4 +1,4 @@
-package com.ondexia.infrastructure.salida.consultas;
+package com.ondexia.consultas;
 
 import com.ondexia.domain.consultas.CondicionDomicilio;
 import com.ondexia.domain.consultas.ConsultaNoDisponible;

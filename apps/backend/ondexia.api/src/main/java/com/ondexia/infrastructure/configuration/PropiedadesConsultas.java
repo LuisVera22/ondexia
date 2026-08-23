@@ -1,67 +1,42 @@
 package com.ondexia.infrastructure.configuration;
 
-import java.time.Duration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Proveedores de consulta a fuentes públicas (DT-19).
+ * El secreto con el que se comprueban las atestaciones de RUC (DT-19).
  *
- * <h2>Por qué las claves son opcionales</h2>
+ * <h2>Aquí no hay claves de proveedor</h2>
  *
- * <p>Porque no todos los entornos tienen todas. En local suele haber una sola;
- * en la Lambda de la API no hay ninguna, y ahí no es un olvido: esa Lambda no
- * tiene salida a internet y quien consulta es {@code ondexia.consultas}. Un
- * arranque que exigiera la clave dejaría la API sin levantar en el único entorno
- * donde no le hace falta.
+ * <p>Y es el punto: la API no consulta a nadie. Las claves de Decolecta y
+ * apiperu.dev viven en {@code ondexia.consultas}, que es quien sale a internet.
+ * Lo único que la API necesita es el secreto compartido para verificar la firma,
+ * porque verificar no requiere red.
  *
- * <p>Lo que sí es obligatorio es que la ausencia se note. Sin ninguna clave no
- * se registra un {@code ConsultaDeRuc} silencioso que devuelva vacío —eso diría
- * «ese RUC no existe» a todo el mundo—, sino uno que falla diciendo que no está
- * configurado.
+ * <h2>Dos formas de obtenerlo, y el orden importa</h2>
  *
- * @param tiempoDeEspera por proveedor, no total
+ * <p>Si hay nombre de parámetro, manda el parámetro de SSM. Si no, la variable
+ * con el valor directo, que es para desarrollo. En ese orden: en un entorno
+ * desplegado, una variable de entorno olvidada no debe poder ganarle al
+ * parámetro.
+ *
+ * @param firmaParametro nombre del parámetro en SSM, no su valor
+ * @param firmaSecreto el valor, para desarrollo local
  */
 @ConfigurationProperties(prefix = "ondexia.consultas")
-public record PropiedadesConsultas(
-        String decolectaUrl,
-        String decolectaToken,
-        String apiperuUrl,
-        String apiperuToken,
-        Duration tiempoDeEspera) {
+public record PropiedadesConsultas(String firmaParametro, String firmaSecreto) {
 
     public PropiedadesConsultas {
-        decolectaUrl = valorODefecto(decolectaUrl, "https://api.decolecta.com/v1");
-        apiperuUrl = valorODefecto(apiperuUrl, "https://api.apiperu.dev");
-
-        // Corto a proposito. API Gateway corta a los 29 s, y aqui hay dos
-        // proveedores en cascada mas el trabajo de la propia peticion: con 6 s
-        // por proveedor, el peor caso cabe con margen. Un tiempo generoso
-        // convierte un proveedor lento en un 504 opaco de la pasarela, que es
-        // el error mas dificil de diagnosticar de los dos.
-        tiempoDeEspera = tiempoDeEspera == null ? Duration.ofSeconds(6) : tiempoDeEspera;
-
-        decolectaToken = enBlancoEsNulo(decolectaToken);
-        apiperuToken = enBlancoEsNulo(apiperuToken);
-    }
-
-    public boolean tieneDecolecta() {
-        return decolectaToken != null;
-    }
-
-    public boolean tieneApiPeru() {
-        return apiperuToken != null;
+        firmaParametro = enBlancoEsNulo(firmaParametro);
+        firmaSecreto = enBlancoEsNulo(firmaSecreto);
     }
 
     /**
-     * Una variable de entorno sin definir llega como cadena vacía, no como nulo.
-     * Sin esto, {@code CONSULTAS_DECOLECTA_TOKEN=} contaría como configurado y
-     * el proveedor se llamaría con un Bearer vacío.
+     * Una variable de entorno declarada y sin valor llega como cadena vacía, no
+     * como nulo. Sin esto, {@code CONSULTAS_FIRMA_SECRETO=} contaría como
+     * configurado y se verificarían firmas con una clave vacía — que cualquiera
+     * puede reproducir.
      */
     private static String enBlancoEsNulo(String valor) {
         return valor == null || valor.isBlank() ? null : valor.trim();
-    }
-
-    private static String valorODefecto(String valor, String defecto) {
-        return valor == null || valor.isBlank() ? defecto : valor.trim();
     }
 }

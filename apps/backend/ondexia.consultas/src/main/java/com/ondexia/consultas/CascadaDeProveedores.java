@@ -1,4 +1,4 @@
-package com.ondexia.infrastructure.salida.consultas;
+package com.ondexia.consultas;
 
 import com.ondexia.domain.comun.Ruc;
 import com.ondexia.domain.consultas.ConsultaDeRuc;
@@ -34,13 +34,13 @@ import org.slf4j.LoggerFactory;
  * todos respondieron que no y ninguno por algo pasajero, insistir no arregla
  * nada y quien está registrando su empresa merece saberlo en vez de esperar.
  */
-class ConsultaDeRucEnCascada implements ConsultaDeRuc {
+class CascadaDeProveedores implements ConsultaDeRuc {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ConsultaDeRucEnCascada.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CascadaDeProveedores.class);
 
     private final List<ConsultaDeRuc> proveedores;
 
-    ConsultaDeRucEnCascada(List<ConsultaDeRuc> proveedores) {
+    CascadaDeProveedores(List<ConsultaDeRuc> proveedores) {
         if (proveedores.isEmpty()) {
             throw new IllegalArgumentException("Una cascada sin proveedores no consulta nada.");
         }

@@ -1,4 +1,4 @@
-package com.ondexia.infrastructure.salida.consultas;
+package com.ondexia.consultas;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

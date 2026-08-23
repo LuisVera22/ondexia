@@ -1,37 +1,31 @@
 package com.ondexia.infrastructure.salida.consultas;
 
-import com.ondexia.domain.consultas.ConsultaDeRuc;
+import com.ondexia.domain.consultas.VerificacionDeRuc;
 import com.ondexia.infrastructure.configuration.PropiedadesConsultas;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.web.client.RestClient;
+import software.amazon.awssdk.services.ssm.SsmClient;
+import software.amazon.awssdk.services.ssm.model.GetParameterRequest;
 
 /**
- * Monta la cascada con los proveedores que estén configurados.
+ * Resuelve el secreto de firma y monta la verificación.
  *
- * <h2>El orden es la política</h2>
+ * <h2>Por qué SSM y no una variable de entorno de Lambda</h2>
  *
- * <p>Decolecta primero porque es el más completo; apiperu.dev después porque
- * tiene capa gratuita permanente y sabe decir si su fallo es pasajero. Ese orden
- * está aquí y en ningún otro sitio: cambiarlo es mover dos líneas, no tocar
- * lógica.
+ * <p>Aunque DT-19 dijera «variable cifrada»: ese cifrado es en reposo y Lambda
+ * la descifra sola, así que cualquiera con
+ * {@code lambda:GetFunctionConfiguration} ve el valor en texto plano en la
+ * consola. Un parámetro {@code SecureString} tiene IAM delante y es gratis,
+ * frente a los 0,40 USD al mes de un secreto de Secrets Manager.
  *
- * <h2>Qué pasa si falta una clave</h2>
- *
- * <p>El proveedor no entra en la cascada. No es un fallo de arranque: en local
- * es normal tener una sola clave, y en la Lambda de la API no hay ninguna porque
- * quien consulta es {@code ondexia.consultas} (DT-19).
- *
- * <p>Y se registra en el log qué proveedores quedaron activos. Sin esa línea, un
- * entorno con la variable mal escrita se comporta como uno sin proveedor y no
- * hay forma de distinguirlo mirando.
+ * <p>Se lee una vez al arrancar, no por petición: es el mismo valor durante toda
+ * la vida del contenedor, y leerlo en cada alta sería latencia y consumo del
+ * límite de peticiones de SSM a cambio de nada.
  */
 @Configuration
 @EnableConfigurationProperties(PropiedadesConsultas.class)
@@ -40,63 +34,53 @@ class ConsultasConfig {
     private static final Logger LOG = LoggerFactory.getLogger(ConsultasConfig.class);
 
     @Bean
-    ConsultaDeRuc consultaDeRuc(PropiedadesConsultas propiedades) {
-        List<ConsultaDeRuc> cascada = new ArrayList<>();
-        List<String> nombres = new ArrayList<>();
+    VerificacionDeRuc verificacionDeRuc(PropiedadesConsultas propiedades) {
+        String secreto = resolver(propiedades);
 
-        if (propiedades.tieneDecolecta()) {
-            cascada.add(new ConsultaDeRucDecolecta(cliente(
-                    propiedades.decolectaUrl(), propiedades.decolectaToken(), propiedades)));
-            nombres.add("decolecta");
-        }
-        if (propiedades.tieneApiPeru()) {
-            cascada.add(new ConsultaDeRucApiPeru(cliente(
-                    propiedades.apiperuUrl(), propiedades.apiperuToken(), propiedades)));
-            nombres.add("apiperu");
-        }
-
-        if (cascada.isEmpty()) {
-            LOG.info("Sin proveedores de consulta de RUC configurados: "
-                    + "la verificación contra SUNAT no está disponible en este entorno.");
-            return new ConsultaDeRucSinConfigurar();
+        if (secreto == null) {
+            // Se registra, y no se falla el arranque: hay entornos legitimos sin
+            // secreto —las pruebas, un arranque local de quien trabaja en otra
+            // cosa— y tumbar la aplicacion por eso convierte una funcion ausente
+            // en un sistema caido. Lo que no se hace es aceptar cualquier
+            // atestacion.
+            LOG.info("Sin secreto de firma: el registro de empresas por RUC "
+                    + "no está disponible en este entorno.");
+            return new VerificacionPorAtestacion.SinSecreto();
         }
 
-        LOG.info("Consulta de RUC por cascada: {}", String.join(" → ", nombres));
-        return new ConsultaDeRucEnCascada(cascada);
+        LOG.info("Verificación de RUC activa (secreto desde {})",
+                propiedades.firmaParametro() != null ? "SSM" : "variable de entorno");
+
+        return new VerificacionPorAtestacion(
+                secreto.getBytes(StandardCharsets.UTF_8), Clock.systemUTC());
     }
 
     /**
-     * Un cliente por proveedor, con su token ya puesto.
+     * El parámetro manda sobre la variable directa.
      *
-     * <p>El token va en la cabecera por omisión y no en cada llamada: así ningún
-     * adaptador puede olvidarlo, y —lo que importa más— el valor no aparece en
-     * el código de las llamadas, donde acabaría en un mensaje de registro el día
-     * que alguien depure a base de imprimir.
+     * <p>En un entorno desplegado, una variable de entorno olvidada no debe poder
+     * ganarle al parámetro: sería una forma silenciosa de firmar con un secreto
+     * distinto del que usa {@code ondexia.consultas}, y el síntoma serían
+     * atestaciones válidas rechazadas.
      */
-    private static RestClient cliente(String url, String token,
-            PropiedadesConsultas propiedades) {
-
-        // Se construye la fabrica a mano en vez de dejar que RestClient detecte
-        // una: la detectada no lleva tiempos de espera, y un cliente HTTP sin
-        // ellos espera indefinidamente. Con API Gateway cortando a los 29 s, eso
-        // convierte un proveedor lento en un 504 opaco de la pasarela — el error
-        // mas dificil de diagnosticar de los dos.
-        //
-        // Y es la fabrica simple, no la de java.net.http, aunque esa sea la
-        // moderna: su cliente abre un socket de loopback al construirse, y este
-        // bean se crea al arrancar. En un entorno que no lo permita, la
-        // aplicacion entera no levanta por una funcion que quiza nadie use en esa
-        // ejecucion. Para dos peticiones por registro, HTTP/2 y el pool de
-        // conexiones no compran nada que compense ese riesgo.
-        SimpleClientHttpRequestFactory fabrica = new SimpleClientHttpRequestFactory();
-        fabrica.setConnectTimeout(propiedades.tiempoDeEspera());
-        fabrica.setReadTimeout(propiedades.tiempoDeEspera());
-
-        return RestClient.builder()
-                .baseUrl(url)
-                .requestFactory(fabrica)
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .defaultHeader(HttpHeaders.ACCEPT, "application/json")
-                .build();
+    private static String resolver(PropiedadesConsultas propiedades) {
+        if (propiedades.firmaParametro() == null) {
+            return propiedades.firmaSecreto();
+        }
+        try (SsmClient ssm = SsmClient.create()) {
+            return ssm.getParameter(GetParameterRequest.builder()
+                            .name(propiedades.firmaParametro())
+                            .withDecryption(true)
+                            .build())
+                    .parameter()
+                    .value();
+        } catch (RuntimeException noSePudo) {
+            // Se nombra el parametro: el error de AWS por si solo no lo dice, y
+            // buscarlo a ciegas entre los de la cuenta es tiempo perdido.
+            throw new IllegalStateException(
+                    "No se pudo leer el parámetro " + propiedades.firmaParametro()
+                            + " de SSM. Revisa que exista y que el rol de la función "
+                            + "tenga ssm:GetParameter y kms:Decrypt.", noSePudo);
+        }
     }
 }

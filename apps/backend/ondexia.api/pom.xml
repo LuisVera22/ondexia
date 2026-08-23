@@ -114,6 +114,30 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <!--
+      Donde vive el secreto de firma de las atestaciones de RUC (DT-19). Un
+      parametro SecureString es gratis y tiene IAM delante; una variable de
+      entorno de Lambda la ve cualquiera con permiso de leer la configuracion.
+
+      Sin netty ni apache, por el mismo motivo que los demas clientes de aqui:
+      en Lambda, un cliente asincrono con su pool de hilos es peso que se paga
+      en el arranque en frio.
+    -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>ssm</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>netty-nio-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>apache-client</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>url-connection-client</artifactId>

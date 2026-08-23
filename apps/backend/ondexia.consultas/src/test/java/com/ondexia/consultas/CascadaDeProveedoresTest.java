@@ -1,4 +1,4 @@
-package com.ondexia.infrastructure.salida.consultas;
+package com.ondexia.consultas;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -34,7 +34,7 @@ import org.junit.jupiter.api.Test;
  * relevar, todo seguiría funcionando mientras el principal esté en pie — que es
  * siempre, hasta el día que importa. No hay forma de notarlo mirando.
  */
-class ConsultaDeRucEnCascadaTest {
+class CascadaDeProveedoresTest {
 
     private static final Ruc RUC = new Ruc("20601030013");
 
@@ -69,7 +69,7 @@ class ConsultaDeRucEnCascadaTest {
     void el_primero_que_responde_gana() {
         List<String> llamados = new ArrayList<>();
 
-        Optional<DatosDeRuc> resultado = new ConsultaDeRucEnCascada(
+        Optional<DatosDeRuc> resultado = new CascadaDeProveedores(
                 List.of(responde("ONDEXIA S.A.C."), espia(llamados))).consultar(RUC);
 
         assertThat(resultado).get().extracting(DatosDeRuc::razonSocial)
@@ -82,7 +82,7 @@ class ConsultaDeRucEnCascadaTest {
     @Test
     @DisplayName("un fallo del principal pasa al relevo")
     void tras_un_fallo_se_pregunta_al_siguiente() {
-        Optional<DatosDeRuc> resultado = new ConsultaDeRucEnCascada(
+        Optional<DatosDeRuc> resultado = new CascadaDeProveedores(
                 List.of(falla(true), responde("ONDEXIA S.A.C."))).consultar(RUC);
 
         assertThat(resultado).get().extracting(DatosDeRuc::razonSocial)
@@ -97,7 +97,7 @@ class ConsultaDeRucEnCascadaTest {
     @Test
     @DisplayName("un fallo no reintentable también pasa al relevo")
     void no_reintentable_habla_del_proveedor_no_de_la_cascada() {
-        assertThat(new ConsultaDeRucEnCascada(
+        assertThat(new CascadaDeProveedores(
                 List.of(falla(false), responde("ONDEXIA S.A.C."))).consultar(RUC))
                 .isPresent();
     }
@@ -112,7 +112,7 @@ class ConsultaDeRucEnCascadaTest {
     void un_no_existe_no_se_reintenta_con_otro() {
         List<String> llamados = new ArrayList<>();
 
-        assertThat(new ConsultaDeRucEnCascada(List.of(noLoConoce(), espia(llamados)))
+        assertThat(new CascadaDeProveedores(List.of(noLoConoce(), espia(llamados)))
                 .consultar(RUC)).isEmpty();
         assertThat(llamados)
                 .withFailMessage("un RUC mal escrito no mejora preguntando dos veces")
@@ -122,7 +122,7 @@ class ConsultaDeRucEnCascadaTest {
     @Test
     @DisplayName("si nadie responde, se propaga el fallo")
     void sin_nadie_en_pie_falla() {
-        assertThatThrownBy(() -> new ConsultaDeRucEnCascada(List.of(falla(true), falla(true)))
+        assertThatThrownBy(() -> new CascadaDeProveedores(List.of(falla(true), falla(true)))
                 .consultar(RUC))
                 .isInstanceOf(ConsultaNoDisponible.class)
                 .hasMessageContaining("No pudimos verificar el RUC");
@@ -138,7 +138,7 @@ class ConsultaDeRucEnCascadaTest {
     @Test
     @DisplayName("basta que uno fuera pasajero para que el conjunto lo sea")
     void reintentable_se_acumula() {
-        assertThatThrownBy(() -> new ConsultaDeRucEnCascada(List.of(falla(true), falla(false)))
+        assertThatThrownBy(() -> new CascadaDeProveedores(List.of(falla(true), falla(false)))
                 .consultar(RUC))
                 .isInstanceOfSatisfying(ConsultaNoDisponible.class,
                         fallo -> assertThat(fallo.esReintentable()).isTrue());
@@ -147,7 +147,7 @@ class ConsultaDeRucEnCascadaTest {
     @Test
     @DisplayName("si ninguno era pasajero, no se invita a esperar")
     void sin_ninguno_pasajero_no_es_reintentable() {
-        assertThatThrownBy(() -> new ConsultaDeRucEnCascada(List.of(falla(false), falla(false)))
+        assertThatThrownBy(() -> new CascadaDeProveedores(List.of(falla(false), falla(false)))
                 .consultar(RUC))
                 .isInstanceOfSatisfying(ConsultaNoDisponible.class,
                         fallo -> assertThat(fallo.esReintentable()).isFalse());
@@ -156,7 +156,7 @@ class ConsultaDeRucEnCascadaTest {
     /** Una cascada vacía no consulta nada, y callarlo sería peor. */
     @Test
     void sin_proveedores_no_se_construye() {
-        assertThatThrownBy(() -> new ConsultaDeRucEnCascada(List.of()))
+        assertThatThrownBy(() -> new CascadaDeProveedores(List.of()))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 }

@@ -40,6 +40,7 @@
     <module>ondexia.domain</module>
     <module>ondexia.api</module>
     <module>ondexia.admin</module>
+    <module>ondexia.consultas</module>
   </modules>
 
   <properties>
