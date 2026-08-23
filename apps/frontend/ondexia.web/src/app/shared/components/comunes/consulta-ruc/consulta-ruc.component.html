@@ -1,0 +1,184 @@
+<div class="space-y-4">
+  <div>
+    <label for="ruc-consulta" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+      RUC <span class="text-error-500">*</span>
+    </label>
+
+    <!--
+      El campo y el boton juntos, no en filas distintas. Consultar no es una
+      accion aparte del campo: es lo que hace que el campo sirva de algo, y
+      separarlos deja a alguien mirando un RUC escrito sin saber que falta pulsar.
+    -->
+    <div class="flex gap-2">
+      <input
+        id="ruc-consulta"
+        type="text"
+        [value]="ruc()"
+        (input)="escribirRuc($any($event.target).value)"
+        (keydown.enter)="$event.preventDefault(); consultar()"
+        maxlength="11"
+        inputmode="numeric"
+        autocomplete="off"
+        placeholder="20123456789"
+        [disabled]="consultando()"
+        class="h-11 min-w-0 flex-1 rounded-lg border border-gray-300 bg-transparent px-4 text-sm tabular-nums text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:opacity-60 dark:border-gray-700 dark:text-white/90 dark:placeholder:text-white/30"
+      />
+      <button
+        type="button"
+        (click)="consultar()"
+        [disabled]="!formaValida || consultando()"
+        class="flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent bg-brand-500 px-5 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-50"
+      >
+        @if (consultando()) {
+        <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25" />
+          <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+        </svg>
+        Consultando… } @else { Consultar }
+      </button>
+    </div>
+
+    @if (ruc().length > 0 && !formaValida) {
+    <p class="mt-1.5 text-sm text-error-500">El RUC son once dígitos.</p>
+    } @else if (!resultado() && !error()) {
+    <p class="mt-1.5 text-sm text-gray-500 dark:text-gray-400">
+      Traeremos los datos de SUNAT. No hay que escribirlos.
+    </p>
+    }
+  </div>
+
+  @if (error()) {
+  <div
+    class="rounded-lg border border-error-500/30 bg-error-500/10 px-4 py-3 text-sm text-error-500"
+    role="alert"
+  >
+    <p>{{ error() }}</p>
+    <!--
+      El boton de reintentar solo aparece si el servidor dice que merece la pena.
+      Ofrecerlo siempre hace perder el tiempo cuando el fallo es de nuestras
+      credenciales; no ofrecerlo nunca manda a soporte por una caida de un minuto.
+    -->
+    @if (puedeReintentar()) {
+    <button
+      type="button"
+      (click)="consultar()"
+      class="mt-2 font-medium underline transition hover:no-underline"
+    >
+      Volver a intentarlo
+    </button>
+    }
+  </div>
+  }
+
+  @if (datos(); as ficha) {
+  <!--
+    La ficha del contribuyente, en solo lectura y sin `input`.
+    No son campos deshabilitados: no existen como campos. Lo que se envia es la
+    atestacion firmada, asi que pintarlos como formulario sugeriria que se pueden
+    corregir — y corregirlos no cambiaria nada de lo que se guarda.
+  -->
+  <div
+    class="rounded-xl border px-4 py-4"
+    [class]="apta()
+      ? 'border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-white/[0.03]'
+      : 'border-error-500/30 bg-error-500/5'"
+  >
+    <div class="mb-3 flex flex-wrap items-start justify-between gap-2">
+      <div class="min-w-0">
+        <p class="text-sm font-semibold text-gray-800 dark:text-white/90">
+          {{ ficha.razonSocial }}
+        </p>
+        <p class="mt-0.5 text-sm tabular-nums text-gray-500 dark:text-gray-400">
+          RUC {{ ficha.ruc }}
+          @if (ficha.tipoSocietario) {
+          <span class="text-gray-400 dark:text-gray-500">· {{ ficha.tipoSocietario }}</span>
+          }
+        </p>
+      </div>
+
+      <div class="flex shrink-0 flex-wrap gap-1.5">
+        <span
+          class="rounded-full px-2.5 py-0.5 text-xs font-medium"
+          [class]="ficha.estado === 'ACTIVO'
+            ? 'bg-success-500/15 text-success-600 dark:text-success-500'
+            : 'bg-error-500/15 text-error-500'"
+        >
+          {{ legible(ficha.estado) }}
+        </span>
+        <span
+          class="rounded-full px-2.5 py-0.5 text-xs font-medium"
+          [class]="ficha.condicion === 'HABIDO'
+            ? 'bg-success-500/15 text-success-600 dark:text-success-500'
+            : 'bg-error-500/15 text-error-500'"
+        >
+          {{ legible(ficha.condicion) }}
+        </span>
+      </div>
+    </div>
+
+    <dl class="grid grid-cols-1 gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+      <div class="sm:col-span-2">
+        <dt class="text-gray-500 dark:text-gray-400">Domicilio fiscal</dt>
+        <dd class="text-gray-800 dark:text-white/90">{{ ficha.domicilioFiscal || '—' }}</dd>
+      </div>
+
+      <div>
+        <dt class="text-gray-500 dark:text-gray-400">Distrito</dt>
+        <dd class="text-gray-800 dark:text-white/90">{{ ficha.distrito || '—' }}</dd>
+      </div>
+
+      <div>
+        <dt class="text-gray-500 dark:text-gray-400">Provincia y departamento</dt>
+        <dd class="text-gray-800 dark:text-white/90">
+          {{ ficha.provincia || '—' }}@if (ficha.departamento) {, {{ ficha.departamento }}}
+        </dd>
+      </div>
+
+      <div>
+        <dt class="text-gray-500 dark:text-gray-400">Ubigeo</dt>
+        <dd class="tabular-nums text-gray-800 dark:text-white/90">
+          {{ ficha.ubigeo || '—' }}
+          <!--
+            El ubigeo va en cada comprobante. Cuando responde el proveedor de
+            respaldo no viene, y decirlo aqui es mejor que un guion silencioso:
+            hay que completarlo antes de emitir.
+          -->
+          @if (!ficha.ubigeo) {
+          <span class="text-xs text-warning-500">· habrá que completarlo</span>
+          }
+        </dd>
+      </div>
+    </dl>
+
+    @if (ficha.esAgenteRetencion || ficha.esBuenContribuyente) {
+    <div class="mt-3 flex flex-wrap gap-1.5">
+      @if (ficha.esAgenteRetencion) {
+      <span class="rounded-full bg-brand-500/10 px-2.5 py-0.5 text-xs font-medium text-brand-600 dark:text-brand-400">
+        Agente de retención
+      </span>
+      }
+      @if (ficha.esBuenContribuyente) {
+      <span class="rounded-full bg-brand-500/10 px-2.5 py-0.5 text-xs font-medium text-brand-600 dark:text-brand-400">
+        Buen contribuyente
+      </span>
+      }
+    </div>
+    }
+
+    <!--
+      La fecha. El estado es una foto del momento en que se pregunto, no una
+      propiedad del contribuyente, y decir «ACTIVO» sin decir cuando invita a
+      tratarlo como verdad permanente.
+    -->
+    <p class="mt-3 text-xs text-gray-400 dark:text-gray-500">
+      Comprobado en SUNAT el {{ comprobadoEn }}
+    </p>
+
+    @if (ficha.motivoDeRechazo) {
+    <p class="mt-3 border-t border-error-500/20 pt-3 text-sm font-medium text-error-500">
+      {{ ficha.motivoDeRechazo }}
+    </p>
+    }
+  </div>
+  }
+</div>

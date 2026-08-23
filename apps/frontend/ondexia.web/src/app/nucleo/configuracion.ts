@@ -23,6 +23,20 @@ export interface ConfiguracionApp {
   /** Base de la API, sin barra final. */
   readonly api: string;
 
+  /**
+   * Base de la consulta del padrón de SUNAT, sin barra final.
+   *
+   * Desplegado vale **lo mismo** que `api` —allí la consulta es una ruta más de
+   * la misma pasarela— y en local apunta a otro puerto, porque ahí la sirve
+   * `ondexia.consultas.ServidorLocal`: la API de Spring no tiene esa ruta ni
+   * debe tenerla, porque desplegada no puede salir a internet.
+   *
+   * Existe como clave aparte para que el código no distinga los dos casos. Con
+   * solo `api` habría que decidir cuándo usar una URL y cuándo otra, que es la
+   * clase de rama que se prueba en un entorno y falla en el otro.
+   */
+  readonly consultas: string;
+
   readonly cognito: {
     /** Base de la interfaz alojada: de aquí cuelgan /oauth2/authorize y /oauth2/token. */
     readonly dominio: string;
@@ -61,14 +75,15 @@ export function cargarConfiguracion() {
       http.get<ConfiguracionApp>('config.json')
     );
 
-    if (!configuracion?.api || !configuracion.cognito?.clienteId) {
+    if (!configuracion?.api || !configuracion.consultas || !configuracion.cognito?.clienteId) {
       // Fallar aquí y no más adelante. Sin esto, la aplicación arranca, pinta
       // el panel y falla en la primera llamada con un error de red contra
       // `undefined/api/v1/contexto`, que no sugiere en absoluto que el problema
       // sea un archivo de configuración mal generado en el despliegue.
       throw new Error(
-        'config.json no trae la configuración esperada. Lo genera el despliegue ' +
-          'a partir de `terraform output -json configuracion_spa`.'
+        'config.json no trae la configuración esperada: hacen falta `api`, ' +
+          '`consultas` y `cognito.clienteId`. Lo genera el despliegue a partir ' +
+          'de `terraform output -json configuracion_spa`.'
       );
     }
 
@@ -77,6 +92,7 @@ export function cargarConfiguracion() {
     cargada = {
       ...configuracion,
       api: configuracion.api.replace(/\/+$/, ''),
+      consultas: configuracion.consultas.replace(/\/+$/, ''),
     };
   });
 }

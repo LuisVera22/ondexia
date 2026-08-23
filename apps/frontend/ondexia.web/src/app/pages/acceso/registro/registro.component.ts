@@ -10,14 +10,30 @@ import { VinculacionService } from '../../../nucleo/vinculacion.service';
 import { ContextoService } from '../../../shared/services/contexto.service';
 import { colocarEnCampos } from '../../../shared/formularios/fallo-de-formulario';
 import { ErrorCampoComponent } from '../../../shared/components/comunes/error-campo/error-campo.component';
+import { ConsultaRucComponent } from '../../../shared/components/comunes/consulta-ruc/consulta-ruc.component';
+import { ConsultaDeRuc } from '../../../nucleo/consultas.api.service';
 
 /**
  * Último paso del alta: los datos de la empresa.
  *
  * <p>Se llega aquí con la identidad ya probada —correo verificado, sesión de
- * Cognito abierta— pero sin fila en nuestra base. Lo que falta es el negocio:
- * RUC, razón social y domicilio. Con eso, {@code POST /api/v1/registro} crea la
- * cuenta entera de una vez y el siguiente paso ya es el panel.
+ * Cognito abierta— pero sin fila en nuestra base. Lo que falta es el negocio: el
+ * RUC. Con eso, {@code POST /api/v1/registro} crea la cuenta entera de una vez y
+ * el siguiente paso ya es el panel.
+ *
+ * <h2>De cinco campos de empresa a uno</h2>
+ *
+ * <p>Antes pedía RUC, razón social, domicilio fiscal y ubigeo, y no comprobaba
+ * ninguno: bastaba un RUC con el dígito verificador correcto para crear una
+ * cuenta con un contribuyente inexistente y la razón social que a uno le
+ * pareciera. Una razón social que no coincide con el padrón hace que SUNAT
+ * rechace <em>todos</em> los comprobantes de esa empresa, y eso se descubre en la
+ * primera emisión real — semanas después del alta.
+ *
+ * <p>Ahora se pide el RUC, se consulta, y el resto se muestra ya relleno y sin
+ * poder tocarse. Lo que viaja en la petición es la atestación firmada, no los
+ * campos: no hay forma de darse de alta con datos inventados, y de paso hay
+ * cuatro campos menos que rellenar.
  *
  * <p>No pide correo ni contraseña: eso ya lo tiene Cognito, y la identidad del
  * alta sale del token — pedirla otra vez aquí sería un campo que el backend
@@ -43,6 +59,7 @@ import { ErrorCampoComponent } from '../../../shared/components/comunes/error-ca
     MarcoAccesoComponent,
     ReactiveFormsModule,
     ErrorCampoComponent,
+    ConsultaRucComponent,
   ],
   templateUrl: './registro.component.html',
 })
@@ -88,11 +105,26 @@ export class RegistroComponent implements OnInit {
   formulario = this.constructorFormulario.nonNullable.group({
     nombreTitular: [this.sesion.usuario()?.nombre ?? '', [Validators.required]],
     apellidoTitular: ['', [Validators.required]],
-    ruc: ['', [Validators.required, Validators.pattern(/^\d{11}$/)]],
-    razonSocial: ['', [Validators.required]],
-    domicilioFiscal: ['', [Validators.required]],
-    ubigeo: ['', [Validators.pattern(/^$|^\d{6}$/)]],
   });
+
+  /**
+   * La consulta comprobada, o {@code null} mientras no haya una que sirva.
+   *
+   * <p>No es un control del formulario porque lo que se envía no es un valor que
+   * alguien escriba: es una firma. Metida como control tendría que validarse
+   * «que no esté vacía», y ese validador no dice nada de lo que importa — que la
+   * firmó `ondexia.consultas` y que el RUC está habido activo.
+   */
+  readonly consulta = signal<ConsultaDeRuc | null>(null);
+
+  /** El alta solo puede enviarse con un RUC comprobado y apto. */
+  get puedeEnviar(): boolean {
+    return this.consulta() !== null && this.formulario.valid && !this.enviando();
+  }
+
+  alVerificar(consulta: ConsultaDeRuc | null): void {
+    this.consulta.set(consulta);
+  }
 
   get controles() {
     return this.formulario.controls;
@@ -104,6 +136,15 @@ export class RegistroComponent implements OnInit {
       return;
     }
 
+    const consulta = this.consulta();
+    if (!consulta) {
+      // No deberia poder llegar aqui: el boton esta deshabilitado. Se comprueba
+      // igual porque un `disabled` no es una garantia, y el mensaje es mejor que
+      // un 400 del servidor.
+      this.error.set('Consulta el RUC de tu empresa antes de continuar.');
+      return;
+    }
+
     this.enviando.set(true);
     this.error.set(null);
 
@@ -112,10 +153,9 @@ export class RegistroComponent implements OnInit {
     try {
       await firstValueFrom(
         this.http.post(`${this.configuracion.api}/api/v1/registro`, {
-          ruc: valores.ruc,
-          razonSocial: valores.razonSocial,
-          domicilioFiscal: valores.domicilioFiscal,
-          ubigeo: valores.ubigeo || null,
+          // La firma, no los campos. La razon social, el domicilio y el ubigeo
+          // salen de aqui dentro; enviarlos aparte permitiria enviar otros.
+          atestacion: consulta.atestacion,
           nombreTitular: valores.nombreTitular,
           apellidoTitular: valores.apellidoTitular,
           // El token de ACCESO de Cognito no lleva el correo —eso vive en el de
@@ -131,10 +171,10 @@ export class RegistroComponent implements OnInit {
       await this.router.navigateByUrl('/', { replaceUrl: true });
     } catch (fallo: unknown) {
       /*
-       * Los dos conflictos previsibles llegan con el mensaje del servidor:
-       * el RUC ya registrado (con la indicación de pedir acceso al
-       * administrador) y el dígito verificador que no cuadra. Ambos están
-       * mejor escritos allí que cualquier genérico de aquí.
+       * Los conflictos previsibles llegan con el mensaje del servidor: el RUC ya
+       * registrado —con la indicación de pedir acceso al administrador— y la
+       * atestación caducada, que le pasa a quien tardó en enviar el formulario.
+       * Ambos están mejor escritos allí que cualquier genérico de aquí.
        */
       const colocado = colocarEnCampos(
         fallo,
