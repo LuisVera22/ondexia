@@ -326,6 +326,45 @@
   }
 
   /*
+   * ── El foco visible ──────────────────────────────────────────────────
+   *
+   * No había ninguno. Se dependía del contorno por defecto del navegador, que
+   * cambia entre Chrome, Firefox y Safari y en varios de nuestros fondos casi
+   * no se distingue. Quien navega con el tabulador —por costumbre o porque no
+   * usa ratón— no sabía dónde estaba.
+   *
+   * `:focus-visible` y no `:focus`: el navegador solo lo marca cuando el foco
+   * llegó de una forma que merece señal —tabulador, teclado— y no al pulsar un
+   * botón con el ratón, donde el aro sobra y molesta.
+   *
+   * Va en la capa `base`, y eso es lo que hace que funcione: las utilidades de
+   * Tailwind viven en una capa posterior, así que cualquier componente que ya
+   * resuelva su foco lo apaga con `focus:outline-hidden` sin pelearse por
+   * especificidad. Es lo que hacen los campos de formulario —que dibujan su
+   * anillo también con el ratón, que es lo correcto para un campo— y los
+   * paneles flotantes, que reciben el foco por programa y no deben pintar un
+   * aro alrededor de todo el panel.
+   *
+   * Dos tonos porque uno no llega. Contra los fondos reales del sistema:
+   *
+   *              blanco   gris-50   gray-900
+   *   brand-500   6,29      5,77      2,69   ← no llega en oscuro
+   *   brand-400   2,98      2,74      5,68   ← no llega en claro
+   *
+   * WCAG pide 3:1 para un indicador que no es texto, así que cada tema se
+   * queda con el que lo cumple. Es el mismo problema que obligó a redefinir
+   * `--color-error-500` en oscuro.
+   */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+
+  .dark :focus-visible {
+    outline-color: var(--color-brand-400);
+  }
+
+  /*
    * Controles nativos con el color de la marca.
    *
    * No usamos el plugin de formularios de Tailwind, así que clases como
