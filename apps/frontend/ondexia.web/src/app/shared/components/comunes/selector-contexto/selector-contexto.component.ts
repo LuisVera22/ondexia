@@ -27,6 +27,15 @@ export interface OpcionContexto {
 export class SelectorContextoComponent {
   private readonly elemento = inject(ElementRef);
 
+  /**
+   * Forma en que se presenta.
+   *
+   * <p>`barra` es el control segmentado del encabezado. `lista` es el mismo
+   * dato en vertical, para cuando esto vive dentro de otro menu y no puede
+   * abrir desplegables propios — el boton compacto del movil.
+   */
+  @Input() disposicion: 'barra' | 'lista' = 'barra';
+
   @Input() empresas: OpcionContexto[] = [];
   @Input() establecimientos: OpcionContexto[] = [];
   @Input() empresaActiva: OpcionContexto | null = null;
