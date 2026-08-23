@@ -63,7 +63,54 @@ export interface OpcionesDePosicion {
  * <p>Hacia abajo, salvo que no quepa y arriba haya más sitio. No se fuerza
  * hacia arriba en cuanto falta un poco: cambiar de lado es desorientador, y con
  * el panel desplazándose por dentro caben igualmente todas las opciones.
+ *
+ * <h2>Y sin salirse por los lados</h2>
+ *
+ * <p>La posición horizontal se recorta contra la ventana. Alinear con el borde
+ * del disparador funciona en un monitor y falla en un teléfono: un globo de
+ * 384 px abierto desde un icono que está en el píxel 165 de una pantalla de 375
+ * se sale por la derecha y se lee la mitad. Al ser `fixed` no genera barra de
+ * desplazamiento, así que el texto sencillamente no existe.
+ *
+ * <p>Para recortar hace falta saber cuánto mide el panel, y eso solo se sabe
+ * cuando ya está en el DOM: quien lo use debe medirlo y volver a llamar con
+ * {@code anchoPanel}. Sin ese dato se hace lo único que se puede sin medir
+ * —no dejar que empiece antes del margen izquierdo— y el resto lo sostiene el
+ * `max-width` del propio panel, que debe estar atado a la ventana.
  */
+/** Aire entre el panel y el borde de la ventana. */
+const MARGEN = 8;
+
+/**
+ * La ventana que de verdad se ve.
+ *
+ * <p>`window.innerWidth` no sirve para recortar. Incluye el hueco de la barra
+ * de desplazamiento, asi que siempre sobrestima el sitio disponible; y en el
+ * emulador de dispositivo de Chrome llega a mentir de largo — medido en una
+ * pantalla de 440: `innerWidth` decia 665, doscientos veinticinco de mas.
+ * Recortando contra ese numero, un panel se coloca «dentro» de una ventana que
+ * no existe y aparece cortado igual.
+ *
+ * <p>`documentElement.clientWidth` es el area de maquetacion: lo mismo que
+ * midieron `visualViewport.width` y el ancho del `body` en aquella pantalla.
+ *
+ * <p>Y el alto igual. Medido en esa misma pantalla: `clientHeight` y
+ * `visualViewport.height` decian 956 las dos, `innerHeight` decia 1445 — el
+ * mismo factor de 1,51 con el que exageraba el ancho. Las dos medidas buenas
+ * coinciden en los dos ejes, asi que la referencia es una sola y no dos.
+ *
+ * <p>Con `innerHeight` el panel nunca decide abrirse hacia arriba, porque
+ * siempre cree que le sobra sitio debajo: un menu abierto cerca del borde
+ * inferior se despliega fuera de la pantalla.
+ */
+const ventana = () => ({
+  ancho: document.documentElement.clientWidth,
+  alto: document.documentElement.clientHeight,
+});
+
+const entre = (minimo: number, valor: number, maximo: number): number =>
+  Math.max(minimo, Math.min(valor, maximo));
+
 export function posicionFlotante(
   disparador: HTMLElement,
   opciones: OpcionesDePosicion
@@ -72,13 +119,14 @@ export function posicionFlotante(
   const separacion = opciones.separacion ?? 4;
 
   const marco = disparador.getBoundingClientRect();
-  const debajo = window.innerHeight - marco.bottom;
+  const vista = ventana();
+  const debajo = vista.alto - marco.bottom;
   const haciaArriba = debajo < altoMaximo && marco.top > debajo;
 
   const estilos: PosicionFlotante = {
     position: 'fixed',
     [haciaArriba ? 'bottom' : 'top']: haciaArriba
-      ? `${window.innerHeight - marco.top + separacion}px`
+      ? `${vista.alto - marco.top + separacion}px`
       : `${marco.bottom + separacion}px`,
     'max-height': `${Math.max(
       160,
@@ -86,14 +134,21 @@ export function posicionFlotante(
     )}px`,
   };
 
-  if (alineacion === 'derecha') {
-    if (opciones.anchoPanel) {
-      estilos['left'] = `${Math.max(8, marco.right - opciones.anchoPanel)}px`;
-    } else {
-      estilos['right'] = `${window.innerWidth - marco.right}px`;
-    }
+  const anchoPanel = opciones.anchoPanel;
+
+  if (anchoPanel) {
+    // Con la medida en la mano, los dos casos son el mismo: se calcula donde
+    // querria empezar el panel y se recorta a lo que cabe. Y se coloca con
+    // `left` tambien en la alineacion a la derecha, porque `right` mide desde
+    // el borde del bloque contenedor, que `scrollbar-gutter: stable` encoge sin
+    // que ni `innerWidth` ni `clientWidth` lo digan.
+    const deseado = alineacion === 'derecha' ? marco.right - anchoPanel : marco.left;
+    const ultimo = vista.ancho - anchoPanel - MARGEN;
+    estilos['left'] = `${entre(MARGEN, deseado, Math.max(MARGEN, ultimo))}px`;
+  } else if (alineacion === 'derecha') {
+    estilos['right'] = `${Math.max(MARGEN, vista.ancho - marco.right)}px`;
   } else {
-    estilos['left'] = `${marco.left}px`;
+    estilos['left'] = `${Math.max(MARGEN, marco.left)}px`;
   }
 
   estilos[ancho === 'contenido' ? 'min-width' : 'width'] = `${marco.width}px`;

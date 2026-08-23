@@ -3,6 +3,7 @@ import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/en
 import { TablaDatosComponent, AccionDeFila,
   ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
+import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
 
 /**
  * Modelos, subordinados a una marca.
@@ -11,7 +12,12 @@ import { ConfirmacionComponent } from '../../../shared/components/comunes/confir
  */
 @Component({
   selector: 'app-modelos',
-  imports: [EncabezadoPaginaComponent, TablaDatosComponent, ConfirmacionComponent],
+  imports: [
+    EncabezadoPaginaComponent,
+    TablaDatosComponent,
+    ConfirmacionComponent,
+    BotonComponent,
+  ],
   templateUrl: './modelos.component.html',
 })
 export class ModelosComponent {

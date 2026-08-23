@@ -149,7 +149,98 @@
     (accion)="accionVacio.emit()"
   />
   } @else {
-  <div class="overflow-x-auto">
+  <!--
+    ── En teléfono, tarjetas ────────────────────────────────────────────────
+
+    La tabla reserva 640 px de ancho mínimo porque seis columnas apretadas en
+    375 son ilegibles. El precio es que en un móvil toda lista del sistema
+    aparecía dentro de una caja que se arrastra de lado, con las primeras
+    columnas fuera de vista: se leía «NOMBRE COMERCIAL» y había que empujar
+    para descubrir de qué registro se hablaba.
+
+    Aquí cada registro es una tarjeta: el dato que lo identifica de título, el
+    estado como insignia y el resto como pares de etiqueta y valor. Las
+    etiquetas hacen falta justamente porque no hay cabecera que las diga.
+
+    Es la misma lista, no otra: se pinta desde `registrosVisibles`, con el
+    mismo filtro, el mismo orden, la misma paginación y las mismas acciones.
+  -->
+  <ul class="divide-y divide-gray-200 sm:hidden dark:divide-gray-800">
+    @for (registro of registrosVisibles; track registro[campoClave]) {
+    <li
+      class="px-5 py-4 transition"
+      [class.bg-brand-25]="estaSeleccionado(registro)"
+    >
+      <div class="flex items-start gap-3">
+        @if (seleccionable) {
+        <input
+          type="checkbox"
+          [checked]="estaSeleccionado(registro)"
+          (change)="alternarSeleccion(registro)"
+          aria-label="Seleccionar registro"
+          class="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800"
+        />
+        }
+
+        <div class="min-w-0 flex-1 cursor-pointer" (click)="filaClic.emit(registro)">
+          @if (columnaTitulo) {
+          <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+            {{ valor(registro, columnaTitulo) }}
+          </p>
+          }
+
+          @for (columna of columnasInsignia; track columna.campo) {
+          <span class="mt-1 inline-flex items-center gap-2 text-sm">
+            <span
+              class="h-2 w-2 shrink-0 rounded-full"
+              [class]="clasesPunto(columna, registro)"
+              aria-hidden="true"
+            ></span>
+            <span [class]="esNeutra(columna, registro) ? 'text-gray-500 dark:text-gray-400' : ''">
+              {{ valor(registro, columna) }}
+            </span>
+          </span>
+          }
+
+          @if (columnasDetalle.length) {
+          <dl class="mt-2 flex flex-col gap-1">
+            @for (columna of columnasDetalle; track columna.campo) {
+            <div class="flex gap-2 text-sm">
+              <dt class="w-28 shrink-0 text-gray-500 dark:text-gray-400">{{ columna.titulo }}</dt>
+              <dd
+                class="min-w-0 flex-1 text-gray-700 dark:text-gray-300"
+                [class.tabular-nums]="columna.formato === 'importe' || columna.formato === 'cantidad'"
+              >
+                {{ valor(registro, columna) }}
+              </dd>
+            </div>
+            }
+          </dl>
+          }
+        </div>
+
+        @if (acciones.length > 0) {
+        <div class="shrink-0">
+          <app-menu-acciones
+            [opciones]="opcionesDeFila(registro)"
+            [descripcionFila]="descripcionDeFila(registro)"
+            (elegir)="accionElegida.emit({ accion: $event, registro })"
+          />
+        </div>
+        }
+      </div>
+    </li>
+    }
+  </ul>
+
+  <!--
+    ── Desde 640 px, la tabla de siempre ───────────────────────────────────
+
+    `hidden sm:block` sobre el contenedor que desplaza, no sobre la tabla: es
+    él quien absorbe los 640 px de ancho mínimo, y escondiendo solo la tabla
+    seguiría existiendo una caja desplazable vacía.
+  -->
+  <div class="hidden overflow-x-auto sm:block">
     <table class="w-full min-w-[640px]">
       <thead class="border-b border-gray-200 dark:border-gray-800">
         <tr>
@@ -280,7 +371,7 @@
   <div
     class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between"
   >
-    <div class="flex flex-wrap items-center gap-3">
+    <div class="flex flex-wrap items-center justify-between gap-3 sm:justify-start">
       <!--
         Solo la pagina. Cuantos hay se dice arriba, y decir «Mostrando 1 a 6 de
         12 registros» ademas era la misma cuenta contada dos veces en la misma
@@ -306,39 +397,53 @@
       }
     </div>
 
-    <!-- Siempre visible: si desaparece al quedar una sola página, el usuario
-         no sabe si la tabla está paginada o si el control se rompió. -->
-    <div class="flex items-center gap-1">
+    <!--
+      Siempre visible: si desaparece al quedar una sola página, el usuario no
+      sabe si la tabla está paginada o si el control se rompió.
+
+      En móvil «Anterior» y «Siguiente» se van a los extremos y los números
+      quedan en medio. Apilados a la izquierda dejaban media barra vacía, y
+      sobre todo dejaban los dos botones que más se pulsan en el centro de la
+      pantalla, que es donde peor llega el pulgar. Desde `sm` el grupo vuelve
+      junto a la derecha, como estaba.
+
+      Los números van envueltos en su propio contenedor para que el paginador
+      tenga exactamente tres hijos: sin eso, `justify-between` repartiría
+      también los números y «1 2 3» aparecería desperdigado por la barra.
+    -->
+    <div class="flex items-center justify-between gap-1 sm:justify-end">
       <button
         type="button"
         (click)="irAPagina(paginaVigente - 1)"
         [disabled]="paginaVigente === 1"
-        class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+        class="rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03] sm:py-1.5"
       >
         Anterior
       </button>
 
-      @for (numero of paginasVisibles; track numero) {
-      <button
+      <div class="flex items-center gap-1">
+        @for (numero of paginasVisibles; track numero) {
+        <button
         type="button"
         (click)="irAPagina(numero)"
         [attr.aria-current]="numero === paginaVigente ? 'page' : null"
-        class="min-w-9 rounded-lg px-3 py-1.5 text-sm tabular-nums transition"
+        class="min-w-9 rounded-lg px-3 py-2.5 text-sm tabular-nums transition sm:py-1.5"
         [class]="
           numero === paginaVigente
             ? 'bg-brand-500 text-white'
             : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.03]'
         "
       >
-        {{ numero }}
-      </button>
-      }
+          {{ numero }}
+        </button>
+        }
+      </div>
 
       <button
         type="button"
         (click)="irAPagina(paginaVigente + 1)"
         [disabled]="paginaVigente === totalPaginas"
-        class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+        class="rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03] sm:py-1.5"
       >
         Siguiente
       </button>

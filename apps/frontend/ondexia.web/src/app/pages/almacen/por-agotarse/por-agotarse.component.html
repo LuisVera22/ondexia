@@ -1,5 +1,9 @@
 <div>
-  <app-encabezado-pagina titulo="Productos por agotarse" />
+  <app-encabezado-pagina
+    titulo="Productos por agotarse"
+    descripcion="Un producto aparece aquí cuando sus existencias igualan o bajan del
+    stock mínimo configurado en su ficha. Registrar un ingreso lo saca de la lista."
+  />
 
   @if (totalAgotados > 0) {
   <div class="mb-5 flex items-start gap-3 rounded-xl border border-error-200 bg-error-50 p-4 dark:border-error-500/30 dark:bg-error-500/10">
@@ -28,10 +32,14 @@
       </label>
     </div>
 
-    <a routerLink="/almacen/guias-ingreso/nueva"
-      class="flex h-10 shrink-0 items-center rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
+    <!--
+      `ruta` y no `(accion)`: esto navega. Asi conserva el clic con rueda, el
+      «abrir en pestana nueva» y la direccion en la barra de estado, y de paso
+      deja de repetir a mano las clases del primario.
+    -->
+    <app-boton icono="mas" class="shrink-0" ruta="/almacen/guias-ingreso/nueva">
       Registrar ingreso
-    </a>
+    </app-boton>
   </div>
 
   <!--
@@ -51,8 +59,4 @@
     vacioDescripcion="Todos los productos tienen existencias por encima de su stock mínimo."
   />
 
-  <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">
-    Un producto aparece aquí cuando sus existencias igualan o bajan del stock
-    mínimo configurado en su ficha.
-  </p>
 </div>

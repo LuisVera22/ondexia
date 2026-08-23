@@ -13,7 +13,7 @@ import {
  * de validacion del comprobante ante SUNAT, no el de una emision propia.
  */
 @Component({
-  selector: 'app-facturas',
+  selector: 'app-facturas-compra',
   imports: [ListadoDocumentosComponent],
   template: `<app-listado-documentos [configuracion]="configuracion" [documentos]="documentos" />`,
 })

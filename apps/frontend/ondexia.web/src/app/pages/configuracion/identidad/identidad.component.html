@@ -1,5 +1,11 @@
 <div>
-  <app-encabezado-pagina titulo="Identidad visual" />
+  <app-encabezado-pagina
+    titulo="Identidad visual"
+    descripcion="Cada empresa tiene sus propios logos. Si administras más de una, cambia el
+    contexto en el encabezado antes de subirlos. Se admiten PNG y JPG; el SVG
+    no, porque puede llevar código dentro y estos archivos acaban dentro de tus
+    comprobantes."
+  />
 
   @if (error()) {
   <div class="mb-5 flex items-start gap-3 rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert">
@@ -9,13 +15,6 @@
     <p class="text-sm text-error-500">{{ error() }}</p>
   </div>
   }
-
-  <p class="mb-5 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-    Cada empresa tiene sus propios logos. Si administras más de una, cambia el
-    contexto en el encabezado antes de subirlos. Se admiten <strong>PNG y
-    JPG</strong>; el SVG no, porque puede llevar código dentro y estos archivos
-    acaban dentro de tus comprobantes.
-  </p>
 
   @if (cargando()) {
   <div class="rounded-2xl border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">

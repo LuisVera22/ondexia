@@ -1,5 +1,12 @@
 <div>
-  <app-encabezado-pagina titulo="Roles y permisos" />
+  <app-encabezado-pagina
+    titulo="Roles y permisos"
+    descripcion="Los permisos van en tres niveles y hacen falta los tres: primero el módulo,
+    luego sus submódulos, y al final las funciones. Apagar un módulo desmarca
+    todo lo que cuelga de él —no lo deja en reserva—, así que volver a
+    encenderlo lo devuelve vacío. Los cambios surten efecto de inmediato, sin
+    que nadie tenga que volver a entrar."
+  />
 
   @if (error()) {
   <div class="mb-5 flex items-start gap-3 rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert">
@@ -9,14 +16,6 @@
     <p class="text-sm text-error-500">{{ error() }}</p>
   </div>
   }
-
-  <p class="mb-5 max-w-3xl text-sm text-gray-500 dark:text-gray-400">
-    Los permisos van en tres niveles: primero el <strong>módulo</strong>, luego
-    sus <strong>submódulos</strong>, y al final las <strong>funciones</strong>.
-    Hacen falta los tres. Apagar un módulo desmarca todo lo que cuelga de él —no
-    lo deja en reserva—, así que volver a encenderlo lo devuelve vacío. Los
-    cambios surten efecto de inmediato, sin que nadie tenga que volver a entrar.
-  </p>
 
   @if (cargando()) {
   <div class="rounded-2xl border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">

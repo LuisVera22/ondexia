@@ -1,17 +1,12 @@
 <div>
-  <app-encabezado-pagina titulo="Tipos de precio" />
+  <app-encabezado-pagina
+    titulo="Tipos de precio"
+    descripcion="Listas de precio por segmento. Al emitir, el tipo asignado al cliente
+    determina qué precio se aplica por defecto."
+  />
 
-  <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-    <p class="max-w-2xl text-sm text-gray-500 dark:text-gray-400">
-      Listas de precio por segmento. Al emitir, el tipo asignado al cliente determina qué precio se aplica por defecto.
-    </p>
-
-    <button
-      type="button"
-      class="shrink-0 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600"
-    >
-      Agregar tipo de precio
-    </button>
+  <div class="mb-5 flex justify-end">
+    <app-boton icono="mas" class="shrink-0">Agregar tipo de precio</app-boton>
   </div>
 
   <app-tabla-datos

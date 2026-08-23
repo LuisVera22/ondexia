@@ -6,8 +6,19 @@
   <meta name="description" content="Gestión comercial y facturación electrónica para empresas peruanas.">
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--
+    Los tres. El SVG es el que usan los navegadores actuales y escala a
+    cualquier tamano; el .ico queda para los que no leen SVG y trae dentro los
+    tamanos de 16, 32 y 48 que pide cada sitio —pestana, favoritos, escritorio—.
+
+    Y el de Apple, porque quien usa esto desde el telefono acaba anadiendolo a
+    la pantalla de inicio, y sin este archivo iOS pone una captura de la pagina.
+    Va a sangre y sin esquinas redondeadas propias: iOS aplica su mascara
+    encima, y dos redondeos concentricos dejan un halo alrededor del icono.
+  -->
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="alternate icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
   <!--
     La tipografía se precarga porque la descubre el navegador al leer la hoja

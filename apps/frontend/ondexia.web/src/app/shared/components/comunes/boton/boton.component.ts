@@ -1,4 +1,6 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { RouterModule } from '@angular/router';
 
 /**
  * Estado visible de la acción.
@@ -13,6 +15,16 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 export type EstadoBoton = 'reposo' | 'cargando' | 'exito' | 'error';
 
 export type VarianteBoton = 'primario' | 'secundario' | 'peligro' | 'icono';
+
+/**
+ * Icono al principio de la etiqueta.
+ *
+ * <p>Lista cerrada y no una ruta SVG suelta: el «+» de crear se dibujaba a mano
+ * en diez pantallas, cada una con su tamaño y su grosor de trazo. Con un nombre,
+ * el de «Agregar marca» y el de «Registrar establecimiento» son el mismo dibujo
+ * sin que nadie tenga que acordarse.
+ */
+export type IconoBoton = '' | 'mas';
 
 /**
  * Botón con estado de la acción que dispara.
@@ -46,16 +58,46 @@ export type VarianteBoton = 'primario' | 'secundario' | 'peligro' | 'icono';
  */
 @Component({
   selector: 'app-boton',
-  imports: [],
+  imports: [NgTemplateOutlet, RouterModule],
   templateUrl: './boton.component.html',
 })
 export class BotonComponent {
+  /**
+   * Destino, si lo que hace el boton es navegar.
+   *
+   * <p>Con ruta se renderiza un `<a routerLink>` en lugar de un `<button>`. El
+   * estado de la accion, `formulario` y `deshabilitado` no aplican ahi: una
+   * navegacion no tiene exito ni error que mostrar en el propio control, y el
+   * resultado se ve en la pantalla que se abre.
+   */
+  @Input() ruta: string | unknown[] = '';
+
   @Input() estado: EstadoBoton = 'reposo';
   @Input() variante: VarianteBoton = 'primario';
   @Input() tipo: 'button' | 'submit' = 'button';
 
   /** Deshabilitado por reglas del formulario, no por la acción en curso. */
   @Input() deshabilitado = false;
+
+  /**
+   * Icono delante del texto. Se va con la etiqueta mientras hay acción en curso,
+   * que es lo correcto: durante la espera manda el estado, no lo que se pidió.
+   */
+  @Input() icono: IconoBoton = '';
+
+  /**
+   * El boton abre un menu en lugar de ejecutar la accion directamente.
+   *
+   * <p>Anade el acento circunflejo al final y los atributos que lo declaran.
+   * Sin el acento, un boton que despliega opciones se lee como un boton que
+   * hace algo, y quien lo pulsa esperando el formulario se encuentra eligiendo
+   * — la misma promesa incumplida que un recuadro alrededor de un texto que no
+   * responde al clic.
+   */
+  @Input() abreMenu = false;
+
+  /** Estado de ese menu. Solo se anuncia si {@code abreMenu}. */
+  @Input() menuAbierto = false;
 
   /** Obligatorio en la variante `icono`, donde no hay texto que leer. */
   @Input() etiquetaAccesible = '';
@@ -101,7 +143,7 @@ export class BotonComponent {
 
   get clases(): string {
     const base =
-      'relative inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium' +
+      'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium' +
       ' transition disabled:cursor-not-allowed disabled:opacity-60';
 
     if (this.variante === 'icono') {
@@ -111,9 +153,15 @@ export class BotonComponent {
       return `${base} px-4 py-2.5 border border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-white/[0.03]`;
     }
     if (this.variante === 'peligro') {
-      return `${base} px-4 py-2.5 bg-error-500 text-white hover:bg-error-600`;
+      // `dark:bg-error-600`: en el tema oscuro el rojo 500 se aclara para poder
+    // leerse sobre fondo oscuro, y un rojo claro con texto blanco encima no se
+    // lee. El boton se queda con el tono que si aguanta el texto blanco.
+    return (
+      `${base} px-4 py-2.5 border border-transparent bg-error-500 text-white hover:bg-error-600` +
+      ' dark:bg-error-600 dark:hover:bg-error-700'
+    );
     }
-    return `${base} px-4 py-2.5 bg-brand-500 text-white hover:bg-brand-600`;
+    return `${base} px-4 py-2.5 border border-transparent bg-brand-500 text-white hover:bg-brand-600`;
   }
 
   /**

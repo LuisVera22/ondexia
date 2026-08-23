@@ -1,25 +1,31 @@
+<!--
+  Con `ruta` sale un enlace; sin ella, un botón.
+
+  No es cosmética. Un enlace se abre con la rueda del ratón, con Ctrl, en
+  pestaña nueva, y enseña el destino en la barra de estado. Un `<button>` que
+  llama a `router.navigate` no hace ninguna de las tres — y navegar es
+  exactamente lo que hacen los botones de «crear» de cada módulo. Sin esto
+  había que elegir entre el aspecto del componente y el comportamiento del
+  enlace, así que unas pantallas usaban el componente y otras escribían el
+  enlace y sus clases a mano.
+-->
+@if (ruta) {
+<a [routerLink]="ruta" [class]="clases" [attr.aria-label]="etiquetaAccesible || null">
+  <ng-container [ngTemplateOutlet]="etiqueta" />
+</a>
+} @else {
 <button
   [attr.type]="tipo"
   [disabled]="bloqueado"
   [class]="clases"
   [attr.aria-label]="etiquetaAccesible || null"
   [attr.aria-busy]="estado === 'cargando'"
+  [attr.aria-haspopup]="abreMenu ? 'menu' : null"
+  [attr.aria-expanded]="abreMenu ? menuAbierto : null"
   [attr.form]="formulario || null"
   (click)="accion.emit()"
 >
-  <!--
-    La etiqueta nunca sale del DOM: pierde la opacidad y conserva el ancho.
-    aria-hidden mientras está invisible, para que el lector de pantalla no lea
-    un texto que ya no describe lo que el botón está haciendo — de eso se
-    encarga aria-busy.
-  -->
-  <span
-    class="inline-flex items-center gap-2 transition-opacity"
-    [class.opacity-0]="muestraIcono"
-    [attr.aria-hidden]="muestraIcono"
-  >
-    <ng-content />
-  </span>
+  <ng-container [ngTemplateOutlet]="etiqueta" />
 
   @if (estadoEnPalabras) {
   <span class="sr-only">{{ estadoEnPalabras }}</span>
@@ -48,3 +54,40 @@
   </span>
   }
 </button>
+}
+
+<!--
+  La etiqueta nunca sale del DOM: pierde la opacidad y conserva el ancho.
+  aria-hidden mientras está invisible, para que el lector de pantalla no lea
+  un texto que ya no describe lo que el botón está haciendo — de eso se
+  encarga aria-busy.
+-->
+<ng-template #etiqueta>
+  <span
+    class="inline-flex items-center gap-2 transition-opacity"
+    [class.opacity-0]="muestraIcono"
+    [attr.aria-hidden]="muestraIcono"
+  >
+    @if (icono === 'mas') {
+    <!--
+      El «+» de crear. `aria-hidden` porque la etiqueta ya dice qué se crea:
+      anunciarlo sería leer «más agregar establecimiento».
+    -->
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+    }
+
+    <ng-content />
+
+    @if (abreMenu) {
+    <svg
+      class="size-3.5 shrink-0 transition-transform"
+      [class.rotate-180]="menuAbierto"
+      width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
+    >
+      <path d="m5 7.5 5 5 5-5" />
+    </svg>
+    }
+  </span>
+</ng-template>

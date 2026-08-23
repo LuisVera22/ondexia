@@ -244,7 +244,46 @@ export class TablaDatosComponent implements OnChanges {
    */
   private tamanoElegido: number | null = null;
 
+  /**
+   * Reparto de columnas para la vista de telefono.
+   *
+   * <h2>Por que la tabla no vale en un telefono</h2>
+   *
+   * <p>La tabla reserva 640 px como minimo porque seis columnas apretadas en
+   * 375 son ilegibles. La consecuencia es que en un movil TODA lista del
+   * sistema aparece dentro de una caja que se arrastra de lado, con las
+   * primeras columnas fuera de vista: se ve «NOMBRE COMERCIAL» y hay que
+   * empujar para descubrir de que registro se esta hablando. Eso no es una
+   * tabla estrecha, es una tabla que no se puede leer.
+   *
+   * <p>Debajo de `sm` cada registro pasa a ser una tarjeta apilada: el dato que
+   * lo identifica de titulo, el estado como insignia, y el resto como pares de
+   * etiqueta y valor. Sin barra horizontal y sin nada fuera de la pantalla.
+   *
+   * <p>Se calcula al cambiar las columnas y no en cada deteccion de cambios:
+   * son tres recorridos del array, y en una plantilla se repetirian por cada
+   * fila pintada.
+   */
+  columnaTitulo: ColumnaTabla | null = null;
+  columnasInsignia: ColumnaTabla[] = [];
+  columnasDetalle: ColumnaTabla[] = [];
+
+  private repartirColumnas(): void {
+    const titulo = this.columnas.find((c) => c.principal) ?? this.columnas[0] ?? null;
+    this.columnaTitulo = titulo;
+    this.columnasInsignia = this.columnas.filter(
+      (c) => c !== titulo && c.formato === 'insignia'
+    );
+    this.columnasDetalle = this.columnas.filter(
+      (c) => c !== titulo && c.formato !== 'insignia'
+    );
+  }
+
   ngOnChanges(cambios: SimpleChanges): void {
+    if (cambios['columnas']) {
+      this.repartirColumnas();
+    }
+
     if (!cambios['registros']) {
       return;
     }

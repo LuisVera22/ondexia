@@ -3,6 +3,7 @@ import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/en
 import { TablaDatosComponent, AccionDeFila,
   ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
+import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
 
 /**
  * Presentaciones o formas de empaque de un producto.
@@ -13,7 +14,12 @@ import { ConfirmacionComponent } from '../../../shared/components/comunes/confir
  */
 @Component({
   selector: 'app-presentaciones',
-  imports: [EncabezadoPaginaComponent, TablaDatosComponent, ConfirmacionComponent],
+  imports: [
+    EncabezadoPaginaComponent,
+    TablaDatosComponent,
+    ConfirmacionComponent,
+    BotonComponent,
+  ],
   templateUrl: './presentaciones.component.html',
 })
 export class PresentacionesComponent {

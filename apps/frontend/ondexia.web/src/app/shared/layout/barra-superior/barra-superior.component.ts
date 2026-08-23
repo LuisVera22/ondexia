@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, ElementRef, HostListener, computed, inject, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MenuLateralService } from '../../services/menu-lateral.service';
@@ -20,11 +21,24 @@ import {
  * inventados, y un control que no notifica nada real enseña al usuario a
  * ignorarlo. Volverá cuando haya algo que avisar: un comprobante rechazado por
  * SUNAT, una suscripción por vencer.
+ *
+ * <h2>Por qué el `sticky` va en el host y no en el `<header>`</h2>
+ *
+ * <p>Un elemento pegajoso se desplaza dentro de su bloque contenedor, que es su
+ * padre. Puesto en el `<header>`, ese padre es el host del componente, que mide
+ * exactamente lo que mide el `<header>`: cero holgura donde desplazarse, así
+ * que `sticky` se comportaba igual que `static`. Y lo hacía en silencio —la
+ * propiedad se aplica, el navegador no avisa de nada— por lo que la barra
+ * simplemente se iba con el desplazamiento.
+ *
+ * <p>En el host, el bloque contenedor pasa a ser `.marco-contenido`, que ocupa
+ * la página entera. Ahí sí hay recorrido.
  */
 @Component({
   selector: 'app-barra-superior',
-  imports: [RouterModule, SelectorContextoComponent],
+  imports: [NgTemplateOutlet, RouterModule, SelectorContextoComponent],
   templateUrl: './barra-superior.component.html',
+  host: { class: 'sticky top-0 z-30' },
 })
 export class BarraSuperiorComponent {
   private readonly anfitrion = inject(ElementRef<HTMLElement>);
@@ -36,6 +50,17 @@ export class BarraSuperiorComponent {
   readonly sesion = inject(SesionService);
 
   readonly menuUsuarioAbierto = signal(false);
+
+  /**
+   * La segunda fila del movil, donde caben los controles que arriba no caben.
+   *
+   * <p>No es un menu: es una region del encabezado que se muestra y se esconde,
+   * y dentro cada control sigue siendo el que es. Por eso no se cierra al
+   * pulsar fuera ni con Escape — eso vale para lo que flota encima del
+   * contenido, no para una franja que forma parte de la pagina. Se recoge con
+   * el mismo boton que la desplego.
+   */
+  readonly filaExtraAbierta = signal(false);
 
   /**
    * Cambiar de empresa recarga el contexto entero, permisos incluidos.
@@ -102,9 +127,17 @@ export class BarraSuperiorComponent {
     this.menuUsuarioAbierto.set(false);
   }
 
+  alternarFilaExtra(): void {
+    this.filaExtraAbierta.update((abierta) => !abierta);
+  }
+
   /** El botón de plegado alterna el cajón en móvil y el ancho en escritorio. */
   alternarMenu(): void {
-    if (window.innerWidth < 1280) {
+    // `matchMedia` y no `innerWidth`: es la misma consulta que usa el CSS para
+    // decidir si el menu se superpone o convive con el contenido, asi que las
+    // dos no pueden discrepar. `innerWidth` cuenta el hueco de la barra de
+    // desplazamiento y en el emulador de Chrome ni siquiera dice la verdad.
+    if (!window.matchMedia('(min-width: 1280px)').matches) {
       this.menu.alternarEnMovil();
     } else {
       this.menu.alternarDesplegado();
