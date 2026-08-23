@@ -3,6 +3,7 @@ package com.ondexia.domain.identidad;
 import com.ondexia.domain.comun.Ruc;
 import com.ondexia.domain.comun.Ubigeo;
 import com.ondexia.domain.comun.error.ReglaDeNegocioViolada;
+import com.ondexia.domain.consultas.DatosDeRuc;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -31,6 +32,12 @@ public class Empresa {
     private ModoSunat modoSunat;
     private boolean activa;
 
+    /** {@code null} en las empresas anteriores a la consulta del padrón. */
+    private VerificacionSunat verificacion;
+
+    /** Del Banco de la Nación. Opcional; ver doc 11 §6.1. */
+    private String cuentaDetracciones;
+
     /**
      * Alta.
      *
@@ -48,10 +55,40 @@ public class Empresa {
         this.activa = true;
     }
 
+    /**
+     * Alta a partir de una consulta al padrón ya comprobada.
+     *
+     * <h2>Por qué esta es la única forma de dar de alta una empresa nueva</h2>
+     *
+     * <p>Porque recibe {@link DatosDeRuc}, y un {@code DatosDeRuc} solo existe
+     * si vino de una atestación firmada por {@code ondexia.consultas}. Es decir:
+     * <strong>no se puede construir una empresa con una razón social que SUNAT
+     * no haya dicho.</strong> No es una comprobación que alguien pueda olvidar
+     * poner en un caso de uso; es que no hay otro camino.
+     *
+     * <p>Importa más de lo que parece: una razón social que no coincide con el
+     * padrón hace que SUNAT rechace <em>todos</em> los comprobantes de esa
+     * empresa, y el fallo aparecería en la primera emisión real.
+     *
+     * @throws ReglaDeNegocioViolada si el RUC no está activo y habido
+     */
+    public static Empresa registrar(UUID id, UUID cuentaId, DatosDeRuc datos) {
+        if (!datos.aptaParaRegistro()) {
+            throw new ReglaDeNegocioViolada("ruc_no_apto", datos.motivoDeRechazo());
+        }
+
+        Empresa empresa = new Empresa(id, cuentaId, datos.ruc(), datos.razonSocial(),
+                datos.domicilioFiscal());
+        empresa.ubigeo = datos.ubigeo();
+        empresa.verificacion = VerificacionSunat.de(datos);
+        return empresa;
+    }
+
     /** Reconstrucción desde persistencia. Solo lo usa el mapeador. */
     public Empresa(UUID id, UUID cuentaId, Ruc ruc, String razonSocial, String nombreComercial,
             String domicilioFiscal, Ubigeo ubigeo, String secretArnCertificado, String usuarioSol,
-            ModoSunat modoSunat, boolean activa) {
+            ModoSunat modoSunat, boolean activa, VerificacionSunat verificacion,
+            String cuentaDetracciones) {
         this.id = id;
         this.cuentaId = cuentaId;
         this.ruc = ruc;
@@ -63,6 +100,8 @@ public class Empresa {
         this.usuarioSol = usuarioSol;
         this.modoSunat = modoSunat;
         this.activa = activa;
+        this.verificacion = verificacion;
+        this.cuentaDetracciones = cuentaDetracciones;
     }
 
     public UUID id() {
@@ -107,6 +146,83 @@ public class Empresa {
 
     public boolean estaActiva() {
         return activa;
+    }
+
+    /** @return {@code null} si nunca se comprobó contra SUNAT */
+    public VerificacionSunat verificacion() {
+        return verificacion;
+    }
+
+    public String cuentaDetracciones() {
+        return cuentaDetracciones;
+    }
+
+    /**
+     * Refresca lo que SUNAT dice, con los datos de una consulta nueva.
+     *
+     * <h2>Por qué esto existe y por qué no valida la aptitud</h2>
+     *
+     * <p>Existe porque «no editable» no puede significar «congelado»: una razón
+     * social cambia legítimamente en SUNAT, y sin forma de refrescarla un dato
+     * corregible se vuelve imposible de corregir — peor que dejarlo editable,
+     * porque el rechazo de SUNAT no tendría salida desde la aplicación.
+     *
+     * <p>Y no exige que siga apta a propósito. Una empresa que ya opera y pasa a
+     * NO HABIDO tiene que poder registrar ese hecho: es justo lo que hay que ver
+     * en pantalla. Bloquear la actualización dejaría el dato viejo, que es la
+     * única versión que de verdad engaña. Lo que se haga con una empresa no apta
+     * —avisar, impedir emitir— es decisión de quien lea esto, no de aquí.
+     */
+    public void refrescarDesdeSunat(DatosDeRuc datos) {
+        if (!datos.ruc().equals(this.ruc)) {
+            throw new ReglaDeNegocioViolada("ruc_distinto",
+                    "La consulta es del RUC " + datos.ruc() + " y esta empresa es "
+                            + this.ruc + ".");
+        }
+        this.razonSocial = exigirTexto(datos.razonSocial(), "razon_social", "La razón social");
+        this.domicilioFiscal = datos.domicilioFiscal() == null
+                ? this.domicilioFiscal
+                : datos.domicilioFiscal();
+        if (datos.ubigeo() != null) {
+            this.ubigeo = datos.ubigeo();
+        }
+        this.verificacion = VerificacionSunat.de(datos);
+    }
+
+    /**
+     * La cuenta de detracciones del Banco de la Nación.
+     *
+     * <p>Solo dígitos, y sin longitud fija: el formato del BN no está publicado
+     * ni en su web ni en la orientación de SUNAT. Un largo inventado rechazaría
+     * cuentas válidas, que es peor que no comprobar.
+     */
+    public void anotarCuentaDetracciones(String cuenta) {
+        if (cuenta == null || cuenta.isBlank()) {
+            this.cuentaDetracciones = null;
+            return;
+        }
+        String limpia = cuenta.trim();
+        if (!limpia.matches("\\d+")) {
+            throw new ReglaDeNegocioViolada("cuenta_detracciones_invalida",
+                    "La cuenta de detracciones solo puede tener dígitos.");
+        }
+        this.cuentaDetracciones = limpia;
+    }
+
+    /**
+     * El nombre comercial, que es nuestro y no de SUNAT.
+     *
+     * <p>Método aparte de {@link #actualizarDatosFiscales} porque no es un dato
+     * fiscal: SUNAT tiene uno registrado, pero las empresas usan el que quieren
+     * en sus facturas y no hay ninguna consecuencia en que difieran. Metido en
+     * el método de los datos fiscales, cambiarlo obligaría a pasar de nuevo la
+     * razón social y el domicilio — y por ahí es como se sobrescribe sin querer
+     * lo que vino del padrón.
+     */
+    public void renombrarComercialmente(String nombreComercial) {
+        this.nombreComercial = nombreComercial == null || nombreComercial.isBlank()
+                ? null
+                : nombreComercial.trim();
     }
 
     public void actualizarDatosFiscales(String razonSocial, String nombreComercial,

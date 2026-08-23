@@ -10,6 +10,7 @@ import com.ondexia.domain.identidad.Rol;
 import com.ondexia.domain.identidad.Sucursal;
 import com.ondexia.domain.identidad.Usuario;
 import com.ondexia.domain.identidad.UsuarioEmpresa;
+import com.ondexia.domain.identidad.VerificacionSunat;
 
 /**
  * Traducción entre los agregados del dominio y las filas de la base.
@@ -54,16 +55,46 @@ final class MapeadoresIdentidad {
                 fila.getNombreComercial(), fila.getDomicilioFiscal(),
                 fila.getUbigeo() == null ? null : new Ubigeo(fila.getUbigeo()),
                 fila.getSecretArnCertificado(), fila.getUsuarioSol(), fila.getModoSunat(),
-                fila.isActivo());
+                fila.isActivo(), verificacion(fila), fila.getCuentaDetracciones());
+    }
+
+    /**
+     * La verificación, o {@code null} si nunca se comprobó.
+     *
+     * <p>Se decide por {@code verificadoEn} y no por el estado. Son equivalentes
+     * mientras la restricción de la base aguante —van los tres o ninguno—, pero
+     * mirar la fecha es lo que expresa la pregunta que se está haciendo: no «qué
+     * dijo SUNAT» sino «se le llegó a preguntar».
+     */
+    private static VerificacionSunat verificacion(EmpresaJpa fila) {
+        if (fila.getVerificadoEn() == null) {
+            return null;
+        }
+        return new VerificacionSunat(
+                fila.getEstadoContribuyente(), fila.getCondicionDomicilio(),
+                fila.getDistrito(), fila.getProvincia(), fila.getDepartamento(),
+                fila.isEsAgenteRetencion(), fila.isEsBuenContribuyente(),
+                fila.getTipoSocietario(), fila.getVerificadoEn());
     }
 
     static EmpresaJpa aFila(Empresa empresa) {
-        return new EmpresaJpa(
+        EmpresaJpa fila = new EmpresaJpa(
                 empresa.id(), empresa.cuentaId(), empresa.ruc().valor(), empresa.razonSocial(),
                 empresa.nombreComercial(), empresa.domicilioFiscal(),
                 empresa.ubigeo() == null ? null : empresa.ubigeo().valor(),
                 empresa.secretArnCertificado(), empresa.usuarioSol(), empresa.modoSunat(),
                 empresa.estaActiva());
+
+        VerificacionSunat verificacion = empresa.verificacion();
+        if (verificacion != null) {
+            fila.verificacionDeSunat(verificacion.estado(), verificacion.condicion(),
+                    verificacion.verificadoEn(), verificacion.distrito(),
+                    verificacion.provincia(), verificacion.departamento(),
+                    verificacion.esAgenteRetencion(), verificacion.esBuenContribuyente(),
+                    verificacion.tipoSocietario());
+        }
+        fila.setCuentaDetracciones(empresa.cuentaDetracciones());
+        return fila;
     }
 
     // ── Sucursal ───────────────────────────────────────────────────────────

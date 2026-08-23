@@ -710,12 +710,54 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaEstablecimiento"
+  /api/v1/configuracion/empresas:
+    get:
+      tags:
+      - Empresa
+      summary: Empresas que alcanza el usuario
+      description: "Las de la cuenta a las que tiene asignación, que son las mismas\
+        \ que ofrece el selector de contexto. No las de la cuenta entera: dos usuarios\
+        \ de la misma cuenta pueden alcanzar empresas distintas."
+      operationId: listar_3
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaEmpresa"
+    post:
+      tags:
+      - Empresa
+      summary: Registrar una empresa
+      description: "Los datos de SUNAT salen de la atestacion firmada y no del cuerpo\
+        \ de la                     peticion: la API no puede consultar el padron\
+        \ —su Lambda no tiene salida a                     internet— asi que confia\
+        \ en la firma de ondexia.consultas. Responde 409 si                     el\
+        \ RUC ya esta registrado, y 422 si la atestacion caduco, si no es valida,\
+        \                     o si el plan no admite otra empresa."
+      operationId: registrar_3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionAlta"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaEmpresa"
   /api/v1/almacen/almacenes:
     get:
       tags:
       - Almacenes
       summary: "Lista los almacenes, activos e inactivos"
-      operationId: listar_3
+      operationId: listar_4
       responses:
         "200":
           description: OK
@@ -731,7 +773,7 @@ paths:
       summary: Registra un almacén
       description: "El código lo elige el cliente: se teclea en cada movimiento de\
         \ mercadería, así que conviene que sea corto. Se guarda en mayúsculas."
-      operationId: registrar_3
+      operationId: registrar_4
       requestBody:
         content:
           application/json:
@@ -815,7 +857,7 @@ paths:
       tags:
       - Roles
       summary: "Lista los roles: los predefinidos y los de la cuenta"
-      operationId: listar_4
+      operationId: listar_5
       responses:
         "200":
           description: OK
@@ -861,24 +903,6 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/RespuestaLogo"
-  /api/v1/configuracion/empresas:
-    get:
-      tags:
-      - Empresa
-      summary: Empresas que alcanza el usuario
-      description: "Las de la cuenta a las que tiene asignación, que son las mismas\
-        \ que ofrece el selector de contexto. No las de la cuenta entera: dos usuarios\
-        \ de la misma cuenta pueden alcanzar empresas distintas."
-      operationId: listar_5
-      responses:
-        "200":
-          description: OK
-          content:
-            '*/*':
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/RespuestaEmpresa"
   /api/v1/configuracion/empresas/{id}:
     get:
       tags:
@@ -902,6 +926,22 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaEmpresa"
+  /api/v1/configuracion/empresas/cupo:
+    get:
+      tags:
+      - Empresa
+      summary: Cuantas empresas admite el plan
+      description: "`maxEmpresas` nulo significa sin limite, no cero: es el plan a\
+        \ demanda.                     Existe para que la pantalla no ofrezca un formulario\
+        \ que va a fallar al                     enviarse."
+      operationId: cupo
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaCupo"
   /api/v1/configuracion/comprobantes:
     get:
       tags:
@@ -1306,6 +1346,23 @@ components:
         validaSegundos:
           type: integer
           format: int64
+    PeticionAlta:
+      required:
+      - atestacion
+      type: object
+      properties:
+        atestacion:
+          minLength: 1
+          type: string
+        nombreComercial:
+          maxLength: 300
+          minLength: 0
+          type: string
+        cuentaDetracciones:
+          maxLength: 30
+          minLength: 0
+          pattern: "[0-9]*"
+          type: string
     Salud:
       type: object
       properties:
@@ -1450,6 +1507,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RespuestaFuncion"
+    RespuestaCupo:
+      type: object
+      properties:
+        maxEmpresas:
+          type: integer
+          format: int32
+        empresasUsadas:
+          type: integer
+          format: int32
+        cabeOtra:
+          type: boolean
+        motivo:
+          type: string
   parameters:
     EmpresaActiva:
       name: X-Empresa-Id
