@@ -69,6 +69,19 @@ public final class ServidorLocal {
         servidor.createContext(RUTA, intercambio -> atender(servicio, intercambio));
         servidor.start();
 
+        /*
+         * Se imprime la IP y no «localhost», y no es un detalle de estilo.
+         *
+         * Esto se ata al loopback IPv4. En una maquina donde `localhost` resuelve
+         * primero a ::1 —lo hace Windows, y ahi mismo `ng serve` acaba escuchando
+         * en [::1]— una peticion a http://localhost:8081 puede dar
+         * ERR_CONNECTION_REFUSED con el servidor perfectamente arrancado. Ese
+         * error es indistinguible de «no lo he lanzado», y se pierde un buen rato
+         * buscandolo en el sitio equivocado.
+         *
+         * Por eso config.json apunta a 127.0.0.1 y por eso este mensaje dice la
+         * IP: lo que se copia de aqui funciona.
+         */
         System.out.println("[consultas] escuchando en http://127.0.0.1:" + puerto + RUTA + "{ruc}");
         System.out.println("[consultas] solo para desarrollo: no valida tokens");
     }
