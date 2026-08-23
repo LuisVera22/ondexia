@@ -79,6 +79,11 @@ Ejes de diferenciación que sí funcionan porque **no rompen nada al faltar**:
 | **Reportes avanzados y exportación** | Básicos | Completos | Completos + a medida |
 | Soporte | Correo | Correo prioritario | Canal directo |
 
+**El límite de empresas quedó confirmado el 2026-08-23 en 1 / 2 / negociable**, y
+está sembrado en `plan.max_empresas` (V9) como `1 / 2 / NULL` — donde `NULL` es
+sin límite, no cero. Cambiarlo es un `UPDATE` de tres filas; por eso los límites
+son una tabla y no constantes en el código.
+
 La GRE es el mejor candidato a estar en plan superior y la razón es honesta: **es una integración técnica aparte** (DTE R-06), con costo real de construcción y mantenimiento, y no todos los clientes trasladan mercadería. Un comercio de mostrador no la necesita.
 
 Lo que **nunca** debe restringirse: emitir, anular y consultar comprobantes; la retención de XML y CDR; y el acceso a los datos históricos. Todo eso tiene obligación legal de 5 años y limitarlo expondría al cliente ante SUNAT.

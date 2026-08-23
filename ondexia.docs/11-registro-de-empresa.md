@@ -183,13 +183,18 @@ la puerta, y esa puerta es el motivo de todo esto.
 
 ## 9. Cuántas empresas
 
-El mecanismo ya existe: `plan.max_empresas` (V9) con `NULL` = sin límite, y
-`cuenta.limite_empresas` para lo pactado con un cliente concreto. Sembrado hoy
-con **1 / 2 / sin límite**, que es lo que dice el doc 04 §2.2.
+**Confirmado el 2026-08-23: 1 / 2 / sin límite.** Es lo que ya dice el doc 04
+§2.2 y lo que la V9 tiene sembrado, así que no hubo nada que cambiar.
 
-Cambiar esas cifras es un `UPDATE` de tres filas, no una migración. Queda
-**pendiente de confirmar** antes de que el botón «Agregar empresa» salga a
-producción.
+El mecanismo: `plan.max_empresas` con `NULL` = sin límite —el plan a demanda— y
+`cuenta.limite_empresas` para lo pactado con un cliente concreto, que manda
+sobre el del plan. Ese `coalesce` es la regla, no un detalle: olvidarlo dejaría
+bloqueado justo al cliente que pagó una empresa adicional.
+
+Y cambiar las cifras seguirá siendo un `UPDATE` de tres filas, no una migración.
+Es la razón por la que los límites son una tabla y no constantes en Java: el plan
+a demanda es negociable por cliente, y un límite negociable no cabe en un
+enumerado.
 
 ## 10. La atestación firmada
 
@@ -309,6 +314,5 @@ o si falla el despliegue.
 | Qué | Estado |
 |---|---|
 | `locales_anexos` para autocompletar establecimientos | Aplazado. Viene gratis en la respuesta de Decolecta y resolvería el código de establecimiento incorrecto que teme el doc 04 §2.1. No es requisito del alta |
-| Confirmar las cifras de `plan.max_empresas` | Pendiente (§9) |
 | Formato del número de cuenta de detracciones | Sin confirmar (§6.1) |
 | Si la capa gratuita de apiperu.dev incluye tipo de cambio | Sin confirmar: su ficha no lista «acceso a todas las APIs». El RUC sí está incluido |
