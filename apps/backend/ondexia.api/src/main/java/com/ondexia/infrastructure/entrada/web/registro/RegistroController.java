@@ -118,7 +118,10 @@ public class RegistroController {
                     Crea cuenta, usuario administrador, empresa y el establecimiento de casa \
                     matriz (0000) en una sola transacción. La identidad sale del token, nunca \
                     del cuerpo: aceptarla como parámetro permitiría darse de alta suplantando \
-                    a otra persona.""")
+                    a otra persona. Los datos de la empresa salen de la atestación firmada que \
+                    devuelve GET /consultas/ruc/{ruc}, así que no hay alta posible con un RUC \
+                    que no esté ACTIVO y HABIDO en SUNAT. Responde 400 si la atestación no es \
+                    válida o caducó, y 409 si el RUC ya está registrado.""")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public RespuestaRegistro registrar(
@@ -162,10 +165,7 @@ public class RegistroController {
                 jwt.getSubject(),
                 email,
                 new RegistrarCuenta.DatosDeRegistro(
-                        peticion.ruc(),
-                        peticion.razonSocial(),
-                        peticion.domicilioFiscal(),
-                        peticion.ubigeo(),
+                        peticion.atestacion(),
                         peticion.nombreTitular(),
                         peticion.apellidoTitular()));
 
@@ -173,25 +173,23 @@ public class RegistroController {
     }
 
     /**
-     * @param ruc se valida aquí solo en formato; el dígito verificador lo
-     *            comprueba el value object {@code Ruc}, que es donde vive esa
-     *            regla y donde no se puede olvidar
+     * Lo que pide el alta: la verificación del RUC y quién eres.
+     *
+     * <h2>Ya no hay RUC, razón social, domicilio ni ubigeo</h2>
+     *
+     * <p>Los cuatro salen de la atestación. El RUC llegaba antes como cadena y
+     * se validaba el formato aquí y el dígito verificador en el value object,
+     * pero <strong>nada comprobaba que existiera</strong>: se podía crear una
+     * cuenta con un RUC bien formado e inventado, y con la razón social que a
+     * uno le pareciera.
+     *
+     * <p>De cinco campos de empresa a uno. El formulario pide el RUC, consulta,
+     * y muestra el resto ya relleno y en solo lectura — que además es menos
+     * trabajo para quien se registra.
      */
     public record PeticionRegistro(
-            @NotBlank(message = "El RUC es obligatorio.")
-            @Pattern(regexp = "\\d{11}", message = "El RUC son once dígitos.")
-            String ruc,
-
-            @NotBlank(message = "La razón social es obligatoria.")
-            @Size(max = 300)
-            String razonSocial,
-
-            @NotBlank(message = "El domicilio fiscal es obligatorio.")
-            @Size(max = 400)
-            String domicilioFiscal,
-
-            @Pattern(regexp = "^$|^\\d{6}$", message = "El ubigeo son seis dígitos.")
-            String ubigeo,
+            @NotBlank(message = "Falta la verificación del RUC.")
+            String atestacion,
 
             @NotBlank(message = "Falta tu nombre.")
             @Size(max = 150)

@@ -7,6 +7,8 @@ import com.ondexia.domain.identidad.Cuenta;
 import com.ondexia.domain.identidad.CuentaAdministrador;
 import com.ondexia.domain.identidad.CuentaAdministradorRepositorio;
 import com.ondexia.domain.identidad.CuentaRepositorio;
+import com.ondexia.domain.consultas.DatosDeRuc;
+import com.ondexia.domain.consultas.VerificacionDeRuc;
 import com.ondexia.domain.identidad.Empresa;
 import com.ondexia.domain.identidad.EmpresaRepositorio;
 import com.ondexia.domain.identidad.EstadoSuscripcion;
@@ -61,18 +63,21 @@ public class RegistrarCuenta {
     private final UsuarioRepositorio usuarios;
     private final CuentaAdministradorRepositorio administradores;
     private final EmpresaRepositorio empresas;
+    private final VerificacionDeRuc verificacion;
     private final SucursalRepositorio sucursales;
     private final UsuarioEmpresaRepositorio asignaciones;
     private final RolRepositorio roles;
 
     public RegistrarCuenta(CuentaRepositorio cuentas, UsuarioRepositorio usuarios,
             CuentaAdministradorRepositorio administradores, EmpresaRepositorio empresas,
+            VerificacionDeRuc verificacion,
             SucursalRepositorio sucursales, UsuarioEmpresaRepositorio asignaciones,
             RolRepositorio roles) {
         this.cuentas = cuentas;
         this.usuarios = usuarios;
         this.administradores = administradores;
         this.empresas = empresas;
+        this.verificacion = verificacion;
         this.sucursales = sucursales;
         this.asignaciones = asignaciones;
         this.roles = roles;
@@ -94,7 +99,22 @@ public class RegistrarCuenta {
                     "Esta cuenta de acceso ya tiene un registro completo.");
         });
 
-        var ruc = new Ruc(datos.ruc());
+        /*
+         * El RUC y la razon social salen de la atestacion, no del formulario.
+         *
+         * Es la puerta del onboarding: para crear una cuenta hay que demostrar
+         * que el RUC existe, esta ACTIVO y esta HABIDO. Y no es una comprobacion
+         * que este caso de uso haga —no puede, la Lambda no sale a internet—
+         * sino una firma de ondexia.consultas que aqui solo se verifica (DT-19).
+         *
+         * Lo que se gana es que no hay forma de crear una cuenta con una razon
+         * social inventada. Antes llegaba en el cuerpo y nada la comparaba con
+         * el padron; una que no coincide hace que SUNAT rechace todos los
+         * comprobantes de esa empresa, y el fallo aparece en la primera emision
+         * real — semanas despues del alta.
+         */
+        DatosDeRuc padron = verificacion.comprobar(datos.atestacion());
+        var ruc = padron.ruc();
 
         /*
          * El RUC es único en TODA la instalación, no por cuenta.
@@ -114,7 +134,10 @@ public class RegistrarCuenta {
 
         var cuenta = cuentas.guardar(new Cuenta(
                 UUID.randomUUID(),
-                datos.razonSocial(),
+                // El nombre de la cuenta es la razon social del padron. Se puede
+                // renombrar despues: la cuenta es la unidad comercial y su
+                // nombre no aparece en ningun comprobante.
+                padron.razonSocial(),
                 PlanSuscripcion.PROFESIONAL,
                 // Nace en prueba. El cobro es de la Entrega de suscripción; lo
                 // que importa hoy es que el estado exista desde el primer día y
@@ -139,8 +162,13 @@ public class RegistrarCuenta {
         administradores.guardar(new CuentaAdministrador(
                 UUID.randomUUID(), cuenta.id(), usuario.id()));
 
-        var empresa = empresas.guardar(new Empresa(
-                UUID.randomUUID(), cuenta.id(), ruc, datos.razonSocial(), datos.domicilioFiscal()));
+        /*
+         * Empresa.registrar y no el constructor: exige que el RUC este apto y
+         * copia los campos del padron —estado, condicion, ubigeo, distrito, forma
+         * societaria— con su fecha de verificacion. El constructor publico no
+         * comprueba nada y dejaria una empresa sin verificar el primer dia.
+         */
+        var empresa = empresas.guardar(Empresa.registrar(UUID.randomUUID(), cuenta.id(), padron));
 
         /*
          * Casa matriz, código 0000. Se crea sola y no se pregunta.
@@ -150,16 +178,8 @@ public class RegistrarCuenta {
          * dejarla para después sería dejar al cliente en un sistema que no
          * factura sin decirle por qué.
          */
-        var matriz = new Sucursal(
-                UUID.randomUUID(), empresa.id(), "0000", "Casa matriz", datos.domicilioFiscal());
-
-        if (datos.ubigeo() != null && !datos.ubigeo().isBlank()) {
-            var ubigeo = new Ubigeo(datos.ubigeo());
-            empresa.actualizarDatosFiscales(
-                    datos.razonSocial(), null, datos.domicilioFiscal(), ubigeo);
-            empresas.guardar(empresa);
-            matriz.actualizar(matriz.nombre(), matriz.direccion(), ubigeo);
-        }
+        var matriz = new Sucursal(UUID.randomUUID(), empresa.id(), "0000", "Casa matriz",
+                empresa.domicilioFiscal(), empresa.ubigeo(), true);
 
         sucursales.guardar(matriz);
 
@@ -202,13 +222,13 @@ public class RegistrarCuenta {
      *                        partirlo después obligaría a adivinar dónde acaba
      *                        el nombre, y en «María del Carmen Rojas» no hay
      *                        forma de acertar
-     * @param ubigeo          opcional mientras no haya integración con SUNAT
+     * @param atestacion      lo que devolvió {@code GET /consultas/ruc/{ruc}}.
+     *                        De ahí salen el RUC, la razón social, el domicilio y
+     *                        el ubigeo: ninguno llega por el formulario, y por eso
+     *                        no se pueden inventar
      */
     public record DatosDeRegistro(
-            String ruc,
-            String razonSocial,
-            String domicilioFiscal,
-            String ubigeo,
+            String atestacion,
             String nombreTitular,
             String apellidoTitular) {
     }

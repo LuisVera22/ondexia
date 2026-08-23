@@ -6,10 +6,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.ondexia.domain.comun.Ruc;
+import com.ondexia.domain.comun.Ubigeo;
+import com.ondexia.domain.consultas.Atestacion;
+import com.ondexia.domain.consultas.CondicionDomicilio;
+import com.ondexia.domain.consultas.DatosDeRuc;
+import com.ondexia.domain.consultas.EstadoContribuyente;
 import com.ondexia.infrastructure.seguridad.ContextoDePrueba;
+import java.time.Duration;
+import java.time.Instant;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
@@ -25,26 +34,65 @@ import org.springframework.http.MediaType;
  * <p>Por eso la prueba principal no se conforma con el 201: comprueba que
  * <strong>después del alta el usuario puede trabajar</strong>, que es lo que de
  * verdad se quería.
+ *
+ * <h2>Qué cambió al validar el RUC en el alta</h2>
+ *
+ * <p>El cuerpo ya no lleva RUC, razón social, domicilio ni ubigeo: los cuatro
+ * salen de una atestación firmada. Antes bastaba un RUC bien formado —el dígito
+ * verificador cuadraba y nada más se comprobaba— así que se podía crear una
+ * cuenta con un contribuyente inexistente y la razón social que a uno le
+ * pareciera.
+ *
+ * <p>Dos pruebas desaparecieron de aquí por eso, y no porque dejaran de
+ * importar: las del dígito verificador y de los acentos en su mensaje. Ese
+ * mensaje ya no lo produce este endpoint —el RUC no llega como cadena— sino
+ * {@code ondexia.consultas} al consultarlo. Su sitio es ahí.
  */
+@SpringBootTest(properties =
+        "ondexia.consultas.firma-publica="
+                + "MCowBQYDK2VwAyEArH+O+lntDsX9UwpK0dFrbTzckioDM9zhI7jnoLq7URw=")
 class RegistroIT extends PruebaIntegracion {
 
     private static final String REGISTRO = "/api/v1/registro";
+
+    /** Par de pruebas, generado con openssl. No se usa en ningún entorno. */
+    private static final String PRIVADA =
+            "MC4CAQAwBQYDK2VwBCIEIKA3itKbjL1Lu/BLbAXSt2igZr8kb8tD5uSNcRYckQ+w";
+
+    private static final String PRIVADA_AJENA =
+            "MC4CAQAwBQYDK2VwBCIEIL4UnsUNd5e0VdMWBD/XlMEGqrMnAvW0/UxC2+4ebfU1";
 
     @AfterEach
     void limpiar() {
         ContextoDePrueba.limpiar();
     }
 
-    private static String cuerpo(String ruc, String razonSocial) {
+    private static DatosDeRuc padron(String ruc, String razonSocial,
+            EstadoContribuyente estado, CondicionDomicilio condicion) {
+        return new DatosDeRuc(new Ruc(ruc), razonSocial, estado, condicion,
+                "Av. Nueva 100, Lima", new Ubigeo("150101"), "LIMA", "LIMA", "LIMA",
+                false, false, "SOCIEDAD ANONIMA CERRADA", Instant.now());
+    }
+
+    private static String firmar(DatosDeRuc datos, String privada) {
+        return Atestacion.emitir(datos, Instant.now().plus(Duration.ofMinutes(10)),
+                Atestacion.clavePrivada(privada));
+    }
+
+    /** El cuerpo del alta: la verificación del RUC y quién eres. Nada más. */
+    private static String cuerpo(String atestacion) {
         return """
                 {
-                  "ruc": "%s",
-                  "razonSocial": "%s",
-                  "domicilioFiscal": "Av. Nueva 100, Lima",
-                  "ubigeo": "150101",
+                  "atestacion": "%s",
                   "nombreTitular": "Titular",
                   "apellidoTitular": "De Prueba"
-                }""".formatted(ruc, razonSocial);
+                }""".formatted(atestacion);
+    }
+
+    private static String cuerpoPara(String ruc, String razonSocial) {
+        return cuerpo(firmar(
+                padron(ruc, razonSocial, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
+                PRIVADA));
     }
 
     @Test
@@ -52,12 +100,10 @@ class RegistroIT extends PruebaIntegracion {
     void trasRegistrarseSePuedeOperar() throws Exception {
         String token = "Bearer " + tokenPara("sub-recien-llegado");
 
-        // 20100000033 tiene dígito verificador válido; el value object Ruc
-        // rechazaría uno inventado y la prueba fallaría por el motivo equivocado.
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(cuerpo("20100000033", "EMPRESA RECIEN CREADA S.A.C.")))
+                        .content(cuerpoPara("20100000033", "EMPRESA RECIEN CREADA S.A.C.")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.cuentaId").isNotEmpty());
 
@@ -74,7 +120,8 @@ class RegistroIT extends PruebaIntegracion {
                 .andExpect(jsonPath("$.cuenta.esAdministrador").value(true))
                 // El rol Administrador trae todo el catálogo: si la asignación
                 // se creara sin rol, esto vendría vacío.
-                .andExpect(jsonPath("$.permisos.length()").value(org.hamcrest.Matchers.greaterThan(0)));
+                .andExpect(jsonPath("$.permisos.length()").value(
+                        org.hamcrest.Matchers.greaterThan(0)));
 
         // Y con eso puede abrir una pantalla de configuración, que era lo que
         // fallaba: la casa matriz creada por el alta debe estar ahí.
@@ -84,13 +131,116 @@ class RegistroIT extends PruebaIntegracion {
                 .andExpect(jsonPath("$[0].codigo").value("0000"));
     }
 
+    /**
+     * La razón social y el domicilio salen del padrón, no del formulario.
+     *
+     * <p>Es lo que la atestación compra: el cuerpo de la petición no tiene esos
+     * campos, así que una razón social correcta en la empresa creada solo puede
+     * venir de la firma.
+     */
+    @Test
+    @DisplayName("Los datos de la empresa creada salen de la atestación")
+    void losDatosSalenDelPadron() throws Exception {
+        String token = "Bearer " + tokenPara("sub-datos-del-padron");
+
+        mockMvc.perform(post(REGISTRO)
+                        .header(HttpHeaders.AUTHORIZATION, token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cuerpoPara("20100001005", "LO QUE DICE SUNAT S.A.C.")))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/v1/configuracion/empresa")
+                        .header(HttpHeaders.AUTHORIZATION, token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.razonSocial").value("LO QUE DICE SUNAT S.A.C."))
+                .andExpect(jsonPath("$.domicilioFiscal").value("Av. Nueva 100, Lima"))
+                .andExpect(jsonPath("$.ubigeo").value("150101"))
+                // Nace verificada: la fecha existe desde el primer dia.
+                .andExpect(jsonPath("$.estado").value("ACTIVO"))
+                .andExpect(jsonPath("$.condicion").value("HABIDO"))
+                .andExpect(jsonPath("$.verificadoEn").exists())
+                .andExpect(jsonPath("$.tipoSocietario").value("SOCIEDAD ANONIMA CERRADA"));
+    }
+
+    /**
+     * La puerta del onboarding.
+     *
+     * <p>Sin esto, cualquiera se registra con un RUC de baja o no habido, y el
+     * problema aparece cuando sus clientes pierden el crédito fiscal — no aquí.
+     */
+    @Test
+    @DisplayName("Un RUC no habido no puede crear una cuenta")
+    void unRucNoHabidoNoCreaCuenta() throws Exception {
+        String firmada = firmar(padron("20100001013", "NO HABIDA S.A.C.",
+                EstadoContribuyente.ACTIVO, CondicionDomicilio.NO_HABIDO), PRIVADA);
+
+        mockMvc.perform(post(REGISTRO)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-no-habido"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cuerpo(firmada)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("ruc_no_apto"))
+                .andExpect(jsonPath("$.detail").value(
+                        org.hamcrest.Matchers.containsString("NO HABIDO")));
+    }
+
+    @Test
+    @DisplayName("Un RUC de baja tampoco")
+    void unRucDeBajaNoCreaCuenta() throws Exception {
+        String firmada = firmar(padron("20100001021", "DE BAJA S.A.C.",
+                EstadoContribuyente.BAJA_DEFINITIVA, CondicionDomicilio.HABIDO), PRIVADA);
+
+        mockMvc.perform(post(REGISTRO)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-de-baja"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cuerpo(firmada)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("ruc_no_apto"));
+    }
+
+    /**
+     * Y la prueba que sostiene todo lo anterior: una atestación firmada con otra
+     * clave no vale. Si la verificación fuera permisiva, las dos pruebas de
+     * arriba pasarían igual construyendo la firma con cualquier clave.
+     */
+    @Test
+    @DisplayName("Una atestación firmada con otra clave no crea nada")
+    void firmaAjenaNoCreaCuenta() throws Exception {
+        String falsa = firmar(padron("20100001030", "FALSIFICADA S.A.C.",
+                EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO), PRIVADA_AJENA);
+
+        mockMvc.perform(post(REGISTRO)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-falsario"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cuerpo(falsa)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("atestacion_invalida"));
+    }
+
+    @Test
+    @DisplayName("Una atestación caducada tampoco")
+    void atestacionCaducadaNoCreaCuenta() throws Exception {
+        String vieja = Atestacion.emitir(
+                padron("20100001048", "TARDONA S.A.C.",
+                        EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
+                Instant.now().minus(Duration.ofMinutes(1)),
+                Atestacion.clavePrivada(PRIVADA));
+
+        mockMvc.perform(post(REGISTRO)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-tardon"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cuerpo(vieja)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("atestacion_invalida"));
+    }
+
     @Test
     @DisplayName("Un RUC ya registrado se rechaza con una salida para el usuario")
     void rucRepetido() throws Exception {
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-primero"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(cuerpo("20100000041", "PRIMERA S.A.C.")))
+                        .content(cuerpoPara("20100000041", "PRIMERA S.A.C.")))
                 .andExpect(status().isCreated());
 
         // Otra persona, mismo RUC. No puede pasar: dos clientes emitiendo con el
@@ -98,7 +248,7 @@ class RegistroIT extends PruebaIntegracion {
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-segundo"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(cuerpo("20100000041", "SEGUNDA S.A.C.")))
+                        .content(cuerpoPara("20100000041", "SEGUNDA S.A.C.")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.codigo").value("ruc_ya_registrado"))
                 // El mensaje dice qué hacer, no solo que no se puede.
@@ -114,7 +264,7 @@ class RegistroIT extends PruebaIntegracion {
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(cuerpo("20100000068", "UNICA S.A.C.")))
+                        .content(cuerpoPara("20100000068", "UNICA S.A.C.")))
                 .andExpect(status().isCreated());
 
         // Recargar la pantalla o pulsar dos veces no debe crear una segunda
@@ -122,23 +272,9 @@ class RegistroIT extends PruebaIntegracion {
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(cuerpo("20100000076", "OTRA MAS S.A.C.")))
+                        .content(cuerpoPara("20100000076", "OTRA MAS S.A.C.")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.codigo").value("ya_registrado"));
-    }
-
-    @Test
-    @DisplayName("Un RUC con dígito verificador incorrecto no llega a la base")
-    void rucConVerificadorInvalido() throws Exception {
-        // 20123456789 tiene once dígitos y pasa la validación de formato del
-        // controlador; lo que lo detiene es el value object Ruc, que es donde
-        // vive la aritmética y donde no se puede olvidar.
-        mockMvc.perform(post(REGISTRO)
-                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-con-errata"))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(cuerpo("20123456789", "CON ERRATA S.A.C.")))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.codigo").value("ruc_invalido"));
     }
 
     @Test
@@ -154,19 +290,19 @@ class RegistroIT extends PruebaIntegracion {
          * descubrio inspeccionando la tabla.
          */
         String sub = "sub-sin-correo-en-el-token";
+        String atestacion = firmar(padron("20100000092", "CON CORREO EN EL CUERPO S.A.C.",
+                EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO), PRIVADA);
 
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenSinCorreo(sub))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "ruc": "20100000092",
-                                  "razonSocial": "CON CORREO EN EL CUERPO S.A.C.",
-                                  "domicilioFiscal": "Av. Nueva 100, Lima",
+                                  "atestacion": "%s",
                                   "nombreTitular": "Titular",
                                   "apellidoTitular": "De Prueba",
                                   "correo": "titular@ejemplo.com"
-                                }"""))
+                                }""".formatted(atestacion)))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(get("/api/v1/contexto")
@@ -181,34 +317,45 @@ class RegistroIT extends PruebaIntegracion {
     void sinTokenNoHayRegistro() throws Exception {
         mockMvc.perform(post(REGISTRO)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(cuerpo("20100000084", "ANONIMA S.A.C.")))
+                        .content(cuerpoPara("20100000084", "ANONIMA S.A.C.")))
                 .andExpect(status().isUnauthorized());
     }
 
+    /**
+     * El acento sobrevive al viaje.
+     *
+     * <p>Guarda contra el mojibake. En Lambda salía «La operaciÃ³n», porque el
+     * contenedor decodifica con ISO-8859-1 cuando el {@code Content-Type} no
+     * declara charset — y {@code application/problem+json} no lo declara.
+     *
+     * <p>Esta prueba NO reproduce ese fallo: corre sobre Tomcat, que sí aplica la
+     * configuración de encoding. Lo que fija es que un mensaje de error lleva
+     * acentos, de modo que si alguien los quita «para evitar problemas» se entere
+     * de que el problema estaba en otro sitio — en {@code ManejadorLambda}.
+     *
+     * <p>Antes usaba el mensaje del dígito verificador, que ya no se produce
+     * aquí. Ahora usa el de la atestación caducada, que sí.
+     */
     @Test
     @DisplayName("El acento sobrevive al viaje: los mensajes salen en UTF-8")
     void losMensajesConservanLosAcentos() throws Exception {
-        /*
-         * Guarda contra el mojibake. En Lambda salía «La operaciÃ³n», porque el
-         * contenedor decodifica con ISO-8859-1 cuando el Content-Type no declara
-         * charset — y `application/problem+json` no lo declara.
-         *
-         * Esta prueba NO reproduce ese fallo: corre sobre Tomcat, que sí aplica
-         * la configuración de encoding. Lo que fija es que el mensaje lleva
-         * acentos, de modo que si alguien los quita «para evitar problemas» se
-         * entere de que el problema estaba en otro sitio — en ManejadorLambda.
-         */
+        String vieja = Atestacion.emitir(
+                padron("20100001056", "ACENTOS S.A.C.",
+                        EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
+                Instant.now().minus(Duration.ofMinutes(1)),
+                Atestacion.clavePrivada(PRIVADA));
+
         String detalle = mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-acentos"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(cuerpo("20123456789", "ACENTOS S.A.C.")))
+                        .content(cuerpo(vieja)))
                 .andExpect(status().isBadRequest())
                 .andReturn()
                 .getResponse()
                 .getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
 
         assertThat(detalle)
-                .as("el mensaje del RUC inválido lleva acentos")
-                .contains("dígito verificador");
+                .as("el mensaje de la atestación caducada lleva acentos")
+                .contains("caducó");
     }
 }

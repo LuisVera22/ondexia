@@ -515,7 +515,10 @@ paths:
       description: "Crea cuenta, usuario administrador, empresa y el establecimiento\
         \ de casa matriz (0000) en una sola transacción. La identidad sale del token,\
         \ nunca del cuerpo: aceptarla como parámetro permitiría darse de alta suplantando\
-        \ a otra persona."
+        \ a otra persona. Los datos de la empresa salen de la atestación firmada que\
+        \ devuelve GET /consultas/ruc/{ruc}, así que no hay alta posible con un RUC\
+        \ que no esté ACTIVO y HABIDO en SUNAT. Responde 400 si la atestación no es\
+        \ válida o caducó, y 409 si el RUC ya está registrado."
       operationId: registrar
       requestBody:
         content:
@@ -1268,26 +1271,12 @@ components:
     PeticionRegistro:
       required:
       - apellidoTitular
-      - domicilioFiscal
+      - atestacion
       - nombreTitular
-      - razonSocial
-      - ruc
       type: object
       properties:
-        ruc:
+        atestacion:
           minLength: 1
-          pattern: "\\d{11}"
-          type: string
-        razonSocial:
-          maxLength: 300
-          minLength: 0
-          type: string
-        domicilioFiscal:
-          maxLength: 400
-          minLength: 0
-          type: string
-        ubigeo:
-          pattern: "^$|^\\d{6}$"
           type: string
         nombreTitular:
           maxLength: 150
