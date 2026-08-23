@@ -8,12 +8,12 @@ Monorepo. Lo desarrolla **una sola persona asistida por IA** (R-13), y esa
 restricción explica buena parte de las decisiones: se prefiere lo que falla
 ruidosamente a lo que exige recordar algo.
 
-## Estado — 2026-08-11
+## Estado — 2026-08-22
 
 | Pieza | Dónde | Estado |
 |---|---|---|
-| Aplicación web | `apps/frontend/ondexia.web` | 73 vistas navegables **con datos de ejemplo**. Sin backend conectado |
-| API Core | `apps/backend/ondexia.api` | Esqueleto verificado: identidad, aislamiento multiempresa, permisos. Sin dominio de negocio |
+| Aplicación web | `apps/frontend/ondexia.web` | 73 vistas navegables. **Configuración pide datos reales**; Panel, Almacén, Compras y Ventas siguen con datos de ejemplo. 52 pruebas |
+| API Core | `apps/backend/ondexia.api` | Identidad, aislamiento multiempresa, permisos y el módulo de Configuración completo. Sin dominio de facturación |
 | Dominio compartido | `apps/backend/ondexia.domain` | Identidad y bitácora |
 | Motor de facturación | `apps/backend/ondexia.facturacion` | **No existe todavía** |
 | Landing y portal público | `apps/frontend/ondexia.landing`, `.portal` | **No existen todavía** |
@@ -83,6 +83,8 @@ Empieza por el DTE; el resto deriva de él.
 | [06 · Notas de versión](ondexia.docs/06-notas-de-version.md) | Qué cambió y cuándo |
 | [07 · Plan de Configuración](ondexia.docs/07-plan-backend-configuracion.md) | **En qué se está trabajando ahora** |
 | [08 · Arquitectura del backend](ondexia.docs/08-arquitectura-backend.md) | **Dónde va cada cosa, y por qué** |
+| [09 · Panel administrativo](ondexia.docs/09-panel-administrativo.md) | Plan de la consola interna: planes, módulos por cuenta, personal |
+| [10 · Convenciones de interfaz](ondexia.docs/10-convenciones-de-interfaz.md) | **Lo que la interfaz ya hace y por qué.** Color y contraste, movimiento, tablas, paneles flotantes, foco |
 
 > `ondexia.docs/html/` contiene una versión HTML **desactualizada** (v0.7) y su
 > generador se perdió. Manda siempre el Markdown.

@@ -3,8 +3,10 @@
 ## Sin publicar
 
 Trabajo posterior a `v0.1.0`, todavía sin etiquetar. Se resume aquí porque son
-cuatro cambios grandes y quien vuelva dentro de unos meses no debería tener que
-reconstruirlos leyendo el historial.
+varios cambios grandes y quien vuelva dentro de unos meses no debería tener que
+reconstruirlos leyendo el historial. En orden cronológico: primero la
+infraestructura y el backend, después la conexión del primer módulo, y al final
+una revisión completa de la interfaz.
 
 ### Se retiró la plantilla de terceros · 2026-08-10
 
@@ -42,10 +44,65 @@ detecta un rol así.
 **tres pasos del CI estaban rotos** y se corrigieron; `deploy.yml` se reescribió
 entero para Terraform, porque seguía siendo de CDK.
 
+### Configuración conectada al backend · 2026-08-16 al 2026-08-22
+
+**El frontend dejó de ser un recorrido con datos de ejemplo**, al menos en un
+módulo. Configuración —empresas, establecimientos, almacenes, series, usuarios,
+roles, comprobantes, identidad—, más el contexto, el perfil y el registro,
+piden datos reales a la API.
+
+Con ello llegó la tubería de errores: `ProblemDetail` (RFC 9457) desde el
+backend, y en el cliente `interpretarError`, que **solo confía en el `detail`
+del servidor si viene con `codigo`** —el campo que pone nuestro manejador y que
+API Gateway nunca pone—. Sin esa comprobación, un error de infraestructura
+llegaría al usuario con el texto que le apeteciera a AWS.
+
+Los errores de campo se pintan sobre su campo y se limpian al corregirlo. Los
+mensajes de validación pasaron a `ValidationMessages.properties`: los de
+Hibernate llegaban diciendo «el tamaño debe estar entre 0 y 200».
+
+También apareció la capacidad de **reactivar** un establecimiento o un almacén,
+que no existía: `DELETE /{id}` se sustituyó por `PUT /{id}/estado`, idempotente
+y auditado, con pruebas de ida y vuelta que comprueban que el código sobrevive
+a la desactivación.
+
+### La interfaz, reescrita por dentro · 2026-08-22
+
+Cuatro ramas seguidas sobre el mismo tema. El detalle y los porqués están en
+[10 · Convenciones de interfaz](10-convenciones-de-interfaz.md); aquí lo que
+cambió:
+
+- **Paleta propia.** El índigo `#4f46e5` sustituye al azul `#465fff` de la
+  plantilla, en los tokens y en los cinco SVG de la marca. El botón primario
+  pasa de 4,84:1 a 6,29:1 contra el blanco.
+- **Tablas con dos presentaciones.** Desde 640 px la tabla de siempre; por
+  debajo, cada fila es una tarjeta. Antes, en un móvil los diecisiete listados
+  aparecían dentro de una caja que se arrastraba de lado con las primeras
+  columnas fuera de vista.
+- **Buscador y recarga** en la tabla, acciones de fila en un menú, rayado
+  cebra, y el recuento arriba en lugar de al pie.
+- **Panel principal rehecho**: saludo con la fecha de Lima —no la del
+  navegador, que puede decir otro día del que estampará SUNAT—, banda de avisos
+  solo cuando hay algo, gráfico de barras sin dependencias nuevas, estado ante
+  SUNAT y existencias por agotarse.
+- **Barra superior**: fija de verdad —el `sticky` estaba en un elemento sin
+  holgura y no pegaba, en silencio—, contexto de trabajo como control
+  segmentado, y en teléfono los controles bajan a una segunda fila.
+- **La descripción de cada módulo** pasa detrás de un botón de información, y
+  la ruta de navegación sube por encima del título.
+- **Foco de teclado definido.** No había ninguno: se dependía del contorno por
+  defecto del navegador.
+- **El icono de la pestaña** deja de ser el de Angular.
+
+Y las primeras **pruebas automatizadas del frontend**: 52, la mayoría de
+comportamiento, algunas de maquetación. La deuda 4 de la v0.1.0 deja de estar
+al descubierto, aunque no está saldada.
+
 ### Lo que sigue sin existir
 
-- **La aplicación no se conecta al backend.** El frontend sigue con datos de
-  ejemplo; la primera conexión es `GET /api/v1/contexto`.
+- **Panel, Almacén, Compras y Ventas siguen con datos de ejemplo.** Solo
+  Configuración pide datos reales. El panel principal, en particular, está
+  construido sobre constantes con la forma que tendrá la respuesta.
 - **La API no se despliega.** `ondexia.api` es una aplicación web de Spring
   Boot, sin el adaptador para Lambda (DT-D17).
 - **Nada se ha desplegado en AWS.**
