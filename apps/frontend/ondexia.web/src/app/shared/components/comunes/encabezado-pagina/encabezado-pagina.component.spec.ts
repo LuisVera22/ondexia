@@ -50,17 +50,36 @@ describe('EncabezadoPaginaComponent · la ruta va antes que el título', () => {
       .toBeTruthy();
   });
 
-  it('las dos filas arrancan en el mismo margen izquierdo', async () => {
+  it('la ruta se arrima a la derecha y el título al margen izquierdo', async () => {
     const raiz = await montar('Empresas');
     document.body.appendChild(raiz);
 
-    const ruta = raiz.querySelector('nav')!.getBoundingClientRect();
+    const marco = raiz.querySelector('div')!.getBoundingClientRect();
     const titulo = raiz.querySelector('h1')!.getBoundingClientRect();
 
-    // Apiladas, no en la misma linea: el titulo empieza donde acaba la ruta.
-    expect(titulo.top).toBeGreaterThanOrEqual(ruta.bottom);
-    expect(Math.abs(titulo.left - ruta.left))
-      .withContext('la ruta y el título deben compartir margen izquierdo')
+    // Se miden las migas, no la <ol>: la lista es de bloque y ocupa el ancho
+    // entero aunque su contenido este arrimado, asi que sus bordes coinciden
+    // con los del marco tanto si `justify-end` esta puesto como si no — y la
+    // prueba pasaria igual sin el cambio, que es justo lo que no puede pasar.
+    const migas = [...raiz.querySelectorAll('nav ol > li')].map((li) =>
+      li.getBoundingClientRect()
+    );
+    const primera = migas[0];
+    const ultima = migas[migas.length - 1];
+
+    // Apiladas, no en la misma linea.
+    expect(titulo.top).toBeGreaterThanOrEqual(ultima.bottom);
+
+    expect(Math.abs(ultima.right - marco.right))
+      .withContext('la ruta termina pegada al borde derecho')
+      .toBeLessThan(1);
+
+    expect(primera.left)
+      .withContext('la ruta no arranca en el margen izquierdo: está arrimada')
+      .toBeGreaterThan(marco.left + 1);
+
+    expect(Math.abs(titulo.left - marco.left))
+      .withContext('el título arranca en el margen izquierdo')
       .toBeLessThan(1);
 
     raiz.remove();
