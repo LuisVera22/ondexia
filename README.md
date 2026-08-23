@@ -93,8 +93,15 @@ Empieza por el DTE; el resto deriva de él.
 
 **El API Core nunca abre una conexión hacia SUNAT.** Publica en una cola y
 responde. Toda comunicación fiscal pasa por `ondexia.facturacion`, que es el
-único componente que toca certificados digitales (DTE §3.3). Si aparece una
-dependencia de firma XML en `ondexia.api`, la arquitectura se rompió.
+único componente que **guarda certificados y realiza operaciones fiscales**
+(DTE §3.3). Si aparece una dependencia de firma XML en `ondexia.api`, la
+arquitectura se rompió.
+
+La regla habla de certificados y no de «hablar con el exterior», y la
+diferencia importa: las consultas de solo lectura contra servicios externos
+—padrón de RUC, tipo de cambio— viven en `ondexia.consultas`, que también sale
+a internet y **no** debe acabar dentro de `facturacion` por ese parecido
+(DT-19). Lo que se protege es el certificado, no la salida.
 
 **El token porta identidad y nada más.** La empresa activa y los permisos se
 resuelven en la base en cada petición. Un JWT vale hasta que caduca, y revocar

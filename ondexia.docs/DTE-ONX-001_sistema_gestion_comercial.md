@@ -131,6 +131,8 @@ edge VER -> S3 "lee PDF y XML"
 
 El boundary que importa: **el API Core nunca abre una conexión hacia SUNAT**. Toda comunicación con el exterior fiscal pasa por el Emisor. Eso concentra el manejo de certificados, reintentos e IP fija en un solo componente auditable.
 
+El límite se define por el **certificado**, no por la salida a internet: las consultas de solo lectura contra servicios externos van en `ondexia.consultas`, fuera de la VPC y fuera del Emisor (DT-19).
+
 ---
 
 ## §4 Stack tecnológico
@@ -295,6 +297,18 @@ Dos precisiones sobre el criterio:
 | Consecuencias | **Spring Boot 4 reorganizó los módulos y buena parte de los ejemplos publicados ya no compilan.** Lo verificado en este proyecto: `spring-boot-starter-aop` desapareció (ahora `-aspectj`); `flyway-core` a secas **no trae autoconfiguración y no migra nada** — hay que usar `spring-boot-starter-flyway`; `@EntityScan` se movió a `org.springframework.boot.persistence.autoconfigure`; y `@AutoConfigureMockMvc` salió de `spring-boot-starter-test` a `spring-boot-starter-webmvc-test`. Ninguno de los cuatro da un error legible: dos fallan como «símbolo no encontrado» y el de Flyway aparece mucho después, como un `missing table` de la validación de esquema de Hibernate |
 | Verificación | Suite de 15 pruebas de integración contra PostgreSQL 17 real, en verde |
 
+**Decisión técnica DT-19: Las consultas a servicios externos van en su propio despliegue**
+
+| Campo | Valor |
+|---|---|
+| Opciones evaluadas | A) Dentro de `ondexia.api` · B) Dentro de `ondexia.facturacion` · C) Unidad propia, `ondexia.consultas` |
+| **Decisión** | **C — unidad propia** |
+| Sustento | **A es imposible hoy**: la Lambda de la API vive en subred privada sin NAT y no alcanza internet (§4.8). **B se descartó por dos razones.** La primera es de diseño: lo único que comparten firmar un XML con el certificado del cliente y consultar un padrón público es que ambos salen a la red — un rasgo del despliegue, no del dominio, y una frontera derivada de un rasgo técnico acaba siendo un cajón de sastre. La segunda es de seguridad y decide: **los permisos de IAM son por función**, así que un componente compartido necesita la unión de todos ellos, y quien consulta el tipo de cambio terminaría ejecutándose con el mismo rol que lee el certificado digital del cliente. Como daño colateral, cambiar el cliente del tipo de cambio obligaría a redesplegar el componente que guarda certificados |
+| Alcance | **Solo lectura, dato público o semipúblico, sin secretos del cliente, cacheable.** Entra: padrón de contribuyentes (RUC), tipo de cambio, y consultas equivalentes que aparezcan. **No entra**: nada que use el certificado o las credenciales SOL del cliente —eso es `facturacion`—, ni nada que mueva dinero o envíe mensajes en su nombre, que son escrituras con otro riesgo y otro dato personal. La clave de API del proveedor sí vive aquí: es nuestra, es un valor único y va en variable de entorno cifrada |
+| Consecuencias | **Dos patrones de acceso, y son distintos.** (1) *A la carta, iniciada por una persona* —el RUC en el registro—: el SPA llama a `consultas`, que devuelve los datos más una **atestación firmada** con caducidad de minutos que incluye el RUC, el estado y la condición; la API valida esa firma **sin red**, así que la comprobación sigue siendo autoritativa del servidor y un cliente no puede inventar «habido activo» porque no puede firmar. (2) *Programada, necesaria en el servidor* —el tipo de cambio—: un disparador diario ejecuta `consultas`, que **escribe el resultado en S3**; la API lo lee por el endpoint de puerta de enlace de S3, que ya existe y es gratuito. Sin ese puente haría falta NAT Gateway (~32 USD/mes) o un endpoint de interfaz (~7.30), y el ahorro de §4.8 se evaporaría. **Se reformula el invariante de `facturacion`**: pasa de «es el único que habla con SUNAT» a **«es el único que guarda certificados y realiza operaciones fiscales»** — que es lo que de verdad protege, y deja sitio a `consultas` sin ambigüedad. **Y caduca la premisa de §4.8** («nada necesita salir»): sigue sin haber NAT, pero ya no porque nada lo necesite, sino porque lo que lo necesita se despliega fuera de la VPC |
+| No se hace | Una biblioteca compartida para la mecánica de los clientes externos —tiempos de espera, reintentos, cortocircuito—. Con una sola unidad desplegable no hay nada que compartir; se plantea cuando exista un segundo consumidor de la misma mecánica |
+| Verificación | Pendiente. No hay código todavía: la decisión precede a la implementación |
+
 **Decisión técnica DT-06: Firma digital XAdES**
 
 | Campo | Valor |
@@ -419,9 +433,14 @@ de AWS Budgets con alerta al 80 % de un tope de 30 USD.
 
 ### 4.8 Consecuencias de una Lambda sin salida a internet
 
-En la v1 no hay instancia NAT, porque nada necesita salir. Eso no es gratis: **una Lambda en
-subred privada sin NAT no alcanza internet ni las APIs de AWS.** De ahí salen tres
-decisiones que hay que respetar o el ahorro se evapora.
+En la v1 no hay instancia NAT. Eso no es gratis: **una Lambda en subred privada sin NAT no
+alcanza internet ni las APIs de AWS.** De ahí salen tres decisiones que hay que respetar o el
+ahorro se evapora.
+
+> **Corrección (v0.12).** Esto decía «porque nada necesita salir», y dejó de ser cierto con la
+> validación de RUC contra el padrón. La premisa correcta es otra: **lo que necesita salir se
+> despliega fuera de la VPC** (DT-19), y por eso la Lambda de la API sigue sin necesitar NAT.
+> No es que nada salga; es que no sale desde aquí.
 
 **El endpoint de S3 es obligatorio y es gratuito.** Sin un endpoint de puerta de enlace, la
 Lambda no puede leer ni escribir en S3. Se crea explícitamente y no cuesta nada.
@@ -723,7 +742,7 @@ Orden de Compra aprobada → recepción por Guía de Ingreso → `movimiento_sto
 |---|---|---|---|---|
 | I-01 | **SUNAT CPE** (factura, boleta, NC, ND, liquidación, resumen) | SOAP 1.1 con WS-Security | Usuario SOL (`RUC+usuario`/clave) desde Secrets Manager | Backoff exponencial 1/2/4/8/16 min, máx. 5 intentos → DLQ + alarma. Distinguir rechazo definitivo de fallo transitorio |
 | I-02 | **SUNAT GRE** | REST/JSON | OAuth2 client credentials, token con TTL | Igual que I-01, más revalidación de token ante `401` |
-| I-03 | **Consulta RUC/DNI** | REST | API key de proveedor | **Degradación elegante:** si no responde, permitir carga manual. Nunca bloquear una venta por una consulta de padrón |
+| I-03 | **Consulta RUC/DNI** | REST | API key de proveedor | **Degradación elegante en la operación:** si no responde, permitir carga manual. Nunca bloquear una venta por una consulta de padrón. **En el registro es lo contrario y hay que no confundirlo:** dar de alta una empresa exige RUC verificado como habido y activo, así que ahí la consulta sí es puerta. Una venta no puede esperar; un registro sí |
 | I-04 | **Amazon SES** | API AWS | IAM | Cola de reintento. Un fallo de correo no invalida el comprobante |
 
 ### 7.1 DT-12 reabierta por R-13 — emisión propia vs proveedor
@@ -1061,6 +1080,7 @@ Sustitutos admisibles, en orden de valor:
 | 0.5 | 2026-08-06 | R-13 (equipo unipersonal). §7.1 reabre DT-12 con recomendación de proveedor de emisión. §12.1 sustitutos del peer review. Bus factor 1 asumido | — |
 | 0.6 | 2026-08-06 | Corrección de versiones desactualizadas (Angular 19→22, PostgreSQL 16→17/18, Java y Spring Boot despinneados). §4.3 nueva: política de versiones por criterio, no por número | — |
 | 0.7 | 2026-08-06 | Versiones confirmadas: Angular 22, Java 21 LTS, Spring Boot sobre Java 21, PostgreSQL en RDS | — |
+| 0.12 | 2026-08-22 | **DT-19 nueva**: las consultas a servicios externos —padrón de RUC, tipo de cambio— van en `ondexia.consultas`, unidad propia fuera de la VPC, y no dentro de `facturacion`. Se reformula el invariante de `facturacion` (certificados y operaciones fiscales, no «hablar con SUNAT»). §4.8 corregido: caduca la premisa «nada necesita salir». I-03 aclarado: la degradación elegante vale para una venta, no para el registro, donde la consulta sí es puerta | — |
 | 0.11 | 2026-08-11 | §10.2 corregido: describía el pipeline con `cdk synth` + `cdk-nag`, que DT-16 había retirado. Se sustituye por el pipeline real, con el orden de pasos y su porqué. DT-D15 acotada a lo que sigue pendiente (análisis estático de infraestructura) tras arreglarse los tres pasos rotos del CI; DT-D16 y DT-D17 nuevas | — |
 | 0.10 | 2026-08-11 | Esqueleto del backend construido y verificado. DT-17 nueva (arquitectura interna: monolito modular con hexagonal pragmática) y DT-18 nueva (Spring Boot 4.0.7, con las cuatro reorganizaciones de módulos que rompen los ejemplos publicados). §8.1: **segunda trampa de RLS** — un rol superusuario se salta todas las políticas y `FORCE` no le alcanza; detectada porque las pruebas de aislamiento fallaron, mitigada con un rol dedicado y una comprobación que aborta el arranque. Se documenta qué tablas quedan fuera de RLS y por qué. Deudas DT-D12 a DT-D15 | — |
 | 0.9 | 2026-08-10 | DT-16 nueva: Terraform sustituye a AWS CDK. Se escribe la v1 completa en `ondexia.infra/`. Referencias a CDK actualizadas en §4.5, §8.3, §9 y §10.3 | — |
