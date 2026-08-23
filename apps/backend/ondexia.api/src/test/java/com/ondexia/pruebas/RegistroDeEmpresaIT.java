@@ -84,6 +84,32 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
                 .param(RUC_NUEVO)
                 .update();
         jdbc.sql("delete from empresa where ruc = ?").param(RUC_NUEVO).update();
+
+        /*
+         * Y se devuelve la empresa de ejemplo a su estado original.
+         *
+         * Las pruebas de /verificacion la modifican, y el contenedor de
+         * PostgreSQL es UNO para toda la suite: sin esto, ConfiguracionEmpresaIT
+         * —que afirma su razon social— falla o pasa segun el orden en que
+         * surefire decida ejecutar las clases. Un fallo asi aparece semanas
+         * despues y parece aleatorio.
+         */
+        jdbc.sql("""
+                        update empresa
+                           set razon_social = 'COMERCIAL DEMO S.A.C.',
+                               nombre_comercial = 'Demo',
+                               domicilio_fiscal = 'Av. Siempre Viva 742, Lima',
+                               ubigeo = '150101',
+                               estado_contribuyente = null,
+                               condicion_domicilio = null,
+                               verificado_en = null,
+                               distrito = null, provincia = null, departamento = null,
+                               es_agente_retencion = false, es_buen_contribuyente = false,
+                               tipo_societario = null, cuenta_detracciones = null
+                         where id = ?::uuid
+                        """)
+                .param(EMPRESA_ADMINISTRADA)
+                .update();
     }
 
     private static final String CUENTA_DEMO = "00000000-0000-4000-8000-000000000001";
@@ -407,5 +433,100 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
                 .andExpect(jsonPath("$.maxEmpresas").value(5))
                 .andExpect(jsonPath("$.cabeOtra").value(true))
                 .andExpect(jsonPath("$.motivo").isEmpty());
+    }
+
+    // ── Traer del padron lo que no se puede editar ─────────────────────────
+
+    /**
+     * El RUC de la empresa activa en los datos de ejemplo.
+     *
+     * <p>Se verifica esa y no una nueva porque el caso interesante es
+     * justamente el de una empresa creada por el onboarding, cuyos datos los
+     * tecleo una persona: es la que estaria congelada con un posible error si el
+     * PUT dejara de aceptarlos y no hubiera este camino.
+     */
+    private static final String RUC_ACTIVA = "20100000009";
+
+    private static DatosDeRuc datosDe(String ruc, String razonSocial) {
+        return new DatosDeRuc(new Ruc(ruc), razonSocial, EstadoContribuyente.ACTIVO,
+                CondicionDomicilio.HABIDO, "AV. CORREGIDA 900", new Ubigeo("150140"),
+                "SAN ISIDRO", "LIMA", "LIMA", true, false, "S.A.C.", Instant.now());
+    }
+
+    private org.springframework.test.web.servlet.ResultActions verificar(String atestacion)
+            throws Exception {
+        return mockMvc.perform(post("/api/v1/configuracion/empresa/verificacion")
+                .header("Authorization", autorizacionDemo())
+                .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"atestacion\": \"" + atestacion + "\"}"));
+    }
+
+    @Test
+    @DisplayName("Verificar trae la razon social y el domicilio del padron")
+    void verificarActualizaLoNoEditable() throws Exception {
+        String firmada = atestacion(datosDe(RUC_ACTIVA, "COMERCIAL DEMO S.A.C. - CORREGIDA"),
+                PRIVADA);
+
+        verificar(firmada)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.razonSocial").value("COMERCIAL DEMO S.A.C. - CORREGIDA"))
+                .andExpect(jsonPath("$.domicilioFiscal").value("AV. CORREGIDA 900"))
+                .andExpect(jsonPath("$.ubigeo").value("150140"))
+                .andExpect(jsonPath("$.estado").value("ACTIVO"))
+                .andExpect(jsonPath("$.condicion").value("HABIDO"))
+                .andExpect(jsonPath("$.distrito").value("SAN ISIDRO"))
+                .andExpect(jsonPath("$.esAgenteRetencion").value(true))
+                // Sin esta fecha, la base afirmaria «ACTIVO» sin decir de cuando.
+                .andExpect(jsonPath("$.verificadoEn").exists());
+    }
+
+    /**
+     * La comprobacion que evita el desastre silencioso.
+     *
+     * <p>Una atestacion de OTRO RUC esta firmada por nosotros y es valida: la
+     * firma no la detiene. Sin comprobar que el RUC coincide, consultar una
+     * empresa y aplicar el resultado a la que esta activa reescribiria su razon
+     * social con la de otro contribuyente — y todos sus comprobantes empezarian a
+     * ser rechazados por SUNAT.
+     */
+    @Test
+    @DisplayName("Una atestacion de otro RUC no se aplica a la empresa activa")
+    void noSeAplicaLaVerificacionDeOtroRuc() throws Exception {
+        String deOtro = atestacion(datosDe(RUC_NUEVO, "EMPRESA AJENA S.A."), PRIVADA);
+
+        verificar(deOtro)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("ruc_distinto"));
+    }
+
+    @Test
+    @DisplayName("Una atestacion con otra firma no actualiza nada")
+    void verificarConFirmaAjenaNoVale() throws Exception {
+        String falsa = atestacion(datosDe(RUC_ACTIVA, "NOMBRE INVENTADO S.A."), PRIVADA_AJENA);
+
+        verificar(falsa)
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("atestacion_invalida"));
+    }
+
+    /**
+     * Una empresa que paso a NO HABIDO tiene que poder registrarlo.
+     *
+     * <p>Bloquear la actualizacion dejaria el dato viejo, que es la unica version
+     * que de verdad engania: la pantalla seguiria diciendo «HABIDO» de algo que
+     * ya no lo esta.
+     */
+    @Test
+    @DisplayName("Se puede registrar que la empresa dejo de estar habida")
+    void verificarAdmiteUnEstadoPeor() throws Exception {
+        DatosDeRuc malas = new DatosDeRuc(new Ruc(RUC_ACTIVA), "COMERCIAL DEMO S.A.C.",
+                EstadoContribuyente.ACTIVO, CondicionDomicilio.NO_HABIDO,
+                "AV. SIEMPRE VIVA 742", new Ubigeo("150101"), "LIMA", "LIMA", "LIMA",
+                false, false, null, Instant.now());
+
+        verificar(atestacion(malas, PRIVADA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.condicion").value("NO_HABIDO"));
     }
 }

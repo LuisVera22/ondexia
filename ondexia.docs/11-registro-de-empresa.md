@@ -82,7 +82,22 @@ que dejarlo editable, porque el rechazo de SUNAT no tendría salida desde la
 aplicación.
 
 La regla es: **no editable por la persona, actualizable volviendo a consultar.**
-Un «Actualizar desde SUNAT» y nada más.
+Ese camino es `POST /api/v1/configuracion/empresa/verificacion`, que recibe una
+atestación y refresca los campos del padrón.
+
+Tiene dos usos, y el segundo es el que permitió quitar los campos del `PUT`:
+refrescar una empresa cuando su razón social cambia en SUNAT, y **verificar por
+primera vez una empresa creada en el onboarding**, cuyos datos los tecleó una
+persona. Sin ese segundo uso, esas empresas quedarían congeladas con un posible
+error de tecleo y sin salida.
+
+Rechaza una atestación de otro RUC. Sin esa comprobación, consultar una empresa
+y aplicar el resultado a la que está activa reescribiría su razón social con la
+de otro contribuyente — y la firma sería válida, así que nada más lo detendría.
+
+Y **no exige que el RUC siga apto**: una empresa que pasa a NO HABIDO tiene que
+poder registrarlo. Bloquearlo dejaría el dato viejo, que es la única versión que
+de verdad engaña.
 
 ### 3.2 Sin fecha, `estado` y `condicion` mienten
 

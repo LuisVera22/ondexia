@@ -79,14 +79,12 @@ class ConfiguracionEmpresaIT extends PruebaIntegracion {
     }
 
     @Test
-    @DisplayName("Actualizar cambia los datos y deja rastro en la bitácora")
+    @DisplayName("Actualizar cambia lo editable y deja rastro en la bitácora")
     void actualizarDejaRastro() throws Exception {
         String cuerpo = """
                 {
-                  "razonSocial": "DEMO PRINCIPAL S.A.C.",
                   "nombreComercial": "Demo Renombrada",
-                  "domicilioFiscal": "Av. Nueva 123",
-                  "ubigeo": "150101"
+                  "cuentaDetracciones": "00123456789"
                 }""";
 
         mockMvc.perform(put(EMPRESA)
@@ -96,7 +94,7 @@ class ConfiguracionEmpresaIT extends PruebaIntegracion {
                         .content(cuerpo))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nombreComercial").value("Demo Renombrada"))
-                .andExpect(jsonPath("$.ubigeo").value("150101"));
+                .andExpect(jsonPath("$.cuentaDetracciones").value("00123456789"));
 
         // La bitácora se consulta con el contexto puesto: la tabla tiene RLS, y
         // sin empresa activa la consulta devolvería vacío sin dar ningún error.
@@ -115,17 +113,28 @@ class ConfiguracionEmpresaIT extends PruebaIntegracion {
                 .isNotEmpty();
     }
 
+    /**
+     * Lo que el {@code PUT} ignora, que ahora es casi todo.
+     *
+     * <p>Se mandan a propósito el RUC y los tres campos que vienen del padrón.
+     * Al no existir esos campos en el record, Jackson los descarta y los valores
+     * permanecen: la garantía es que el caso de uso no ofrece ninguna vía, no que
+     * alguien recuerde validarlo.
+     *
+     * <p>Importa más que un detalle de API. Una razón social que no coincide con
+     * el padrón hace que SUNAT rechace <strong>todos</strong> los comprobantes de
+     * esa empresa, y el fallo aparecería en la primera emisión real — no aquí.
+     */
     @Test
-    @DisplayName("El RUC no viaja en el cuerpo: no hay forma de cambiarlo")
-    void elRucNoSePuedeCambiar() throws Exception {
-        // Se manda un RUC a propósito. Al no existir el campo, Jackson lo
-        // ignora y el RUC permanece: la garantía es que el caso de uso no
-        // ofrece ninguna vía, no que alguien recuerde validarlo.
+    @DisplayName("Ni el RUC ni los datos de SUNAT se pueden cambiar por el PUT")
+    void losDatosDeSunatNoSePuedenCambiar() throws Exception {
         String cuerpo = """
                 {
                   "ruc": "20100000017",
-                  "razonSocial": "DEMO PRINCIPAL S.A.C.",
-                  "domicilioFiscal": "Av. Nueva 123"
+                  "razonSocial": "NOMBRE INVENTADO S.A.",
+                  "domicilioFiscal": "Av. Falsa 123",
+                  "ubigeo": "150140",
+                  "nombreComercial": "Solo esto cambia"
                 }""";
 
         mockMvc.perform(put(EMPRESA)
@@ -134,17 +143,53 @@ class ConfiguracionEmpresaIT extends PruebaIntegracion {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(cuerpo))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.ruc").value("20100000009"));
+                .andExpect(jsonPath("$.ruc").value("20100000009"))
+                .andExpect(jsonPath("$.razonSocial").value("COMERCIAL DEMO S.A.C."))
+                .andExpect(jsonPath("$.domicilioFiscal").value("Av. Siempre Viva 742, Lima"))
+                .andExpect(jsonPath("$.ubigeo").value("150101"))
+                .andExpect(jsonPath("$.nombreComercial").value("Solo esto cambia"));
     }
 
+    /** Y que la respuesta diga qué es editable, para que el formulario no lo adivine. */
     @Test
-    @DisplayName("La razón social vacía se rechaza con el mensaje del campo")
-    void razonSocialObligatoria() throws Exception {
+    @DisplayName("La respuesta declara qué campos acepta el PUT")
+    void laRespuestaDiceQueEsEditable() throws Exception {
+        mockMvc.perform(get(EMPRESA)
+                        .header("Authorization", autorizacionDemo())
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.editable").value(
+                        org.hamcrest.Matchers.containsInAnyOrder(
+                                "nombreComercial", "cuentaDetracciones")));
+    }
+
+    /**
+     * Las empresas del onboarding no traen verificación, y eso se distingue.
+     *
+     * <p>{@code null} significa «nunca se comprobó», que no es lo mismo que
+     * «está mal»: la interfaz tiene que poder ofrecer comprobarlo en vez de
+     * acusar.
+     */
+    @Test
+    @DisplayName("Una empresa sin verificar lo dice, no finge estar comprobada")
+    void sinVerificarSeNota() throws Exception {
+        mockMvc.perform(get(EMPRESA)
+                        .header("Authorization", autorizacionDemo())
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.verificadoEn").doesNotExist())
+                .andExpect(jsonPath("$.estado").doesNotExist());
+    }
+
+    /** Una cuenta de detracciones con letras no entra. */
+    @Test
+    @DisplayName("La cuenta de detracciones solo admite dígitos")
+    void cuentaDeDetraccionesSoloDigitos() throws Exception {
         mockMvc.perform(put(EMPRESA)
                         .header("Authorization", autorizacionDemo())
                         .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"razonSocial\":\"\",\"domicilioFiscal\":\"Av. Uno\"}"))
+                        .content("{\"cuentaDetracciones\":\"00-123-ABC\"}"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -165,7 +210,7 @@ class ConfiguracionEmpresaIT extends PruebaIntegracion {
                         .header("Authorization", autorizacionDemo())
                         .header("X-Empresa-Id", EMPRESA_COMO_VENDEDOR)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"razonSocial\":\"OTRA\",\"domicilioFiscal\":\"Av. Dos\"}"))
+                        .content("{\"nombreComercial\":\"Otra\"}"))
                 .andExpect(status().isForbidden());
     }
 

@@ -405,10 +405,12 @@ paths:
     put:
       tags:
       - Empresa
-      summary: Actualiza los datos fiscales
-      description: "El RUC no se puede cambiar y por eso no está en el cuerpo. Cambiarlo\
-        \ no es corregir un dato: es decir que los comprobantes ya emitidos pertenecen\
-        \ a otro contribuyente."
+      summary: Actualiza lo editable de la empresa
+      description: "Solo el nombre comercial y la cuenta de detracciones, que son\
+        \ los unicos campos que no vienen de SUNAT. La razon social, el domicilio\
+        \ y el ubigeo no estan en el cuerpo: un valor distinto del padron hace que\
+        \ SUNAT rechace todos los comprobantes de la empresa. Para traerlos del padron\
+        \ esta POST /empresa/verificacion."
       operationId: actualizar_2
       requestBody:
         content:
@@ -736,8 +738,10 @@ paths:
         \ de la                     peticion: la API no puede consultar el padron\
         \ —su Lambda no tiene salida a                     internet— asi que confia\
         \ en la firma de ondexia.consultas. Responde 409 si                     el\
-        \ RUC ya esta registrado, y 422 si la atestacion caduco, si no es valida,\
-        \                     o si el plan no admite otra empresa."
+        \ RUC ya esta registrado, 403 si quien llama no es administrador de la   \
+        \                  cuenta, y 400 si la atestacion caduco, si no es valida,\
+        \ si el RUC no esta                     habido activo, o si el plan no admite\
+        \ otra empresa."
       operationId: registrar_3
       requestBody:
         content:
@@ -748,6 +752,29 @@ paths:
       responses:
         "201":
           description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaEmpresa"
+  /api/v1/configuracion/empresa/verificacion:
+    post:
+      tags:
+      - Empresa
+      summary: Trae del padron los datos que no se pueden editar
+      description: "Sirve para dos cosas: refrescar una empresa cuando su razon social\
+        \ cambia en SUNAT, y verificar por primera vez una empresa creada en el onboarding,\
+        \ cuyos datos los teclearon a mano. Responde 400 si la atestacion no es valida,\
+        \ si caduco, o si es de un RUC distinto al de la empresa activa."
+      operationId: verificar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionVerificacion"
+        required: true
+      responses:
+        "200":
+          description: OK
           content:
             '*/*':
               schema:
@@ -1156,25 +1183,16 @@ components:
         activa:
           type: boolean
     PeticionEmpresa:
-      required:
-      - domicilioFiscal
-      - razonSocial
       type: object
       properties:
-        razonSocial:
-          maxLength: 300
-          minLength: 0
-          type: string
         nombreComercial:
           maxLength: 300
           minLength: 0
           type: string
-        domicilioFiscal:
-          maxLength: 400
+        cuentaDetracciones:
+          maxLength: 30
           minLength: 0
-          type: string
-        ubigeo:
-          pattern: "^$|^\\d{6}$"
+          pattern: "[0-9]*"
           type: string
     RespuestaEmpresa:
       type: object
@@ -1192,10 +1210,34 @@ components:
           type: string
         ubigeo:
           type: string
+        distrito:
+          type: string
+        provincia:
+          type: string
+        departamento:
+          type: string
+        estado:
+          type: string
+        condicion:
+          type: string
+        verificadoEn:
+          type: string
+        tipoSocietario:
+          type: string
+        esAgenteRetencion:
+          type: boolean
+        esBuenContribuyente:
+          type: boolean
+        cuentaDetracciones:
+          type: string
         modoSunat:
           type: string
         activa:
           type: boolean
+        editable:
+          type: array
+          items:
+            type: string
     RespuestaTipo:
       type: object
       properties:
@@ -1362,6 +1404,14 @@ components:
           maxLength: 30
           minLength: 0
           pattern: "[0-9]*"
+          type: string
+    PeticionVerificacion:
+      required:
+      - atestacion
+      type: object
+      properties:
+        atestacion:
+          minLength: 1
           type: string
     Salud:
       type: object
