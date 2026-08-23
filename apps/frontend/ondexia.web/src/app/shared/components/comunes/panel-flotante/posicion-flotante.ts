@@ -93,10 +93,22 @@ const MARGEN = 8;
  *
  * <p>`documentElement.clientWidth` es el area de maquetacion: lo mismo que
  * midieron `visualViewport.width` y el ancho del `body` en aquella pantalla.
+ *
+ * <h3>Y por que el alto NO sigue la misma regla</h3>
+ *
+ * <p>Porque de la altura no hay medida. El cambio a `clientHeight` se hizo por
+ * simetria con el ancho, sin comprobarlo, y el menu de acciones empezo a
+ * abrirse hacia arriba anclado a un borde que no era: la decision «cabe
+ * debajo» le salia que no. El alto se queda en `innerHeight` —el numero con el
+ * que funcionaba— hasta tener las tres medidas al lado.
+ *
+ * <p>Si `innerHeight` exagera, el fallo es que el panel se abre hacia abajo
+ * cuando cabria mejor arriba. Molesto y visible. Si se queda corto, el panel
+ * salta a otro sitio de la pantalla, que es lo que se veia.
  */
 const ventana = () => ({
   ancho: document.documentElement.clientWidth,
-  alto: document.documentElement.clientHeight,
+  alto: window.innerHeight,
 });
 
 const entre = (minimo: number, valor: number, maximo: number): number =>
