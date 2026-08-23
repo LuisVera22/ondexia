@@ -305,9 +305,34 @@ resource "aws_lambda_function" "api" {
        */
       ONDEXIA_VERSION = substr(filemd5(local.ruta_artefacto), 0, 12)
 
-      # El SPA llama desde su propio origen. La pasarela ya hace CORS, pero
-      # Spring tiene su propia configuración y por omisión apunta a
-      # localhost:4200, que en la nube no es nadie.
+      /**
+       * El origen del SPA, y NO es redundante con el CORS de la pasarela.
+       *
+       * El SPA no llama desde su propio origen: se sirve por CloudFront y la
+       * API vive en execute-api. Son dominios distintos, así que toda llamada
+       * es entre orígenes.
+       *
+       * El reparto de responsabilidades es contraintuitivo y conviene tenerlo
+       * claro antes de tocar nada:
+       *
+       *   · Las CABECERAS que ve el navegador son SIEMPRE las de la pasarela.
+       *     AWS lo documenta sin ambigüedad: «If you configure CORS for an API,
+       *     API Gateway ignores CORS headers returned from your backend
+       *     integration.» Las que ponga Spring se descartan.
+       *
+       *   · Pero el preflight lo RESPONDE Spring, porque la ruta
+       *     `OPTIONS /{proxy+}` de más abajo gana sobre `ANY`. Y Spring
+       *     rechaza con 403 un origen que no reconozca — lo cubre CorsIT.
+       *
+       * De ahí que esto importe: si aquí quedara el localhost:4200 por
+       * omisión, Spring devolvería 403 a cada preflight, la pasarela le
+       * pegaría sus cabeceras correctas a esa respuesta, y el navegador
+       * bloquearía igual. Los registros mostrarían 403 sobre OPTIONS; en el
+       * navegador solo se vería un error de red sin cuerpo.
+       *
+       * Por eso este valor y `allow_origins` de la pasarela salen los dos de
+       * `local.origen_app`: tienen que ser el mismo o no funciona ninguno.
+       */
       CORS_ORIGENES = local.origen_app
 
       BD_HOST   = aws_db_instance.principal.address
