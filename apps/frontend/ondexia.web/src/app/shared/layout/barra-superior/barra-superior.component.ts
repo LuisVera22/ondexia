@@ -133,7 +133,11 @@ export class BarraSuperiorComponent {
 
   /** El botón de plegado alterna el cajón en móvil y el ancho en escritorio. */
   alternarMenu(): void {
-    if (window.innerWidth < 1280) {
+    // `matchMedia` y no `innerWidth`: es la misma consulta que usa el CSS para
+    // decidir si el menu se superpone o convive con el contenido, asi que las
+    // dos no pueden discrepar. `innerWidth` cuenta el hueco de la barra de
+    // desplazamiento y en el emulador de Chrome ni siquiera dice la verdad.
+    if (!window.matchMedia('(min-width: 1280px)').matches) {
       this.menu.alternarEnMovil();
     } else {
       this.menu.alternarDesplegado();

@@ -81,6 +81,24 @@ export interface OpcionesDePosicion {
 /** Aire entre el panel y el borde de la ventana. */
 const MARGEN = 8;
 
+/**
+ * La ventana que de verdad se ve.
+ *
+ * <p>`window.innerWidth` no sirve para recortar. Incluye el hueco de la barra
+ * de desplazamiento, asi que siempre sobrestima el sitio disponible; y en el
+ * emulador de dispositivo de Chrome llega a mentir de largo — medido en una
+ * pantalla de 440: `innerWidth` decia 665, doscientos veinticinco de mas.
+ * Recortando contra ese numero, un panel se coloca «dentro» de una ventana que
+ * no existe y aparece cortado igual.
+ *
+ * <p>`documentElement.clientWidth` es el area de maquetacion: lo mismo que
+ * midieron `visualViewport.width` y el ancho del `body` en aquella pantalla.
+ */
+const ventana = () => ({
+  ancho: document.documentElement.clientWidth,
+  alto: document.documentElement.clientHeight,
+});
+
 const entre = (minimo: number, valor: number, maximo: number): number =>
   Math.max(minimo, Math.min(valor, maximo));
 
@@ -92,13 +110,14 @@ export function posicionFlotante(
   const separacion = opciones.separacion ?? 4;
 
   const marco = disparador.getBoundingClientRect();
-  const debajo = window.innerHeight - marco.bottom;
+  const vista = ventana();
+  const debajo = vista.alto - marco.bottom;
   const haciaArriba = debajo < altoMaximo && marco.top > debajo;
 
   const estilos: PosicionFlotante = {
     position: 'fixed',
     [haciaArriba ? 'bottom' : 'top']: haciaArriba
-      ? `${window.innerHeight - marco.top + separacion}px`
+      ? `${vista.alto - marco.top + separacion}px`
       : `${marco.bottom + separacion}px`,
     'max-height': `${Math.max(
       160,
@@ -115,10 +134,10 @@ export function posicionFlotante(
     // el borde del bloque contenedor, que `scrollbar-gutter: stable` encoge sin
     // que ni `innerWidth` ni `clientWidth` lo digan.
     const deseado = alineacion === 'derecha' ? marco.right - anchoPanel : marco.left;
-    const ultimo = window.innerWidth - anchoPanel - MARGEN;
+    const ultimo = vista.ancho - anchoPanel - MARGEN;
     estilos['left'] = `${entre(MARGEN, deseado, Math.max(MARGEN, ultimo))}px`;
   } else if (alineacion === 'derecha') {
-    estilos['right'] = `${Math.max(MARGEN, window.innerWidth - marco.right)}px`;
+    estilos['right'] = `${Math.max(MARGEN, vista.ancho - marco.right)}px`;
   } else {
     estilos['left'] = `${Math.max(MARGEN, marco.left)}px`;
   }

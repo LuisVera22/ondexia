@@ -13,12 +13,12 @@ import { posicionFlotante } from './posicion-flotante';
  *
  * <h2>Por qué se prueba la función y no el componente</h2>
  *
- * <p>Porque la función lee `window.innerWidth` del contexto en el que se
- * ejecuta. Montando el componente dentro de un iframe estrecho —que es como se
- * simula un teléfono— el código sigue leyendo el ancho de la ventana de
- * Karma, no el del iframe, y la prueba mediría un recorte contra la ventana
- * equivocada. Aquí no hace falta fingir nada: basta colocar el disparador
- * pegado al borde derecho de la ventana real, que es la misma situación.
+ * <p>Porque la función mide la ventana del contexto en el que se ejecuta.
+ * Montando el componente dentro de un iframe estrecho —que es como se simula un
+ * teléfono— el código sigue leyendo el ancho de la ventana de Karma, no el del
+ * iframe, y la prueba mediría un recorte contra la ventana equivocada. Aquí no
+ * hace falta fingir nada: basta colocar el disparador pegado al borde derecho
+ * de la ventana real, que es la misma situación.
  */
 describe('posicionFlotante · no se sale por los lados', () => {
   /** Un disparador de mentira, del que solo importa dónde está. */
@@ -38,8 +38,15 @@ describe('posicionFlotante · no se sale por los lados', () => {
   const ANCHO_PANEL = 384;
   const MARGEN = 8;
 
-  /** Lo que la ventana de Karma mida hoy; la prueba se adapta a ella. */
-  const ventana = () => window.innerWidth;
+  /**
+   * El area de maquetacion, que es contra lo que se recorta.
+   *
+   * <p>No `window.innerWidth`: incluye el hueco de la barra de desplazamiento y
+   * en el emulador de Chrome llega a mentir doscientos pixeles. Si la prueba
+   * usara ese numero, comprobaria el recorte contra un borde distinto del que
+   * usa el codigo y aprobaria colocaciones que se salen de la pantalla.
+   */
+  const ventana = () => document.documentElement.clientWidth;
 
   function izquierdaDe(estilos: Record<string, string>): number {
     return Number.parseFloat(estilos['left']);
@@ -103,6 +110,25 @@ describe('posicionFlotante · no se sale por los lados', () => {
     // y dejar que el `max-width` del panel haga el resto. Lo que no vale es
     // devolver un `left` negativo, que esconde justo el comienzo del texto.
     expect(izquierdaDe(estilos)).toBe(MARGEN);
+  });
+
+  it('recorta contra el área que se ve, no contra `innerWidth`', () => {
+    // `innerWidth` cuenta el hueco de la barra de desplazamiento, y en el
+    // emulador de Chrome llega a decir doscientos pixeles de mas. Un panel
+    // colocado con ese numero cabe «en la ventana» y aparece cortado igual.
+    const visible = document.documentElement.clientWidth;
+    expect(window.innerWidth)
+      .withContext('la ventana de Karma no reserva barra; la prueba sigue valiendo')
+      .toBeGreaterThanOrEqual(visible);
+
+    const boton = disparadorEn(visible - 20);
+    const estilos = posicionFlotante(boton, {
+      altoMaximo: 280,
+      ancho: 'contenido',
+      anchoPanel: ANCHO_PANEL,
+    });
+
+    expect(izquierdaDe(estilos) + ANCHO_PANEL).toBeLessThanOrEqual(visible - MARGEN + 0.5);
   });
 
   it('sin la medida del panel, al menos no empieza fuera por la izquierda', () => {
