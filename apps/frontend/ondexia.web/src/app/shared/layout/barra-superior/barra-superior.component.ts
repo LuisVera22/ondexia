@@ -20,11 +20,24 @@ import {
  * inventados, y un control que no notifica nada real enseña al usuario a
  * ignorarlo. Volverá cuando haya algo que avisar: un comprobante rechazado por
  * SUNAT, una suscripción por vencer.
+ *
+ * <h2>Por qué el `sticky` va en el host y no en el `<header>`</h2>
+ *
+ * <p>Un elemento pegajoso se desplaza dentro de su bloque contenedor, que es su
+ * padre. Puesto en el `<header>`, ese padre es el host del componente, que mide
+ * exactamente lo que mide el `<header>`: cero holgura donde desplazarse, así
+ * que `sticky` se comportaba igual que `static`. Y lo hacía en silencio —la
+ * propiedad se aplica, el navegador no avisa de nada— por lo que la barra
+ * simplemente se iba con el desplazamiento.
+ *
+ * <p>En el host, el bloque contenedor pasa a ser `.marco-contenido`, que ocupa
+ * la página entera. Ahí sí hay recorrido.
  */
 @Component({
   selector: 'app-barra-superior',
   imports: [RouterModule, SelectorContextoComponent],
   templateUrl: './barra-superior.component.html',
+  host: { class: 'sticky top-0 z-30' },
 })
 export class BarraSuperiorComponent {
   private readonly anfitrion = inject(ElementRef<HTMLElement>);
