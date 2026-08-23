@@ -2,7 +2,7 @@ import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 
-import { ColumnaTabla, TablaDatosComponent } from './tabla-datos.component';
+import { AccionDeFila, ColumnaTabla, TablaDatosComponent } from './tabla-datos.component';
 import { EncabezadoPaginaComponent } from '../encabezado-pagina/encabezado-pagina.component';
 import { AvisoSuscripcionComponent } from '../aviso-suscripcion/aviso-suscripcion.component';
 import { ContextoService } from '../../../services/contexto.service';
@@ -47,9 +47,19 @@ import { ContextoService } from '../../../services/contexto.service';
         titulo="Empresas"
         descripcion="Los contribuyentes que emiten con esta cuenta. Abre una para ver sus datos fiscales, que son los que se imprimen en cada comprobante."
       />
+      <!--
+        Con TODAS las entradas que le pasa la pagina real. La version anterior
+        de esta prueba solo le daba columnas y registros, y por eso no
+        reproducia nada: sin «(actualizar)» no hay boton de recarga y sin
+        «[acciones]» no hay columna de acciones — que son justo las dos piezas
+        que la pagina de verdad si tiene.
+      -->
       <app-tabla-datos
         [columnas]="columnas"
         [registros]="registros"
+        [acciones]="acciones"
+        campoDescripcion="razonSocial"
+        (actualizar)="recargado = true"
         nombrePlural="empresas"
         nombreSingular="empresa"
       />
@@ -65,6 +75,10 @@ class AnfitrionPrueba {
     { campo: 'domicilioFiscal', titulo: 'Domicilio fiscal' },
     { campo: 'estado', titulo: 'Estado', ancho: 'w-32', formato: 'insignia' },
   ];
+
+  readonly acciones: AccionDeFila[] = [{ id: 'ver', etiqueta: 'Ver', icono: 'ver' }];
+
+  recargado = false;
 
   readonly registros = [
     {
@@ -164,17 +178,47 @@ describe('TablaDatosComponent · no arrastra la página en un teléfono', () => 
       .toBe('column');
   });
 
-  it('la tabla ancha se queda dentro de su contenedor, con barra propia', () => {
+  it('en teléfono no hay tabla que arrastrar: hay tarjetas', () => {
     const scroller = ventana.querySelector<HTMLElement>('.overflow-x-auto')!;
-    const tabla = scroller.querySelector('table')!;
+    const vista = marco.contentWindow!;
 
-    expect(tabla.getBoundingClientRect().width)
-      .withContext('la tabla debe conservar su ancho mínimo legible')
-      .toBeGreaterThan(scroller.clientWidth);
+    expect(vista.getComputedStyle(scroller).display)
+      .withContext('la tabla de 640 px no debe pintarse en un teléfono')
+      .toBe('none');
 
-    expect(scroller.scrollWidth)
-      .withContext('el contenedor es quien desplaza, no la página')
-      .toBeGreaterThan(scroller.clientWidth);
+    const tarjetas = ventana.querySelectorAll('app-tabla-datos ul > li');
+    expect(tarjetas.length).withContext('una tarjeta por registro').toBe(2);
+  });
+
+  it('cada tarjeta dice de qué registro habla, sin cabecera que lo explique', () => {
+    const primera = ventana.querySelector<HTMLElement>('app-tabla-datos ul > li')!;
+    const texto = primera.innerText.replace(/\s+/g, ' ');
+
+    // El titulo es la columna marcada como principal, no la primera del array:
+    // sin el, la tarjeta empieza por un RUC y no se sabe de quien es.
+    expect(texto).toContain('COMERCIAL DEMO S.A.C.');
+
+    // Y las etiquetas, porque aqui no hay fila de encabezados que las diga.
+    expect(texto).toContain('RUC');
+    expect(texto).toContain('20100000009');
+    expect(texto).toContain('Domicilio fiscal');
+
+    // El menu de acciones sigue siendo el mismo, uno por registro.
+    expect(ventana.querySelectorAll('app-tabla-datos ul > li app-menu-acciones').length).toBe(2);
+  });
+
+  it('ninguna tarjeta se sale por la derecha', () => {
+    const borde = ventana.querySelector<HTMLElement>('app-tabla-datos > div')!
+      .getBoundingClientRect().right;
+
+    const fuera = [...ventana.querySelectorAll<HTMLElement>('app-tabla-datos ul *')]
+      .filter((e) => {
+        const caja = e.getBoundingClientRect();
+        return caja.width > 0 && caja.right > borde + 1;
+      })
+      .map((e) => `${e.tagName.toLowerCase()}.${String(e.className).slice(0, 40)}`);
+
+    expect(fuera).withContext(fuera.join(' | ')).toEqual([]);
   });
 
   it('nada sobresale por la derecha de la tarjeta', () => {
