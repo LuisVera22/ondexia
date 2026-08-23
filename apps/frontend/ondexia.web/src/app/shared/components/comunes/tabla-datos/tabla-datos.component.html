@@ -371,7 +371,7 @@
   <div
     class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between"
   >
-    <div class="flex flex-wrap items-center gap-3">
+    <div class="flex flex-wrap items-center justify-between gap-3 sm:justify-start">
       <!--
         Solo la pagina. Cuantos hay se dice arriba, y decir «Mostrando 1 a 6 de
         12 registros» ademas era la misma cuenta contada dos veces en la misma
@@ -397,39 +397,53 @@
       }
     </div>
 
-    <!-- Siempre visible: si desaparece al quedar una sola página, el usuario
-         no sabe si la tabla está paginada o si el control se rompió. -->
-    <div class="flex items-center gap-1">
+    <!--
+      Siempre visible: si desaparece al quedar una sola página, el usuario no
+      sabe si la tabla está paginada o si el control se rompió.
+
+      En móvil «Anterior» y «Siguiente» se van a los extremos y los números
+      quedan en medio. Apilados a la izquierda dejaban media barra vacía, y
+      sobre todo dejaban los dos botones que más se pulsan en el centro de la
+      pantalla, que es donde peor llega el pulgar. Desde `sm` el grupo vuelve
+      junto a la derecha, como estaba.
+
+      Los números van envueltos en su propio contenedor para que el paginador
+      tenga exactamente tres hijos: sin eso, `justify-between` repartiría
+      también los números y «1 2 3» aparecería desperdigado por la barra.
+    -->
+    <div class="flex items-center justify-between gap-1 sm:justify-end">
       <button
         type="button"
         (click)="irAPagina(paginaVigente - 1)"
         [disabled]="paginaVigente === 1"
-        class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+        class="rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03] sm:py-1.5"
       >
         Anterior
       </button>
 
-      @for (numero of paginasVisibles; track numero) {
-      <button
+      <div class="flex items-center gap-1">
+        @for (numero of paginasVisibles; track numero) {
+        <button
         type="button"
         (click)="irAPagina(numero)"
         [attr.aria-current]="numero === paginaVigente ? 'page' : null"
-        class="min-w-9 rounded-lg px-3 py-1.5 text-sm tabular-nums transition"
+        class="min-w-9 rounded-lg px-3 py-2.5 text-sm tabular-nums transition sm:py-1.5"
         [class]="
           numero === paginaVigente
             ? 'bg-brand-500 text-white'
             : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.03]'
         "
       >
-        {{ numero }}
-      </button>
-      }
+          {{ numero }}
+        </button>
+        }
+      </div>
 
       <button
         type="button"
         (click)="irAPagina(paginaVigente + 1)"
         [disabled]="paginaVigente === totalPaginas"
-        class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+        class="rounded-lg border border-gray-300 px-3 py-2.5 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03] sm:py-1.5"
       >
         Siguiente
       </button>

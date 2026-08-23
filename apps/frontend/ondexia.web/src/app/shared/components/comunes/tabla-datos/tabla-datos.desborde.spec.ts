@@ -239,6 +239,44 @@ describe('TablaDatosComponent · no arrastra la página en un teléfono', () => 
     expect(fuera).withContext(fuera.join(' | ')).toEqual([]);
   });
 
+  it('el paginador reparte «Anterior» y «Siguiente» a los extremos', () => {
+    const pie = ventana.querySelector<HTMLElement>('app-tabla-datos .border-t')!;
+    const botones = [...pie.querySelectorAll('button')];
+    const anterior = botones.find((b) => b.textContent!.trim() === 'Anterior')!;
+    const siguiente = botones.find((b) => b.textContent!.trim() === 'Siguiente')!;
+
+    expect(anterior).withContext('falta «Anterior»').toBeTruthy();
+    expect(siguiente).withContext('falta «Siguiente»').toBeTruthy();
+
+    const barra = anterior.parentElement!.getBoundingClientRect();
+    const ca = anterior.getBoundingClientRect();
+    const cs = siguiente.getBoundingClientRect();
+
+    expect(Math.abs(ca.left - barra.left))
+      .withContext('«Anterior» pegado al borde izquierdo')
+      .toBeLessThan(1);
+    expect(Math.abs(cs.right - barra.right))
+      .withContext('«Siguiente» pegado al borde derecho')
+      .toBeLessThan(1);
+
+    // Y que de verdad esten separados: apilados a la izquierda esta prueba
+    // pasaria por los pelos si la barra midiera lo que miden los botones.
+    expect(cs.left - ca.right)
+      .withContext('los dos botones deben quedar en extremos opuestos')
+      .toBeGreaterThan(60);
+  });
+
+  it('los botones del paginador se pueden pulsar con el pulgar', () => {
+    const pie = ventana.querySelector<HTMLElement>('app-tabla-datos .border-t')!;
+    const anterior = [...pie.querySelectorAll('button')].find(
+      (b) => b.textContent!.trim() === 'Anterior'
+    )!;
+
+    // 40 px es la altura del resto de controles del sistema. Por debajo de eso
+    // el objetivo es mas pequeño que la yema de un dedo.
+    expect(anterior.getBoundingClientRect().height).toBeGreaterThanOrEqual(38);
+  });
+
   it('el documento del teléfono no se puede arrastrar de lado', () => {
     const raiz = ventana.documentElement;
 
