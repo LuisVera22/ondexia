@@ -119,6 +119,33 @@ ondexia:
   cors:
     origenes: ${CORS_ORIGENES:http://localhost:4200}
 
+  # Consulta del padron de SUNAT (DT-19, doc 11).
+  #
+  # Las claves NO tienen valor por omision, y es deliberado: un defecto de
+  # relleno haria que la aplicacion llamase al proveedor con un Bearer invalido y
+  # el error seria un 401 en vez de «no esta configurado». Sin variable, no entra
+  # ese proveedor en la cascada y se dice en el log al arrancar.
+  #
+  # Para probar en local, en IntelliJ: Run > Edit Configurations > Environment
+  # variables. Basta una de las dos.
+  #
+  #   CONSULTAS_DECOLECTA_TOKEN=...   principal
+  #   CONSULTAS_APIPERU_TOKEN=...     relevo
+  #
+  # Nunca en este archivo ni en ningun otro del repositorio: son secretos, y este
+  # archivo va a git.
+  #
+  # En la Lambda de la API no se define ninguna, y tampoco es un olvido: esa
+  # Lambda esta en subred privada sin NAT y quien consulta es ondexia.consultas,
+  # fuera de la VPC (DTE §4.8 y DT-19).
+  consultas:
+    decolecta-url: ${CONSULTAS_DECOLECTA_URL:https://api.decolecta.com/v1}
+    decolecta-token: ${CONSULTAS_DECOLECTA_TOKEN:}
+    apiperu-url: ${CONSULTAS_APIPERU_URL:https://api.apiperu.dev}
+    apiperu-token: ${CONSULTAS_APIPERU_TOKEN:}
+    # Por proveedor, no total. API Gateway corta a los 29 s.
+    tiempo-de-espera: ${CONSULTAS_TIEMPO_ESPERA:6s}
+
 logging:
   level:
     com.ondexia: INFO
