@@ -1,8 +1,10 @@
 # ondexia.web
 
 Aplicación web de Ondexia: gestión comercial y facturación electrónica para
-empresas peruanas. Angular con Tailwind CSS, sin backend por ahora — las vistas
-trabajan con datos de ejemplo hasta que exista `ondexia.api`.
+empresas peruanas. Angular con Tailwind CSS.
+
+**Configuración ya consume `ondexia.api`.** El resto de módulos —Panel,
+Almacén, Compras y Ventas— sigue con datos de ejemplo.
 
 ## Requisitos
 
@@ -29,6 +31,19 @@ Queda servida en `http://localhost:4200`.
 ```bash
 pnpm run build
 ```
+
+## Pruebas
+
+```bash
+pnpm test -- --watch=false
+```
+
+Las de maquetación tienen dos trampas propias, explicadas en
+[10 · Convenciones de interfaz](../../../ondexia.docs/10-convenciones-de-interfaz.md)
+§12: el diseño de teléfono hay que probarlo dentro de un **iframe** —las
+consultas de medios miran la ventana, no el contenedor— y los estilos hay que
+copiarlos por texto, porque un `<link>` carga de forma asíncrona y la prueba
+mediría el DOM sin CSS.
 
 ## Organización del código
 
@@ -87,6 +102,11 @@ y la clase `dark` que espera el variante de Tailwind.
 literales. `success` y `error` cargan significado contable, así que no se usan
 por decoración.
 
+**El resto de convenciones de interfaz** —contraste, movimiento, tablas,
+paneles flotantes, foco de teclado— está en
+[10 · Convenciones de interfaz](../../../ondexia.docs/10-convenciones-de-interfaz.md),
+con el porqué de cada una.
+
 **Los importes se redondean a dos decimales al calcularlos**, no al mostrarlos.
 SUNAT valida que la suma de las líneas cuadre con el total declarado, y
 redondear solo en pantalla produce comprobantes rechazados.
@@ -96,14 +116,15 @@ decimal quede en la misma columna y se puedan comparar de un vistazo.
 
 ## Estado
 
-Frontend con datos de ejemplo. No hay sesión, ni persistencia, ni envío a
-SUNAT: los formularios validan y calculan, pero nada se guarda. Lo pendiente
-está en `ondexia.docs/06-notas-de-version.md`.
+**Hay sesión y hay persistencia, en un módulo.** `GET /api/v1/contexto` —
+identidad, empresas accesibles y permisos efectivos— alimenta el
+`selector-contexto` y decide qué entradas del menú se muestran. Configuración
+lee y escribe contra la API; los errores llegan como `ProblemDetail` y se
+reparten sobre los campos del formulario.
 
-**El backend ya existe** (`apps/backend/ondexia.api`) pero todavía no se
-consume desde aquí. La primera conexión es `GET /api/v1/contexto`, que devuelve
-identidad, empresas accesibles y permisos efectivos — es lo que debe alimentar
-al `selector-contexto` y decidir qué entradas del menú se muestran.
+**Panel, Almacén, Compras y Ventas siguen con datos de ejemplo**: los
+formularios validan y calculan, pero nada se guarda y nada se envía a SUNAT. Lo
+pendiente está en `ondexia.docs/06-notas-de-version.md`.
 
 El contrato vive en `ondexia.contracts/openapi.yaml` y se regenera solo con la
 suite del backend. **El cliente se genera desde ahí, no se escribe a mano**: es
