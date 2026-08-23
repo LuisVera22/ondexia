@@ -7,6 +7,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.ondexia.domain.comun.Ruc;
 import com.ondexia.domain.comun.Ubigeo;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
@@ -30,8 +33,25 @@ import org.junit.jupiter.api.Test;
  */
 class AtestacionTest {
 
-    private static final byte[] SECRETO = "un-secreto-de-prueba".getBytes(StandardCharsets.UTF_8);
+    private static final KeyPair CLAVES = generar();
+    private static final KeyPair OTRAS = generar();
     private static final Instant AHORA = Instant.parse("2026-08-23T10:00:00Z");
+
+    private static KeyPair generar() {
+        try {
+            return KeyPairGenerator.getInstance("Ed25519").generateKeyPair();
+        } catch (NoSuchAlgorithmException sinEd25519) {
+            throw new IllegalStateException("Java 21 trae Ed25519 de serie", sinEd25519);
+        }
+    }
+
+    private static String emitir(DatosDeRuc datos) {
+        return Atestacion.emitir(datos, EXPIRA, CLAVES.getPrivate());
+    }
+
+    private static Atestacion.Contenido verificar(String token, Instant cuando) {
+        return Atestacion.verificar(token, CLAVES.getPublic(), cuando);
+    }
     private static final Instant EXPIRA = AHORA.plus(Duration.ofMinutes(10));
 
     private static DatosDeRuc datos() {
@@ -47,9 +67,9 @@ class AtestacionTest {
 
         @Test
         void lo_que_se_firma_es_lo_que_se_lee() {
-            String token = Atestacion.emitir(datos(), EXPIRA, SECRETO);
+            String token = emitir(datos());
 
-            Atestacion.Contenido contenido = Atestacion.verificar(token, SECRETO, AHORA);
+            Atestacion.Contenido contenido = verificar(token, AHORA);
 
             assertThat(contenido.datos()).isEqualTo(datos());
             assertThat(contenido.expiraEn()).isEqualTo(EXPIRA);
@@ -67,8 +87,7 @@ class AtestacionTest {
                     EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO,
                     "AV. AREQUIPA 100", null, null, null, "LIMA", false, false, null, AHORA);
 
-            Atestacion.Contenido leido = Atestacion.verificar(
-                    Atestacion.emitir(sinUbigeo, EXPIRA, SECRETO), SECRETO, AHORA);
+            Atestacion.Contenido leido = verificar(emitir(sinUbigeo), AHORA);
 
             assertThat(leido.datos()).isEqualTo(sinUbigeo);
             assertThat(leido.datos().faltaUbigeo()).isTrue();
@@ -89,22 +108,21 @@ class AtestacionTest {
                     new Ubigeo("150136"), "SAN MIGUEL", "LIMA", "LIMA",
                     false, false, "S.R.L.", AHORA);
 
-            assertThat(Atestacion.verificar(
-                    Atestacion.emitir(conComas, EXPIRA, SECRETO), SECRETO, AHORA).datos())
+            assertThat(verificar(emitir(conComas), AHORA).datos())
                     .isEqualTo(conComas);
         }
 
         /** Dos emisiones iguales dan lo mismo, o la firma no serviría de nada. */
         @Test
         void es_determinista() {
-            assertThat(Atestacion.emitir(datos(), EXPIRA, SECRETO))
-                    .isEqualTo(Atestacion.emitir(datos(), EXPIRA, SECRETO));
+            assertThat(emitir(datos()))
+                    .isEqualTo(emitir(datos()));
         }
 
         /** Sin padding y en base64 de URL: viaja en JSON y quizá en una ruta. */
         @Test
         void el_token_es_seguro_en_una_url() {
-            assertThat(Atestacion.emitir(datos(), EXPIRA, SECRETO))
+            assertThat(emitir(datos()))
                     .doesNotContain("+", "/", "=");
         }
     }
@@ -114,24 +132,23 @@ class AtestacionTest {
     class Rechazos {
 
         @Test
-        void otro_secreto_no_vale() {
-            String token = Atestacion.emitir(datos(), EXPIRA, SECRETO);
+        void otra_clave_no_vale() {
+            String token = emitir(datos());
 
-            assertThatThrownBy(() -> Atestacion.verificar(
-                    token, "otro-secreto".getBytes(StandardCharsets.UTF_8), AHORA))
+            assertThatThrownBy(() -> Atestacion.verificar(token, OTRAS.getPublic(), AHORA))
                     .isInstanceOf(AtestacionInvalida.class);
         }
 
         @Test
         void una_firma_tocada_no_vale() {
-            String token = Atestacion.emitir(datos(), EXPIRA, SECRETO);
+            String token = emitir(datos());
             int punto = token.indexOf('.');
             String firma = token.substring(punto + 1);
             char primero = firma.charAt(0);
             String tocada = (primero == 'A' ? 'B' : 'A') + firma.substring(1);
 
             assertThatThrownBy(() ->
-                    Atestacion.verificar(token.substring(0, punto + 1) + tocada, SECRETO, AHORA))
+                    verificar(token.substring(0, punto + 1) + tocada, AHORA))
                     .isInstanceOf(AtestacionInvalida.class);
         }
 
@@ -148,7 +165,7 @@ class AtestacionTest {
                     "AV. AREQUIPA 100", new Ubigeo("150101"), "LIMA", "LIMA", "LIMA",
                     false, false, null, AHORA);
 
-            String token = Atestacion.emitir(noHabido, EXPIRA, SECRETO);
+            String token = emitir(noHabido);
             int punto = token.indexOf('.');
             String carga = new String(
                     Base64.getUrlDecoder().decode(token.substring(0, punto)),
@@ -161,7 +178,7 @@ class AtestacionTest {
                     .encodeToString(falsificada.getBytes(StandardCharsets.UTF_8))
                     + token.substring(punto);
 
-            assertThatThrownBy(() -> Atestacion.verificar(tokenFalso, SECRETO, AHORA))
+            assertThatThrownBy(() -> verificar(tokenFalso, AHORA))
                     .isInstanceOf(AtestacionInvalida.class);
         }
 
@@ -172,7 +189,7 @@ class AtestacionTest {
          */
         @Test
         void manipular_la_razon_social_tampoco() {
-            String token = Atestacion.emitir(datos(), EXPIRA, SECRETO);
+            String token = emitir(datos());
             int punto = token.indexOf('.');
             String carga = new String(
                     Base64.getUrlDecoder().decode(token.substring(0, punto)),
@@ -183,25 +200,25 @@ class AtestacionTest {
                     .encodeToString(carga.getBytes(StandardCharsets.UTF_8))
                     + token.substring(punto);
 
-            assertThatThrownBy(() -> Atestacion.verificar(tokenFalso, SECRETO, AHORA))
+            assertThatThrownBy(() -> verificar(tokenFalso, AHORA))
                     .isInstanceOf(AtestacionInvalida.class);
         }
 
         @Test
         void una_atestacion_caducada_no_vale() {
-            String token = Atestacion.emitir(datos(), EXPIRA, SECRETO);
+            String token = emitir(datos());
 
             assertThatThrownBy(() ->
-                    Atestacion.verificar(token, SECRETO, EXPIRA.plusMillis(1)))
+                    verificar(token, EXPIRA.plusMillis(1)))
                     .isInstanceOf(AtestacionInvalida.class)
                     .hasMessageContaining("caducó");
         }
 
         @Test
         void justo_en_el_limite_todavia_vale() {
-            String token = Atestacion.emitir(datos(), EXPIRA, SECRETO);
+            String token = emitir(datos());
 
-            assertThatCode(() -> Atestacion.verificar(token, SECRETO, EXPIRA))
+            assertThatCode(() -> verificar(token, EXPIRA))
                     .doesNotThrowAnyException();
         }
 
@@ -209,7 +226,7 @@ class AtestacionTest {
         void lo_que_no_es_un_token_no_revienta_de_cualquier_manera() {
             for (String basura : new String[] {"", "   ", "sin-punto", ".", "a.", ".b",
                     "no-base64-@@@.tampoco-@@@"}) {
-                assertThatThrownBy(() -> Atestacion.verificar(basura, SECRETO, AHORA))
+                assertThatThrownBy(() -> verificar(basura, AHORA))
                         .withFailMessage("entrada rechazada de forma controlada: «%s»", basura)
                         .isInstanceOf(AtestacionInvalida.class);
             }
@@ -217,23 +234,101 @@ class AtestacionTest {
 
         @Test
         void nulo_tampoco() {
-            assertThatThrownBy(() -> Atestacion.verificar(null, SECRETO, AHORA))
+            assertThatThrownBy(() -> verificar(null, AHORA))
                     .isInstanceOf(AtestacionInvalida.class);
         }
 
         /**
-         * Sin secreto no se firma ni se verifica.
+         * Sin clave no se firma ni se verifica.
          *
-         * <p>Lo peligroso sería lo contrario: firmar con una clave vacía cuando
-         * falta la variable de entorno. Las dos partes «funcionarían» y la firma
-         * no protegería de nada, porque cualquiera podría reproducirla.
+         * <p>Lo peligroso sería lo contrario: firmar o verificar con una clave
+         * ausente y que las dos partes «funcionaran». La firma no protegería de
+         * nada y nada lo delataría.
          */
         @Test
-        void sin_secreto_no_se_firma() {
-            assertThatThrownBy(() -> Atestacion.emitir(datos(), EXPIRA, new byte[0]))
-                    .isInstanceOf(IllegalStateException.class);
+        void sin_clave_no_se_firma_ni_se_verifica() {
             assertThatThrownBy(() -> Atestacion.emitir(datos(), EXPIRA, null))
                     .isInstanceOf(IllegalStateException.class);
+            assertThatThrownBy(() -> Atestacion.verificar(emitir(datos()), null, AHORA))
+                    .isInstanceOf(IllegalStateException.class);
+        }
+    }
+
+    /**
+     * Que las claves de openssl se lean tal cual salen.
+     *
+     * <h2>Por qué esto merece una prueba con valores literales</h2>
+     *
+     * <p>Porque generar el par y usarlo en la misma JVM no prueba nada del
+     * formato: {@code KeyPairGenerator} y {@code KeyFactory} se entienden entre
+     * ellos por definición. Lo que puede fallar es lo que va a pasar de verdad
+     * —pegar la salida de {@code openssl} en un parámetro de SSM— y ese fallo
+     * aparecería al desplegar, no aquí.
+     *
+     * <p>Las claves son de un par generado con openssl para esta prueba y no se
+     * usan en ningún entorno. Da igual que estén en el repositorio, y por eso
+     * están: hacen la prueba reproducible sin depender de tener openssl.
+     */
+    @Nested
+    @DisplayName("Claves de openssl")
+    class Openssl {
+
+        private static final String PRIVADA_PEM = """
+                -----BEGIN PRIVATE KEY-----
+                MC4CAQAwBQYDK2VwBCIEIKA3itKbjL1Lu/BLbAXSt2igZr8kb8tD5uSNcRYckQ+w
+                -----END PRIVATE KEY-----
+                """;
+
+        private static final String PUBLICA_PEM = """
+                -----BEGIN PUBLIC KEY-----
+                MCowBQYDK2VwAyEArH+O+lntDsX9UwpK0dFrbTzckioDM9zhI7jnoLq7URw=
+                -----END PUBLIC KEY-----
+                """;
+
+        @Test
+        @DisplayName("con el envoltorio PEM y los saltos de linea, tal como salen")
+        void un_par_de_openssl_firma_y_verifica() {
+            String token = Atestacion.emitir(datos(), EXPIRA,
+                    Atestacion.clavePrivada(PRIVADA_PEM));
+
+            Atestacion.Contenido leido = Atestacion.verificar(
+                    token, Atestacion.clavePublica(PUBLICA_PEM), AHORA);
+
+            assertThat(leido.datos()).isEqualTo(datos());
+        }
+
+        /** Y también recortadas a mano, que es lo que hará medio mundo. */
+        @Test
+        void tambien_sin_el_envoltorio() {
+            String soloBase64 = PUBLICA_PEM
+                    .replace("-----BEGIN PUBLIC KEY-----", "")
+                    .replace("-----END PUBLIC KEY-----", "")
+                    .strip();
+
+            assertThat(Atestacion.clavePublica(soloBase64))
+                    .isEqualTo(Atestacion.clavePublica(PUBLICA_PEM));
+        }
+
+        /**
+         * La pública de OTRO par no verifica. Comprueba que la prueba de arriba
+         * no pasa por casualidad —por ejemplo, si `verificar` devolviera cierto
+         * ante cualquier cosa.
+         */
+        @Test
+        void la_publica_equivocada_no_verifica() {
+            String token = Atestacion.emitir(datos(), EXPIRA,
+                    Atestacion.clavePrivada(PRIVADA_PEM));
+
+            assertThatThrownBy(() ->
+                    Atestacion.verificar(token, CLAVES.getPublic(), AHORA))
+                    .isInstanceOf(AtestacionInvalida.class);
+        }
+
+        @Test
+        void una_clave_que_no_lo_es_falla_diciendolo() {
+            assertThatThrownBy(() -> Atestacion.clavePublica("esto no es una clave"))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("Ed25519");
         }
     }
 }

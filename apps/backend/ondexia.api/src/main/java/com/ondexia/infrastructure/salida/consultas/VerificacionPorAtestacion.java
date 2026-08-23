@@ -4,6 +4,7 @@ import com.ondexia.domain.consultas.Atestacion;
 import com.ondexia.domain.consultas.AtestacionInvalida;
 import com.ondexia.domain.consultas.DatosDeRuc;
 import com.ondexia.domain.consultas.VerificacionDeRuc;
+import java.security.PublicKey;
 import java.time.Clock;
 import java.util.Optional;
 
@@ -13,29 +14,35 @@ import java.util.Optional;
  * <h2>Por qué esto es suficiente</h2>
  *
  * <p>Porque la firma es lo que traslada la autoridad. El navegador transporta la
- * atestación pero no puede fabricarla: sin el secreto compartido, cambiar
- * {@code NO_HABIDO} por {@code HABIDO} invalida el HMAC.
+ * atestación pero no puede fabricarla: sin la clave privada —que solo tiene
+ * {@code ondexia.consultas}— cambiar {@code NO_HABIDO} por {@code HABIDO}
+ * invalida la firma.
+ *
+ * <p>Aquí solo está la clave <strong>pública</strong>, que no es un secreto. Es
+ * lo que permite pasarla en una variable de entorno sin exponer nada, y la razón
+ * de que la firma sea Ed25519 y no un HMAC: la API no puede leer SSM desde su
+ * subred privada sin pagar un endpoint de interfaz.
  *
  * <p>De modo que la API sigue siendo quien decide si una empresa puede
  * registrarse, aunque no haya podido preguntárselo a SUNAT.
  */
 class VerificacionPorAtestacion implements VerificacionDeRuc {
 
-    private final byte[] secreto;
+    private final PublicKey publica;
     private final Clock reloj;
 
-    VerificacionPorAtestacion(byte[] secreto, Clock reloj) {
-        this.secreto = secreto;
+    VerificacionPorAtestacion(PublicKey publica, Clock reloj) {
+        this.publica = publica;
         this.reloj = reloj;
     }
 
     @Override
     public DatosDeRuc comprobar(String atestacion) {
-        return Atestacion.verificar(atestacion, secreto, reloj.instant()).datos();
+        return Atestacion.verificar(atestacion, publica, reloj.instant()).datos();
     }
 
     /**
-     * Lo que se usa cuando no hay secreto configurado.
+     * Lo que se usa cuando no hay clave configurada.
      *
      * <h2>Por qué existe en vez de no registrar el bean</h2>
      *
@@ -51,7 +58,7 @@ class VerificacionPorAtestacion implements VerificacionDeRuc {
      * inventado. Un doble que acepta todo es peor que no tener verificación,
      * porque parece que la hay.
      */
-    static final class SinSecreto implements VerificacionDeRuc {
+    static final class SinClave implements VerificacionDeRuc {
 
         @Override
         public DatosDeRuc comprobar(String atestacion) {
@@ -61,7 +68,7 @@ class VerificacionPorAtestacion implements VerificacionDeRuc {
 
         @Override
         public Optional<String> motivoDeNoPoder() {
-            return Optional.of("Falta el secreto de firma de las consultas de RUC.");
+            return Optional.of("Falta la clave pública de firma de las consultas de RUC.");
         }
     }
 }

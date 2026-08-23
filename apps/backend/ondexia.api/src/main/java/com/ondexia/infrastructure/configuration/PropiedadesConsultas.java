@@ -3,40 +3,30 @@ package com.ondexia.infrastructure.configuration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * El secreto con el que se comprueban las atestaciones de RUC (DT-19).
+ * La clave pública con la que se comprueban las atestaciones de RUC (DT-19).
  *
- * <h2>Aquí no hay claves de proveedor</h2>
+ * <h2>Aquí no hay ningún secreto, y es el punto</h2>
  *
- * <p>Y es el punto: la API no consulta a nadie. Las claves de Decolecta y
- * apiperu.dev viven en {@code ondexia.consultas}, que es quien sale a internet.
- * Lo único que la API necesita es el secreto compartido para verificar la firma,
- * porque verificar no requiere red.
+ * <p>La API no consulta a nadie: las claves de Decolecta y apiperu.dev viven en
+ * {@code ondexia.consultas}, que es quien sale a internet, y la clave privada de
+ * firma también. Lo único que llega aquí es la <strong>pública</strong>.
  *
- * <h2>Dos formas de obtenerlo, y el orden importa</h2>
+ * <p>Eso es lo que permite pasarla por variable de entorno sin preocuparse. Con
+ * un HMAC haría falta el mismo secreto en las dos partes, y la API no puede
+ * leerlo de SSM —subred privada sin NAT— así que acabaría en el estado de
+ * Terraform. Justo lo que este proyecto se quitó de encima al pasar la base de
+ * datos a autenticación por IAM.
  *
- * <p>Si hay nombre de parámetro, manda el parámetro de SSM. Si no, la variable
- * con el valor directo, que es para desarrollo. En ese orden: en un entorno
- * desplegado, una variable de entorno olvidada no debe poder ganarle al
- * parámetro.
- *
- * @param firmaParametro nombre del parámetro en SSM, no su valor
- * @param firmaSecreto el valor, para desarrollo local
+ * @param firmaPublica clave Ed25519 en X.509, en base64; admite el envoltorio PEM
  */
 @ConfigurationProperties(prefix = "ondexia.consultas")
-public record PropiedadesConsultas(String firmaParametro, String firmaSecreto) {
+public record PropiedadesConsultas(String firmaPublica) {
 
     public PropiedadesConsultas {
-        firmaParametro = enBlancoEsNulo(firmaParametro);
-        firmaSecreto = enBlancoEsNulo(firmaSecreto);
-    }
-
-    /**
-     * Una variable de entorno declarada y sin valor llega como cadena vacía, no
-     * como nulo. Sin esto, {@code CONSULTAS_FIRMA_SECRETO=} contaría como
-     * configurado y se verificarían firmas con una clave vacía — que cualquiera
-     * puede reproducir.
-     */
-    private static String enBlancoEsNulo(String valor) {
-        return valor == null || valor.isBlank() ? null : valor.trim();
+        // Una variable de entorno declarada y sin valor llega como cadena vacia,
+        // no como nulo. Sin esto, CONSULTAS_FIRMA_PUBLICA= contaria como
+        // configurada y el arranque fallaria al analizar una clave vacia en vez
+        // de decir que no esta puesta.
+        firmaPublica = firmaPublica == null || firmaPublica.isBlank() ? null : firmaPublica.trim();
     }
 }

@@ -4,7 +4,7 @@ import com.ondexia.domain.comun.Ruc;
 import com.ondexia.domain.consultas.Atestacion;
 import com.ondexia.domain.consultas.ConsultaDeRuc;
 import com.ondexia.domain.consultas.DatosDeRuc;
-import java.nio.charset.StandardCharsets;
+import java.security.PrivateKey;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -38,12 +38,12 @@ public final class ServicioDeConsultas {
     private static final Duration ESPERA_POR_PROVEEDOR = Duration.ofSeconds(6);
 
     private final ConsultaDeRuc padron;
-    private final byte[] secretoDeFirma;
+    private final PrivateKey clavePrivada;
     private final Clock reloj;
 
-    ServicioDeConsultas(ConsultaDeRuc padron, byte[] secretoDeFirma, Clock reloj) {
+    ServicioDeConsultas(ConsultaDeRuc padron, PrivateKey clavePrivada, Clock reloj) {
         this.padron = padron;
-        this.secretoDeFirma = secretoDeFirma;
+        this.clavePrivada = clavePrivada;
         this.reloj = reloj;
     }
 
@@ -57,7 +57,7 @@ public final class ServicioDeConsultas {
     public Optional<Resultado> consultar(Ruc ruc) {
         return padron.consultar(ruc).map(datos -> {
             Instant expira = reloj.instant().plus(VALIDEZ);
-            return new Resultado(datos, Atestacion.emitir(datos, expira, secretoDeFirma));
+            return new Resultado(datos, Atestacion.emitir(datos, expira, clavePrivada));
         });
     }
 
@@ -71,15 +71,14 @@ public final class ServicioDeConsultas {
     public static ServicioDeConsultas desdeElEntorno(Function<String, String> entorno) {
         Claves claves = new Claves(ssmSiSeNecesita(entorno), entorno);
 
-        String secreto = claves.resolver("CONSULTAS_FIRMA_PARAMETRO", "CONSULTAS_FIRMA_SECRETO");
-        if (secreto == null) {
-            // Se para aqui en vez de firmar con una clave vacia. Firmando, las
-            // dos partes «funcionarian» y la firma no protegeria de nada, porque
-            // cualquiera podria reproducirla — el peor estado posible, porque
-            // parece que hay verificacion.
+        String privadaPem = claves.resolver("CONSULTAS_FIRMA_PARAMETRO", "CONSULTAS_FIRMA_PRIVADA");
+        if (privadaPem == null) {
+            // Se para aqui en vez de arrancar sin poder firmar. Arrancando, cada
+            // consulta responderia 500 y el motivo estaria en un rastro de pila,
+            // no en un mensaje que diga que falta una clave.
             throw new IllegalStateException(
-                    "Falta el secreto de firma: define CONSULTAS_FIRMA_PARAMETRO "
-                            + "(nombre del parámetro en SSM) o CONSULTAS_FIRMA_SECRETO.");
+                    "Falta la clave de firma: define CONSULTAS_FIRMA_PARAMETRO "
+                            + "(nombre del parámetro en SSM) o CONSULTAS_FIRMA_PRIVADA.");
         }
 
         String tokenDecolecta =
@@ -115,7 +114,7 @@ public final class ServicioDeConsultas {
         System.out.println("[consultas] cascada: " + String.join(" -> ", nombres));
 
         return new ServicioDeConsultas(new CascadaDeProveedores(cascada),
-                secreto.getBytes(StandardCharsets.UTF_8), Clock.systemUTC());
+                Atestacion.clavePrivada(privadaPem), Clock.systemUTC());
     }
 
     /**

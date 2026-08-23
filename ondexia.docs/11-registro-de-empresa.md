@@ -191,7 +191,120 @@ Cambiar esas cifras es un `UPDATE` de tres filas, no una migración. Queda
 **pendiente de confirmar** antes de que el botón «Agregar empresa» salga a
 producción.
 
-## 10. Abierto
+## 10. La atestación firmada
+
+Es la pieza que permite que la comprobación siga siendo del servidor sin que la
+API salga a internet.
+
+`ondexia.consultas` firma lo que SUNAT dijo; el navegador lo transporta; la API
+verifica la firma **sin red**. Un cliente puede reenviar una atestación, no
+fabricarla.
+
+### 10.1 Se firma todo, no solo la puerta
+
+DT-19 planteaba firmar el RUC, el estado y la condición. No basta: la **razón
+social** también viene de SUNAT, y sin firmar el navegador podría cambiarla. Una
+razón social que no coincide con el padrón hace que SUNAT rechace **todos** los
+comprobantes de esa empresa, y el fallo aparecería en la primera emisión real,
+no al registrar.
+
+El efecto útil es que el «no editable» del bloque 1 deja de ser una convención
+de la interfaz —que se salta con las herramientas del navegador— y pasa a ser
+una imposibilidad.
+
+Consecuencia de diseño: **el `POST` de empresa no recibe esos campos.** Recibe
+la atestación y los datos nuestros (nombre comercial, contacto, cuenta de
+detracciones). Todo lo de SUNAT se saca de la firma.
+
+### 10.2 Ed25519, no HMAC
+
+Un HMAC sería más simple, pero exige el **mismo secreto** en las dos partes. Y
+la API no puede leerlo de donde se guarda: está en subred privada sin NAT, y
+alcanzar SSM desde ahí pide un endpoint de interfaz a ~7,30 USD/mes — el gasto
+que DT-19 existe para evitar. La alternativa sería pasárselo por variable de
+entorno, y entonces vive en el estado de Terraform: justo lo que este proyecto
+se quitó al pasar la base de datos a IAM.
+
+Con firma asimétrica el problema desaparece. `consultas` firma con la privada,
+que lee de SSM porque está fuera de la VPC; la API verifica con la **pública**,
+que no es un secreto y puede ir en cualquier sitio.
+
+Ed25519 y no RSA por tamaño: 64 bytes de firma frente a 256, y la atestación
+viaja en cada alta.
+
+### 10.3 El formato no es JSON
+
+Dos partes separadas por un punto, como un JWT en miniatura. La carga son los
+campos en orden fijo separados por `U+001F`, y **se transmite tal cual se
+firma**.
+
+Con JSON, cada lado tendría que volver a serializar para firmar, y cualquier
+diferencia —el orden de las claves, un espacio, cómo se escribe un nulo— rompería
+la verificación sin nada que señale por qué. Firmando y transmitiendo los mismos
+bytes no hay nada que canonizar.
+
+El separador es el carácter de unidad porque no puede aparecer en una razón
+social ni en una dirección. Con un `|` o una coma habría que escapar, y un
+escape mal hecho permite mover el contenido de un campo al siguiente.
+
+### 10.4 Caducidad de diez minutos
+
+Es el tiempo entre consultar el RUC y enviar el formulario, con margen para quien
+se distrae. Más corto obligaría a repetir la consulta a gente normal; mucho más
+largo permitiría guardar una atestación de cuando la empresa estaba habida y
+usarla cuando ya no lo está.
+
+## 11. Dónde vive cada cosa
+
+| Qué | Dónde | Por qué |
+|---|---|---|
+| Puerto `ConsultaDeRuc`, `DatosDeRuc`, `Atestacion` | `ondexia.domain` | Los usan los dos desplegables. Duplicar el formato de la firma haría divergir firmante y verificador |
+| Proveedores, cascada, firma | `ondexia.consultas` | Es quien puede salir a internet |
+| Verificación de la atestación | `ondexia.api` | No necesita red |
+| Clave privada de firma, claves de proveedor | SSM `SecureString` | Gratis y con IAM delante. Una variable de entorno de Lambda la ve cualquiera con permiso de leer la configuración |
+| Clave pública | Variable de entorno de la API | No es un secreto |
+
+Ningún valor lo crea Terraform: quedaría en el estado, y el estado está en S3.
+
+```bash
+openssl genpkey -algorithm ed25519 -out firma.pem
+openssl pkey -in firma.pem -pubout -out firma.pub
+```
+
+La privada va a `/ondexia/{entorno}/consultas/firma-privada` como `SecureString`;
+la pública a `/ondexia/{entorno}/consultas/firma-publica` como `String` —no es
+secreta, y está en SSM solo para que el par no se separe: que la pública de un
+entorno verifique firmas de otro es un fallo silencioso y desconcertante.
+
+## 12. La ruta
+
+`GET /consultas/ruc/{ruc}`, en la **misma** pasarela que el resto de la API.
+
+Así hereda el autorizador JWT de Cognito que ya existe: la función no valida
+tokens porque llega invocada solo si el token era válido. Con una Function URL
+propia habría un origen nuevo, con su CORS y una segunda implementación de la
+autenticación — y dos implementaciones acaban teniendo dos comportamientos.
+
+Una ruta específica gana sobre `ANY /{proxy+}`, igual que ya hacen
+`OPTIONS /{proxy+}` y `GET /salud`.
+
+## 13. Para probar en local
+
+`Consola` es un `main` que consulta un RUC e imprime lo que llegó. En IntelliJ:
+configuración de tipo Application, el RUC en «Program arguments» y en
+«Environment variables»:
+
+```
+CONSULTAS_DECOLECTA_TOKEN=...
+CONSULTAS_FIRMA_PRIVADA=<contenido de firma.pem>
+```
+
+Existe porque el mapeo de campos viene de la documentación de cada proveedor, y
+la de un servicio pequeño no siempre coincide con lo que devuelve. Descubrir esa
+diferencia desplegando una Lambda confunde dos cosas a la vez: si falla el mapeo
+o si falla el despliegue.
+
+## 14. Abierto
 
 | Qué | Estado |
 |---|---|

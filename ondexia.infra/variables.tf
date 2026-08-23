@@ -257,3 +257,39 @@ variable "retencion_logs_dias" {
   type        = number
   default     = 30
 }
+
+/**
+ * ondexia.consultas — la funcion que sale a internet (DT-19).
+ *
+ * Vacio la deja sin desplegar, igual que `artefacto_api`. Es lo que permite
+ * aplicar Terraform antes de que el modulo se construya, y volver atras sin
+ * borrar nada a mano.
+ */
+variable "artefacto_consultas" {
+  description = "Ruta al jar de ondexia.consultas. Vacio: no se despliega."
+  type        = string
+  default     = ""
+}
+
+variable "memoria_consultas_mb" {
+  description = "Memoria de la funcion de consultas"
+  type        = number
+  default     = 512
+
+  validation {
+    /*
+     * En Lambda la CPU va atada a la memoria. Por debajo de 256 MB, arrancar la
+     * JVM y negociar TLS con el proveedor tarda mas que la consulta misma —
+     * espera que mira una persona en un formulario. Y por encima de 1024 no hay
+     * nada que ganar: la funcion hace dos peticiones HTTP y una firma.
+     */
+    condition     = var.memoria_consultas_mb >= 256 && var.memoria_consultas_mb <= 1024
+    error_message = "Entre 256 y 1024 MB: menos hace lento el arranque, mas no compra nada."
+  }
+}
+
+variable "usar_apiperu" {
+  description = "Incluir apiperu.dev como relevo en la cascada de consulta del RUC"
+  type        = bool
+  default     = false
+}

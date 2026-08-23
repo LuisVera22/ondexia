@@ -3,11 +3,15 @@ package com.ondexia.domain.consultas;
 import com.ondexia.domain.comun.Ruc;
 import com.ondexia.domain.comun.Ubigeo;
 import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
+import java.security.GeneralSecurityException;
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Signature;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.time.Instant;
 import java.util.Base64;
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Lo que SUNAT dijo, firmado, para que viaje por el navegador sin que nadie lo
@@ -24,6 +28,24 @@ import javax.crypto.spec.SecretKeySpec;
  * <p>La firma resuelve las dos cosas a la vez. Consulta quien puede salir; la
  * API valida la firma sin red y sigue siendo la autoridad, porque el navegador
  * puede reenviar la atestación pero no fabricarla.
+ *
+ * <h2>Por qué Ed25519 y no HMAC</h2>
+ *
+ * <p>Un HMAC sería más simple y más barato de razonar, pero exige el
+ * <strong>mismo secreto</strong> a las dos partes. Y la API no puede leerlo de
+ * donde se guarda: está en subred privada sin NAT, y alcanzar SSM desde ahí pide
+ * un endpoint de interfaz a ~7,30 USD/mes — el gasto que DT-19 existe para
+ * evitar. La única alternativa sería pasarle el secreto por variable de entorno,
+ * y entonces vive en el estado de Terraform, que es precisamente de donde este
+ * proyecto sacó la contraseña de la base al pasar a IAM.
+ *
+ * <p>Con firma asimétrica el problema desaparece: {@code ondexia.consultas}
+ * firma con la privada, que lee de SSM porque está fuera de la VPC, y la API
+ * verifica con la <strong>pública</strong>. Una clave pública no es un secreto,
+ * así que puede ir en una variable de entorno sin que eso exponga nada.
+ *
+ * <p>Ed25519 y no RSA por tamaño: firmas de 64 bytes frente a 256, y la
+ * atestación viaja en cada alta.
  *
  * <h2>Por qué va en el dominio</h2>
  *
@@ -74,7 +96,7 @@ public final class Atestacion {
     private static final String VERSION = "1";
 
     private static final char SEPARADOR = (char) 0x1F;
-    private static final String ALGORITMO = "HmacSHA256";
+    private static final String ALGORITMO = "Ed25519";
 
     private Atestacion() {
     }
@@ -90,10 +112,9 @@ public final class Atestacion {
      *     consultar el RUC y enviar el formulario. Más allá, la foto del padrón
      *     envejece y quien la reenvía podría estar reutilizando una vieja
      */
-    public static String emitir(DatosDeRuc datos, Instant expiraEn, byte[] secreto) {
-        String carga = carga(datos, expiraEn);
-        byte[] bytes = carga.getBytes(StandardCharsets.UTF_8);
-        return base64(bytes) + "." + base64(hmac(bytes, secreto));
+    public static String emitir(DatosDeRuc datos, Instant expiraEn, PrivateKey privada) {
+        byte[] bytes = carga(datos, expiraEn).getBytes(StandardCharsets.UTF_8);
+        return base64(bytes) + "." + base64(firmar(bytes, privada));
     }
 
     /**
@@ -104,7 +125,7 @@ public final class Atestacion {
      *     propósito: quien manipula una atestación no necesita ayuda para saber
      *     qué parte le falló
      */
-    public static Contenido verificar(String token, byte[] secreto, Instant ahora) {
+    public static Contenido verificar(String token, PublicKey publica, Instant ahora) {
         if (token == null || token.isBlank()) {
             throw new AtestacionInvalida("La verificación del RUC no llegó.");
         }
@@ -123,11 +144,7 @@ public final class Atestacion {
             throw new AtestacionInvalida("La verificación del RUC está mal formada.");
         }
 
-        // Comparacion en tiempo constante. Con un equals corriente, el tiempo de
-        // respuesta revela cuantos bytes iniciales acerto quien lo intenta, y con
-        // suficientes intentos eso permite construir una firma valida byte a
-        // byte.
-        if (!MessageDigest.isEqual(firma, hmac(carga, secreto))) {
+        if (!verificarFirma(carga, firma, publica)) {
             throw new AtestacionInvalida("La verificación del RUC no es válida.");
         }
 
@@ -200,20 +217,76 @@ public final class Atestacion {
         return new Contenido(datos, expiraEn);
     }
 
-    private static byte[] hmac(byte[] mensaje, byte[] secreto) {
-        if (secreto == null || secreto.length == 0) {
-            throw new IllegalStateException(
-                    "No hay secreto para firmar ni verificar atestaciones.");
+    private static byte[] firmar(byte[] mensaje, PrivateKey privada) {
+        if (privada == null) {
+            throw new IllegalStateException("No hay clave privada para firmar atestaciones.");
         }
         try {
-            Mac mac = Mac.getInstance(ALGORITMO);
-            mac.init(new SecretKeySpec(secreto, ALGORITMO));
-            return mac.doFinal(mensaje);
-        } catch (java.security.GeneralSecurityException imposible) {
-            // HmacSHA256 lo exige la especificacion de la plataforma; si falta,
-            // la JVM esta rota y no hay nada que hacer aqui.
-            throw new IllegalStateException("HMAC-SHA256 no disponible", imposible);
+            Signature firma = Signature.getInstance(ALGORITMO);
+            firma.initSign(privada);
+            firma.update(mensaje);
+            return firma.sign();
+        } catch (GeneralSecurityException noSePudo) {
+            throw new IllegalStateException("No se pudo firmar la atestación", noSePudo);
         }
+    }
+
+    private static boolean verificarFirma(byte[] mensaje, byte[] firma, PublicKey publica) {
+        if (publica == null) {
+            throw new IllegalStateException("No hay clave pública para verificar atestaciones.");
+        }
+        try {
+            Signature verificador = Signature.getInstance(ALGORITMO);
+            verificador.initVerify(publica);
+            verificador.update(mensaje);
+            return verificador.verify(firma);
+        } catch (java.security.SignatureException firmaMalFormada) {
+            // Una firma con la longitud equivocada, o basura: es un «no», no un
+            // fallo del sistema. Sin este catch, una atestacion manipulada
+            // produciria un error 500 en vez de un rechazo.
+            return false;
+        } catch (GeneralSecurityException noSePudo) {
+            throw new IllegalStateException("No se pudo verificar la atestación", noSePudo);
+        }
+    }
+
+    /**
+     * Lee una clave privada en PKCS#8, que es lo que produce
+     * {@code openssl genpkey -algorithm ed25519} sin las líneas de cabecera.
+     */
+    public static PrivateKey clavePrivada(String base64Pkcs8) {
+        try {
+            return KeyFactory.getInstance(ALGORITMO).generatePrivate(
+                    new PKCS8EncodedKeySpec(Base64.getDecoder().decode(limpiar(base64Pkcs8))));
+        } catch (GeneralSecurityException | IllegalArgumentException noVale) {
+            throw new IllegalStateException(
+                    "La clave privada de firma no es una Ed25519 en PKCS#8.", noVale);
+        }
+    }
+
+    /** Lee una clave pública en X.509 (SubjectPublicKeyInfo). */
+    public static PublicKey clavePublica(String base64X509) {
+        try {
+            return KeyFactory.getInstance(ALGORITMO).generatePublic(
+                    new X509EncodedKeySpec(Base64.getDecoder().decode(limpiar(base64X509))));
+        } catch (GeneralSecurityException | IllegalArgumentException noVale) {
+            throw new IllegalStateException(
+                    "La clave pública de firma no es una Ed25519 en X.509.", noVale);
+        }
+    }
+
+    /**
+     * Quita las líneas PEM y los saltos.
+     *
+     * <p>Es la diferencia entre pegar la salida de openssl y tener que
+     * acordarse de recortarla. Un valor con «-----BEGIN» dentro falla al
+     * decodificar en base64, y ese error no menciona el PEM por ningún lado.
+     */
+    private static String limpiar(String clave) {
+        if (clave == null) {
+            return "";
+        }
+        return clave.replaceAll("-----[A-Z ]+-----", "").replaceAll("\\s", "");
     }
 
     private static String base64(byte[] bytes) {

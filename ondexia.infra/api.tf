@@ -355,6 +355,25 @@ resource "aws_lambda_function" "api" {
        */
       BD_USUARIO = "ondexia_app"
 
+      /**
+       * La clave PUBLICA con la que se verifican las atestaciones de RUC.
+       *
+       * No es un secreto, y por eso puede estar aqui. La privada vive en SSM y
+       * solo la lee ondexia.consultas, que esta fuera de la VPC; esta funcion no
+       * puede leer SSM en ejecucion —subred privada sin NAT— asi que el valor
+       * tiene que viajar en su configuracion.
+       *
+       * Es exactamente lo que decidio que la firma sea Ed25519 y no un HMAC: con
+       * un HMAC haria falta el MISMO secreto en las dos partes, y este sitio lo
+       * dejaria en el estado de Terraform. Justo lo que se quito al pasar la base
+       * de datos a autenticacion por IAM.
+       *
+       * Vacia cuando no hay modulo de consultas desplegado. La aplicacion arranca
+       * igual y rechaza toda atestacion diciendo que no esta configurada — no
+       * acepta ninguna.
+       */
+      CONSULTAS_FIRMA_PUBLICA = local.hay_consultas ? data.aws_ssm_parameter.firma_publica[0].value : ""
+
       COGNITO_POOL_ID    = aws_cognito_user_pool.inquilinos.id
       COGNITO_CLIENTE_ID = aws_cognito_user_pool_client.spa.id
       BUCKET_MARCA       = aws_s3_bucket.marca.id

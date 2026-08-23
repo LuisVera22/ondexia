@@ -121,26 +121,26 @@ ondexia:
 
   # Verificacion del RUC (DT-19, doc 11).
   #
-  # Aqui NO hay claves de proveedor, y es el punto: la API no consulta a nadie.
-  # Su Lambda esta en subred privada sin NAT y no tiene salida a internet
-  # (DTE §4.8). Quien pregunta a Decolecta y a apiperu.dev es ondexia.consultas,
-  # fuera de la VPC, y su respuesta llega firmada a traves del navegador.
+  # Aqui NO hay ningun secreto, y es el punto. La API no consulta a nadie: su
+  # Lambda esta en subred privada sin NAT (DTE §4.8). Quien pregunta a Decolecta
+  # y a apiperu.dev es ondexia.consultas, fuera de la VPC, y firma el resultado.
   #
-  # Lo unico que hace falta aqui es el secreto compartido para comprobar esa
-  # firma, porque comprobarla no requiere red.
+  # Lo unico que llega aqui es la clave PUBLICA para comprobar esa firma. No es
+  # un secreto, asi que puede ir en una variable de entorno y en el estado de
+  # Terraform sin exponer nada. Con un HMAC haria falta el mismo secreto en las
+  # dos partes, y la API no puede leer SSM sin un endpoint de interfaz a ~7,30
+  # USD/mes — el gasto que DT-19 existe para evitar.
   #
-  # Desplegado: CONSULTAS_FIRMA_PARAMETRO con el NOMBRE de un parametro
-  # SecureString de SSM. El valor no lo crea Terraform —quedaria en el estado, y
-  # el estado esta en S3—; se crea una vez con la CLI:
+  # El par se genera una vez:
   #
-  #   aws ssm put-parameter --name /ondexia/dev/consultas/firma --type SecureString --value "$(openssl rand -base64 32)"
+  #   openssl genpkey -algorithm ed25519 -out firma.pem
+  #   openssl pkey -in firma.pem -pubout -out firma.pub
   #
-  # En local: CONSULTAS_FIRMA_SECRETO con el valor, el mismo que use
-  # ondexia.consultas. Si no hay ninguno de los dos, el registro por RUC no
-  # esta disponible y se dice al arrancar — no se acepta cualquier atestacion.
+  # La privada va a SSM como SecureString y la lee ondexia.consultas. La publica
+  # va aqui. Sin ella, el registro por RUC no esta disponible y se dice al
+  # arrancar — no se acepta cualquier atestacion.
   consultas:
-    firma-parametro: ${CONSULTAS_FIRMA_PARAMETRO:}
-    firma-secreto: ${CONSULTAS_FIRMA_SECRETO:}
+    firma-publica: ${CONSULTAS_FIRMA_PUBLICA:}
 
 logging:
   level:
