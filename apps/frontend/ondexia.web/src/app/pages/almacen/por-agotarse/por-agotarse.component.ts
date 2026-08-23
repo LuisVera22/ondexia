@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { TablaDatosComponent, ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
+import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
 
 interface ProductoPorAgotarse extends Record<string, unknown> {
   id: number;
@@ -27,7 +28,7 @@ interface ProductoPorAgotarse extends Record<string, unknown> {
  */
 @Component({
   selector: 'app-por-agotarse',
-  imports: [EncabezadoPaginaComponent, TablaDatosComponent, FormsModule, RouterModule, DesplegableComponent],
+  imports: [EncabezadoPaginaComponent, TablaDatosComponent, FormsModule, RouterModule, DesplegableComponent, BotonComponent],
   templateUrl: './por-agotarse.component.html',
 })
 export class PorAgotarseComponent {

@@ -1,0 +1,68 @@
+<!--
+  `aria-hidden` sobre el dibujo entero: son divs sin texto, así que un lector de
+  pantalla solo anunciaría una lista de nada. Los datos van en la tabla de
+  abajo, que es la que sí lee.
+-->
+<div class="flex items-end gap-1.5 sm:gap-2" [style.height.px]="alto" aria-hidden="true">
+  @for (punto of puntos; track punto.etiqueta) {
+  <div class="flex h-full min-w-0 flex-1 flex-col justify-end gap-1.5" [title]="detalle(punto)">
+    @if (punto.destacado) {
+    <!--
+      La cifra solo sobre la barra del periodo en curso. Encima de todas no
+      cabe —con treinta días se solapan— y es además la única que se consulta
+      sin haber ido a buscarla.
+    -->
+    <span class="truncate text-center text-menudo font-semibold tabular-nums text-gray-700 dark:text-gray-300">
+      {{ cifra(punto.valor) }}
+    </span>
+    }
+
+    <div
+      class="w-full rounded-md transition-[height] duration-(--duracion-lenta)"
+      [class]="punto.destacado ? 'bg-brand-500' : 'bg-brand-200 dark:bg-brand-500/30'"
+      [style.height.%]="porcentaje(punto)"
+    ></div>
+  </div>
+  }
+</div>
+
+<div class="mt-2 flex gap-1.5 sm:gap-2" aria-hidden="true">
+  @for (punto of puntos; track punto.etiqueta) {
+  <span
+    class="min-w-0 flex-1 truncate text-center text-menudo"
+    [class]="
+      punto.destacado
+        ? 'font-semibold text-gray-700 dark:text-gray-300'
+        : 'text-gray-500 dark:text-gray-400'
+    "
+  >
+    {{ punto.etiqueta }}
+  </span>
+  }
+</div>
+
+<!--
+  El equivalente en texto. `sr-only` y no `hidden`: lo segundo lo saca también
+  del árbol de accesibilidad, y entonces no lo lee nadie.
+-->
+<div class="sr-only">
+<table>
+  <caption>
+    {{ magnitud }} por periodo
+  </caption>
+  <thead>
+    <tr>
+      <th scope="col">Periodo</th>
+      <th scope="col">{{ magnitud }}</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (punto of puntos; track punto.etiqueta) {
+    <tr>
+      <th scope="row">{{ punto.etiqueta }}{{ punto.destacado ? ' (en curso)' : '' }}</th>
+      <td>{{ cifra(punto.valor) }}</td>
+    </tr>
+    }
+  </tbody>
+</table>
+</div>

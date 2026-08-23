@@ -33,18 +33,13 @@
     </div>
 
     <!--
-      Un enlace y no `app-boton`: esto navega a otra vista, no dispara una
-      accion aqui. Pintarlo como boton le quitaria el clic con rueda, el
-      «abrir en pestana nueva» y la direccion en la barra de estado.
-      Por eso lleva el «+» a mano en vez de `icono="mas"`.
+      `ruta` y no `(accion)`: esto navega. Asi conserva el clic con rueda, el
+      «abrir en pestana nueva» y la direccion en la barra de estado, y de paso
+      deja de repetir a mano las clases del primario.
     -->
-    <a routerLink="/almacen/guias-ingreso/nueva"
-      class="flex h-10 shrink-0 items-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M12 5v14M5 12h14" />
-      </svg>
+    <app-boton icono="mas" class="shrink-0" ruta="/almacen/guias-ingreso/nueva">
       Registrar ingreso
-    </a>
+    </app-boton>
   </div>
 
   <!--

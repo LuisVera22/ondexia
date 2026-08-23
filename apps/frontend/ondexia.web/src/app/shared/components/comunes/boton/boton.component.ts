@@ -1,4 +1,6 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { RouterModule } from '@angular/router';
 
 /**
  * Estado visible de la acción.
@@ -56,10 +58,20 @@ export type IconoBoton = '' | 'mas';
  */
 @Component({
   selector: 'app-boton',
-  imports: [],
+  imports: [NgTemplateOutlet, RouterModule],
   templateUrl: './boton.component.html',
 })
 export class BotonComponent {
+  /**
+   * Destino, si lo que hace el boton es navegar.
+   *
+   * <p>Con ruta se renderiza un `<a routerLink>` en lugar de un `<button>`. El
+   * estado de la accion, `formulario` y `deshabilitado` no aplican ahi: una
+   * navegacion no tiene exito ni error que mostrar en el propio control, y el
+   * resultado se ve en la pantalla que se abre.
+   */
+  @Input() ruta: string | unknown[] = '';
+
   @Input() estado: EstadoBoton = 'reposo';
   @Input() variante: VarianteBoton = 'primario';
   @Input() tipo: 'button' | 'submit' = 'button';
@@ -72,6 +84,20 @@ export class BotonComponent {
    * que es lo correcto: durante la espera manda el estado, no lo que se pidió.
    */
   @Input() icono: IconoBoton = '';
+
+  /**
+   * El boton abre un menu en lugar de ejecutar la accion directamente.
+   *
+   * <p>Anade el acento circunflejo al final y los atributos que lo declaran.
+   * Sin el acento, un boton que despliega opciones se lee como un boton que
+   * hace algo, y quien lo pulsa esperando el formulario se encuentra eligiendo
+   * — la misma promesa incumplida que un recuadro alrededor de un texto que no
+   * responde al clic.
+   */
+  @Input() abreMenu = false;
+
+  /** Estado de ese menu. Solo se anuncia si {@code abreMenu}. */
+  @Input() menuAbierto = false;
 
   /** Obligatorio en la variante `icono`, donde no hay texto que leer. */
   @Input() etiquetaAccesible = '';
