@@ -1,0 +1,61 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 4400,
+      "title": "Landing · escritorio"
+    },
+    {
+      "file": "Intensidad.dc.html",
+      "x": 1580,
+      "y": 0,
+      "w": 1300,
+      "h": 1560,
+      "title": "Dial de criollismo · 3 intensidades"
+    },
+    {
+      "file": "Movil.dc.html",
+      "x": 3020,
+      "y": 0,
+      "w": 390,
+      "h": 3600,
+      "title": "Landing · móvil 390px"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "nota-idea",
+      "x": 0,
+      "y": -300,
+      "w": 620,
+      "text": "LA IDEA\n\nEl cartel chicha lleva 40 años resolviendo el problema que te molestaba: se lee cruzando la pista, en un segundo. Una palabra gigante, tinta plana, cero párrafos.\n\nNo disfrazamos la app de chicha. Le robamos la jerarquía: índigo de marca como papel, un verde flúor como tinta, un fucsia solo para el sticker rotado. Y el idioma: papelito manda · al toque · toda la chamba · no te paltees · cuentas claras · la yapa.\n\nTipografía: Bricolage Grotesque 800 para los carteles, Outfit (la de la app) para leer."
+    },
+    {
+      "id": "nota-dial",
+      "x": 1580,
+      "y": -300,
+      "w": 560,
+      "text": "ELIGE UNA INTENSIDAD\n\nLa portada de la izquierda está construida en el nivel 2. Si prefieres el 1 o el 3, se recalibra toda la página con la misma estructura.\n\nMi voto es el 2: es lo que un producto tributario puede sostener. El 3 se ve buenazo en una lámina y arriesga la confianza justo donde te piden subir un certificado digital."
+    },
+    {
+      "id": "nota-cambios",
+      "x": 0,
+      "y": 4500,
+      "w": 620,
+      "text": "QUÉ CAMBIÓ RESPECTO A LA V1 (guardada en v1-editorial/)\n\n· Fuera la sección «qué reemplaza», los cuatro diferenciadores en párrafo y la tabla comparativa de planes: eran 900 palabras que nadie lee. Lo que quedó vivo está ahora como dato dentro del bento (∞ locales, 5 años, 7d, 07).\n· El texto largo se volvió número grande.\n· Los datos duros no se tocaron: 89/199/390, 1/2, 2/5, +29/+69, códigos 01·03·RC·04·07·08·09·31, GRE desde Intermedio, 30 días contra la beta de SUNAT.\n\nPENDIENTE POR TI: [RAZÓN SOCIAL], [TU RUC], [DIRECCIÓN FISCAL] y el correo del pie.\n\nSIGUE EN PIE: la llamada dice «Quiero mi acceso» porque C1 aún está en obra. Cuando salga, pasa a «Empieza tu prueba de 30 días»."
+    },
+    {
+      "id": "nota-seo",
+      "x": 700,
+      "y": -300,
+      "w": 560,
+      "text": "SEO SIN PERDER EL CARTEL\n\nCada encabezado es de dos pisos: el rótulo pequeño lleva el término que se busca, el cartel grande lleva el criollismo. Los dos van DENTRO del mismo h1/h2, así que el buscador lee ambos y la persona ve el cartel.\n\nh1 · Facturación electrónica ante SUNAT · Perú → Papelito manda.\nh2 · Almacén, compras y ventas en un solo sistema → Toda la chamba.\nh2 · Nota de crédito y comunicación de baja → No te paltees.\nh2 · Precios del software de facturación electrónica → Cuentas claras.\n\nLa cinta negra tampoco es adorno: lleva los ocho tipos de comprobante en texto plano. No la conviertas en imagen al portarla.\n\nEl title, la meta, el schema y el plan de contenidos están en SEO.md, junto a estos archivos."
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}

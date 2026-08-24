@@ -16,7 +16,8 @@ ruidosamente a lo que exige recordar algo.
 | API Core | `apps/backend/ondexia.api` | Identidad, aislamiento multiempresa, permisos y el módulo de Configuración completo. Sin dominio de facturación |
 | Dominio compartido | `apps/backend/ondexia.domain` | Identidad y bitácora |
 | Motor de facturación | `apps/backend/ondexia.facturacion` | **No existe todavía** |
-| Landing y portal público | `apps/frontend/ondexia.landing`, `.portal` | **No existen todavía** |
+| Landing | `apps/frontend/ondexia.landing` | Astro. Una página, sin JavaScript de cliente. Construye y pasa por el CI. **Sin desplegar** |
+| Portal público | `apps/frontend/ondexia.portal` | **No existe todavía** |
 | Infraestructura | `ondexia.infra` | Terraform v1 escrito y validado. **Nunca aplicado contra una cuenta real** |
 | Contrato HTTP | `ondexia.contracts/openapi.yaml` | Generado desde el código en cada ejecución de la suite |
 
@@ -85,6 +86,7 @@ Empieza por el DTE; el resto deriva de él.
 | [08 · Arquitectura del backend](ondexia.docs/08-arquitectura-backend.md) | **Dónde va cada cosa, y por qué** |
 | [09 · Panel administrativo](ondexia.docs/09-panel-administrativo.md) | Plan de la consola interna: planes, módulos por cuenta, personal |
 | [10 · Convenciones de interfaz](ondexia.docs/10-convenciones-de-interfaz.md) | **Lo que la interfaz ya hace y por qué.** Color y contraste, movimiento, tablas, paneles flotantes, foco |
+| [Propuesta de landing](ondexia.docs/landing-propuesta/) | Los bocetos de la página pública y su [plan de SEO](ondexia.docs/landing-propuesta/SEO.md) |
 
 > `ondexia.docs/html/` contiene una versión HTML **desactualizada** (v0.7) y su
 > generador se perdió. Manda siempre el Markdown.

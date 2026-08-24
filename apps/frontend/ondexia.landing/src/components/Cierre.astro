@@ -1,0 +1,79 @@
+---
+/**
+ * La llamada a la acción.
+ *
+ * Aquí hay una decisión que conviene entender antes de tocarla.
+ *
+ * La landing es estática y no habla con la API (doc 03 §3), así que un
+ * formulario de correo necesita un destino externo. Mientras ese destino no
+ * exista, NO se pinta el formulario: se pinta el enlace de correo.
+ *
+ * El motivo es que un formulario que no envía a ninguna parte es peor que no
+ * tener formulario. La persona escribe su correo, pulsa, la página se recarga
+ * y cree que quedó apuntada. Nadie se entera de que se perdió — ni ella ni tú.
+ *
+ * Para activarlo: poner la URL en PUBLIC_ENDPOINT_LISTA (.env) y listo. El
+ * `action` de un formulario admite cualquier servicio que reciba un POST de
+ * formulario; también vale una función Lambda con URL propia el día que exista.
+ */
+const endpoint = import.meta.env.PUBLIC_ENDPOINT_LISTA ?? '';
+const correo = 'hola@ondexia.com';
+---
+
+<section
+  id="acceso"
+  class="scroll-mt-20 border-b-2 border-gray-900 bg-fluor py-16 md:py-[84px]"
+>
+  <div
+    class="mx-auto flex max-w-[1240px] flex-col items-start justify-between gap-10 px-5 md:px-10 lg:flex-row lg:items-center lg:gap-[60px]"
+  >
+    <div class="revelar flex flex-col gap-4">
+      <h2 class="flex flex-col gap-3.5 font-normal">
+        <span class="rotulo text-brand-900">
+          Prueba gratis de 30 días contra la beta de SUNAT
+        </span>
+        <span class="cartel text-[52px] text-brand-950 sm:text-[68px] lg:text-[82px]">
+          Entra a la<br />lista corta.
+        </span>
+      </h2>
+      <p class="max-w-[430px] text-[17px] font-medium leading-7 text-brand-900 md:text-lg">
+        Te escribimos cuando el primer corte esté listo para operar. Entran pocos,
+        para atenderlos bien.
+      </p>
+    </div>
+
+    <div class="revelar flex w-full flex-col gap-3 lg:w-[400px]" style="--retardo: 1">
+      {
+        endpoint ? (
+          <form action={endpoint} method="POST" class="flex flex-col gap-3">
+            <label for="correo" class="sr-only">
+              Tu correo de empresa
+            </label>
+            <input
+              id="correo"
+              type="email"
+              name="correo"
+              required
+              autocomplete="email"
+              placeholder="tu@empresa.com"
+              class="h-14 rounded-[10px] border-2 border-gray-900 bg-white px-[18px] text-base text-gray-900 shadow-[var(--sombra-dura)] transition-shadow placeholder:text-gray-500 focus:shadow-[var(--sombra-dura-alta)] focus:outline-2 focus:outline-offset-2 focus:outline-brand-500"
+            />
+            <button type="submit" class="btn-oscuro w-full">
+              Avísenme
+            </button>
+          </form>
+        ) : (
+          <a href={`mailto:${correo}?subject=Acceso%20anticipado%20a%20Ondexia`} class="btn-oscuro w-full">
+            Escríbenos y te avisamos
+          </a>
+        )
+      }
+
+      <p class="text-[13px] leading-5 text-brand-900">
+        {endpoint ? 'O escribe a ' : 'Directo a '}
+        <a href={`mailto:${correo}`} class="font-semibold text-brand-950 underline">{correo}</a>
+        {endpoint ? ' si prefieres contarnos tu caso.' : ' si prefieres contarnos tu caso.'}
+      </p>
+    </div>
+  </div>
+</section>

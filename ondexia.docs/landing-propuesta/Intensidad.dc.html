@@ -1,0 +1,130 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Outfit:wght@300;400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: "Outfit", ui-sans-serif, system-ui, sans-serif; background: #f4f5f9; color: #171c2d; -webkit-font-smoothing: antialiased; }
+    a { color: #4f46e5; text-decoration: none; }
+    a:hover { color: #4338ca; }
+    .cartel { font-family: "Bricolage Grotesque", "Outfit", ui-sans-serif, system-ui, sans-serif; font-weight: 800; letter-spacing: -0.035em; line-height: 0.92; margin: 0; text-wrap: balance; }
+    .rotulo { font-size: 12px; line-height: 16px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; margin: 0; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; height: 52px; padding: 0 24px; border-radius: 10px; font-size: 16px; font-weight: 600; border: 2px solid transparent; }
+    .ficha { display: flex; flex-direction: column; gap: 6px; width: 232px; flex-shrink: 0; }
+    .ficha p { margin: 0; }
+  </style>
+</helmet>
+
+<div style="width: 1300px; box-sizing: border-box; background: #f4f5f9; padding: 48px 40px 56px">
+
+  <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 34px; max-width: 700px">
+    <p class="rotulo" style="color: #4f46e5">Dial de criollismo</p>
+    <h2 class="cartel" style="font-size: 44px; color: #171c2d">¿Cuánto cartel aguanta un producto tributario?</h2>
+    <p style="margin: 0; font-size: 16px; line-height: 26px; color: #545b6e">La misma portada en tres intensidades. Elige una y el resto de la página se calibra igual.</p>
+  </div>
+
+  <!-- ── Nivel 1 ── -->
+  <div style="display: flex; gap: 28px; align-items: flex-start; margin-bottom: 28px">
+    <div class="ficha">
+      <p class="cartel" style="font-size: 30px; color: #171c2d">1 · Sobrio</p>
+      <p style="font-size: 14px; line-height: 22px; color: #545b6e">Sin modismos. Titular funcional, un solo acento.</p>
+      <p style="font-size: 13px; line-height: 21px; color: #697083"><strong style="color: #15803d">A favor:</strong> no espanta al contador ni al cliente corporativo.</p>
+      <p style="font-size: 13px; line-height: 21px; color: #697083"><strong style="color: #b91c1c">En contra:</strong> es lo que ya hiciste y te aburrió.</p>
+    </div>
+
+    <div style="flex-grow: 1; border: 2px solid #171c2d; border-radius: 16px; overflow: hidden; background: #ffffff">
+      <div style="padding: 46px 44px 50px">
+        <p class="rotulo" style="color: #697083">Facturación electrónica · Perú</p>
+        <h1 class="cartel" style="margin-top: 18px; font-size: 62px; color: #171c2d; max-width: 640px">Factura y stock,<br>el mismo movimiento.</h1>
+        <p style="margin: 18px 0 0; font-size: 18px; line-height: 28px; color: #545b6e; max-width: 520px">Almacén, compras y ventas con emisión ante SUNAT para empresas peruanas.</p>
+        <div style="display: flex; align-items: center; gap: 12px; margin-top: 26px">
+          <a href="#s" class="btn" style="background: #4f46e5; color: #ffffff">Quiero mi acceso</a>
+          <a href="#s" class="btn" style="background: #ffffff; color: #3d4457; border-color: #c2c8d4">Ver precios</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Nivel 2 ── -->
+  <div style="display: flex; gap: 28px; align-items: flex-start; margin-bottom: 28px">
+    <div class="ficha">
+      <div style="display: inline-flex; align-self: flex-start; background: #d4f43c; border: 2px solid #171c2d; border-radius: 999px; padding: 3px 12px; margin-bottom: 4px">
+        <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #1a1840">Recomendada</span>
+      </div>
+      <p class="cartel" style="font-size: 30px; color: #171c2d">2 · Cartel</p>
+      <p style="font-size: 14px; line-height: 22px; color: #545b6e">Índigo de marca como papel, un fluorescente como tinta, un dicho por sección.</p>
+      <p style="font-size: 13px; line-height: 21px; color: #697083"><strong style="color: #15803d">A favor:</strong> memorable y peruano sin dejar de verse serio. La app sigue reconociéndose.</p>
+      <p style="font-size: 13px; line-height: 21px; color: #697083"><strong style="color: #b91c1c">En contra:</strong> el verde flúor hay que dosificarlo o cansa.</p>
+    </div>
+
+    <div style="flex-grow: 1; border: 3px solid #4f46e5; border-radius: 16px; overflow: hidden; background: #4f46e5; position: relative">
+      <div style="position: absolute; inset: 0; background-image: radial-gradient(#818cf8 2px, transparent 2px); background-size: 22px 22px; opacity: 0.5"></div>
+      <div style="position: relative; padding: 46px 44px 50px">
+        <p class="rotulo" style="color: #d4f43c">Facturación electrónica · Perú</p>
+        <h1 class="cartel" style="margin-top: 18px; font-size: 104px; color: #ffffff">Papelito manda.</h1>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; margin-top: 22px">
+          <div>
+            <p style="margin: 0; font-size: 21px; line-height: 31px; color: #ffffff; max-width: 500px">El tuyo sale firmado <span style="background: #d4f43c; color: #1a1840; font-weight: 700; padding: 0 8px; border-radius: 4px">al toque</span> — y descuenta del almacén solo.</p>
+            <div style="display: flex; align-items: center; gap: 12px; margin-top: 24px">
+              <a href="#s" class="btn" style="background: #d4f43c; color: #1a1840">Quiero mi acceso</a>
+              <a href="#s" class="btn" style="background: transparent; color: #ffffff; border-color: #818cf8">Ver precios</a>
+            </div>
+          </div>
+          <div style="transform: rotate(-5deg); background: #ff2d87; border-radius: 14px; padding: 16px 22px; flex-shrink: 0">
+            <p class="cartel" style="font-size: 34px; color: #ffffff">30 días</p>
+            <p style="margin: 3px 0 0; font-size: 13px; line-height: 19px; font-weight: 600; color: #ffffff">gratis · sin tarjeta</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Nivel 3 ── -->
+  <div style="display: flex; gap: 28px; align-items: flex-start">
+    <div class="ficha">
+      <p class="cartel" style="font-size: 30px; color: #171c2d">3 · Chicha</p>
+      <p style="font-size: 14px; line-height: 22px; color: #545b6e">Serigrafía completa: negro, tres flúor, letra con contorno y todo rotado.</p>
+      <p style="font-size: 13px; line-height: 21px; color: #697083"><strong style="color: #15803d">A favor:</strong> nadie en el rubro se ve así. Se recuerda de una.</p>
+      <p style="font-size: 13px; line-height: 21px; color: #697083"><strong style="color: #b91c1c">En contra:</strong> le pides al cliente que te confíe su certificado digital. La fiesta puede leerse como poca seriedad.</p>
+    </div>
+
+    <div style="flex-grow: 1; border: 2px solid #171c2d; border-radius: 16px; overflow: hidden; background: #0e121d; position: relative">
+      <div style="position: absolute; inset: 0; background-image: repeating-linear-gradient(45deg, rgba(255,45,135,0.14) 0 3px, transparent 3px 18px)"></div>
+      <div style="position: relative; padding: 44px 44px 48px">
+        <div style="display: inline-flex; transform: rotate(-2deg); background: #d4f43c; padding: 4px 14px; border-radius: 4px">
+          <span class="rotulo" style="color: #0e121d">¡Bravazo! Facturación electrónica</span>
+        </div>
+        <h1 class="cartel" style="margin-top: 20px; font-size: 112px; color: #ffff2e; text-shadow: 5px 5px 0 #ff2d87, 10px 10px 0 #00e0c6; transform: rotate(-1.5deg)">Papelito<br>manda.</h1>
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; margin-top: 30px">
+          <div>
+            <p style="margin: 0; font-size: 21px; line-height: 31px; color: #ffffff; max-width: 480px; font-weight: 500">El tuyo sale firmado <span style="background: #ff2d87; color: #ffffff; font-weight: 700; padding: 0 8px">AL TOQUE</span> y el almacén se descuenta solito.</p>
+            <div style="display: flex; align-items: center; gap: 12px; margin-top: 24px">
+              <a href="#s" class="btn" style="background: #ffff2e; color: #0e121d; border-color: #ff2d87">Quiero mi acceso</a>
+              <a href="#s" class="btn" style="background: transparent; color: #ffff2e; border-color: #ffff2e">Ver precios</a>
+            </div>
+          </div>
+          <div style="transform: rotate(6deg); background: #00e0c6; border: 3px solid #0e121d; border-radius: 999px; width: 132px; height: 132px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0">
+            <p class="cartel" style="font-size: 40px; color: #0e121d">30</p>
+            <p style="margin: 0; font-size: 13px; line-height: 18px; font-weight: 700; color: #0e121d; text-align: center">DÍAS<br>GRATIS</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1300,"height":1560}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

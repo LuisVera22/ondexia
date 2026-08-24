@@ -106,6 +106,17 @@ jobs:
           key: nvd-${{ github.run_id }}
           restore-keys: nvd-
 
+      # La landing no comparte nada con los otros dos: es Astro, no Angular, y
+      # no tiene cache que envenenar ni pruebas todavia. `astro check` corre
+      # dentro de `build` y valida los tipos de las plantillas, que es lo unico
+      # que hay que verificar en una pagina estatica.
+      - name: Landing
+        if: hashFiles('apps/frontend/ondexia.landing/package.json') != ''
+        working-directory: apps/frontend/ondexia.landing
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+
       - name: Panel interno
         if: hashFiles('apps/frontend/ondexia.admin/package.json') != ''
         working-directory: apps/frontend/ondexia.admin

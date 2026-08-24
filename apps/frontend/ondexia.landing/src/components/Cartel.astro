@@ -1,0 +1,67 @@
+---
+/**
+ * La portada.
+ *
+ * El <h1> lleva las dos cosas dentro: el rótulo con el término que se busca y
+ * el cartel que se ve. No es un truco — es un solo encabezado con dos
+ * renglones, y por eso el buscador lo lee entero. Separarlos en un <p> aparte
+ * «porque igual está en la página» es lo que hace que no pese nada.
+ *
+ * Ver ondexia.docs/landing-propuesta/SEO.md §1.
+ */
+import VistaProducto from './VistaProducto.astro';
+---
+
+<section class="sobre-oscuro relative overflow-hidden bg-brand-500">
+  <div class="trama absolute inset-0" aria-hidden="true"></div>
+
+  <div class="relative mx-auto max-w-[1240px] px-5 pt-14 md:px-10 md:pt-[76px]">
+    <h1 class="flex flex-col gap-4 font-normal md:gap-5">
+      <span class="rotulo text-fluor">Facturación electrónica ante SUNAT · Perú</span>
+
+      {/*
+        El tamaño baja de 148 a 52 px entre escritorio y móvil. Es mucho salto y
+        es deliberado: un cartel se dimensiona por el ancho disponible, no por
+        una escala tipográfica. A 390 px, «Papelito» tiene que caber en un
+        renglón y quedar cerca del borde.
+      */}
+      <span
+        class="cartel text-[52px] text-white sm:text-[86px] lg:text-[120px] xl:text-[148px]"
+      >
+        Papelito<br />manda.
+      </span>
+
+      <span class="max-w-[660px] text-lg leading-8 text-white md:text-[23px] md:leading-[34px]">
+        Sistema de facturación electrónica con control de almacén, para empresas
+        peruanas. Tu comprobante sale firmado <mark
+          class="rounded bg-fluor px-2 font-bold text-brand-950">al toque</mark
+        > y descuenta del stock solo.
+      </span>
+    </h1>
+
+    <div
+      class="mt-8 flex flex-col items-stretch justify-between gap-8 sm:flex-row sm:items-end sm:gap-10"
+    >
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <a href="#acceso" class="btn-fluor">Quiero mi acceso</a>
+        <a href="#precios" class="btn-contorno-claro">Ver precios</a>
+      </div>
+
+      {/*
+        El banderín rotado del cartel chicha. `-rotate-3` y no más: pasado ese
+        ángulo el texto cuesta de leer y deja de parecer un sticker pegado para
+        parecer un error de maquetación.
+      */}
+      <div
+        class="banderin -rotate-3 self-start rounded-2xl border-2 border-gray-900 bg-fucsia px-6 py-5 shadow-[var(--sombra-dura)] sm:self-auto"
+      >
+        <p class="cartel text-[38px] text-white md:text-[46px]">30 días</p>
+        <p class="mt-1 text-sm font-semibold leading-5 text-white">
+          gratis · sin tarjeta<br />contra la beta de SUNAT
+        </p>
+      </div>
+    </div>
+
+    <VistaProducto />
+  </div>
+</section>

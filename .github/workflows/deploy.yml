@@ -137,6 +137,14 @@ jobs:
           rm -rf .angular/cache
           pnpm run build
 
+      # Astro, no Angular: no hay cache que borrar. `astro check` va dentro del
+      # script de build y valida los tipos de las plantillas.
+      - name: Construir la landing
+        working-directory: apps/frontend/ondexia.landing
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+
       - name: Construir el panel interno
         working-directory: apps/frontend/ondexia.admin
         run: |
@@ -358,6 +366,70 @@ jobs:
 
           aws cloudfront create-invalidation             --distribution-id "${DISTRIBUCION}" --paths "/*" > /dev/null
 
+      - name: Publicar la landing
+        if: ${{ !inputs.solo_plan }}
+        working-directory: ondexia.infra
+        run: |
+          BUCKET=$(terraform output -json buckets | jq -r .landing)
+          DISTRIBUCION=$(terraform output -json distribuciones_cloudfront | jq -r .landing)
+          DESTINO=../apps/frontend/ondexia.landing/dist
+
+          # Sin config.json: la landing es estatica de verdad y no habla con la
+          # API (doc 03 §3). Si algun dia necesita configuracion de entorno, es
+          # senal de que dejo de ser landing.
+          aws s3 sync "${DESTINO}" "s3://${BUCKET}" --delete
+
+          # Los recursos con hash en el nombre son inmutables y se cachean un
+          # ano. El HTML no, porque conserva el nombre al cambiar de contenido:
+          # sin esto la gente sigue viendo la version anterior hasta que la
+          # cache expire sola.
+          #
+          # /_astro/ puede no existir. Hoy no existe: el CSS va dentro del HTML
+          # y no hay JavaScript, asi que el build no genera ningun recurso
+          # aparte. Se comprueba antes de copiar para que el paso no dependa de
+          # como resuelva la CLI un prefijo vacio.
+          if [ -n "$(aws s3 ls "s3://${BUCKET}/_astro/" || true)" ]; then
+            aws s3 cp "s3://${BUCKET}/_astro" "s3://${BUCKET}/_astro"               --recursive --metadata-directive REPLACE               --cache-control "public, max-age=31536000, immutable"
+          fi
+
+          # Las fuentes si estan siempre, y son lo mas pesado de la pagina.
+          aws s3 cp "s3://${BUCKET}/fonts" "s3://${BUCKET}/fonts"             --recursive --exclude "*" --include "*.woff2"             --metadata-directive REPLACE             --cache-control "public, max-age=31536000, immutable"             --content-type "font/woff2"
+
+          aws s3 cp "s3://${BUCKET}/index.html" "s3://${BUCKET}/index.html"             --metadata-directive REPLACE             --cache-control "no-cache, no-store, must-revalidate"             --content-type "text/html; charset=utf-8"
+
+          # El sitemap y el robots cambian de contenido con el mismo nombre.
+          # Una hora basta: no son criticos y no conviene invalidarlos a mano.
+          for ARCHIVO in robots.txt sitemap-index.xml sitemap-0.xml; do
+            if aws s3 ls "s3://${BUCKET}/${ARCHIVO}" > /dev/null 2>&1; then
+              aws s3 cp "s3://${BUCKET}/${ARCHIVO}" "s3://${BUCKET}/${ARCHIVO}"                 --metadata-directive REPLACE                 --cache-control "public, max-age=3600"
+            fi
+          done
+
+          aws cloudfront create-invalidation             --distribution-id "${DISTRIBUCION}"             --paths "/" "/index.html" "/sitemap-index.xml" "/sitemap-0.xml" "/robots.txt" > /dev/null
+
+      # En su propio paso y no dentro del siguiente: aquella sonda hace `exit 0`
+      # en cuanto la API contesta, asi que cualquier comprobacion que fuera
+      # despues en el mismo script no llegaria a ejecutarse nunca.
+      - name: Comprobar que la landing responde
+        if: ${{ !inputs.solo_plan }}
+        working-directory: ondexia.infra
+        run: |
+          LANDING=$(terraform output -raw url_landing)
+          echo "Sondeando ${LANDING}"
+
+          for intento in $(seq 1 10); do
+            CODIGO=$(curl -s -o /dev/null -w '%{http_code}' "${LANDING}" || true)
+            if [ "$CODIGO" = "200" ]; then
+              echo "La landing responde."
+              exit 0
+            fi
+            echo "  intento ${intento}: HTTP ${CODIGO}"
+            sleep 10
+          done
+
+          echo "::error title=Landing caida::No respondio 200 tras 10 intentos. Suele ser la distribucion de CloudFront, que tarda en propagarse tras el primer apply."
+          exit 1
+
       - name: Comprobar que responde
         if: ${{ !inputs.solo_plan }}
         working-directory: ondexia.infra
@@ -395,6 +467,7 @@ jobs:
             echo ""
             echo "| | |"
             echo "|---|---|"
+            echo "| Landing | $(terraform output -raw url_landing) |"
             echo "| App | $(terraform output -raw url_app) |"
             echo "| API | $(terraform output -raw url_api) |"
           } >> "$GITHUB_STEP_SUMMARY"

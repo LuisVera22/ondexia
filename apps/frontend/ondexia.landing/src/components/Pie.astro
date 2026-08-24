@@ -1,0 +1,100 @@
+---
+/**
+ * El pie.
+ *
+ * Los enlaces a `ver`, `docs` y `status` apuntan a subdominios que todavía no
+ * existen (doc 01 §2). Se dejan escritos y desactivados en vez de apuntar al
+ * apex: un enlace que promete una página y lleva a otra es peor que un enlace
+ * que dice «pronto». Cuando el subdominio exista, se cambia `pendiente` por su
+ * URL y se borra la marca.
+ *
+ * El Libro de Reclamaciones es de enlace obligatorio en el Perú para quien
+ * vende a consumidores. Va como enlace, nunca como texto suelto.
+ */
+import Logo from './Logo.astro';
+
+interface Enlace {
+  texto: string;
+  destino?: string;
+  pendiente?: boolean;
+}
+
+const columnas: { titulo: string; enlaces: Enlace[] }[] = [
+  {
+    titulo: 'Producto',
+    enlaces: [
+      { texto: 'Qué hace', destino: '#chamba' },
+      { texto: 'Precios', destino: '#precios' },
+      { texto: 'Estado', destino: '#estado' },
+    ],
+  },
+  {
+    titulo: 'Recursos',
+    enlaces: [
+      { texto: 'Consultar un comprobante', pendiente: true },
+      { texto: 'Documentación de API', pendiente: true },
+      { texto: 'Estado del servicio', pendiente: true },
+    ],
+  },
+  {
+    titulo: 'Legal',
+    enlaces: [
+      { texto: 'Términos', pendiente: true },
+      { texto: 'Privacidad', pendiente: true },
+      { texto: 'Libro de Reclamaciones', pendiente: true },
+    ],
+  },
+];
+---
+
+<footer class="bg-white py-11">
+  <div
+    class="mx-auto flex max-w-[1240px] flex-col justify-between gap-10 px-5 md:px-10 lg:flex-row lg:gap-[60px]"
+  >
+    <div class="flex flex-col gap-3">
+      <Logo ancho={148} />
+      <p class="text-[13px] leading-[21px] text-gray-500">
+        {/* PENDIENTE: datos del titular. Sin ellos no se puede publicar. */}
+        [RAZÓN SOCIAL] · RUC [TU RUC]<br />[DIRECCIÓN FISCAL]
+      </p>
+    </div>
+
+    <nav class="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:gap-14" aria-label="Pie de página">
+      {
+        columnas.map((columna) => (
+          <div class="flex flex-col">
+            <h2 class="rotulo mb-1.5 text-gray-900">{columna.titulo}</h2>
+            <ul class="flex flex-col">
+              {columna.enlaces.map((enlace) => (
+                <li>
+                  {/* Los pendientes van en gray-500 y no en gray-400: el 400 da
+                      2,6:1 sobre blanco. Atenuar es bajar el peso de un dato, no
+                      dejarlo a medio leer (doc 10 §2). */}
+                  {enlace.pendiente ? (
+                    <span class="flex min-h-11 items-center text-dato text-gray-500">
+                      {enlace.texto}
+                      <span class="ml-1.5 text-menudo text-gray-500">· pronto</span>
+                    </span>
+                  ) : (
+                    <a
+                      href={enlace.destino}
+                      class="enlace-cartel flex min-h-11 items-center self-start rounded-md text-dato text-gray-600"
+                    >
+                      {enlace.texto}
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </nav>
+  </div>
+
+  <div class="mx-auto mt-7 max-w-[1240px] border-t-2 border-gray-200 px-5 pt-4 md:px-10">
+    <p class="text-[13px] leading-5 text-gray-500">
+      © {new Date().getFullYear()} Ondexia. Todos los derechos reservados.
+    </p>
+  </div>
+</footer>

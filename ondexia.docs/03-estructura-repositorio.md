@@ -69,7 +69,7 @@ ondexia/
 │   │   └── ondexia.facturacion/ Lambdas Emisor + Poller · SUNAT  [FALTA CREAR]
 │   └── frontend/               Tres proyectos independientes, un build cada uno
 │       ├── ondexia.web/        Angular · la aplicación             ✅ inicializado
-│       ├── ondexia.landing/    Astro · marketing                       [vacío]
+│       ├── ondexia.landing/    Astro · marketing                   ✅ una página
 │       └── ondexia.portal/     Portal público de comprobantes          [vacío]
 ├── ondexia.contracts/          OpenAPI + catálogos SUNAT      ✅ openapi.yaml
 ├── ondexia.infra/              Terraform                                [v1 escrita]

@@ -1,0 +1,6 @@
+dist/
+.astro/
+node_modules/
+
+# Variables de entorno locales. La plantilla es .env.example.
+.env

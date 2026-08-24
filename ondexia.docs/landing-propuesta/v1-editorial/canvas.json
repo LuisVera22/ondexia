@@ -1,0 +1,39 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 1440, "h": 5320, "title": "Landing completa · escritorio" },
+    { "file": "Portada-B.dc.html", "x": 1580, "y": 0, "w": 1440, "h": 1080, "title": "Portada B · oscura, producto al frente" },
+    { "file": "Comparativa.dc.html", "x": 1580, "y": 1220, "w": 1160, "h": 1080, "title": "Comparativa de planes" },
+    { "file": "Movil.dc.html", "x": 3180, "y": 0, "w": 390, "h": 3900, "title": "Landing · móvil 390px" }
+  ],
+  "annotations": [
+    {
+      "id": "nota-portadas",
+      "x": 0,
+      "y": -230,
+      "w": 480,
+      "text": "PORTADA A (esta) — clara, editorial, a dos columnas.\nA favor: es la que más se parece a la app; el titular y la tabla de comprobantes se leen a la vez.\nEn contra: pide un titular largo y la vista de producto queda pequeña.\n\nCompárala con la Portada B a la derecha. Solo una va a producción; el resto de la página no cambia."
+    },
+    {
+      "id": "nota-portada-b",
+      "x": 1580,
+      "y": -230,
+      "w": 480,
+      "text": "PORTADA B — oscura, centrada, la app asomando por abajo.\nA favor: el producto se ve de verdad (menú lateral, tabla, botón de emitir) y el contraste hace la marca más memorable.\nEn contra: rompe con el blanco del resto de la página, y una portada oscura sobre una landing clara obliga a cuidar la costura."
+    },
+    {
+      "id": "nota-precios",
+      "x": 1580,
+      "y": 2360,
+      "w": 560,
+      "text": "PRECIOS: son las cifras del doc 04 §2.3, que allí están marcadas como hipótesis sin validar. Antes de publicar, pasa el método de §2.5 (cinco competidores, cinco a diez prospectos).\n\nY un límite deliberado: la página NO promete comprobantes ilimitados. Mientras la emisión dependa de un proveedor (DT-12 abierta), el doc §2.1 pide no prometerlo. Si se resuelve en emisión directa, «ilimitado» pasa a ser el argumento de venta más fuerte de esta sección."
+    },
+    {
+      "id": "nota-llamada",
+      "x": 0,
+      "y": 5420,
+      "w": 620,
+      "text": "LLAMADA A LA ACCIÓN: dice «Solicitar acceso anticipado» y no «Empieza tu prueba de 30 días» porque hoy nada está desplegado y C1 sigue en construcción. Cuando C1 llegue a producción, cámbiala por la prueba de 30 días en los seis sitios donde aparece (barra, portada, tres planes, cierre) y quita la banda de estado.\n\nMARCADORES por llenar: [RAZÓN SOCIAL], [TU RUC], [DIRECCIÓN FISCAL] en el pie, y el correo hola@ondexia.com si prefieres otro.\n\nTIPOGRAFÍA: los tableros cargan Outfit desde Google Fonts porque es lo único que admite este lienzo. En producción va autoalojada, como en styles.css."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}

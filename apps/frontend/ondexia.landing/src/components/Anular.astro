@@ -1,0 +1,72 @@
+---
+/**
+ * «No te paltees» — los dos caminos legales para deshacer una venta.
+ *
+ * Esta sección existe por el riesgo V-1 del doc 02 §2: emitir sin poder
+ * corregirse deja al usuario sin salida ante el error más frecuente del día.
+ * Que las dos vengan desde el plan más barato es un argumento comercial, y por
+ * eso está dicho aquí y no escondido en la comparativa.
+ *
+ * El plazo de 7 días se afirma en la landing igual que se avisa en la
+ * aplicación: las advertencias con consecuencia no se esconden (doc 10 §8).
+ */
+const caminos = [
+  {
+    marca: '7d',
+    color: 'text-fucsia',
+    borde: 'border-fucsia',
+    titulo: 'Comunicación de baja',
+    detalle: 'Dentro de los 7 días. El plazo se avisa en pantalla, no se esconde.',
+  },
+  {
+    marca: '07',
+    color: 'text-brand-500',
+    borde: 'border-gray-900',
+    titulo: 'Nota de crédito',
+    detalle: 'Devoluciones, descuentos y todo lo que ya salió de plazo.',
+  },
+];
+---
+
+<section class="border-y-2 border-gray-900 bg-white py-16 md:py-[76px]">
+  <div
+    class="mx-auto grid max-w-[1240px] grid-cols-1 items-center gap-10 px-5 md:px-10 lg:grid-cols-[minmax(0,1fr)_520px] lg:gap-[72px]"
+  >
+    <div class="revelar flex flex-col gap-4">
+      <h2 class="flex flex-col gap-3.5 font-normal">
+        <span class="rotulo text-fucsia">Nota de crédito y comunicación de baja electrónicas</span>
+        <span class="cartel text-[52px] text-gray-900 sm:text-[64px] lg:text-[76px]">
+          No te<br />paltees.
+        </span>
+      </h2>
+      <p class="max-w-[420px] text-[17px] leading-7 text-gray-600">
+        Anular una venta tiene exactamente dos caminos legales. Los dos vienen
+        desde el plan más barato.
+      </p>
+    </div>
+
+    <ul class="flex flex-col gap-3.5">
+      {
+        caminos.map((camino, indice) => (
+          <li
+            class={`tile pop revelar flex items-center gap-4 p-5 sm:gap-[18px] sm:p-6 ${camino.borde}`}
+            style={`--retardo: ${indice + 1}`}
+          >
+            <p
+              class={`cartel cifra-viva w-[68px] shrink-0 text-[38px] sm:w-[92px] sm:text-[46px] ${camino.color}`}
+              aria-hidden="true"
+            >
+              {camino.marca}
+            </p>
+            <div class="flex flex-col gap-1">
+              <h3 class="text-[17px] font-bold leading-6 text-gray-900 sm:text-lg">
+                {camino.titulo}
+              </h3>
+              <p class="text-dato leading-[22px] text-gray-600">{camino.detalle}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>

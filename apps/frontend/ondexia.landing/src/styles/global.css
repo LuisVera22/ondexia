@@ -1,0 +1,644 @@
+/*
+ * Tema de la landing.
+ *
+ * Los nombres de token son LOS MISMOS que en ondexia.web/src/styles.css a
+ * propósito: `--color-brand-500` vale lo mismo en los dos sitios. Cuando exista
+ * un paquete compartido —hoy no lo hay, y el doc 03 §3 deja esa decisión
+ * abierta— mover este bloque será copiar y pegar, no traducir.
+ *
+ * Lo que sí es exclusivo de aquí son los tres tokens del cartel: la tipografía
+ * de titular, el fluorescente y el fucsia. No van en la app porque en una
+ * pantalla de trabajo no pintan nada; aquí son toda la identidad.
+ */
+
+@import "tailwindcss";
+
+/*
+ * Outfit, servida por nosotros.
+ *
+ * Es el mismo archivo que ondexia.web —copiado, no enlazado: son dos
+ * desplegables sin nada compartido todavía— y es una fuente variable, así que
+ * un solo woff2 cubre de 100 a 900. `swap` enseña la del sistema mientras
+ * llega, que es preferible a un texto invisible en una conexión lenta.
+ *
+ * Nada de CDN. Es la regla de styles.css y aquí pesa más: un tercero en la
+ * ruta crítica de la portada es latencia que no controlamos, y en la métrica
+ * que Google mide para posicionar.
+ *
+ * Outfit se distribuye bajo SIL Open Font License 1.1 — ver public/fonts/OFL.txt.
+ */
+@font-face {
+  font-family: "Outfit";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/outfit-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Outfit";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/outfit-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/*
+ * Bricolage Grotesque — la letra de los carteles.
+ *
+ * PENDIENTE: falta el archivo. Descargar el woff2 variable desde
+ * https://fonts.google.com/specimen/Bricolage+Grotesque, dejarlo en
+ * public/fonts/bricolage-grotesque-latin.woff2 junto a su licencia, y
+ * descomentar este bloque.
+ *
+ * Mientras tanto los titulares caen en Outfit 800, que es la segunda de la
+ * pila. Se ve digno, pero pierde el carácter que hace al cartel: Bricolage
+ * tiene un ancho más estrecho y unas terminaciones que Outfit no imita.
+ *
+ * No se enlaza desde Google Fonts ni provisionalmente. Un CDN en la portada
+ * contradice la regla de arriba, y «provisional» es como empiezan estas cosas.
+ */
+/*
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("/fonts/bricolage-grotesque-latin.woff2") format("woff2");
+}
+*/
+
+@theme {
+  --font-*: initial;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+
+  /*
+   * La tipografía de titular. Cae en Outfit mientras no exista el archivo de
+   * Bricolage, y por eso la pila lleva las dos: el día que se añada el woff2,
+   * los titulares cambian solos y no hay que tocar ninguna plantilla.
+   */
+  --font-cartel: "Bricolage Grotesque", "Outfit", ui-sans-serif, system-ui, sans-serif;
+
+  --breakpoint-*: initial;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  --color-*: initial;
+  --color-current: currentColor;
+  --color-inherit: inherit;
+  --color-transparent: transparent;
+  --color-white: #ffffff;
+  --color-black: #101828;
+
+  /* Marca — índigo. Idéntica a la de la app: la landing y el producto tienen
+   * que verse de la misma casa. */
+  --color-brand-25: #f7f8fe;
+  --color-brand-50: #eef0fd;
+  --color-brand-100: #dde1fb;
+  --color-brand-200: #c7d2fe;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #4f46e5;
+  --color-brand-600: #4338ca;
+  --color-brand-700: #3730a3;
+  --color-brand-800: #312e81;
+  --color-brand-900: #26235e;
+  --color-brand-950: #1a1840;
+
+  /* Neutros — tiran a azul, como el índigo. Un gris neutro puro al lado de un
+   * primario frío se ve sucio. */
+  --color-gray-25: #f8f9fb;
+  --color-gray-50: #f4f5f9;
+  --color-gray-100: #eef0f4;
+  --color-gray-200: #e8eaf1;
+  --color-gray-300: #c2c8d4;
+  --color-gray-400: #9aa0b2;
+  --color-gray-500: #697083;
+  --color-gray-600: #545b6e;
+  --color-gray-700: #3d4457;
+  --color-gray-800: #262c3c;
+  --color-gray-900: #171c2d;
+  --color-gray-950: #0e121d;
+
+  --color-success-500: #16a34a;
+  --color-success-600: #15803d;
+  --color-error-500: #d92525;
+  --color-error-600: #b91c1c;
+  --color-warning-500: #f59e0b;
+  --color-warning-700: #b45309;
+  --color-warning-300: #fcd34d;
+
+  /*
+   * Fluorescente — la tinta del cartel.
+   *
+   * Sale del afiche chicha, donde el flúor no es decoración: es lo que hace que
+   * el papel se lea cruzando la pista. Aquí cumple la misma función sobre el
+   * índigo, y da 5,8:1 contra brand-500, así que puede llevar texto encima.
+   *
+   * Se usa POCO y siempre sobre fondo oscuro. Sobre blanco no llega ni de
+   * lejos al mínimo legible: para escribir en claro está el índigo.
+   */
+  --color-fluor: #d4f43c;
+
+  /*
+   * Fucsia — el banderín rotado, y nada más.
+   *
+   * Un solo uso por pantalla: el sticker de la prueba y la etiqueta del plan
+   * más pedido. En cuanto aparece tres veces deja de señalar y se vuelve ruido,
+   * que es como se arruina un cartel.
+   *
+   * Es más oscuro que el fucsia del boceto (#ff2d87), y no por gusto: aquel
+   * daba 3,5:1 y se usa de las dos maneras —texto blanco encima del sticker, y
+   * texto fucsia sobre blanco en el rótulo de «No te paltees»—. Las dos se
+   * miden contra el blanco, así que un solo tono más oscuro arregla ambas.
+   * Este da 4,7:1 y sigue siendo el mismo rosa de cartel.
+   */
+  --color-fucsia: #e0116e;
+
+  --text-dato: 14px;
+  --text-dato--line-height: 20px;
+  --text-menudo: 12px;
+  --text-menudo--line-height: 18px;
+
+  --shadow-apoyo: 0 1px 2px 0 rgb(16 24 40 / 0.05);
+  --shadow-tarjeta: 0 1px 3px 0 rgb(16 24 40 / 0.1), 0 1px 2px 0 rgb(16 24 40 / 0.06);
+  --shadow-elevado: 0 4px 8px -2px rgb(16 24 40 / 0.1), 0 2px 4px -2px rgb(16 24 40 / 0.06);
+  --shadow-flotante: 0 12px 16px -4px rgb(16 24 40 / 0.08), 0 4px 6px -2px rgb(16 24 40 / 0.03);
+  --shadow-superpuesto: 0 20px 24px -4px rgb(16 24 40 / 0.08), 0 8px 8px -4px rgb(16 24 40 / 0.03);
+
+  --ease-propia: cubic-bezier(0.22, 0.85, 0.3, 1);
+  --duracion-rapida: 150ms;
+  --duracion-normal: 200ms;
+  --duracion-lenta: 250ms;
+
+  /*
+   * La curva del dibujo animado: pasa de largo y vuelve.
+   *
+   * Es lo único que separa un movimiento de caricatura de un movimiento de
+   * interfaz corporativa. Se usa SOLO en respuesta a un gesto —pulsar, pasar
+   * por encima—, donde el rebote se lee como materia que reacciona. En una
+   * aparición por desplazamiento no: ahí marea, porque nadie pidió que eso se
+   * moviera.
+   */
+  --ease-resorte: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /*
+   * Sombras duras, sin difuminar.
+   *
+   * No son las sombras de la app —aquellas simulan elevación y llevan
+   * difuminado—. Estas son el registro desplazado de la serigrafía: la segunda
+   * pasada de tinta que no cuadra con la primera. El mismo accidente que en el
+   * cómic acabó siendo lenguaje.
+   */
+  --sombra-dura: 4px 4px 0 0 var(--color-gray-900);
+  --sombra-dura-alta: 7px 7px 0 0 var(--color-gray-900);
+  --sombra-dura-hundida: 1px 1px 0 0 var(--color-gray-900);
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Quien pide menos movimiento no quiere que la página se deslice sola al
+   * pulsar un enlace del menú. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    @apply bg-white font-sans font-normal text-gray-900 antialiased;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
+
+  /*
+   * El foco visible, definido una vez y en la capa `base` — igual que en la
+   * app, y por el mismo motivo: las utilidades de Tailwind viven en una capa
+   * posterior, así que un componente que resuelva su propio foco lo apaga sin
+   * pelearse por especificidad.
+   *
+   * Sobre los fondos oscuros de la landing el índigo casi no se distingue, y
+   * ahí la portada y la cinta lo redefinen con el fluorescente.
+   */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+
+  .sobre-oscuro :focus-visible {
+    outline-color: var(--color-fluor);
+  }
+}
+
+@layer components {
+  /*
+   * El titular del cartel. Es una pieza y no una cadena de utilidades porque
+   * aparece en catorce sitios con tres tamaños distintos, y lo que tiene que
+   * ser idéntico es el interletraje y el interlineado, no el tamaño.
+   *
+   * `line-height: 0.92` es lo que hace que dos renglones se lean como un
+   * bloque de tinta y no como dos frases sueltas. Con el valor por defecto el
+   * cartel se deshace.
+   */
+  .cartel {
+    font-family: var(--font-cartel);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    line-height: 0.92;
+    text-wrap: balance;
+  }
+
+  /* El rótulo pequeño que acompaña a cada cartel. Lleva el término que se
+   * busca (ver ondexia.docs/landing-propuesta/SEO.md). */
+  .rotulo {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  /*
+   * El recuadro negro de 2 px. Es la firma visual de la página —viene de la
+   * serigrafía, donde el contorno separa las tintas planas— y por eso vive
+   * aquí: repetirlo a mano en veinte tarjetas termina con veinte grosores.
+   */
+  .tile {
+    @apply rounded-2xl border-2 border-gray-900 bg-white;
+    box-shadow: var(--sombra-dura);
+  }
+
+  /*
+   * La misma tarjeta cuando ella misma es oscura.
+   *
+   * Una sombra negra detrás de una tarjeta negra sobre fondo gris no se lee
+   * como grosor: se lee como que la tarjeta es más grande y está torcida. El
+   * índigo de marca sí separa las dos capas.
+   */
+  .tile-oscuro {
+    box-shadow: 4px 4px 0 0 var(--color-brand-500);
+  }
+
+  @media (hover: hover) {
+    .tile-oscuro.pop:hover {
+      box-shadow: 7px 7px 0 0 var(--color-brand-500);
+    }
+  }
+
+  .tile-oscuro.pop:focus-visible {
+    box-shadow: 7px 7px 0 0 var(--color-brand-500);
+  }
+
+  /*
+   * Los cortes del plan, sobre el fondo oscuro de su sección.
+   *
+   * No usan `.tile` ni `.pop` porque ahí ninguna sombra negra existe. Suben sin
+   * sombra y marcan el borde, que es lo único que se ve contra el gris 900.
+   */
+  .corte {
+    transition:
+      transform var(--duracion-normal) var(--ease-resorte),
+      border-color var(--duracion-normal) var(--ease-propia);
+  }
+
+  @media (hover: hover) {
+    .corte:hover {
+      transform: translateY(-4px);
+      border-color: var(--color-brand-400);
+    }
+
+    /* El que está en obra ya tiene el borde fluorescente: ese solo sube. */
+    .corte:hover.border-fluor {
+      border-color: var(--color-fluor);
+    }
+  }
+
+  /*
+   * Los botones.
+   *
+   * La base va en una lista de selectores y no en un `.btn` que las variantes
+   * apliquen con `@apply`: Tailwind 4 solo admite utilidades ahí, no clases
+   * propias, y el build falla con «Cannot apply unknown utility class». Además
+   * así el marcado escribe una sola clase por botón en vez de dos.
+   */
+  .btn,
+  .btn-fluor,
+  .btn-oscuro,
+  .btn-contorno,
+  .btn-contorno-claro {
+    @apply inline-flex h-[54px] items-center justify-center gap-2.5 rounded-[10px] border-2 border-transparent px-6 text-base font-semibold;
+    transition: background-color var(--duracion-normal) var(--ease-propia),
+      color var(--duracion-normal) var(--ease-propia),
+      filter var(--duracion-normal) var(--ease-propia);
+  }
+
+  .btn-fluor {
+    @apply bg-fluor text-brand-950;
+  }
+
+  .btn-fluor:hover {
+    filter: brightness(0.94);
+  }
+
+  .btn-oscuro {
+    @apply bg-gray-900 text-white;
+  }
+
+  .btn-oscuro:hover {
+    @apply bg-gray-800;
+  }
+
+  .btn-contorno {
+    @apply border-gray-900 bg-white text-gray-900;
+  }
+
+  .btn-contorno:hover {
+    @apply bg-gray-50;
+  }
+
+  /* La variante de contorno sobre el índigo de la portada. */
+  .btn-contorno-claro {
+    @apply border-brand-400 bg-transparent text-white;
+  }
+
+  .btn-contorno-claro:hover {
+    @apply bg-brand-600;
+  }
+
+  /*
+   * ── Reaccionar al puntero ───────────────────────────────────────────
+   *
+   * `@media (hover: hover)` no es un detalle: en una pantalla táctil el
+   * navegador deja el estado `:hover` PEGADO después de tocar, así que sin esta
+   * consulta la tarjeta que tocaste se queda levantada hasta que toques otra
+   * cosa. Parece un fallo de la página, y lo es.
+   *
+   * El teclado recibe lo mismo por `:focus-visible`. Un efecto que solo existe
+   * para el ratón le dice a quien tabula que ahí no hay nada.
+   */
+  .pop {
+    transition:
+      transform var(--duracion-normal) var(--ease-resorte),
+      box-shadow var(--duracion-normal) var(--ease-resorte);
+  }
+
+  @media (hover: hover) {
+    .pop:hover {
+      transform: translate(-3px, -3px);
+      box-shadow: var(--sombra-dura-alta);
+    }
+  }
+
+  .pop:focus-visible {
+    transform: translate(-3px, -3px);
+    box-shadow: var(--sombra-dura-alta);
+  }
+
+  /*
+   * El botón que se hunde.
+   *
+   * Al pulsar baja hasta meterse en su propia sombra. Es la respuesta física
+   * que un botón plano no da, y ocurre en `:active` —mientras el dedo está
+   * encima—: si pasara al soltar, llegaría tarde.
+   */
+  .btn,
+  .btn-fluor,
+  .btn-oscuro,
+  .btn-contorno,
+  .btn-contorno-claro {
+    box-shadow: var(--sombra-dura);
+  }
+
+  /* Sobre blanco y sobre el verde del cierre, una sombra negra tras un botón
+     negro no se ve. A ese se le pone la de marca. */
+  .btn-oscuro {
+    box-shadow: 4px 4px 0 0 var(--color-brand-500);
+  }
+
+  .btn-contorno-claro {
+    box-shadow: 4px 4px 0 0 var(--color-brand-950);
+  }
+
+  @media (hover: hover) {
+    .btn-fluor:hover,
+    .btn-contorno:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 0 var(--color-gray-900);
+    }
+
+    .btn-oscuro:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 0 var(--color-brand-500);
+    }
+
+    .btn-contorno-claro:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0 0 var(--color-brand-950);
+    }
+  }
+
+  .btn:active,
+  .btn-fluor:active,
+  .btn-oscuro:active,
+  .btn-contorno:active,
+  .btn-contorno-claro:active {
+    transform: translate(3px, 3px);
+    box-shadow: var(--sombra-dura-hundida);
+    transition-duration: var(--duracion-rapida);
+  }
+
+  .btn-oscuro:active {
+    box-shadow: 1px 1px 0 0 var(--color-brand-500);
+  }
+
+  .btn-contorno-claro:active {
+    box-shadow: 1px 1px 0 0 var(--color-brand-950);
+  }
+
+  /*
+   * El subrayado que entra.
+   *
+   * Crece desde la izquierda con `background-size`. Un `border-bottom` que
+   * aparece de golpe empuja el texto y se nota; esto no toca el flujo.
+   */
+  .enlace-cartel {
+    background-image: linear-gradient(var(--color-brand-500), var(--color-brand-500));
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 2px;
+    transition: background-size var(--duracion-normal) var(--ease-propia);
+  }
+
+  @media (hover: hover) {
+    .enlace-cartel:hover {
+      background-size: 100% 2px;
+    }
+  }
+
+  .enlace-cartel:focus-visible {
+    background-size: 100% 2px;
+  }
+
+  /*
+   * El icono que despierta.
+   *
+   * Reacciona cuando el puntero entra en la TARJETA, no en el icono: el blanco
+   * de la tarjeta cuenta como parte de la pieza. Perseguir un icono de 24 px
+   * para que responda es un juego que nadie quiere jugar.
+   */
+  .icono-vivo {
+    transition: transform var(--duracion-normal) var(--ease-resorte);
+  }
+
+  .cifra-viva {
+    display: inline-block;
+    transform-origin: left bottom;
+    transition: transform var(--duracion-lenta) var(--ease-resorte);
+  }
+
+  @media (hover: hover) {
+    .tile:hover .icono-vivo {
+      transform: rotate(-8deg) scale(1.12);
+    }
+
+    /* Más contenido que el icono: es tipografía, y una letra que salta
+       demasiado se lee como un error de maquetación. */
+    .tile:hover .cifra-viva {
+      transform: scale(1.06) rotate(-2deg);
+    }
+  }
+
+  /*
+   * El bamboleo del banderín.
+   *
+   * Al pasar por encima y una sola vez. Un sticker que tiembla sin parar en la
+   * esquina de la portada compite con el titular durante toda la visita, y el
+   * titular tiene que ganar.
+   */
+  .banderin {
+    transition: transform var(--duracion-normal) var(--ease-resorte);
+  }
+
+  @media (hover: hover) {
+    .banderin:hover {
+      animation: bamboleo 600ms var(--ease-propia);
+    }
+  }
+
+  @keyframes bamboleo {
+    0% { transform: rotate(-3deg) scale(1); }
+    30% { transform: rotate(2deg) scale(1.05); }
+    55% { transform: rotate(-5deg) scale(1.03); }
+    80% { transform: rotate(-1deg) scale(1.01); }
+    100% { transform: rotate(-3deg) scale(1); }
+  }
+
+  /*
+   * ── Aparecer al desplazar ───────────────────────────────────────────
+   *
+   * Con `animation-timeline: view()`, que es CSS y no JavaScript: el progreso
+   * lo marca la posición del elemento en la ventana, no un reloj. Sin
+   * observadores, sin escuchas de scroll, sin un solo byte de script — que era
+   * la promesa de esta página.
+   *
+   * Las DOS guardas de abajo son la parte importante:
+   *
+   * 1. `@supports`: en un navegador que no lo entiende, la regla entera no se
+   *    aplica y el contenido sale visible. Es la diferencia entre una mejora y
+   *    una página en blanco. Nunca se esconde algo cuyo mecanismo de aparición
+   *    puede no existir.
+   *
+   * 2. `prefers-reduced-motion`: se desactiva aquí explícitamente y no se
+   *    confía en la regla global que acorta duraciones — con una línea de
+   *    tiempo de desplazamiento la duración se ignora, así que aquella regla no
+   *    serviría de nada.
+   *
+   * El recorrido termina pronto, a `entry 45%`. Un texto que sigue apareciendo
+   * cuando ya lo estás leyendo es un texto que no se deja leer.
+   */
+  .revelar {
+    --retardo: 0;
+  }
+
+  @keyframes revelar {
+    from {
+      opacity: 0;
+      transform: translateY(22px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes llenar-barra {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .revelar {
+        animation: revelar linear both;
+        animation-timeline: view();
+        /* El escalonado va por POSICIÓN y no por tiempo: con una línea de
+           tiempo de desplazamiento, `animation-delay` no significa nada. Cada
+           ficha arranca un poco más abajo que la anterior. */
+        animation-range: entry calc(var(--retardo) * 7%) entry calc(45% + var(--retardo) * 7%);
+      }
+
+      /* La barra de existencias se llena al entrar. `scaleX` y no `width`: el
+         ancho real lo fija el dato en línea y esto solo lo revela. */
+      .barra-existencia {
+        transform-origin: left center;
+        animation: llenar-barra linear both;
+        animation-timeline: view();
+        animation-range: entry 15% entry 60%;
+      }
+    }
+  }
+
+  /*
+   * El punteado de la portada.
+   *
+   * Es una trama de puntos y no un degradado a propósito: la serigrafía
+   * imprime tintas planas, y un degradado la delataría como imitación digital.
+   * Además un degradado a pantalla completa es el recurso más gastado que hay.
+   */
+  .trama {
+    background-image: radial-gradient(var(--color-brand-400) 2px, transparent 2px);
+    background-size: 22px 22px;
+    opacity: 0.5;
+  }
+}
