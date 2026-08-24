@@ -310,19 +310,31 @@ Una ruta específica gana sobre `ANY /{proxy+}`, igual que ya hacen
 
 ## 13. Para probar en local
 
-`Consola` es un `main` que consulta un RUC e imprime lo que llegó. En IntelliJ:
-configuración de tipo Application, el RUC en «Program arguments» y en
-«Environment variables»:
+`ondexia.consultas` es una aplicación de Spring Boot como la API, así que se
+arranca igual: configuración de tipo Application con
+`com.ondexia.consultas.ConsultasApplication`, y en «Environment variables»:
 
 ```
 CONSULTAS_DECOLECTA_TOKEN=...
-CONSULTAS_FIRMA_PRIVADA=<contenido de firma.pem>
+CONSULTAS_FIRMA_PRIVADA=<la línea de base64 de firma.pem>
 ```
 
-Existe porque el mapeo de campos viene de la documentación de cada proveedor, y
-la de un servicio pequeño no siempre coincide con lo que devuelve. Descubrir esa
-diferencia desplegando una Lambda confunde dos cosas a la vez: si falla el mapeo
-o si falla el despliegue.
+Escucha en el 8081 (`CONSULTAS_PUERTO` para cambiarlo) y el SPA lo lee de la
+clave `consultas` de `config.json`.
+
+**La primera versión de este módulo no llevaba Spring**: un `main`, variables de
+entorno leídas a mano y un servidor HTTP de la JDK, por el arranque en frío. Se
+cambió por consistencia: con un solo desarrollador, tener dos formas de montar un
+módulo cuesta más que unos milisegundos — cada vez que hubiera que buscar dónde
+se configura algo, la respuesta dependería del módulo.
+
+De paso se llevó ~150 líneas de servidor, CORS y sobres JSON escritos a mano, y
+`ServidorLocal` y `Consola` desaparecieron: el mismo artefacto arranca contra
+Tomcat en local y como Lambda en AWS.
+
+El precio es doble y conviene tenerlo escrito: **el artefacto pasó de 12,8 a 38 MB**,
+y **SnapStart deja de ser opcional** (DT-02). Por eso la función publica versiones
+y sirve por alias, igual que la API.
 
 ## 14. Abierto
 

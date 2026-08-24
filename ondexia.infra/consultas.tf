@@ -12,6 +12,10 @@
  * Lo que pierde por estar fuera: no puede ver la base de datos. Y no le hace
  * falta — consulta el padrón de SUNAT y firma el resultado; nada más.
  *
+ * Lleva Spring Boot, igual que la API, y por eso lleva también SnapStart: sin él
+ * un Spring Boot en Lambda arranca en 6-10 s (DT-02), y esta consulta ocurre
+ * mientras alguien espera con el cursor en un formulario de registro.
+ *
  * Ver ondexia.docs/11-registro-de-empresa.md y DT-19 del DTE.
  */
 
@@ -165,7 +169,7 @@ resource "aws_lambda_function" "consultas" {
   source_code_hash = filebase64sha256(var.artefacto_consultas)
 
   runtime = var.runtime_api
-  handler = "com.ondexia.consultas.ManejadorDeConsultas::handleRequest"
+  handler = "com.ondexia.consultas.lambda.ManejadorLambda::handleRequest"
 
   memory_size = var.memoria_consultas_mb
 
@@ -180,13 +184,30 @@ resource "aws_lambda_function" "consultas" {
   timeout = 20
 
   /**
-   * Sin SnapStart, al contrario que la API.
+   * SnapStart, por el mismo motivo que en la API.
    *
-   * SnapStart existe ahí porque un contenedor de Spring Boot tarda segundos en
-   * construirse. Esta función no lleva Spring: su arranque en frío son unos
-   * cientos de milisegundos, y SnapStart añadiría el ciclo de publicar
-   * versiones y mantener un alias sin nada que ganar.
+   * Lambda toma la instantánea del microVM DESPUÉS de la inicialización —con el
+   * contexto de Spring ya construido— y la restaura en cada arranque en frío en
+   * lugar de reconstruirlo: de 6-10 s a 200-400 ms, sin costo adicional en
+   * runtimes Java gestionados.
+   *
+   * Solo actúa sobre VERSIONES PUBLICADAS, de ahí `publish = true` y el alias de
+   * más abajo. Con la integración apuntando a $LATEST se puede activar y no
+   * servir de nada — sin ningún aviso, solo arranques lentos.
+   *
+   * De la tabla de trampas de §4.2, aquí aplica una y media: no hay pool de
+   * conexiones ni certificado de cliente, y la firma es Ed25519, que es
+   * DETERMINISTA (RFC 8032) — así que una semilla de SecureRandom clonada entre
+   * instancias no puede repetir un nonce, porque no hay nonce. Lo que sí queda en
+   * la instantánea es nuestra clave privada de firma; se acepta a cambio de que
+   * una clave mal puesta falle al desplegar y no en el primer alta.
    */
+  snap_start {
+    apply_on = "PublishedVersions"
+  }
+
+  publish = true
+
 
   environment {
     variables = {
@@ -199,6 +220,21 @@ resource "aws_lambda_function" "consultas" {
        * lambda:GetFunctionConfiguration, y el cifrado en reposo no cambia eso
        * porque Lambda la descifra antes de ejecutar el código.
        */
+      /**
+       * El perfil, igual que en la API.
+       *
+       * Sin él, application.yml usa sus valores por omisión, que son los de
+       * desarrollo. Aquí eso significaría no encontrar ningún parámetro y no
+       * arrancar — que al menos es ruidoso, pero el mensaje no mencionaría el
+       * perfil.
+       */
+      SPRING_PROFILES_ACTIVE = "aws,${var.entorno}"
+
+      # Qué build está sirviendo. Además cambia con cada artefacto, así que un
+      # despliegue nuevo siempre modifica $LATEST y Lambda publica versión nueva:
+      # sin esto, republicar tras una versión fallida es imposible.
+      ONDEXIA_VERSION = substr(filemd5(var.artefacto_consultas), 0, 12)
+
       CONSULTAS_FIRMA_PARAMETRO     = local.ssm_firma_privada
       CONSULTAS_DECOLECTA_PARAMETRO = local.ssm_decolecta
 
@@ -225,9 +261,9 @@ resource "aws_apigatewayv2_integration" "consultas" {
   api_id           = aws_apigatewayv2_api.principal.id
   integration_type = "AWS_PROXY"
 
-  # La función directa y no un alias: sin SnapStart, $LATEST no tiene ninguna
-  # desventaja y el alias seria una pieza que mantener sin motivo.
-  integration_uri        = aws_lambda_function.consultas[0].invoke_arn
+  # El alias, no la función. Invocar la función a secas ejecuta $LATEST, que no
+  # lleva instantánea de SnapStart.
+  integration_uri        = aws_lambda_alias.consultas[0].invoke_arn
   payload_format_version = "2.0"
   timeout_milliseconds   = 25000
 }
@@ -256,11 +292,26 @@ resource "aws_apigatewayv2_route" "consulta_ruc" {
   authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
+/**
+ * El alias es lo que se invoca. Nunca $LATEST.
+ *
+ * Un alias apunta a una versión inmutable y concreta, y es la pieza que hace que
+ * SnapStart tenga efecto: la instantánea pertenece a la versión, no a la función.
+ */
+resource "aws_lambda_alias" "consultas" {
+  count            = local.hay_consultas ? 1 : 0
+  name             = "activo"
+  description      = "Version que sirve el trafico"
+  function_name    = aws_lambda_function.consultas[0].function_name
+  function_version = aws_lambda_function.consultas[0].version
+}
+
 resource "aws_lambda_permission" "consultas_api_gateway" {
   count         = local.hay_consultas ? 1 : 0
   statement_id  = "AllowAPIGatewayInvokeConsultas"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.consultas[0].function_name
+  qualifier     = aws_lambda_alias.consultas[0].name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.principal.execution_arn}/*/*"
 }

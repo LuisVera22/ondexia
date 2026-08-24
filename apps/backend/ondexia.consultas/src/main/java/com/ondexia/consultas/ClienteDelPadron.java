@@ -1,18 +1,22 @@
 package com.ondexia.consultas;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ondexia.domain.consultas.ConsultaNoDisponible;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
+import tools.jackson.databind.JsonNode;
 
 /**
- * Una llamada HTTP a un proveedor, traducida al vocabulario del dominio.
+ * Una llamada a un proveedor del padrón, traducida al vocabulario del dominio.
  *
  * <h2>Las tres respuestas, y su diferencia importa</h2>
  *
@@ -36,94 +40,91 @@ import java.util.Optional;
  * <p>Lo desconocido cuenta como <strong>no</strong> reintentable. Suponer lo
  * contrario es lo que produce la espera inútil.
  */
-final class ClienteDelPadron {
+class ClienteDelPadron {
 
-    private static final ObjectMapper JSON = new ObjectMapper();
+    private static final Logger LOG = LoggerFactory.getLogger(ClienteDelPadron.class);
 
-    private final HttpClient http;
-    private final Duration tiempoDeEspera;
     private final String nombre;
-    private final String token;
+    private final RestClient cliente;
 
     ClienteDelPadron(String nombre, String token, Duration tiempoDeEspera) {
         this.nombre = nombre;
-        this.token = token;
-        this.tiempoDeEspera = tiempoDeEspera;
-        // Sin seguir redirecciones: un proveedor que redirige a otro sitio no es
-        // algo que queramos atender en silencio con la clave en la cabecera.
-        this.http = HttpClient.newBuilder()
-                .connectTimeout(tiempoDeEspera)
-                .followRedirects(HttpClient.Redirect.NEVER)
+
+        /*
+         * La fabrica se construye a mano en vez de dejar que RestClient detecte
+         * una: la detectada no lleva tiempos de espera, y un cliente HTTP sin
+         * ellos espera indefinidamente. Con API Gateway cortando a los 29 s, eso
+         * convierte un proveedor lento en un 504 opaco de la pasarela.
+         *
+         * Y es la fabrica simple, no la de java.net.http, aunque esa sea la
+         * moderna: su cliente abre un socket de loopback al construirse, y este
+         * bean se crea al arrancar. En un entorno que no lo permita, la
+         * aplicacion entera no levanta por una funcion que quiza nadie use en esa
+         * ejecucion. Para dos peticiones por registro, HTTP/2 y el pool de
+         * conexiones no compran nada que compense ese riesgo.
+         */
+        SimpleClientHttpRequestFactory fabrica = new SimpleClientHttpRequestFactory();
+        fabrica.setConnectTimeout(tiempoDeEspera);
+        fabrica.setReadTimeout(tiempoDeEspera);
+
+        this.cliente = RestClient.builder()
+                .requestFactory(fabrica)
+                /*
+                 * El token va en la cabecera por omision y no en cada llamada:
+                 * asi ningun adaptador puede olvidarlo, y —lo que importa mas— el
+                 * valor no aparece en el codigo de las llamadas, donde acabaria
+                 * en un mensaje de registro el dia que alguien depure a base de
+                 * imprimir.
+                 */
+                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
 
-    Optional<JsonNode> get(URI uri) {
-        return enviar(peticion(uri).GET().build());
+    Optional<JsonNode> get(String uri) {
+        return ejecutar(() -> cliente.get().uri(uri).retrieve().body(JsonNode.class));
     }
 
-    Optional<JsonNode> post(URI uri, String cuerpo) {
-        return enviar(peticion(uri)
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(cuerpo))
-                .build());
+    Optional<JsonNode> post(String uri, Map<String, String> cuerpo) {
+        return ejecutar(() -> cliente.post()
+                .uri(uri)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(cuerpo)
+                .retrieve()
+                .body(JsonNode.class));
     }
 
-    private HttpRequest.Builder peticion(URI uri) {
-        return HttpRequest.newBuilder(uri)
-                .timeout(tiempoDeEspera)
-                .header("Authorization", "Bearer " + token)
-                .header("Accept", "application/json");
-    }
-
-    private Optional<JsonNode> enviar(HttpRequest peticion) {
-        HttpResponse<String> respuesta;
+    private Optional<JsonNode> ejecutar(Supplier<JsonNode> llamada) {
         try {
-            respuesta = http.send(peticion, HttpResponse.BodyHandlers.ofString());
-        } catch (IOException noLlego) {
+            JsonNode cuerpo = llamada.get();
+            if (cuerpo == null || cuerpo.isEmpty()) {
+                return Optional.empty();
+            }
+            return sinExito(cuerpo) ? Optional.empty() : Optional.of(cuerpo);
+
+        } catch (RestClientResponseException error) {
+            int codigo = error.getStatusCode().value();
+
+            // El 404 y el 422 son como estos proveedores dicen «ese RUC no
+            // existe». No es un fallo: es la respuesta.
+            if (codigo == 404 || codigo == 422) {
+                return Optional.empty();
+            }
+            throw fallo(codigo, error.getStatusCode().is5xxServerError(), error);
+
+        } catch (ResourceAccessException noLlego) {
             // Tiempo agotado o conexion imposible. Pasajero por naturaleza.
-            registrar("no llegó: " + noLlego.getMessage(), true);
+            LOG.warn("La consulta a {} no llegó: {}", nombre, noLlego.getMessage());
             throw new ConsultaNoDisponible("consulta_sin_respuesta",
                     "No se pudo contactar con el servicio de consulta de RUC.", true, noLlego);
-        } catch (InterruptedException interrumpido) {
-            // Se restaura la marca: tragarsela deja el hilo sin saber que le
-            // pidieron parar, y en Lambda eso significa seguir trabajando
-            // mientras el entorno se apaga.
-            Thread.currentThread().interrupt();
-            throw new ConsultaNoDisponible("consulta_interrumpida",
-                    "La consulta del RUC se interrumpió.", true, interrumpido);
         }
-
-        int codigo = respuesta.statusCode();
-
-        // El 404 y el 422 son como estos proveedores dicen «ese RUC no existe».
-        if (codigo == 404 || codigo == 422) {
-            return Optional.empty();
-        }
-        if (codigo < 200 || codigo >= 300) {
-            throw fallo(codigo);
-        }
-
-        JsonNode cuerpo;
-        try {
-            cuerpo = JSON.readTree(respuesta.body());
-        } catch (IOException noEsJson) {
-            registrar("respondió algo que no es JSON", false);
-            throw new ConsultaNoDisponible("consulta_respuesta_ilegible",
-                    "El servicio de consulta de RUC respondió de forma inesperada.",
-                    false, noEsJson);
-        }
-
-        if (cuerpo == null || cuerpo.isEmpty()) {
-            return Optional.empty();
-        }
-        return sinExito(cuerpo) ? Optional.empty() : Optional.of(cuerpo);
     }
 
     /**
      * Un {@code success: false} con 200, que es como responde apiperu.dev.
      *
-     * <p>Sin distinguirlo, la negativa se tomaría por un dato válido y saldría
-     * una empresa con la razón social vacía.
+     * <p>Sin distinguirlo, la negativa se tomaría por un dato válido y saldría una
+     * empresa con la razón social vacía.
      *
      * <p>Y «no pudo» son dos cosas, que el propio proveedor separa con
      * {@code retryable}: un RUC que no existe es una respuesta; un fallo suyo no.
@@ -139,31 +140,30 @@ final class ClienteDelPadron {
         }
         JsonNode reintentable = cuerpo.path("retryable");
         if (reintentable.isBoolean() && reintentable.asBoolean()) {
-            registrar("declaró un fallo reintentable", true);
+            LOG.warn("{} declaró un fallo reintentable", nombre);
             throw new ConsultaNoDisponible("consulta_no_disponible",
                     "El servicio de consulta de RUC no está disponible ahora mismo.", true);
         }
         return true;
     }
 
-    private ConsultaNoDisponible fallo(int codigo) {
-        boolean reintentable = codigo == 429 || codigo >= 500;
-        registrar("respondió " + codigo, reintentable);
+    private ConsultaNoDisponible fallo(int codigo, boolean esDelServidor, Throwable causa) {
+        boolean reintentable = codigo == 429 || esDelServidor;
+
+        /*
+         * El codigo va al registro; el mensaje al usuario no lo lleva. A quien
+         * registra una empresa no le sirve «429» y a nosotros si.
+         *
+         * Y no se registra el cuerpo de la respuesta: un 401 de estos servicios
+         * suele repetir la clave enviada, y CloudWatch conserva los registros.
+         */
+        LOG.warn("La consulta a {} respondió {} (reintentable: {})",
+                nombre, codigo, reintentable);
 
         String mensaje = codigo == 401 || codigo == 403
                 ? "El servicio de consulta de RUC rechazó nuestras credenciales."
                 : "El servicio de consulta de RUC no está disponible ahora mismo.";
-        return new ConsultaNoDisponible("consulta_no_disponible", mensaje, reintentable);
-    }
 
-    /**
-     * A la salida estándar, que en Lambda es CloudWatch.
-     *
-     * <p>Nunca el cuerpo de la respuesta: un 401 de estos servicios suele
-     * repetir la clave que se envió, y CloudWatch conserva los registros.
-     */
-    private void registrar(String que, boolean reintentable) {
-        System.out.println("[consultas] " + nombre + " " + que
-                + " (reintentable: " + reintentable + ")");
+        return new ConsultaNoDisponible("consulta_no_disponible", mensaje, reintentable, causa);
     }
 }

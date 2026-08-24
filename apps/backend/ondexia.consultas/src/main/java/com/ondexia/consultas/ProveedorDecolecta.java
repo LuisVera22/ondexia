@@ -1,11 +1,10 @@
 package com.ondexia.consultas;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.ondexia.domain.comun.Ruc;
 import com.ondexia.domain.comun.Ubigeo;
 import com.ondexia.domain.consultas.ConsultaDeRuc;
 import com.ondexia.domain.consultas.DatosDeRuc;
-import java.net.URI;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -32,7 +31,7 @@ class ProveedorDecolecta implements ConsultaDeRuc {
 
     @Override
     public Optional<DatosDeRuc> consultar(Ruc ruc) {
-        return cliente.get(URI.create(base + "/sunat/ruc/full?numero=" + ruc.valor()))
+        return cliente.get(base + "/sunat/ruc/full?numero=" + ruc.valor())
                 .map(json -> traducir(ruc, json));
     }
 

@@ -1,10 +1,9 @@
 package com.ondexia.consultas;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.ondexia.domain.comun.Ruc;
 import com.ondexia.domain.consultas.ConsultaDeRuc;
 import com.ondexia.domain.consultas.DatosDeRuc;
-import java.net.URI;
 import java.time.Instant;
 import java.util.Optional;
 
@@ -35,11 +34,9 @@ class ProveedorApiPeru implements ConsultaDeRuc {
 
     @Override
     public Optional<DatosDeRuc> consultar(Ruc ruc) {
-        // El RUC son once digitos ya validados, asi que no hay nada que escapar
-        // aqui; con cualquier otro dato esto tendria que construirse con Jackson.
-        String cuerpo = "{\"ruc\":\"" + ruc.valor() + "\"}";
-
-        return cliente.post(URI.create(base + "/ruc"), cuerpo)
+        // El cuerpo como Map y no como cadena armada a mano: lo serializa
+        // Jackson, asi que no hay nada que escapar ni comillas que contar.
+        return cliente.post(base + "/ruc", java.util.Map.of("ruc", ruc.valor()))
                 .map(json -> traducir(ruc, json.path("data")));
     }
 

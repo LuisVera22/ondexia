@@ -1,6 +1,6 @@
 package com.ondexia.consultas;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 /**
  * Leer un campo de texto de una respuesta JSON.
@@ -21,7 +21,7 @@ final class Campos {
         if (valor.isMissingNode() || valor.isNull()) {
             return null;
         }
-        String texto = valor.asText().trim();
+        String texto = valor.asString().trim();
         return texto.isEmpty() ? null : texto;
     }
 }

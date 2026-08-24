@@ -1,0 +1,85 @@
+spring:
+  application:
+    name: ondexia-consultas
+
+  # Este desplegable no toca la base de datos: consulta el padron de SUNAT y
+  # firma el resultado. Se apagan las autoconfiguraciones de datos para que un
+  # starter arrastrado por transitividad no intente abrir un pool al arrancar.
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: ${CONSULTAS_PUERTO:8081}
+
+  # Detras de API Gateway. Sin esto, una respuesta de error generada por el
+  # contenedor delataria la version de Tomcat.
+  error:
+    whitelabel:
+      enabled: false
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        # Solo health. 'env' y 'configprops' expondrian esta configuracion, que
+        # incluye los NOMBRES de los parametros de SSM, y 'heapdump' entregaria
+        # la memoria del proceso — con la clave privada dentro.
+        include: health
+
+ondexia:
+  consultas:
+    # ── Firma de las atestaciones ─────────────────────────────────────────────
+    #
+    # La privada. La API solo tiene la publica, que no es un secreto: por eso la
+    # firma es Ed25519 y no un HMAC — la API no puede leer SSM desde su subred
+    # privada sin pagar un endpoint de interfaz, y con un secreto compartido
+    # acabaria en el estado de Terraform.
+    #
+    # Desplegado: firma-parametro con el NOMBRE del parametro SecureString.
+    # En local: firma-privada con el valor. El par se genera una vez:
+    #
+    #   openssl genpkey -algorithm ed25519 -out firma.pem
+    #   openssl pkey -in firma.pem -pubout -out firma.pub
+    firma-parametro: ${CONSULTAS_FIRMA_PARAMETRO:}
+    firma-privada: ${CONSULTAS_FIRMA_PRIVADA:}
+
+    # ── Proveedores ───────────────────────────────────────────────────────────
+    #
+    # Sin valor por omision para las claves, a proposito: un defecto de relleno
+    # haria que se llamara al proveedor con un Bearer invalido y el error seria un
+    # 401 en vez de «no esta configurado».
+    #
+    # Con Decolecta basta. Si apiperu.dev no esta configurado, la cascada queda
+    # con un eslabon y se dice en el log al arrancar.
+    decolecta-url: ${CONSULTAS_DECOLECTA_URL:https://api.decolecta.com/v1}
+    decolecta-parametro: ${CONSULTAS_DECOLECTA_PARAMETRO:}
+    decolecta-token: ${CONSULTAS_DECOLECTA_TOKEN:}
+
+    apiperu-url: ${CONSULTAS_APIPERU_URL:https://api.apiperu.dev}
+    apiperu-parametro: ${CONSULTAS_APIPERU_PARAMETRO:}
+    apiperu-token: ${CONSULTAS_APIPERU_TOKEN:}
+
+    # Por proveedor, no total. API Gateway corta a los 29 s.
+    tiempo-de-espera: ${CONSULTAS_TIEMPO_ESPERA:6s}
+
+  # Origenes autorizados a llamar desde un navegador.
+  #
+  # En local hace falta porque el SPA vive en el 4200 y esto en el 8081: dos
+  # origenes. Desplegado NO se usa — la ruta cuelga de la misma pasarela que la
+  # API, asi que para el navegador es el mismo origen, y las cabeceras las pone
+  # API Gateway (que ignora las de la integracion).
+  cors:
+    origenes: ${CORS_ORIGENES:http://localhost:4200}
+
+logging:
+  level:
+    com.ondexia: INFO

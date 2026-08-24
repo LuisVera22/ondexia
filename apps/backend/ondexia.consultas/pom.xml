@@ -2,23 +2,29 @@
 <!--
   Consultas a fuentes publicas externas (DT-19).
 
-  ══════════════════════════════════════════════════════════════════════════
-  SIN SPRING, Y ES LA RAZON DE QUE SEA UN MODULO Y NO UNA RUTA MAS DE LA API.
-  ══════════════════════════════════════════════════════════════════════════
-
-  Esta Lambda existe porque la de la API no tiene salida a internet: esta en
-  subred privada sin NAT, y darsela cuesta 32 USD/mes de NAT Gateway o 7,30 de
-  endpoint de interfaz (DTE §4.8, DT-19). Esta va fuera de la VPC, donde salir
+  Existe como desplegable propio porque la Lambda de la API esta en subred
+  privada sin NAT y no alcanza internet: darsela cuesta 32 USD/mes de NAT Gateway
+  o 7,30 de endpoint de interfaz (DTE §4.8). Esta va fuera de la VPC, donde salir
   es gratis.
 
-  Y no lleva Spring a proposito. Un contenedor de Spring Boot arranca en varios
-  segundos, y esta consulta ocurre mientras una persona espera con el cursor en
-  un formulario de registro: el arranque en frio es tiempo que mira. Para dos
-  peticiones HTTP y una firma, el contenedor no compra nada que compense eso.
+  ══════════════════════════════════════════════════════════════════════════
+  MISMA ESTRUCTURA QUE ondexia.api, Y ES UNA DECISION.
+  ══════════════════════════════════════════════════════════════════════════
 
-  El precio es reescribir la fontaneria HTTP que en la API era RestClient. La
-  logica —el vocabulario del padron, la cascada, la tabla de decision de que es
-  reintentable— no depende de Spring y se mueve tal cual.
+  La primera version no llevaba Spring: un `main`, siete variables de entorno
+  leidas con System.getenv y un servidor HTTP de la JDK. El argumento era el
+  arranque en frio, y era cierto — pero con un solo desarrollador, tener dos
+  formas de montar un modulo cuesta mas que unos milisegundos. Cada vez que
+  hubiera que buscar donde se configura algo, la respuesta dependeria del modulo.
+
+  Lo que se gana ademas: desaparecen ~150 lineas de servidor HTTP, CORS y sobres
+  JSON escritos a mano. Todo eso ya lo trae el framework, y el mismo artefacto
+  arranca con `spring-boot:run` en local y como Lambda en AWS sin ninguna rama.
+
+  Lo que cuesta: SnapStart deja de ser opcional (DT-02), y por eso la funcion
+  publica versiones y sirve por alias igual que la API. Sin el, un Spring Boot en
+  Lambda arranca en 6-10 s, y esta consulta ocurre mientras una persona espera
+  con el cursor en un formulario de registro.
 
   Ver ondexia.docs/11-registro-de-empresa.md
 -->
@@ -38,9 +44,11 @@
 
   <dependencies>
     <!--
-      El dominio, por Ruc y DatosDeRuc. Es la segunda razon de que el dominio sea
-      un modulo aparte: aqui se construye el mismo objeto que la API consume, con
-      la misma validacion del digito verificador, sin duplicar una linea.
+      El dominio, por Ruc, DatosDeRuc y Atestacion. Es la segunda razon de que el
+      dominio sea un modulo aparte: aqui se firma el mismo objeto que la API
+      verifica, con el mismo formato, sin duplicar una linea. Duplicado, firmante
+      y verificador divergirian en un espacio y el sintoma seria «firma
+      invalida» sin nada que señale por que.
     -->
     <dependency>
       <groupId>com.ondexia</groupId>
@@ -48,26 +56,32 @@
     </dependency>
 
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <!-- Adaptador de Lambda (DT-D17), la misma version que ondexia.api. -->
+    <dependency>
+      <groupId>com.amazonaws.serverless</groupId>
+      <artifactId>aws-serverless-java-container-springboot4</artifactId>
+      <version>${serverless-container.version}</version>
+    </dependency>
+    <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-lambda-java-core</artifactId>
       <version>${lambda-core.version}</version>
     </dependency>
 
     <!--
-      No se usa aws-lambda-java-events. Para una sola ruta, el evento de la
-      pasarela son cuatro campos y leerlos con Jackson es mas corto que traer un
-      arbol de clases generadas para todos los servicios de AWS.
-    -->
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-    </dependency>
-
-    <!--
-      Donde viven las claves de los proveedores.
-      Sin netty ni apache: en una Lambda que hace una llamada por arranque en
-      frio, un cliente asincrono con su pool de hilos es peso muerto que se paga
-      en tiempo de arranque. Mismo criterio que ondexia.api.
+      Donde viven las claves: parametros SecureString de SSM.
+      Sin netty ni apache — en una Lambda que hace una llamada por arranque en
+      frio, un cliente asincrono con su pool de hilos es peso que se paga en el
+      arranque. Mismo criterio que ondexia.api.
     -->
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
@@ -87,20 +101,54 @@
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>url-connection-client</artifactId>
     </dependency>
+
+    <!--
+      CRaC, para los ganchos de SnapStart. Aqui hace falta menos que en la API
+      —no hay pool de conexiones ni certificado de cliente— pero la dependencia
+      va igual: es lo que permite reaccionar al restore el dia que aparezca algo
+      que no sobreviva a la instantanea. Ver DTE §4.2.
+    -->
+    <dependency>
+      <groupId>org.crac</groupId>
+      <artifactId>crac</artifactId>
+      <version>${crac.version}</version>
+    </dependency>
+
+    <!--
+      @AutoConfigureMockMvc y MockMvc. No vienen en spring-boot-starter-test:
+      Boot 4 saco las piezas de web a su propio starter, igual que en
+      ondexia.api.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webmvc-test</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
     <plugins>
-      <!-- No es un ejecutable de Spring Boot; el plugin no tiene nada que hacer. -->
+      <!--
+        Se desactiva SOLO el reempaquetado, no el plugin entero.
+
+        Lambda necesita el jar que produce shade, asi que el jar ejecutable de
+        Spring Boot sobra — y con los dos, cual acaba subiendose depende del
+        orden. Pero `<skip>true</skip>` a nivel de plugin, que es lo que hace
+        ondexia.api, apaga tambien `spring-boot:run`: el comando termina con
+        BUILD SUCCESS en tres segundos sin arrancar nada, y eso desconcierta un
+        buen rato. Desactivando la ejecucion concreta, `run` sigue funcionando.
+      -->
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
+        <executions>
+          <execution>
+            <id>repackage</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
       </plugin>
 
-      <!-- Lambda necesita un jar con las dependencias dentro. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -114,6 +162,22 @@
               <goal>shade</goal>
             </goals>
             <configuration>
+              <artifactSet>
+                <excludes>
+                  <!--
+                    El SERVIDOR de Tomcat fuera del artefacto: en Lambda el
+                    contenedor de servlets lo pone aws-serverless-java-container.
+                    Sigue en el classpath de compilacion y de `spring-boot:run`,
+                    que es como se arranca en local.
+
+                    Ojo con el comodin: `org.apache.tomcat.embed:*` se llevaria
+                    tambien tomcat-embed-el, que NO es parte del servidor y que
+                    Hibernate Validator necesita para interpolar mensajes.
+                  -->
+                  <exclude>org.apache.tomcat.embed:tomcat-embed-core</exclude>
+                  <exclude>org.apache.tomcat.embed:tomcat-embed-websocket</exclude>
+                </excludes>
+              </artifactSet>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>
@@ -130,6 +194,12 @@
                   </excludes>
                 </filter>
               </filters>
+              <!--
+                NO se declaran <transformers>: los hereda el pluginManagement de
+                spring-boot-starter-parent, ya completos. Fusionan la lista de
+                autoconfiguraciones y los proveedores de servicios, y sin ellos
+                el contexto arranca a medias.
+              -->
             </configuration>
           </execution>
         </executions>
