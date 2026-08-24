@@ -16,10 +16,19 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # 30 y no 20: `verify` levanta un contenedor de PostgreSQL para las pruebas
-    # de integración, y la primera sincronización de la base de la NVD, cuando
-    # haya clave, no es instantánea.
-    timeout-minutes: 30
+    # 120, y la cifra sale de un fallo real: la ejecución #225 murió a los 30
+    # minutos con la base de la NVD al 21 % —80.000 de 381.929 registros—, que
+    # proyecta unos 85 minutos solo de descarga.
+    #
+    # Lo grave no era la lentitud sino que se realimentaba. Al matar el job por
+    # tiempo, GitHub omite los pasos `Post`, así que la caché NO se guarda: la
+    # ejecución siguiente empezaba otra vez desde cero y volvía a caducar. Un
+    # bucle del que el paso no podía salir solo.
+    #
+    # Con la caché caliente las actualizaciones son incrementales y esto vuelve
+    # a durar minutos; el margen es para la primera siembra y para el día que
+    # la caché se desaloje.
+    timeout-minutes: 120
 
     steps:
       # Las versiones de las acciones se subieron todas de golpe porque GitHub
@@ -98,9 +107,24 @@ jobs:
       # La clave lleva el id de la ejecucion para guardar siempre una copia
       # fresca, y `restore-keys` recupera la mas reciente aunque no coincida
       # exactamente. Asi la base sobrevive a los cambios de pom.
-      - name: Cache de la base de vulnerabilidades
+      # Restaurar y guardar van SEPARADOS, y no es cosmética.
+      #
+      # Con `actions/cache` entero, el guardado ocurre en un paso `Post`. En la
+      # ejecución #225 el job murió por tiempo, GitHub omitió los `Post` y los
+      # ochenta mil registros ya descargados se tiraron a la basura: la
+      # ejecución siguiente empezaba de cero y volvía a caducar. Un bucle del
+      # que el paso no podía salir solo.
+      #
+      # Partido en `restore` y `save`, el guardado es un paso normal con
+      # `always()`, que en GitHub incluye el caso cancelado. Un intento que no
+      # llega a terminar deja al menos la base a medio construir, y
+      # dependency-check la completa de forma incremental en el siguiente.
+      #
+      # No se usa `save-always` de `actions/cache`: está obsoleto desde la
+      # v4.2 justamente porque no cubría este caso.
+      - name: Restaurar la base de vulnerabilidades
         if: hashFiles('apps/backend/pom.xml') != ''
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
           key: nvd-${{ github.run_id }}
@@ -131,6 +155,15 @@ jobs:
         working-directory: apps/backend
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+          # El análisis pesa ~85 minutos la primera vez y unos pocos después.
+          # Cobrárselo a cada empujón de una rama de trabajo no compra nada:
+          # lo que importa es que ninguna dependencia con CVE entre en
+          # `develop` ni en `main`, y de eso se encarga la PR.
+          #
+          # Esto NO relaja el control del doc 03 §9.4 —sigue siendo bloqueante
+          # donde decide algo—; mueve dónde se paga. El resto del `verify`,
+          # pruebas de integración incluidas, sigue corriendo en cada rama.
+          ANALIZAR_DEPENDENCIAS: ${{ github.event_name == 'pull_request' || github.ref_name == 'main' || github.ref_name == 'develop' }}
         # Con el wrapper, no con el `mvn` del runner: fija la versión de Maven
         # en el repositorio, de modo que CI y la máquina de desarrollo
         # construyen con la misma. `verify` incluye las pruebas de integración,
@@ -151,9 +184,21 @@ jobs:
           if [ -z "$NVD_API_KEY" ]; then
             echo "::warning title=Análisis de dependencias omitido::Falta el secreto NVD_API_KEY. OWASP Dependency-Check no se ejecutó. Pídela en https://nvd.nist.gov/developers/request-an-api-key"
             ./mvnw -B verify -Ddependency-check.skip=true
+          elif [ "$ANALIZAR_DEPENDENCIAS" != "true" ]; then
+            echo "::notice title=Análisis de dependencias aplazado::Rama de trabajo. OWASP Dependency-Check corre en la PR y en develop y main, que es donde bloquea."
+            ./mvnw -B verify -Ddependency-check.skip=true
           else
             ./mvnw -B verify -Ddependency-check.nvdApiKey="$NVD_API_KEY"
           fi
+
+      # La contraparte del `restore` de arriba. `always()` para que la copia
+      # sobreviva a un backend en rojo, que es justo cuando hace falta.
+      - name: Guardar la base de vulnerabilidades
+        if: always() && hashFiles('apps/backend/pom.xml') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: nvd-${{ github.run_id }}
 
       # El informe de Dependency-Check, pase o falle el build.
       #
