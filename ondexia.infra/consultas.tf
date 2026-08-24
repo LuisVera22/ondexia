@@ -246,6 +246,27 @@ resource "aws_lambda_function" "consultas" {
        * es indistinguible de uno con el nombre del parámetro mal escrito.
        */
       CONSULTAS_APIPERU_PARAMETRO = var.usar_apiperu ? local.ssm_apiperu : ""
+
+      /**
+       * El origen del SPA, y hace falta aunque la ruta cuelgue de la misma
+       * pasarela que la API.
+       *
+       * Lo que la pasarela resuelve es el PREFLIGHT: `OPTIONS /{proxy+}` va a
+       * Spring de la API, que ya tiene el origen configurado. Pero el GET que
+       * viene después lo atiende ESTA función, y Spring comprueba el origen en
+       * cada petición con `Origin`, no solo en el preflight. Sin este valor usa
+       * el de desarrollo —localhost:4200—, no reconoce el del SPA y responde
+       * `403 Invalid CORS request` en texto plano, 20 bytes, antes de llegar al
+       * controlador.
+       *
+       * El síntoma engaña dos veces: la función se invoca y responde en 4 ms, así
+       * que en los registros de Lambda no hay ni un error, y el navegador solo
+       * ve un 403 sin cuerpo legible.
+       *
+       * Sale de `local.origen_app`, el mismo que api.tf: si divergen, no
+       * funciona ninguno de los dos.
+       */
+      CORS_ORIGENES = local.origen_app
     }
   }
 

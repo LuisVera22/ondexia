@@ -69,9 +69,15 @@ ondexia:
   # Origenes autorizados a llamar desde un navegador.
   #
   # En local hace falta porque el SPA vive en el 4200 y esto en el 8081: dos
-  # origenes. Desplegado NO se usa — la ruta cuelga de la misma pasarela que la
-  # API, asi que para el navegador es el mismo origen, y las cabeceras las pone
-  # API Gateway (que ignora las de la integracion).
+  # origenes.
+  #
+  # Y DESPLEGADO TAMBIEN, aunque la ruta cuelgue de la misma pasarela que la API.
+  # Lo que la pasarela resuelve es el preflight; el GET que viene despues lo
+  # atiende esta aplicacion, y Spring comprueba la cabecera Origin en cada
+  # peticion. Con el valor por omision no reconoce el origen del SPA y responde
+  # 403 «Invalid CORS request» antes de llegar al controlador — sin escribir nada
+  # en el registro, porque para Spring no es un error sino una peticion rechazada.
+  # Terraform lo pone desde local.origen_app (ondexia.infra/consultas.tf).
   cors:
     origenes: ${CORS_ORIGENES:http://localhost:4200}
 
