@@ -193,6 +193,22 @@ Cuando el par se rota, el orden es: subir la publica nueva, aplicar Terraform
 —que la copia a la variable de entorno de la API—, y solo entonces la privada.
 Al reves hay una ventana en la que la API rechaza lo que consultas firma.
 
+**Cambiar un parametro no cambia la funcion que ya esta desplegada.** Los valores
+se leen al arrancar, y con SnapStart el arranque ocurre UNA VEZ, al publicar la
+version: la instantanea guarda la clave que habia entonces. Despues de tocar
+cualquiera de los cuatro parametros hay que volver a desplegar, para que se
+publique una version nueva.
+
+Y si la clave era invalida al publicar, la version queda en estado `Failed` y el
+alias apuntando a ella, con lo que TODAS las peticiones responden 500. Terraform
+no lo detecta —para el la funcion existe y el alias esta donde debe—, asi que el
+sintoma no aparece en ningun plan. Se ve con:
+
+```bash
+VER=$(aws lambda get-alias --function-name ondexia-dev-consultas --name activo --query FunctionVersion --output text)
+aws lambda get-function-configuration --function-name ondexia-dev-consultas --qualifier "$VER" --query State
+```
+
 ## Deuda conocida
 
 **La contraseña de la base queda en el estado de Terraform.** Es inherente a
