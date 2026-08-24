@@ -131,6 +131,17 @@ CloudFront. La infraestructura ya existe en `ondexia.infra/estatico.tf`
 El HTML se publica sin caché y todo lo de `_astro/` y `fonts/` con un año, porque
 lleva hash en el nombre.
 
+El workflow trae la casilla **«Solo la landing»**, que acota el plan de Terraform
+al sitio estático y se salta el backend, las migraciones, la SPA y el panel. Es
+la forma de tener esta página en línea sin levantar RDS, que es el 90 % de la
+factura. El orden exacto del primer despliegue —incluido el paso que hay que
+hacer desde tu equipo porque el rol de GitHub lo crea Terraform— está en
+[`ondexia.infra/README.md`](../../../ondexia.infra/README.md), sección «Solo la
+landing».
+
+Con `gestionar_dns = false` no hace falta el dominio: CloudFront sirve por el
+suyo, y sirve para comprobar la cadena entera antes de gastar en `ondexia.com`.
+
 > **Si algún día hay más de una página**, hay que añadir una función de
 > CloudFront que reescriba `/precios` a `/precios/index.html`. Con OAC, S3 no
 > resuelve el índice de directorio solo. Hoy no hace falta: solo existe `/`, y de

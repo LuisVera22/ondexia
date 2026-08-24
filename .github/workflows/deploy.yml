@@ -25,6 +25,12 @@ on:
         description: Solo mostrar el plan, sin aplicar
         type: boolean
         default: false
+      solo_landing:
+        description: >-
+          Solo la landing. Levanta el sitio estatico y nada mas: ni base de
+          datos, ni Lambdas, ni Cognito.
+        type: boolean
+        default: false
 
 # Sin claves de larga vida: GitHub pide un token OIDC y AWS lo canjea por
 # credenciales temporales contra un rol que confía en este repositorio
@@ -100,7 +106,19 @@ jobs:
 
       # Ver el comentario equivalente en ci.yml: sin esto, cada cambio de pom
       # obliga a bajar los 377.000 registros de la NVD otra vez.
+      # ── Lo que el modo `solo_landing` se salta ─────────────────────────────
+      #
+      # La landing es el unico desplegable que no depende del backend (doc 01
+      # §8), y por eso puede ir primero. Aplicar la pila entera para ver una
+      # pagina estatica levanta ademas RDS, que es el 90 % de la factura.
+      #
+      # Cada paso de aqui abajo lleva su guarda en vez de partir el workflow en
+      # dos: un segundo archivo que duplicara el OIDC, el estado remoto y la
+      # publicacion acabaria divergiendo del original en el primer arreglo que
+      # se hiciera en uno solo.
+
       - name: Cache de la base de vulnerabilidades
+        if: ${{ !inputs.solo_landing }}
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
@@ -108,6 +126,7 @@ jobs:
           restore-keys: nvd-
 
       - name: Verificar el backend
+        if: ${{ !inputs.solo_landing }}
         working-directory: apps/backend
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
@@ -127,6 +146,7 @@ jobs:
           fi
 
       - name: Construir el frontend
+        if: ${{ !inputs.solo_landing }}
         working-directory: apps/frontend/ondexia.web
         run: |
           pnpm install --frozen-lockfile
@@ -146,6 +166,7 @@ jobs:
           pnpm run build
 
       - name: Construir el panel interno
+        if: ${{ !inputs.solo_landing }}
         working-directory: apps/frontend/ondexia.admin
         run: |
           pnpm install --frozen-lockfile
@@ -153,6 +174,7 @@ jobs:
           pnpm run build
 
       - name: Comprobar que el CSS trae los estilos
+        if: ${{ !inputs.solo_landing }}
         working-directory: apps/frontend/ondexia.web
         # El fallo que motiva esto no rompe nada que un build sepa detectar: el
         # CSS se genera, pesa lo razonable y es sintacticamente correcto — solo
@@ -216,7 +238,7 @@ jobs:
       # se aplica el resto.
 
       - name: Actualizar la función de migraciones
-        if: ${{ !inputs.solo_plan }}
+        if: ${{ !inputs.solo_plan && !inputs.solo_landing }}
         working-directory: ondexia.infra
         # -target está desaconsejado como norma y aquí es lo correcto: se
         # necesita justamente aplicar una parte antes que el resto.
@@ -227,7 +249,7 @@ jobs:
             -target=aws_lambda_function.migraciones
 
       - name: Aplicar las migraciones
-        if: ${{ !inputs.solo_plan }}
+        if: ${{ !inputs.solo_plan && !inputs.solo_landing }}
         working-directory: ondexia.infra
         run: |
           FUNCION=$(terraform output -raw funcion_migraciones)
@@ -269,10 +291,44 @@ jobs:
       # deseado».
       - name: Terraform plan
         working-directory: ondexia.infra
+        # En modo `solo_landing` el plan se acota con -target. Terraform
+        # arrastra solo las dependencias: el bucket, su cifrado y el control
+        # de acceso de origen entran porque la distribucion y la politica los
+        # necesitan.
+        #
+        # El bloqueo de acceso publico se apunta APARTE, y es lo unico de
+        # esta lista que no es opcional. No es dependencia de nadie —es un
+        # recurso hermano del bucket—, asi que sin nombrarlo el bucket nace
+        # sin el y queda expuesto hasta el siguiente apply completo. Un
+        # descuido de una linea que abre el bucket entero.
+        #
+        # -target esta desaconsejado como norma, y este workflow ya lo usa a
+        # proposito para las migraciones. El motivo es el mismo: hace falta
+        # aplicar una parte antes que el resto.
+        #
+        # Los tres artefactos se vacian con -var, que gana sobre el tfvars. Sin
+        # esto el plan aborta ANTES de mirar los -target: `dev.tfvars` apunta a
+        # jars que en este modo no se construyen, y `filemd5` sobre un archivo
+        # que no existe falla al evaluar la expresion. Vaciarlos apaga de paso
+        # el data source de SSM de consultas, que se resuelve en el plan y
+        # exige parametros creados a mano.
         run: |
-          terraform plan \
-            -var-file="entornos/${{ inputs.entorno }}.tfvars" \
-            -out=plan.tfplan
+          if [ "${{ inputs.solo_landing }}" = "true" ]; then
+            terraform plan \
+              -var-file="entornos/${{ inputs.entorno }}.tfvars" \
+              -var 'artefacto_api=' \
+              -var 'artefacto_panel=' \
+              -var 'artefacto_consultas=' \
+              -target='aws_s3_bucket_public_access_block.sitio["landing"]' \
+              -target='aws_s3_bucket_server_side_encryption_configuration.sitio["landing"]' \
+              -target='aws_s3_bucket_policy.sitio["landing"]' \
+              -target='aws_cloudfront_distribution.sitio["landing"]' \
+              -out=plan.tfplan
+          else
+            terraform plan \
+              -var-file="entornos/${{ inputs.entorno }}.tfvars" \
+              -out=plan.tfplan
+          fi
           terraform show -no-color plan.tfplan > plan.txt
 
       - name: Publicar el plan en el resumen
@@ -301,7 +357,7 @@ jobs:
       # Después del apply: los buckets y las distribuciones tienen que existir.
 
       - name: Publicar la SPA
-        if: ${{ !inputs.solo_plan }}
+        if: ${{ !inputs.solo_plan && !inputs.solo_landing }}
         working-directory: ondexia.infra
         run: |
           BUCKET=$(terraform output -json buckets | jq -r .app)
@@ -345,7 +401,7 @@ jobs:
             --paths "/index.html" "/" "/config.json"
 
       - name: Publicar el panel interno
-        if: ${{ !inputs.solo_plan }}
+        if: ${{ !inputs.solo_plan && !inputs.solo_landing }}
         working-directory: ondexia.infra
         run: |
           BUCKET=$(terraform output -json buckets | jq -r .panel)
@@ -370,8 +426,12 @@ jobs:
         if: ${{ !inputs.solo_plan }}
         working-directory: ondexia.infra
         run: |
-          BUCKET=$(terraform output -json buckets | jq -r .landing)
-          DISTRIBUCION=$(terraform output -json distribuciones_cloudfront | jq -r .landing)
+          # `landing` y no `buckets`/`distribuciones_cloudfront`: aquellas
+          # dos mezclan app, panel y marca, y despues de un apply acotado
+          # esos recursos todavia no existen — leerlas abortaria el paso.
+          # Ver outputs.tf.
+          BUCKET=$(terraform output -json landing | jq -r .bucket)
+          DISTRIBUCION=$(terraform output -json landing | jq -r .distribucion)
           DESTINO=../apps/frontend/ondexia.landing/dist
 
           # Sin config.json: la landing es estatica de verdad y no habla con la
@@ -414,7 +474,7 @@ jobs:
         if: ${{ !inputs.solo_plan }}
         working-directory: ondexia.infra
         run: |
-          LANDING=$(terraform output -raw url_landing)
+          LANDING=$(terraform output -json landing | jq -r .url)
           echo "Sondeando ${LANDING}"
 
           for intento in $(seq 1 10); do
@@ -431,7 +491,7 @@ jobs:
           exit 1
 
       - name: Comprobar que responde
-        if: ${{ !inputs.solo_plan }}
+        if: ${{ !inputs.solo_plan && !inputs.solo_landing }}
         working-directory: ondexia.infra
         # Una comprobación de humo, no una suite. Responde a la única pregunta
         # que importa justo después de desplegar: ¿está en pie lo que acabo de
@@ -467,7 +527,13 @@ jobs:
             echo ""
             echo "| | |"
             echo "|---|---|"
-            echo "| Landing | $(terraform output -raw url_landing) |"
-            echo "| App | $(terraform output -raw url_app) |"
-            echo "| API | $(terraform output -raw url_api) |"
+            echo "| Landing | $(terraform output -json landing | jq -r .url) |"
+
+            # En modo acotado no hay app ni API que enseñar, y pedir su
+            # salida aborta el paso: Terraform no puede resolver el atributo
+            # de un recurso que todavia no existe.
+            if [ "${{ inputs.solo_landing }}" != "true" ]; then
+              echo "| App | $(terraform output -raw url_app) |"
+              echo "| API | $(terraform output -raw url_api) |"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"

@@ -8,6 +8,26 @@ output "url_landing" {
   value       = var.gestionar_dns ? "https://${var.dominio}" : "https://${aws_cloudfront_distribution.sitio["landing"].domain_name}"
 }
 
+output "landing" {
+  description = <<-TEXTO
+    Todo lo que hace falta para publicar la landing, en una sola salida.
+
+    Existe por una razón concreta: es la ÚNICA que no depende de ningún recurso
+    fuera del sitio estático. `buckets` y `distribuciones_cloudfront` mezclan
+    app, panel y marca, así que después de un apply acotado a la landing
+    —`deploy.yml` con `solo_landing`— esas dos no se pueden leer: Terraform no
+    puede resolver un atributo de un recurso que no existe todavía.
+
+    Con esta, el despliegue de solo la landing lee lo suyo y no se entera de que
+    el resto de la plataforma aún no está.
+  TEXTO
+  value = {
+    bucket       = aws_s3_bucket.sitio["landing"].id
+    distribucion = aws_cloudfront_distribution.sitio["landing"].id
+    url          = var.gestionar_dns ? "https://${var.dominio}" : "https://${aws_cloudfront_distribution.sitio["landing"].domain_name}"
+  }
+}
+
 output "url_api" {
   description = "Base de la API. La sonda de vida cuelga de /salud."
   value       = var.gestionar_dns ? "https://api.${var.dominio}" : aws_apigatewayv2_api.principal.api_endpoint

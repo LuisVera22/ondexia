@@ -62,6 +62,71 @@ Requisitos en GitHub:
 | Entorno `prod` con revisor requerido | Es la aprobación manual que exige el DTE §10.2 |
 | Secreto `NVD_API_KEY` | Opcional pero recomendado. Sin él se omite el análisis de dependencias con un aviso |
 
+## Solo la landing
+
+Hay un huevo y una gallina que conviene ver antes de intentarlo: **el rol que
+usa GitHub Actions lo crea Terraform**, así que el primer `apply` no puede venir
+de GitHub Actions. Sale de tu equipo, una vez.
+
+Y hay un segundo motivo para empezar por aquí. La landing es lo único
+desplegable que no depende del backend (doc 01 §8), pero un `apply` completo
+levanta además RDS, que es el **90 % de la factura**. Para ver una página
+estática eso no tiene sentido, así que `deploy.yml` trae la casilla **«Solo la
+landing»**: acota el plan con `-target` al sitio estático y se salta el backend,
+las migraciones, la SPA y el panel.
+
+### Lo que hay que hacer una vez, en este orden
+
+**1. El bucket del estado** — «Primer despliegue», más arriba.
+
+**2. La identidad de GitHub, desde tu equipo.** Es el paso que rompe el círculo:
+
+```bash
+terraform apply -var-file=entornos/dev.tfvars -target=aws_iam_role.despliegue -target=aws_iam_role_policy.despliegue_iam -target=aws_iam_role_policy_attachment.despliegue_poweruser
+```
+
+**3. Guardar el ARN como secreto.** `terraform output -raw rol_despliegue`, y
+ese valor va a `AWS_DEPLOY_ROLE_ARN` en los secretos del repositorio.
+
+**4. Crear los entornos `dev` y `prod` en GitHub.** Sin el entorno, el `sub` del
+token OIDC no tiene la forma que espera la política de confianza y AWS responde
+`AccessDenied` — ver el comentario largo de `despliegue.tf`. A `prod`, además,
+ponerle revisor requerido (DTE §10.2).
+
+**5. Lanzar `deploy.yml`** con entorno `dev`, «Solo la landing» marcado y «Solo
+mostrar el plan» **también marcado**. Lee el plan en el resumen de la ejecución:
+deberían salir cuatro recursos y ninguno de ellos una base de datos.
+
+**6. Repetir sin «solo plan».** La URL sale en el resumen, en la fila `Landing`.
+
+### Qué vas a ver, y dónde
+
+Con `gestionar_dns = false` —lo que trae `dev.tfvars`— **no hace falta tener el
+dominio**: CloudFront sirve por el suyo, algo como
+`https://d111111abcdef8.cloudfront.net`. Es la forma de comprobar la cadena
+entera —bucket, control de acceso de origen, distribución, caché— antes de
+gastar en un dominio.
+
+Para que responda en `ondexia.com` hay que poner `gestionar_dns = true`, y eso
+arrastra el dominio registrado en Route 53, el certificado de ACM y la zona
+alojada (doc 01 §8). Es un paso aparte y con su propio coste.
+
+> **La distribución tarda.** Entre 5 y 15 minutos la primera vez. La sonda del
+> workflow reintenta diez veces con diez segundos de pausa, así que puede
+> fallar en rojo con la landing perfectamente creada. Si pasa, no vuelvas a
+> aplicar: espera y abre la URL.
+
+### Lo que este atajo deja a medias
+
+`-target` deja el estado **parcial a propósito**, y Terraform lo avisa en cada
+ejecución. Es correcto aquí y conviene saber lo que significa: el resto de la
+plataforma sigue sin existir, y el primer `apply` completo la creará entera de
+golpe. Ese plan hay que leerlo con calma — es el que enciende RDS.
+
+Mientras tanto, `terraform plan` sin `-target` va a mostrar siempre esos
+recursos como pendientes de crear. No es deriva ni un error: es que todavía no
+están.
+
 ## Qué se crea
 
 | | |
