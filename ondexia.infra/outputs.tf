@@ -69,7 +69,7 @@ output "configuracion_spa" {
      *
      * Desplegado, la consulta del padrón es una ruta más de la misma pasarela
      * (consultas.tf), así que la URL coincide. En local no: la sirve
-     * ondexia.consultas.ServidorLocal en otro puerto, porque la API de Spring no
+     * ondexia.consultas en otro puerto —el 8081—, porque la API de Spring no
      * tiene esa ruta ni debe tenerla — desplegada no puede salir a internet.
      *
      * Con la clave siempre presente, el SPA lee una sola cosa y no distingue los

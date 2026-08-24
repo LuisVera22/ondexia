@@ -28,7 +28,7 @@ export interface ConfiguracionApp {
    *
    * Desplegado vale **lo mismo** que `api` —allí la consulta es una ruta más de
    * la misma pasarela— y en local apunta a otro puerto, porque ahí la sirve
-   * `ondexia.consultas.ServidorLocal`: la API de Spring no tiene esa ruta ni
+   * `ondexia.consultas` en el 8081: la API de Spring no tiene esa ruta ni
    * debe tenerla, porque desplegada no puede salir a internet.
    *
    * Existe como clave aparte para que el código no distinga los dos casos. Con

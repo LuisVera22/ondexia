@@ -127,6 +127,13 @@
   </dependencies>
 
   <build>
+    <!--
+      Nombre fijo del artefacto, igual que en ondexia.api: la infraestructura lo
+      referencia por ruta (ondexia.infra/entornos/dev.tfvars). Con el nombre por
+      omision, cada cambio de version obligaria a editar las tfvars.
+    -->
+    <finalName>ondexia-consultas</finalName>
+
     <plugins>
       <!--
         Se desactiva SOLO el reempaquetado, no el plugin entero.

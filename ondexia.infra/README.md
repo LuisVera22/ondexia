@@ -145,6 +145,53 @@ El porqué está en `ManejadorMigraciones`: en Lambda, «al arrancar» significa
   `gestionar_dns`.
 - **Pasar la cuenta al plan de pago** antes de que venza el periodo gratuito:
   el plan gratuito cierra la cuenta sola.
+- **Crear los parametros de la consulta de RUC.** Cuatro, y sin ellos el `plan`
+  falla antes de tocar nada: Terraform lee la clave publica con un *data source*,
+  y un *data source* se resuelve al planificar. Ver mas abajo.
+
+## Las claves de la consulta de RUC
+
+Terraform **nombra** estos parametros y no crea sus valores. Un parametro creado
+desde aqui guarda su valor en el estado, y el estado vive en S3 — que este
+cifrado no cambia que la clave pasaria a estar en dos sitios en lugar de uno.
+
+Cuatro parametros bajo `/ondexia/<entorno>/consultas/`:
+
+| Parametro | Tipo | Que es |
+|---|---|---|
+| `firma-privada` | `SecureString` | Con la que `ondexia.consultas` firma las atestaciones |
+| `firma-publica` | `String` | Con la que la API las verifica. No es un secreto |
+| `decolecta` | `SecureString` | Token del proveedor principal |
+| `apiperu` | `SecureString` | Token del relevo. Solo si `usar_apiperu = true` |
+
+El par de firma se genera una vez **por entorno**, y que sea por entorno importa:
+si dev y prod comparten par, una atestacion emitida en dev la acepta prod.
+
+```bash
+openssl genpkey -algorithm ed25519 -out firma-dev.pem
+openssl pkey -in firma-dev.pem -pubout -out firma-dev.pub
+```
+
+Y se suben leyendo del archivo, sin que el valor pase por el historial de la
+consola. La clave va **sin el envoltorio PEM**: solo la linea de base64, que es
+lo que `Atestacion.clavePrivada` espera.
+
+```bash
+ENT=dev
+aws ssm put-parameter --name "/ondexia/$ENT/consultas/firma-privada"   --type SecureString --overwrite   --value "$(sed -n '2p' firma-dev.pem)"
+
+aws ssm put-parameter --name "/ondexia/$ENT/consultas/firma-publica"   --type String --overwrite   --value "$(sed -n '2p' firma-dev.pub)"
+
+aws ssm put-parameter --name "/ondexia/$ENT/consultas/decolecta"   --type SecureString --overwrite --value "TOKEN_DE_DECOLECTA"
+```
+
+`SecureString` sin `--key-id` usa la llave gestionada de AWS para SSM, que es
+gratis; una llave propia cuesta 1 USD/mes y aqui no aporta nada. El nivel
+estandar de Parameter Store tambien es gratuito.
+
+Cuando el par se rota, el orden es: subir la publica nueva, aplicar Terraform
+—que la copia a la variable de entorno de la API—, y solo entonces la privada.
+Al reves hay una ventana en la que la API rechaza lo que consultas firma.
 
 ## Deuda conocida
 

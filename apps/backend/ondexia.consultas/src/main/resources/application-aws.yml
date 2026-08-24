@@ -1,0 +1,37 @@
+# Perfil 'aws': lo que cambia por correr dentro de Lambda, no por el entorno.
+#
+# Se activa junto al nombre del entorno —SPRING_PROFILES_ACTIVE=aws,dev— igual
+# que en ondexia.api, para separar lo que depende de la PLATAFORMA de lo que
+# depende del ENTORNO.
+
+spring:
+  threads:
+    virtual:
+      # Apagados en Lambda, y sin esto LA APLICACION NO ARRANCA:
+      #
+      #   UnsupportedOperationException: Virtual threads not supported on JDK <21
+      #
+      # No es que falte Java 21 —el runtime es java21—. spring-core distribuye
+      # VirtualThreadDelegate como JAR MULTI-RELEASE: una version base que lanza
+      # esa excepcion y otra real en META-INF/versions/21/. Esas reglas solo
+      # valen para JARs, y Lambda descomprime el zip en /var/task y pone el
+      # DIRECTORIO en el classpath — asi que META-INF/versions/21/ pasa a ser
+      # una carpeta cualquiera y la JVM carga la version base.
+      #
+      # Por eso el mismo artefacto arranca en local y revienta en Lambda. Es la
+      # misma trampa documentada en application-aws.yml de ondexia.api; aqui
+      # ademas fallaria DURANTE la instantanea de SnapStart, que deja la version
+      # en estado Failed y el alias sin poder apuntar a ella.
+      #
+      # Y tampoco servirian de nada: un contenedor de Lambda atiende UNA
+      # peticion a la vez.
+      enabled: false
+
+# El arranque en frio se paga una vez por instancia; con SnapStart, casi nunca.
+# Pero el log de arranque de Spring se escribe en cada restauracion y CloudWatch
+# se factura por GB ingerido.
+logging:
+  level:
+    root: WARN
+    com.ondexia: INFO
+    org.springframework.web: WARN

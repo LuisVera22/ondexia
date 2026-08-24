@@ -62,6 +62,29 @@ public record PropiedadesConsultas(
         apiperuToken = enBlancoEsNulo(apiperuToken);
     }
 
+    /**
+     * Qué claves de proveedor llegaron, para el mensaje de arranque.
+     *
+     * <p>Existe porque «no hay proveedor configurado» es cierto y no sirve: con
+     * cuatro sitios de donde puede venir el valor, y dos formas de escribir cada
+     * uno mal, hay que ver los cuatro a la vez. Un nombre de variable con una
+     * letra cambiada se detecta de un vistazo aquí, y de ninguna otra forma.
+     *
+     * <p>Va la longitud y no el valor. Una clave a medio pegar es el fallo más
+     * frecuente después del nombre mal escrito, y la longitud lo delata sin
+     * escribir el secreto en un registro que CloudWatch conserva.
+     */
+    public String resumenDeProveedores() {
+        return "decolecta-parametro (CONSULTAS_DECOLECTA_PARAMETRO) " + presencia(decolectaParametro)
+                + "; decolecta-token (CONSULTAS_DECOLECTA_TOKEN) " + presencia(decolectaToken)
+                + "; apiperu-parametro (CONSULTAS_APIPERU_PARAMETRO) " + presencia(apiperuParametro)
+                + "; apiperu-token (CONSULTAS_APIPERU_TOKEN) " + presencia(apiperuToken);
+    }
+
+    private static String presencia(String valor) {
+        return valor == null ? "ausente" : "presente, " + valor.length() + " caracteres";
+    }
+
     /** Si algún valor hay que ir a buscarlo a SSM. */
     public boolean necesitaSsm() {
         return firmaParametro != null || decolectaParametro != null || apiperuParametro != null;

@@ -2,12 +2,11 @@ spring:
   application:
     name: ondexia-consultas
 
-  # Este desplegable no toca la base de datos: consulta el padron de SUNAT y
-  # firma el resultado. Se apagan las autoconfiguraciones de datos para que un
-  # starter arrastrado por transitividad no intente abrir un pool al arrancar.
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+  # Sin `autoconfigure.exclude` de las autoconfiguraciones de datos, al contrario
+  # que ondexia.api: este desplegable no toca la base de datos y tampoco tiene el
+  # starter en el classpath —el dominio es Java a secas—, asi que no hay ninguna
+  # autoconfiguracion de JDBC que apagar. Excluir una clase que no existe no falla,
+  # pero deja escrito que aqui hay una base de datos de la que protegerse.
 
   threads:
     virtual:
@@ -26,14 +25,10 @@ server:
       charset: UTF-8
       force: true
 
-management:
-  endpoints:
-    web:
-      exposure:
-        # Solo health. 'env' y 'configprops' expondrian esta configuracion, que
-        # incluye los NOMBRES de los parametros de SSM, y 'heapdump' entregaria
-        # la memoria del proceso — con la clave privada dentro.
-        include: health
+# Sin actuator, y por eso no hay bloque `management`. Un desplegable que sirve una
+# sola ruta no tiene estado que vigilar, y anadirlo traeria justo los puntos que
+# habria que apagar: 'configprops' expone los NOMBRES de los parametros de SSM y
+# 'heapdump' entrega la memoria del proceso, con la clave privada de firma dentro.
 
 ondexia:
   consultas:

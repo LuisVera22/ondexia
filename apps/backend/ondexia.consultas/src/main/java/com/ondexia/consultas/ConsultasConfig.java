@@ -94,11 +94,18 @@ public class ConsultasConfig {
             nombres.add("apiperu");
         }
 
+        /*
+         * El mensaje enumera las cuatro claves y si llegaron, en vez de nombrar
+         * una. Basta cualquiera de las dos parejas, asi que decir «define
+         * decolecta» manda a mirar decolecta cuando el problema puede estar en
+         * que apiperu se escribio mal — y con la variable puesta a la vista, ese
+         * mensaje se lee como una contradiccion.
+         */
         if (cascada.isEmpty()) {
             throw new IllegalStateException(
-                    "Ningún proveedor de consulta configurado. Define al menos "
-                            + "ondexia.consultas.decolecta-parametro (CONSULTAS_DECOLECTA_PARAMETRO) "
-                            + "o ondexia.consultas.decolecta-token (CONSULTAS_DECOLECTA_TOKEN).");
+                    "Ningún proveedor de consulta configurado. Basta uno, por nombre de "
+                            + "parámetro de SSM o por token directo. Lo que llegó: "
+                            + propiedades.resumenDeProveedores());
         }
 
         /*

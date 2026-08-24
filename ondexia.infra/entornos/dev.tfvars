@@ -83,3 +83,18 @@ handler_api   = "com.ondexia.infrastructure.entrada.lambda.ManejadorLambda::hand
 # Vaciar esta linea apaga la consola entera: no se crea ni su funcion, ni su API,
 # ni su rol de IAM. El sitio estatico se queda, porque un bucket vacio no cuesta.
 artefacto_panel = "../apps/backend/ondexia.admin/target/ondexia-admin.jar"
+
+# Consulta de RUC a SUNAT (DT-19). El unico desplegable que sale a internet: va
+# fuera de la VPC, donde salir es gratis.
+#
+# ANTES DEL PRIMER APPLY con esta linea puesta hay que crear los parametros de
+# SSM. Terraform LEE /ondexia/dev/consultas/firma-publica con un data source, y
+# un data source se resuelve en el plan: si no existe, no falla el apply — falla
+# el plan, sin haber tocado nada. Los valores no los crea Terraform a proposito
+# (acabarian en el estado, que vive en S3); ver el README de ondexia.infra.
+artefacto_consultas = "../apps/backend/ondexia.consultas/target/ondexia-consultas.jar"
+
+# El relevo de apiperu.dev, encendido: hay clave en su capa gratuita y la
+# cascada con un solo eslabon deja el alta de empresas dependiendo de que un
+# tercero este en pie. Exige que exista /ondexia/dev/consultas/apiperu.
+usar_apiperu = true
