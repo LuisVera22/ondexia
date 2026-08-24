@@ -58,7 +58,18 @@ jobs:
     # despliegue defectuoso genera comprobantes inválidos con consecuencias
     # fiscales para el cliente.
     environment: ${{ inputs.entorno }}
-    timeout-minutes: 45
+    # 120 por lo mismo que ci.yml: la primera sincronización de la base de la
+    # NVD son ~85 minutos de descarga —381.940 registros— y con 45 el job moría
+    # a medias sin dejar nada aprovechable.
+    #
+    # Aquí el análisis NO se aplaza como en ci.yml. En un despliegue es la
+    # verja: el doc 03 §9.4 lo quiere bloqueante, y saltárselo en dev dejaría
+    # que la primera ejecución de verdad fuera la de producción. Lo que se
+    # arregla es la mecánica, no la política.
+    #
+    # En modo `solo_landing` este paso se salta entero, así que publicar la
+    # landing no paga nada de esto.
+    timeout-minutes: 120
 
     steps:
       - uses: actions/checkout@v7
@@ -104,8 +115,6 @@ jobs:
       # compila, conviene enterarse antes de haber modificado nada en AWS y no
       # con la mitad del despliegue hecha.
 
-      # Ver el comentario equivalente en ci.yml: sin esto, cada cambio de pom
-      # obliga a bajar los 377.000 registros de la NVD otra vez.
       # ── Lo que el modo `solo_landing` se salta ─────────────────────────────
       #
       # La landing es el unico desplegable que no depende del backend (doc 01
@@ -117,9 +126,13 @@ jobs:
       # publicacion acabaria divergiendo del original en el primer arreglo que
       # se hiciera en uno solo.
 
-      - name: Cache de la base de vulnerabilidades
+      # Partida en `restore` y `save`, como en ci.yml: con `actions/cache`
+      # entero el guardado ocurre en un paso `Post`, y al morir el job por
+      # tiempo GitHub los omite — la descarga a medias se tiraba a la basura y
+      # la ejecución siguiente empezaba de cero.
+      - name: Restaurar la base de vulnerabilidades
         if: ${{ !inputs.solo_landing }}
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
           key: nvd-${{ github.run_id }}
@@ -144,6 +157,20 @@ jobs:
           else
             ./mvnw -B verify -Ddependency-check.nvdApiKey="$NVD_API_KEY"
           fi
+
+      # La contraparte del `restore`. `always()` para que la copia sobreviva a
+      # un backend en rojo o a un job cancelado, que es justo cuando hace
+      # falta: sin esto, ochenta mil registros ya descargados se pierden y la
+      # ejecucion siguiente vuelve a empezar de cero.
+      #
+      # No se usa `save-always` de `actions/cache`: esta obsoleto desde la v4.2
+      # justamente porque no cubria este caso.
+      - name: Guardar la base de vulnerabilidades
+        if: ${{ always() && !inputs.solo_landing }}
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: nvd-${{ github.run_id }}
 
       - name: Construir el frontend
         if: ${{ !inputs.solo_landing }}
