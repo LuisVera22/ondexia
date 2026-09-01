@@ -79,19 +79,36 @@ las migraciones, la SPA y el panel.
 
 **1. El bucket del estado** — «Primer despliegue», más arriba.
 
-**2. La identidad de GitHub, desde tu equipo.** Es el paso que rompe el círculo:
+**2. La identidad de GitHub, desde tu equipo.** Es el paso que rompe el círculo,
+y el único que crea los roles del pipeline. Que se aplique desde un equipo no es
+comodidad: el propio pipeline tiene DENEGADO modificar estos cuatro roles, así
+que cambiarlos desde CI no funcionaría aunque se intentara (ver
+`despliegue.tf`, statement `NoTocarLaPropiaIdentidad`).
 
 ```bash
-terraform apply -var-file=entornos/dev.tfvars -target=aws_iam_role.despliegue -target=aws_iam_role_policy.despliegue_iam -target=aws_iam_role_policy_attachment.despliegue_poweruser
+terraform apply -var-file=entornos/dev.tfvars -target=aws_iam_policy.frontera_despliegue -target=aws_iam_role.despliegue -target=aws_iam_role_policy.despliegue_iam -target=aws_iam_role_policy_attachment.despliegue_poweruser -target=aws_iam_role.plan -target=aws_iam_role_policy_attachment.plan_lectura
 ```
 
-**3. Guardar el ARN como secreto.** `terraform output -raw rol_despliegue`, y
-ese valor va a `AWS_DEPLOY_ROLE_ARN` en los secretos del repositorio.
+**3. Guardar los cuatro ARN como secretos DE ENTORNO.** No del repositorio: un
+secreto de repositorio lo lee cualquier job, y entonces el job que solo
+planifica podría pedir el rol que aplica. `terraform output -json
+roles_despliegue` da los cuatro.
 
-**4. Crear los entornos `dev` y `prod` en GitHub.** Sin el entorno, el `sub` del
-token OIDC no tiene la forma que espera la política de confianza y AWS responde
-`AccessDenied` — ver el comentario largo de `despliegue.tf`. A `prod`, además,
-ponerle revisor requerido (DTE §10.2).
+| Environment | Secreto | Valor |
+|---|---|---|
+| `dev` | `AWS_DEPLOY_ROLE_ARN` | `despliegue.dev` |
+| `prod` | `AWS_DEPLOY_ROLE_ARN` | `despliegue.prod` |
+| `dev-plan` | `AWS_PLAN_ROLE_ARN` | `plan.dev` |
+| `prod-plan` | `AWS_PLAN_ROLE_ARN` | `plan.prod` |
+
+**4. Crear los cuatro entornos en GitHub.** Sin el entorno, el `sub` del token
+OIDC no tiene la forma que espera la política de confianza y AWS responde
+`AccessDenied` — ver el comentario largo de `despliegue.tf`.
+
+A `prod` ponerle **revisor requerido** (DTE §10.2). A `dev-plan` y `prod-plan`,
+NO: son los que calculan el plan que el revisor lee antes de aprobar, y pedirles
+aprobación devolvería el problema que resuelven. El rol que usan es de solo
+lectura, que es lo que hace aceptable que estén desprotegidos.
 
 **5. Lanzar `deploy.yml`** con entorno `dev`, «Solo la landing» marcado y «Solo
 mostrar el plan» **también marcado**. Lee el plan en el resumen de la ejecución:
