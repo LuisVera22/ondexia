@@ -195,9 +195,11 @@ resource "aws_cognito_user_pool_client" "spa" {
  *
  * Es la que pide el correo y la contraseña, resuelve el segundo factor, la
  * verificación por correo y el «olvidé mi contraseña». Nada de eso vive en
- * nuestro código, y por tanto tampoco su mantenimiento: el pool tiene el MFA
- * en OPTIONAL, y cada reto de esa negociación —MFA_SETUP, SOFTWARE_TOKEN_MFA,
- * NEW_PASSWORD_REQUIRED— sería una pantalla propia que construir y probar.
+ * nuestro código, y por tanto tampoco su mantenimiento: cada reto de esa
+ * negociación —MFA_SETUP, SOFTWARE_TOKEN_MFA, NEW_PASSWORD_REQUIRED— sería una
+ * pantalla propia que construir y probar. Que el pool de personal tenga el MFA
+ * en ON es justamente lo que hace que MFA_SETUP ocurra en el primer acceso, y
+ * lo resuelve la interfaz alojada.
  *
  * El prefijo es único en toda la región de AWS, de ahí el identificador de
  * cuenta. Queda como:
@@ -235,12 +237,44 @@ resource "aws_cognito_user_pool" "personal" {
     }
   }
 
-  # Debe pasar a "ON" en cuanto el primer usuario tenga su TOTP configurado.
-  # Se deja opcional para no quedarse fuera en el primer acceso.
-  mfa_configuration = "OPTIONAL"
+  /**
+   * Obligatorio, y en prod no es negociable — lo impone la precondicion de mas
+   * abajo (hallazgo A4).
+   *
+   * Estuvo en "OPTIONAL" con el comentario «debe pasar a ON en cuanto el primer
+   * usuario tenga su TOTP configurado». Esa frase es el hallazgo: una obligacion
+   * previa al despliegue escrita como recordatorio no la cumple nadie, y estas
+   * cuentas ven TODAS las cuentas de TODOS los clientes.
+   *
+   * El miedo a quedarse fuera en el primer acceso no aplica: con "ON" y el token
+   * de software habilitado, Cognito lanza el reto MFA_SETUP en el primer inicio
+   * de sesion y la interfaz alojada guia el alta del TOTP. No hay ventana en la
+   * que la cuenta exista sin segundo factor.
+   */
+  mfa_configuration = var.mfa_personal
 
   software_token_mfa_configuration {
     enabled = true
+  }
+
+  lifecycle {
+    /**
+     * La obligacion, codificada.
+     *
+     * `var.mfa_personal` existe para que un entorno de pruebas pueda bajarlo si
+     * algun dia hace falta; esta precondicion es lo que impide que ese permiso
+     * llegue a produccion. Se evalua ANTES de crear o modificar nada: un
+     * `terraform plan` con entorno prod y el MFA bajado aborta sin tocar la
+     * cuenta.
+     *
+     * Deliberadamente sobre la variable y no sobre `self.mfa_configuration`: un
+     * postcondition sobre `self` se evaluaria cuando el pool ya esta creado, que
+     * es tarde.
+     */
+    precondition {
+      condition     = var.entorno != "prod" || var.mfa_personal == "ON"
+      error_message = "El pool de personal exige mfa_configuration = ON en prod: estas cuentas ven los datos de todos los clientes. Cambia var.mfa_personal o no despliegues a prod."
+    }
   }
 
   email_configuration {

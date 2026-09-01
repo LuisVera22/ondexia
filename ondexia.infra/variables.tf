@@ -293,3 +293,23 @@ variable "usar_apiperu" {
   type        = bool
   default     = false
 }
+
+/**
+ * MFA del pool de PERSONAL. En prod no es negociable.
+ *
+ * La variable existe para que un entorno de pruebas pueda bajarlo si algun dia
+ * hace falta; la precondicion de `aws_cognito_user_pool.personal` es la que
+ * impide que ese permiso llegue a produccion. Hallazgo A4 de la auditoria
+ * 2026-09-01: estaba en OPTIONAL con un comentario que decia que habia que
+ * subirlo a mano.
+ */
+variable "mfa_personal" {
+  description = "mfa_configuration del pool de personal. En prod tiene que ser ON."
+  type        = string
+  default     = "ON"
+
+  validation {
+    condition     = contains(["ON", "OPTIONAL", "OFF"], var.mfa_personal)
+    error_message = "Valores admitidos: ON, OPTIONAL, OFF."
+  }
+}
