@@ -170,7 +170,6 @@ output "recordatorios" {
   value = [
     "Confirmar la suscripción de correo al tema de SNS: llega un mensaje de AWS y hay que pulsar el enlace, o las alarmas no avisan a nadie.",
     local.hay_backend ? "Si aplicaste a mano: invocar la función de migraciones (output funcion_migraciones) antes de probar la API, porque el esquema no existe hasta entonces. Desde el workflow de despliegue NO hace falta — ya la invoca, y antes de publicar la API a propósito." : "Sin artefacto de backend: se despliega la función de relleno que responde 501.",
-    "Poner el MFA del grupo de personal en ON cuando el primer usuario tenga su TOTP configurado.",
     "Pasar la cuenta al plan de pago antes de que venza el periodo gratuito: el plan gratuito cierra la cuenta sola.",
     var.gestionar_dns ? "Cargar los servidores de nombres en el registrador del dominio." : "gestionar_dns esta apagado: se sirve por los dominios predeterminados de CloudFront.",
   ]

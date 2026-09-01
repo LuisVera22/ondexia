@@ -221,8 +221,6 @@ El porqué está en `ManejadorMigraciones`: en Lambda, «al arrancar» significa
 
 - **Confirmar la suscripción de correo al tema de SNS.** Llega un mensaje de AWS
   y hay que pulsar el enlace, o las alarmas no avisan a nadie.
-- **Poner el MFA del grupo de personal en `ON`** cuando el primer usuario tenga
-  su TOTP configurado. Se deja opcional para no quedarse fuera al primer acceso.
 - **Cargar los servidores de nombres en el registrador**, si se activa
   `gestionar_dns`.
 - **Pasar la cuenta al plan de pago** antes de que venza el periodo gratuito:
