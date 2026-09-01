@@ -83,6 +83,13 @@ resource "aws_iam_role" "consultas" {
   name               = "${local.nombre}-consultas"
   assume_role_policy = data.aws_iam_policy_document.asumir_lambda.json
 
+  /**
+   * El techo, obligatorio: `iam:CreateRole` esta condicionado a que este rol
+   * lleve exactamente esta frontera (ver despliegue.tf). Sin la linea, el apply
+   * desde CI falla con AccessDenied al crear el rol.
+   */
+  permissions_boundary = aws_iam_policy.frontera_despliegue.arn
+
   tags = { Name = "${local.nombre}-consultas" }
 }
 

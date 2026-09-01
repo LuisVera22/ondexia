@@ -32,6 +32,29 @@ on:
         type: boolean
         default: false
 
+# ══════════════════════════════════════════════════════════════════════════
+# TRES JOBS, Y EL ORDEN ES EL CONTROL (hallazgos C1 y M14)
+# ══════════════════════════════════════════════════════════════════════════
+#
+#   construir    sin credenciales de AWS. Compila y prueba.
+#   planificar   rol de SOLO LECTURA, entorno sin revisor. Publica el plan.
+#   aplicar      rol de escritura, entorno con revisor en prod.
+#
+# Antes era un solo job que asumía el rol de despliegue en el segundo paso, con
+# lo que las credenciales de AWS estaban vivas mientras corrían `mvnw verify` y
+# `pnpm install`: cualquier dependencia comprometida las tenía a mano durante
+# todo el build. Ahora el build no puede tocar AWS.
+#
+# Y la aprobación de prod llegaba al PRINCIPIO del job, cuando no había ningún
+# plan que mirar: se aprobaba a ciegas. Ahora el plan se calcula en un job
+# anterior, con un rol que no puede escribir, y queda en el resumen antes de que
+# GitHub pida la aprobación.
+#
+# El plan que se revisa no es byte a byte el que se aplica, y conviene saberlo:
+# el job de aplicar corre primero las migraciones —que mueven el estado— y por
+# eso recalcula. Publica también el plan recalculado, así que la divergencia,
+# si la hay, queda a la vista en el mismo resumen.
+
 # Sin claves de larga vida: GitHub pide un token OIDC y AWS lo canjea por
 # credenciales temporales contra un rol que confía en este repositorio
 # (doc 03 §9.2).
@@ -51,13 +74,15 @@ env:
   TERRAFORM_VERSION: '1.15.8'
 
 jobs:
-  desplegar:
+  # ════════════════════════════════════════════════════════════════════════
+  construir:
+    # ══════════════════════════════════════════════════════════════════════
+    #
+    # SIN `environment:` y sin credenciales. Es lo que impide que el token OIDC
+    # se pueda canjear desde aquí: la política de confianza de los cuatro roles
+    # exige un `sub` con la forma `environment:…`, y un job sin entorno emite
+    # `ref:refs/heads/…`. No es disciplina, es que AWS lo rechaza.
     runs-on: ubuntu-latest
-    # El entorno `prod` debe configurarse en GitHub con revisor requerido: esa
-    # es la aprobación manual que exige el DTE §10.2. No es burocracia — un
-    # despliegue defectuoso genera comprobantes inválidos con consecuencias
-    # fiscales para el cliente.
-    environment: ${{ inputs.entorno }}
     # 120 por lo mismo que ci.yml: la primera sincronización de la base de la
     # NVD son ~85 minutos de descarga —381.940 registros— y con 45 el job moría
     # a medias sin dejar nada aprovechable.
@@ -96,24 +121,7 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - uses: hashicorp/setup-terraform@v4
-        with:
-          terraform_version: ${{ env.TERRAFORM_VERSION }}
-          # Sin envoltorio: interfiere al leer la salida de `terraform output`
-          # desde los pasos siguientes.
-          terraform_wrapper: false
-
-      - name: Asumir rol de despliegue
-        uses: aws-actions/configure-aws-credentials@v6
-        with:
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-          aws-region: ${{ env.REGION }}
-
       # ── Construcción ───────────────────────────────────────────────────────
-      #
-      # Se construye ANTES de tocar la infraestructura. Si el frontend no
-      # compila, conviene enterarse antes de haber modificado nada en AWS y no
-      # con la mitad del despliegue hecha.
 
       # ── Lo que el modo `solo_landing` se salta ─────────────────────────────
       #
@@ -227,7 +235,74 @@ jobs:
 
           echo "CSS correcto: $(wc -c < "$CSS") bytes."
 
-      # ── Infraestructura ────────────────────────────────────────────────────
+      # ── El paquete que viaja a los dos jobs siguientes ─────────────────────
+      #
+      # Un tar y no `path:` con varias rutas: `upload-artifact` calcula la raíz
+      # común de lo que sube, y esa raíz CAMBIA según el modo. Con todo, es
+      # `apps/`; en `solo_landing`, `apps/frontend/ondexia.landing/dist`. El job
+      # que descarga tendría que adivinar dónde le dejaron las cosas.
+      #
+      # Importa que los jars lleguen byte a byte: Terraform calcula `filemd5`
+      # sobre ellos y el nombre del objeto en S3 sale de ahí. Un artefacto que
+      # cambiara al viajar produciría un plan distinto del que se revisó.
+      - name: Empaquetar los artefactos
+        run: |
+          if [ "${{ inputs.solo_landing }}" = "true" ]; then
+            tar -czf artefactos.tgz apps/frontend/ondexia.landing/dist
+          else
+            tar -czf artefactos.tgz \
+              apps/backend/ondexia.api/target/ondexia-api.jar \
+              apps/backend/ondexia.admin/target/ondexia-admin.jar \
+              apps/backend/ondexia.consultas/target/ondexia-consultas.jar \
+              apps/frontend/ondexia.web/dist \
+              apps/frontend/ondexia.admin/dist \
+              apps/frontend/ondexia.landing/dist
+          fi
+          echo "Empaquetado: $(du -h artefactos.tgz | cut -f1)"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: artefactos
+          path: artefactos.tgz
+          if-no-files-found: error
+          # Un día: son artefactos de una ejecución concreta, no una release.
+          retention-days: 1
+
+  # ════════════════════════════════════════════════════════════════════════
+  planificar:
+    # ══════════════════════════════════════════════════════════════════════
+    #
+    # El entorno `<entorno>-plan` NO lleva revisor, a propósito: si lo llevara,
+    # la aprobación volvería a pedirse antes de que exista el plan. Que sea el
+    # entorno desprotegido es aceptable porque el rol que cuelga de él tiene
+    # ReadOnlyAccess y nada más.
+    needs: construir
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.entorno }}-plan
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          # Sin envoltorio: interfiere al leer la salida de `terraform output`
+          # desde los pasos siguientes.
+          terraform_wrapper: false
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: artefactos
+
+      - name: Desempaquetar los artefactos
+        run: tar -xzf artefactos.tgz
+
+      - name: Asumir rol de solo lectura
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_PLAN_ROLE_ARN }}
+          aws-region: ${{ env.REGION }}
 
       - name: Resolver el bucket del estado
         # El nombre lo fija bootstrap/ como ondexia-tfstate-<cuenta>, así que se
@@ -242,6 +317,120 @@ jobs:
         # La clave del estado LLEVA EL ENTORNO. Con una clave fija, `dev` y
         # `prod` compartirían estado y el primer despliegue de `dev` se llevaría
         # por delante producción. Ver el comentario en versions.tf.
+        run: |
+          terraform init \
+            -backend-config="bucket=${BUCKET_ESTADO}" \
+            -backend-config="key=ondexia/${{ inputs.entorno }}/terraform.tfstate" \
+            -backend-config="region=${REGION}"
+
+      - name: Terraform plan
+        working-directory: ondexia.infra
+        # `-lock=false` porque este rol no puede escribir en el bucket del
+        # estado, y un plan no necesita el bloqueo: no modifica nada. Lo que el
+        # bloqueo protege —dos escrituras simultáneas— lo cubre además
+        # `concurrency` a nivel de workflow.
+        #
+        # En modo `solo_landing` el plan se acota con -target. Terraform
+        # arrastra solo las dependencias: el bucket, su cifrado y el control
+        # de acceso de origen entran porque la distribucion y la politica los
+        # necesitan.
+        #
+        # El bloqueo de acceso publico se apunta APARTE, y es lo unico de
+        # esta lista que no es opcional. No es dependencia de nadie —es un
+        # recurso hermano del bucket—, asi que sin nombrarlo el bucket nace
+        # sin el y queda expuesto hasta el siguiente apply completo. Un
+        # descuido de una linea que abre el bucket entero.
+        #
+        # -target esta desaconsejado como norma, y este workflow ya lo usa a
+        # proposito para las migraciones. El motivo es el mismo: hace falta
+        # aplicar una parte antes que el resto.
+        #
+        # Los tres artefactos se vacian con -var, que gana sobre el tfvars. Sin
+        # esto el plan aborta ANTES de mirar los -target: `dev.tfvars` apunta a
+        # jars que en este modo no se construyen, y `filemd5` sobre un archivo
+        # que no existe falla al evaluar la expresion. Vaciarlos apaga de paso
+        # el data source de SSM de consultas, que se resuelve en el plan y
+        # exige parametros creados a mano.
+        run: |
+          if [ "${{ inputs.solo_landing }}" = "true" ]; then
+            terraform plan -lock=false \
+              -var-file="entornos/${{ inputs.entorno }}.tfvars" \
+              -var 'artefacto_api=' \
+              -var 'artefacto_panel=' \
+              -var 'artefacto_consultas=' \
+              -target='aws_s3_bucket_public_access_block.sitio["landing"]' \
+              -target='aws_s3_bucket_server_side_encryption_configuration.sitio["landing"]' \
+              -target='aws_s3_bucket_policy.sitio["landing"]' \
+              -target='aws_cloudfront_distribution.sitio["landing"]' \
+              -out=plan.tfplan
+          else
+            terraform plan -lock=false \
+              -var-file="entornos/${{ inputs.entorno }}.tfvars" \
+              -out=plan.tfplan
+          fi
+          terraform show -no-color plan.tfplan > plan.txt
+
+      - name: Publicar el plan en el resumen
+        working-directory: ondexia.infra
+        # Queda en la página de la ejecución ANTES de que GitHub pida la
+        # aprobación del entorno protegido. Con un solo operador (R-13) no hay
+        # un segundo par de ojos, así que este plan es lo más parecido a una
+        # revisión que existe — y ahora llega a tiempo de decidir.
+        run: |
+          {
+            echo "## Plan · ${{ inputs.entorno }}"
+            echo ""
+            echo "Calculado con el rol de solo lectura, antes de aprobar."
+            echo ""
+            echo '```terraform'
+            head -c 60000 plan.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # ════════════════════════════════════════════════════════════════════════
+  aplicar:
+    # ══════════════════════════════════════════════════════════════════════
+    #
+    # Aquí es donde GitHub pide la aprobación en prod, con el plan ya publicado
+    # por el job anterior.
+    needs: [construir, planificar]
+    if: ${{ !inputs.solo_plan }}
+    runs-on: ubuntu-latest
+    # El entorno `prod` debe configurarse en GitHub con revisor requerido: esa
+    # es la aprobación manual que exige el DTE §10.2. No es burocracia — un
+    # despliegue defectuoso genera comprobantes inválidos con consecuencias
+    # fiscales para el cliente.
+    environment: ${{ inputs.entorno }}
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+          terraform_wrapper: false
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: artefactos
+
+      - name: Desempaquetar los artefactos
+        run: tar -xzf artefactos.tgz
+
+      - name: Asumir rol de despliegue
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.REGION }}
+
+      - name: Resolver el bucket del estado
+        run: |
+          CUENTA=$(aws sts get-caller-identity --query Account --output text)
+          echo "BUCKET_ESTADO=ondexia-tfstate-${CUENTA}" >> "$GITHUB_ENV"
+
+      - name: Terraform init
+        working-directory: ondexia.infra
         run: |
           terraform init \
             -backend-config="bucket=${BUCKET_ESTADO}" \
@@ -265,7 +454,7 @@ jobs:
       # se aplica el resto.
 
       - name: Actualizar la función de migraciones
-        if: ${{ !inputs.solo_plan && !inputs.solo_landing }}
+        if: ${{ !inputs.solo_landing }}
         working-directory: ondexia.infra
         # -target está desaconsejado como norma y aquí es lo correcto: se
         # necesita justamente aplicar una parte antes que el resto.
@@ -276,7 +465,7 @@ jobs:
             -target=aws_lambda_function.migraciones
 
       - name: Aplicar las migraciones
-        if: ${{ !inputs.solo_plan && !inputs.solo_landing }}
+        if: ${{ !inputs.solo_landing }}
         working-directory: ondexia.infra
         run: |
           FUNCION=$(terraform output -raw funcion_migraciones)
@@ -303,42 +492,19 @@ jobs:
 
       # ── Infraestructura, ya con el esquema al día ──────────────────────────
 
-      # El plan se calcula AQUÍ y no antes de las migraciones, y el motivo es
-      # que un plan guardado caduca.
+      # El plan se RECALCULA aquí, y no se aplica el del job anterior.
       #
       # Terraform anota en el archivo del plan el serial del estado con el que lo
       # calculó, y `apply plan.tfplan` se niega a aplicarlo si el estado avanzó
       # desde entonces: «Saved plan is stale». El paso de migraciones aplica dos
-      # recursos con -target, así que el estado avanza justo en medio — planificar
-      # antes producía un plan condenado a rechazarse.
+      # recursos con -target, así que el estado avanza justo en medio.
       #
-      # Calculándolo después se arreglan las dos cosas a la vez: el plan ya no
-      # caduca, y deja de incluir dos recursos que se aplicaron por adelantado y
-      # que había que explicar en el resumen como «ya están en su estado
-      # deseado».
+      # La consecuencia hay que decirla: lo aprobado y lo aplicado se calculan
+      # en momentos distintos. Por eso este plan también se publica en el
+      # resumen — si difiere del revisado, se ve en la misma página, y las dos
+      # secciones están una debajo de otra.
       - name: Terraform plan
         working-directory: ondexia.infra
-        # En modo `solo_landing` el plan se acota con -target. Terraform
-        # arrastra solo las dependencias: el bucket, su cifrado y el control
-        # de acceso de origen entran porque la distribucion y la politica los
-        # necesitan.
-        #
-        # El bloqueo de acceso publico se apunta APARTE, y es lo unico de
-        # esta lista que no es opcional. No es dependencia de nadie —es un
-        # recurso hermano del bucket—, asi que sin nombrarlo el bucket nace
-        # sin el y queda expuesto hasta el siguiente apply completo. Un
-        # descuido de una linea que abre el bucket entero.
-        #
-        # -target esta desaconsejado como norma, y este workflow ya lo usa a
-        # proposito para las migraciones. El motivo es el mismo: hace falta
-        # aplicar una parte antes que el resto.
-        #
-        # Los tres artefactos se vacian con -var, que gana sobre el tfvars. Sin
-        # esto el plan aborta ANTES de mirar los -target: `dev.tfvars` apunta a
-        # jars que en este modo no se construyen, y `filemd5` sobre un archivo
-        # que no existe falla al evaluar la expresion. Vaciarlos apaga de paso
-        # el data source de SSM de consultas, que se resuelve en el plan y
-        # exige parametros creados a mano.
         run: |
           if [ "${{ inputs.solo_landing }}" = "true" ]; then
             terraform plan \
@@ -358,25 +524,24 @@ jobs:
           fi
           terraform show -no-color plan.tfplan > plan.txt
 
-      - name: Publicar el plan en el resumen
+      - name: Publicar el plan que se va a aplicar
         working-directory: ondexia.infra
-        # Queda en la página de la ejecución. Con un solo operador (R-13) no hay
-        # un segundo par de ojos, así que el plan legible después del hecho es
-        # lo más parecido a una revisión que existe.
         run: |
           {
-            echo "## Plan · ${{ inputs.entorno }}"
+            echo "## Plan aplicado · ${{ inputs.entorno }}"
+            echo ""
+            echo "Recalculado despues de las migraciones. Comparar con el plan revisado."
+            echo ""
             echo '```terraform'
             head -c 60000 plan.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Terraform apply
-        if: ${{ !inputs.solo_plan }}
         working-directory: ondexia.infra
-        # Se aplica el plan guardado, no se recalcula. Un `apply` que vuelve a
-        # planificar puede hacer algo distinto de lo que se revisó, y en prod hay
-        # una aprobación humana de por medio.
+        # Se aplica el plan guardado, no se recalcula otra vez. Un `apply` que
+        # vuelve a planificar puede hacer algo distinto de lo que se acaba de
+        # publicar.
         run: terraform apply -auto-approve plan.tfplan
 
       # ── Publicación del contenido estático ─────────────────────────────────
@@ -384,7 +549,7 @@ jobs:
       # Después del apply: los buckets y las distribuciones tienen que existir.
 
       - name: Publicar la SPA
-        if: ${{ !inputs.solo_plan && !inputs.solo_landing }}
+        if: ${{ !inputs.solo_landing }}
         working-directory: ondexia.infra
         run: |
           BUCKET=$(terraform output -json buckets | jq -r .app)
@@ -428,7 +593,7 @@ jobs:
             --paths "/index.html" "/" "/config.json"
 
       - name: Publicar el panel interno
-        if: ${{ !inputs.solo_plan && !inputs.solo_landing }}
+        if: ${{ !inputs.solo_landing }}
         working-directory: ondexia.infra
         run: |
           BUCKET=$(terraform output -json buckets | jq -r .panel)
@@ -442,15 +607,21 @@ jobs:
 
           aws s3 sync "${DESTINO}" "s3://${BUCKET}" --delete
 
-          aws s3 cp "s3://${BUCKET}/index.html" "s3://${BUCKET}/index.html"             --metadata-directive REPLACE             --cache-control "no-cache, no-store, must-revalidate"             --content-type "text/html; charset=utf-8"
+          aws s3 cp "s3://${BUCKET}/index.html" "s3://${BUCKET}/index.html" \
+            --metadata-directive REPLACE \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --content-type "text/html; charset=utf-8"
 
           # config.json tampoco se cachea: es lo que apunta a la API y a Cognito.
-          aws s3 cp "s3://${BUCKET}/config.json" "s3://${BUCKET}/config.json"             --metadata-directive REPLACE             --cache-control "no-cache, no-store, must-revalidate"             --content-type "application/json"
+          aws s3 cp "s3://${BUCKET}/config.json" "s3://${BUCKET}/config.json" \
+            --metadata-directive REPLACE \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --content-type "application/json"
 
-          aws cloudfront create-invalidation             --distribution-id "${DISTRIBUCION}" --paths "/*" > /dev/null
+          aws cloudfront create-invalidation \
+            --distribution-id "${DISTRIBUCION}" --paths "/*" > /dev/null
 
       - name: Publicar la landing
-        if: ${{ !inputs.solo_plan }}
         working-directory: ondexia.infra
         run: |
           # `landing` y no `buckets`/`distribuciones_cloudfront`: aquellas
@@ -476,29 +647,41 @@ jobs:
           # aparte. Se comprueba antes de copiar para que el paso no dependa de
           # como resuelva la CLI un prefijo vacio.
           if [ -n "$(aws s3 ls "s3://${BUCKET}/_astro/" || true)" ]; then
-            aws s3 cp "s3://${BUCKET}/_astro" "s3://${BUCKET}/_astro"               --recursive --metadata-directive REPLACE               --cache-control "public, max-age=31536000, immutable"
+            aws s3 cp "s3://${BUCKET}/_astro" "s3://${BUCKET}/_astro" \
+              --recursive --metadata-directive REPLACE \
+              --cache-control "public, max-age=31536000, immutable"
           fi
 
           # Las fuentes si estan siempre, y son lo mas pesado de la pagina.
-          aws s3 cp "s3://${BUCKET}/fonts" "s3://${BUCKET}/fonts"             --recursive --exclude "*" --include "*.woff2"             --metadata-directive REPLACE             --cache-control "public, max-age=31536000, immutable"             --content-type "font/woff2"
+          aws s3 cp "s3://${BUCKET}/fonts" "s3://${BUCKET}/fonts" \
+            --recursive --exclude "*" --include "*.woff2" \
+            --metadata-directive REPLACE \
+            --cache-control "public, max-age=31536000, immutable" \
+            --content-type "font/woff2"
 
-          aws s3 cp "s3://${BUCKET}/index.html" "s3://${BUCKET}/index.html"             --metadata-directive REPLACE             --cache-control "no-cache, no-store, must-revalidate"             --content-type "text/html; charset=utf-8"
+          aws s3 cp "s3://${BUCKET}/index.html" "s3://${BUCKET}/index.html" \
+            --metadata-directive REPLACE \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --content-type "text/html; charset=utf-8"
 
           # El sitemap y el robots cambian de contenido con el mismo nombre.
           # Una hora basta: no son criticos y no conviene invalidarlos a mano.
           for ARCHIVO in robots.txt sitemap-index.xml sitemap-0.xml; do
             if aws s3 ls "s3://${BUCKET}/${ARCHIVO}" > /dev/null 2>&1; then
-              aws s3 cp "s3://${BUCKET}/${ARCHIVO}" "s3://${BUCKET}/${ARCHIVO}"                 --metadata-directive REPLACE                 --cache-control "public, max-age=3600"
+              aws s3 cp "s3://${BUCKET}/${ARCHIVO}" "s3://${BUCKET}/${ARCHIVO}" \
+                --metadata-directive REPLACE \
+                --cache-control "public, max-age=3600"
             fi
           done
 
-          aws cloudfront create-invalidation             --distribution-id "${DISTRIBUCION}"             --paths "/" "/index.html" "/sitemap-index.xml" "/sitemap-0.xml" "/robots.txt" > /dev/null
+          aws cloudfront create-invalidation \
+            --distribution-id "${DISTRIBUCION}" \
+            --paths "/" "/index.html" "/sitemap-index.xml" "/sitemap-0.xml" "/robots.txt" > /dev/null
 
       # En su propio paso y no dentro del siguiente: aquella sonda hace `exit 0`
       # en cuanto la API contesta, asi que cualquier comprobacion que fuera
       # despues en el mismo script no llegaria a ejecutarse nunca.
       - name: Comprobar que la landing responde
-        if: ${{ !inputs.solo_plan }}
         working-directory: ondexia.infra
         run: |
           LANDING=$(terraform output -json landing | jq -r .url)
@@ -518,7 +701,7 @@ jobs:
           exit 1
 
       - name: Comprobar que responde
-        if: ${{ !inputs.solo_plan && !inputs.solo_landing }}
+        if: ${{ !inputs.solo_landing }}
         working-directory: ondexia.infra
         # Una comprobación de humo, no una suite. Responde a la única pregunta
         # que importa justo después de desplegar: ¿está en pie lo que acabo de
@@ -542,7 +725,6 @@ jobs:
           exit 1
 
       - name: Recordatorios
-        if: ${{ !inputs.solo_plan }}
         working-directory: ondexia.infra
         # Lo que Terraform no puede hacer por ti. Se imprime en cada despliegue
         # porque son cosas que se olvidan justo cuando importan — una alarma que
