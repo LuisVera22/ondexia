@@ -53,10 +53,29 @@ const columnas: { titulo: string; enlaces: Enlace[] }[] = [
   >
     <div class="flex flex-col gap-3">
       <Logo ancho={148} />
-      <p class="text-[13px] leading-[21px] text-gray-500">
-        {/* PENDIENTE: datos del titular. Sin ellos no se puede publicar. */}
-        [RAZÓN SOCIAL] · RUC [TU RUC]<br />[DIRECCIÓN FISCAL]
-      </p>
+      {
+        /*
+          Los datos del titular salen del entorno de build, y si no estan NO SE
+          PINTA NADA. Antes habia un texto literal —«[RAZÓN SOCIAL] · RUC [TU
+          RUC]»— que era un marcador y se habria publicado tal cual (tabla de
+          bajas de la auditoria 2026-09-01). Un pie sin datos es un defecto
+          visible; un pie con corchetes es un defecto visible que ademas parece
+          que nadie leyo la pagina antes de publicarla.
+
+          Se ponen en .env como PUBLIC_TITULAR_RAZON_SOCIAL, PUBLIC_TITULAR_RUC y
+          PUBLIC_TITULAR_DIRECCION. Siguen siendo obligatorios para publicar: lo
+          que cambia es que faltar se nota como ausencia y no como error.
+        */
+      }
+      {
+        import.meta.env.PUBLIC_TITULAR_RAZON_SOCIAL && (
+          <p class="text-[13px] leading-[21px] text-gray-500">
+            {import.meta.env.PUBLIC_TITULAR_RAZON_SOCIAL} · RUC {import.meta.env.PUBLIC_TITULAR_RUC}
+            <br />
+            {import.meta.env.PUBLIC_TITULAR_DIRECCION}
+          </p>
+        )
+      }
     </div>
 
     <nav class="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:gap-14" aria-label="Pie de página">

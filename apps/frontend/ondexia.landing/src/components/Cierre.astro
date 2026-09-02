@@ -46,6 +46,18 @@ const correo = 'hola@ondexia.com';
       {
         endpoint ? (
           <form action={endpoint} method="POST" class="flex flex-col gap-3">
+            {/*
+              Trampa para robots (tabla de bajas de la auditoria 2026-09-01). Un
+              humano no ve este campo ni lo rellena; un robot que rellena todo lo
+              que encuentra lo manda con valor, y el destino puede descartar la
+              entrada. No sustituye a un CAPTCHA —tampoco hace falta uno para
+              una lista de espera— y no anade JavaScript, que es la condicion de
+              esta landing.
+            */}
+            <div class="hidden" aria-hidden="true">
+              <label for="sitio_web">No rellenar</label>
+              <input id="sitio_web" type="text" name="sitio_web" tabindex="-1" autocomplete="off" />
+            </div>
             <label for="correo" class="sr-only">
               Tu correo de empresa
             </label>
@@ -58,6 +70,28 @@ const correo = 'hola@ondexia.com';
               placeholder="tu@empresa.com"
               class="h-14 rounded-[10px] border-2 border-gray-900 bg-white px-[18px] text-base text-gray-900 shadow-[var(--sombra-dura)] transition-shadow placeholder:text-gray-500 focus:shadow-[var(--sombra-dura-alta)] focus:outline-2 focus:outline-offset-2 focus:outline-brand-500"
             />
+            {/*
+              Ley 29733 (proteccion de datos personales) y su reglamento: el
+              correo es un dato personal y hace falta consentimiento expreso e
+              informado ANTES de tratarlo. Sin esto, la lista de espera se
+              recogia sin base legal. El texto dice para que se usa, quien lo
+              trata y como borrarse; el enlace lleva a la politica.
+            */}
+            <label class="flex items-start gap-2.5 text-[13px] leading-5 text-brand-900">
+              <input
+                type="checkbox"
+                name="consentimiento"
+                value="si"
+                required
+                class="mt-0.5 h-4 w-4 shrink-0 accent-brand-900"
+              />
+              <span>
+                Acepto que Ondexia use este correo solo para avisarme del acceso, y sé que
+                puedo pedir que lo borren escribiendo a
+                <a href={`mailto:${correo}`} class="font-semibold underline">{correo}</a>.
+                <a href="/privacidad" class="font-semibold underline">Política de privacidad</a>.
+              </span>
+            </label>
             <button type="submit" class="btn-oscuro w-full">
               Avísenme
             </button>

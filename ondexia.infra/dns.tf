@@ -26,6 +26,9 @@ resource "aws_acm_certificate" "principal" {
     "app.${var.dominio}",
     "api.${var.dominio}",
     "cdn.${var.dominio}",
+    # Faltaba (tabla de bajas): el sitio del panel tiene subdominio propio en
+    # estatico.tf y sin este SAN su distribucion no podria usar el certificado.
+    "panel.${var.dominio}",
   ]
   validation_method = "DNS"
 

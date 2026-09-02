@@ -96,6 +96,54 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "estado" {
   }
 }
 
+/**
+ * Nada sin TLS, ni siquiera para quien tenga permiso (tabla de bajas).
+ *
+ * El estado lleva la contraseña de la base en claro. Sin esta politica, un
+ * cliente mal configurado —o un `aws s3 cp` con `--endpoint-url http://`— la
+ * bajaria por HTTP y quedaria legible para cualquiera en el camino.
+ *
+ * Lo que NO se hace aqui, y por que: la auditoria propone ademas restringir el
+ * bucket a los roles de despliegue. Esos roles los crea la configuracion
+ * principal, que a su vez necesita este bucket para guardar su estado — una
+ * politica que los nombrara aqui no se podria aplicar la primera vez. Y SSE-KMS
+ * con llave propia cuesta 1 USD/mes por una mejora que, con acceso publico
+ * bloqueado y TLS obligatorio, no cierra ningun camino concreto. Queda dicho en
+ * vez de hecho.
+ */
+data "aws_iam_policy_document" "estado" {
+  statement {
+    sid    = "NadaSinTls"
+    effect = "Deny"
+
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+
+    actions = ["s3:*"]
+    resources = [
+      aws_s3_bucket.estado.arn,
+      "${aws_s3_bucket.estado.arn}/*",
+    ]
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "estado" {
+  bucket = aws_s3_bucket.estado.id
+  policy = data.aws_iam_policy_document.estado.json
+
+  # Despues del bloqueo de acceso publico: S3 rechaza poner una politica en un
+  # bucket mientras `block_public_policy` se esta aplicando.
+  depends_on = [aws_s3_bucket_public_access_block.estado]
+}
+
 # Las versiones antiguas del estado no sirven para nada pasado un tiempo, pero
 # ocupan. Se retiran solas a los 90 días.
 resource "aws_s3_bucket_lifecycle_configuration" "estado" {

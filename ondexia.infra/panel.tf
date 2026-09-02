@@ -243,6 +243,14 @@ resource "aws_cognito_user_pool_client" "panel" {
   callback_urls = [local.origen_panel]
   logout_urls   = [local.origen_panel]
 
+  # Lo que este cliente puede leer y escribir del perfil, igual que el del SPA
+  # (tabla de bajas). Sin la restriccion, el token del panel podia modificar
+  # cualquier atributo del usuario de personal — incluido el correo, que desde
+  # A6 ya no identifica a nadie en la bitacora pero sigue siendo la via de
+  # recuperacion de la cuenta.
+  read_attributes  = ["email", "email_verified", "name"]
+  write_attributes = ["name"]
+
   # Una hora de acceso y ocho de sesión. Más corto que el de clientes: una
   # sesión abierta aquí ve las cuentas de todos.
   access_token_validity  = 60

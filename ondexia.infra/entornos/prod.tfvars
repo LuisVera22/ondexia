@@ -7,9 +7,15 @@
 entorno = "prod"
 region  = "us-east-1"
 
-# Activar cuando el dominio esté registrado y se puedan cargar los servidores
-# de nombres en el registrador. Antes de eso, encenderlo deja certificados
-# esperando una validación que nunca llega.
+# OBLIGATORIO en prod: variables.tf lo valida y el plan aborta con false. Sin
+# dominio propio CloudFront acepta TLS 1.0 y la CSP queda con comodines (tabla
+# de bajas de la auditoria 2026-09-01).
+#
+# Se deja en false A SABIENDAS mientras el dominio no este registrado: asi el
+# primer plan de prod falla con un mensaje que dice exactamente que falta, en
+# vez de desplegar un entorno de produccion que no deberia recibir clientes.
+# Encenderlo antes de poder cargar los servidores de nombres deja certificados
+# esperando una validacion que nunca llega.
 gestionar_dns = false
 dominio       = "ondexia.com"
 
