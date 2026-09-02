@@ -40,6 +40,7 @@ describe('RegistroComponent · invitado o empresa nueva', () => {
           useValue: {
             api: 'http://api.pruebas',
             consultas: 'http://consultas.pruebas',
+            autoservicio: true,
             cognito: {},
           },
         },

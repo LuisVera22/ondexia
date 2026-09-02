@@ -47,19 +47,34 @@
       <span class="h-px flex-1 bg-gray-200 dark:bg-gray-800"></span>
     </div>
 
-    <p class="text-center text-sm text-gray-500 dark:text-gray-400">
-      ¿Aún no tienes una cuenta?
-      <button
-        type="button"
-        (click)="crearCuenta()"
-        [disabled]="enviando()"
-        class="font-medium text-brand-500 transition hover:text-brand-600 disabled:opacity-60"
-      >
-        Crear cuenta
-      </button>
-    </p>
-    <p class="mt-2 text-center text-xs text-gray-400 dark:text-gray-500">
-      Prueba Ondexia con tu empresa: solo necesitas tu RUC.
-    </p>
+    @if (autoservicio) {
+      <p class="text-center text-sm text-gray-500 dark:text-gray-400">
+        ¿Aún no tienes una cuenta?
+        <button
+          type="button"
+          (click)="crearCuenta()"
+          [disabled]="enviando()"
+          class="font-medium text-brand-500 transition hover:text-brand-600 disabled:opacity-60"
+        >
+          Crear cuenta
+        </button>
+      </p>
+      <p class="mt-2 text-center text-xs text-gray-400 dark:text-gray-500">
+        Prueba Ondexia con tu empresa: solo necesitas tu RUC.
+      </p>
+    } @else {
+      <p class="text-center text-sm text-gray-500 dark:text-gray-400">
+        ¿Aún no tienes una cuenta?
+        <a
+          href="mailto:hola@ondexia.com?subject=Quiero%20probar%20Ondexia"
+          class="font-medium text-brand-500 transition hover:text-brand-600"
+        >
+          Escríbenos
+        </a>
+      </p>
+      <p class="mt-2 text-center text-xs text-gray-400 dark:text-gray-500">
+        Estamos abriendo cuentas de una en una. Te damos acceso el mismo día.
+      </p>
+    }
   </div>
 </app-marco-acceso>

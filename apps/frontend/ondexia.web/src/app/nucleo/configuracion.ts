@@ -37,6 +37,19 @@ export interface ConfiguracionApp {
    */
   readonly consultas: string;
 
+  /**
+   * Si el alta es autoservicio.
+   *
+   * Quien manda es Cognito: con el autoservicio cerrado —que es como está desde
+   * el hallazgo C2 de la auditoría 2026-09-01— la interfaz alojada responde a
+   * `/signup` con un error, así que la pantalla de acceso no debe ofrecerlo.
+   *
+   * Sale del despliegue y no de una constante para que las dos mitades no
+   * puedan divergir: es `var.autoservicio_inquilinos` de Terraform, el mismo
+   * valor que configura el pool.
+   */
+  readonly autoservicio: boolean;
+
   readonly cognito: {
     /** Base de la interfaz alojada: de aquí cuelgan /oauth2/authorize y /oauth2/token. */
     readonly dominio: string;
@@ -75,15 +88,20 @@ export function cargarConfiguracion() {
       http.get<ConfiguracionApp>('config.json')
     );
 
-    if (!configuracion?.api || !configuracion.consultas || !configuracion.cognito?.clienteId) {
+    if (
+      !configuracion?.api ||
+      !configuracion.consultas ||
+      !configuracion.cognito?.clienteId ||
+      typeof configuracion.autoservicio !== 'boolean'
+    ) {
       // Fallar aquí y no más adelante. Sin esto, la aplicación arranca, pinta
       // el panel y falla en la primera llamada con un error de red contra
       // `undefined/api/v1/contexto`, que no sugiere en absoluto que el problema
       // sea un archivo de configuración mal generado en el despliegue.
       throw new Error(
         'config.json no trae la configuración esperada: hacen falta `api`, ' +
-          '`consultas` y `cognito.clienteId`. Lo genera el despliegue a partir ' +
-          'de `terraform output -json configuracion_spa`.'
+          '`consultas`, `cognito.clienteId` y `autoservicio`. Lo genera el ' +
+          'despliegue a partir de `terraform output -json configuracion_spa`.'
       );
     }
 

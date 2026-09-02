@@ -85,6 +85,16 @@ output "configuracion_spa" {
     api = var.gestionar_dns ? "https://api.${var.dominio}" : aws_apigatewayv2_api.principal.api_endpoint
 
     /**
+     * Si la pantalla de acceso ofrece «Crear cuenta» (hallazgo C2).
+     *
+     * Tiene que salir de aquí y no de una constante del SPA porque quien manda
+     * es Cognito: con `allow_admin_create_user_only`, la interfaz alojada
+     * responde a /signup con un error. Un botón que lleva a un error es peor
+     * que no tener botón.
+     */
+    autoservicio = var.autoservicio_inquilinos
+
+    /**
      * El MISMO origen que la API, y no es redundante.
      *
      * Desplegado, la consulta del padrón es una ruta más de la misma pasarela

@@ -43,28 +43,39 @@ resource "aws_cognito_user_pool" "inquilinos" {
   }
 
   /**
-   * Autoservicio abierto. Decía lo contrario, y decía esto:
+   * Autoservicio CERRADO. Y hay una decisión de producto en contra que conviene
+   * leer antes de tocar esta línea.
    *
-   *   «Un ERP no tiene registro abierto: quien entra es empleado de una empresa
-   *   que ya contrató.»
+   * Historia, en orden:
    *
-   * La segunda mitad sigue siendo cierta y la primera no. El empleado, en
-   * efecto, lo da de alta el administrador de su empresa. Pero **ese
-   * administrador tiene que llegar de algún sitio**, y con el autoservicio
-   * cerrado no llegaba de ninguno: cada cliente nuevo exigía crear a mano la
-   * cuenta, el usuario y la empresa. Es lo que hubo que hacer para poder entrar
-   * a dev por primera vez.
+   *   1. Estuvo cerrado, con este argumento: «un ERP no tiene registro abierto;
+   *      quien entra es empleado de una empresa que ya contrató».
+   *   2. Se abrió el 2026-08-13 porque la segunda mitad de esa frase es cierta
+   *      y la primera no: el empleado lo da de alta su administrador, pero ese
+   *      administrador tiene que llegar de algún sitio. Cerrado, cada cliente
+   *      nuevo exigía crear a mano cuenta, usuario y empresa. Ondexia se vende
+   *      con período de prueba, así que el alta es una pantalla del producto.
+   *   3. Se vuelve a cerrar el 2026-09-01 por la cadena crítica C2 de la
+   *      auditoría.
    *
-   * Decisión de producto (2026-08-13): Ondexia se vende con período de prueba,
-   * así que el alta es una pantalla del producto, no trabajo de operaciones.
+   * QUÉ ENCONTRÓ LA AUDITORÍA. Con el autoservicio abierto, cualquiera obtiene
+   * un token válido de este pool en dos minutos. Ese token abre la consulta de
+   * RUC, que es una ruta autenticada pero que NO comprueba que quien llama
+   * tenga cuenta en Ondexia: unas 180.000 consultas por hora contra la clave de
+   * pago de Decolecta. Con el mismo token, `POST /api/v1/registro` responde
+   * `409 ruc_ya_registrado` y enumera qué contribuyentes del país son clientes
+   * nuestros.
    *
-   * Lo que frena el registro basura no es cerrar el autoservicio sino que el
-   * correo deba verificarse —`auto_verified_attributes`, más arriba— y que el
-   * RUC sea único en toda la instalación. Sin correo confirmado no hay token, y
-   * sin token no hay alta.
+   * Lo que se pierde es real: el alta deja de ser una pantalla y vuelve a ser
+   * trabajo de operaciones. Decisión del responsable del producto, tomada con
+   * esa consecuencia sobre la mesa.
+   *
+   * Se deja como variable porque revertirlo es legítimo el día que la consulta
+   * de RUC exija fila en `usuario` —que es el otro arreglo posible de C2, y el
+   * bueno— y no una línea que haya que volver a discutir.
    */
   admin_create_user_config {
-    allow_admin_create_user_only = false
+    allow_admin_create_user_only = !var.autoservicio_inquilinos
   }
 
   # No revela si un correo existe cuando falla el acceso.
