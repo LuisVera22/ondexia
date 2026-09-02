@@ -110,11 +110,21 @@ NO: son los que calculan el plan que el revisor lee antes de aprobar, y pedirles
 aprobación devolvería el problema que resuelven. El rol que usan es de solo
 lectura, que es lo que hace aceptable que estén desprotegidos.
 
-**5. Lanzar `deploy.yml`** con entorno `dev`, «Solo la landing» marcado y «Solo
+**5. El rol de las migraciones, una vez por entorno.** La Lambda que migra se
+conecta como `ondexia_migraciones` con un token de IAM, no con la contraseña
+maestra (hallazgo A3). Ese rol de PostgreSQL tiene que existir antes del primer
+despliegue, y no lo puede crear la propia migración: es el rol con el que se
+conecta la función que la ejecuta.
+
+El SQL, con las instrucciones dentro, está en
+`bootstrap/rol-migraciones.sql`. Tampoco lo puede crear Terraform — el proveedor
+de PostgreSQL necesitaría alcanzar la instancia por red, y RDS no es pública.
+
+**6. Lanzar `deploy.yml`** con entorno `dev`, «Solo la landing» marcado y «Solo
 mostrar el plan» **también marcado**. Lee el plan en el resumen de la ejecución:
 deberían salir cuatro recursos y ninguno de ellos una base de datos.
 
-**6. Repetir sin «solo plan».** La URL sale en el resumen, en la fila `Landing`.
+**7. Repetir sin «solo plan».** La URL sale en el resumen, en la fila `Landing`.
 
 ### Qué vas a ver, y dónde
 

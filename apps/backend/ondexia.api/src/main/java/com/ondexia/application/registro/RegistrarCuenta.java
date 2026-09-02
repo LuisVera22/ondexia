@@ -124,11 +124,28 @@ public class RegistrarCuenta {
          * contribuyente. Se comprueba aquí para dar un mensaje decente; la
          * garantía la da el índice único de `empresa.ruc`.
          */
+        /*
+         * El mensaje NO confirma que el RUC este registrado (hallazgos C2 y M16).
+         *
+         * Decia «El RUC X ya está registrado en Ondexia», y con eso cualquiera
+         * con una cuenta podia recorrer el padron probando RUC y quedarse con la
+         * lista de contribuyentes que son clientes nuestros: quien factura con
+         * quien, y cuantos somos. Es informacion comercial de nuestros clientes
+         * y nuestra, y la entregaba un endpoint de alta.
+         *
+         * El codigo tambien cambia: `ruc_ya_registrado` distinguia el caso por si
+         * solo, aunque el texto no lo dijera.
+         *
+         * Lo que se pierde es claridad para quien tiene un motivo legitimo, y por
+         * eso el mensaje dice que hacer sin decir por que. Quien sea de esa
+         * empresa lo entiende; quien esta enumerando, no aprende nada.
+         */
         empresas.buscarPorRuc(ruc).ifPresent(existente -> {
             throw new Conflicto(
-                    "ruc_ya_registrado",
-                    "El RUC " + ruc.valor() + " ya está registrado en Ondexia. "
-                            + "Si es tu empresa, pide a su administrador que te dé acceso.",
+                    "registro_no_disponible",
+                    "No se pudo completar el registro con estos datos. Si tu empresa ya "
+                            + "trabaja con Ondexia, pide a su administrador que te dé acceso; "
+                            + "si no, escríbenos.",
                     "ruc");
         });
 

@@ -5,6 +5,9 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import java.util.Map;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.output.MigrateResult;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.rds.RdsUtilities;
 
 /**
  * Ejecuta las migraciones de Flyway, una vez, bajo demanda.
@@ -46,7 +49,12 @@ public class ManejadorMigraciones implements RequestHandler<Map<String, Object>,
 
     @Override
     public String handleRequest(Map<String, Object> evento, Context contexto) {
-        String url = "jdbc:postgresql://%s:%s/%s".formatted(
+        /*
+         * `sslmode=require` en la URL, no como opcion: RDS EXIGE conexion
+         * cifrada para autenticar por IAM, y sin esto el fallo es un «PAM
+         * authentication failed» que no menciona TLS.
+         */
+        String url = "jdbc:postgresql://%s:%s/%s?ssl=true&sslmode=require".formatted(
                 variable("BD_HOST"), variable("BD_PUERTO"), variable("BD_NOMBRE"));
 
         /*
@@ -74,7 +82,7 @@ public class ManejadorMigraciones implements RequestHandler<Map<String, Object>,
         }
 
         var flyway = Flyway.configure()
-                .dataSource(url, variable("BD_USUARIO"), variable("BD_CONTRASENA"))
+                .dataSource(url, variable("BD_USUARIO"), token())
                 .locations("classpath:db/migration")
                 /*
                  * Fuera de orden permitido, y no es una concesion: es lo que
@@ -136,7 +144,7 @@ public class ManejadorMigraciones implements RequestHandler<Map<String, Object>,
         }
 
         var resultado = Flyway.configure()
-                .dataSource(url, variable("BD_USUARIO"), variable("BD_CONTRASENA"))
+                .dataSource(url, variable("BD_USUARIO"), token())
                 // La carpeta de ejemplo se anade SOLO aqui. En la migracion
                 // normal Flyway ni la mira, que es lo que impide que los datos
                 // de demostracion lleguen a produccion por descuido.
@@ -165,7 +173,7 @@ public class ManejadorMigraciones implements RequestHandler<Map<String, Object>,
 
         int vinculados;
         try (var conexion = java.sql.DriverManager.getConnection(
-                        url, variable("BD_USUARIO"), variable("BD_CONTRASENA"));
+                        url, variable("BD_USUARIO"), token());
                 var sentencia = conexion.prepareStatement(
                         "update usuario set cognito_sub = ?, email = ?, actualizado_en = now()"
                                 + " where id = ?::uuid")) {
@@ -187,6 +195,38 @@ public class ManejadorMigraciones implements RequestHandler<Map<String, Object>,
                 .formatted(resultado.migrationsExecuted, email, sub);
         contexto.getLogger().log(resumen);
         return resumen;
+    }
+
+    /**
+     * La credencial: un token de IAM firmado localmente, no una contraseña.
+     *
+     * <p>Hallazgo A3 de la auditoría 2026-09-01. Aquí se leía
+     * {@code BD_CONTRASENA}, que era la contraseña <strong>maestra</strong> de la
+     * instancia puesta en una variable de entorno de la función: legible con
+     * {@code lambda:GetFunctionConfiguration} y presente además en el estado de
+     * Terraform.
+     *
+     * <p>Firmar no abre ninguna conexión de red, que es la condición para que
+     * esto funcione en una subred privada sin NAT. Es el mismo mecanismo que ya
+     * usa la API desde la V8 —ver {@code FuenteDeDatosIam}, que lo explica en
+     * detalle—; no se reutiliza aquella clase porque es un {@code DataSource}
+     * con pool y aquí hace falta una cadena suelta para Flyway.
+     *
+     * <p>Un token por invocación y no por conexión: caduca a los quince minutos y
+     * la función tiene un tiempo de espera de diez, así que todas las conexiones
+     * que Flyway abra caben dentro de su validez.
+     *
+     * <p>{@code AWS_REGION} la pone el propio runtime de Lambda.
+     */
+    private static String token() {
+        return RdsUtilities.builder()
+                .region(Region.of(variable("AWS_REGION")))
+                .credentialsProvider(DefaultCredentialsProvider.builder().build())
+                .build()
+                .generateAuthenticationToken(constructor -> constructor
+                        .hostname(variable("BD_HOST"))
+                        .port(Integer.parseInt(variable("BD_PUERTO")))
+                        .username(variable("BD_USUARIO")));
     }
 
     private static String variable(String nombre) {

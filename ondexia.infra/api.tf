@@ -158,17 +158,14 @@ resource "aws_iam_role_policy_attachment" "api_vpc" {
 }
 
 data "aws_iam_policy_document" "api" {
-  # El rol lo comparten la API y la función de migraciones, así que necesita
-  # escribir en los dos grupos. Sin el segundo, las migraciones se ejecutan pero
-  # no dejan rastro — y el registro de una migración es exactamente lo que se
-  # busca cuando un despliegue va mal.
+  # Solo el grupo de la API. Las migraciones tienen rol propio desde el hallazgo
+  # A3: compartirlo obligaba a conceder aqui el rds-db:connect del rol de
+  # migraciones, que es equivalente al maestro — es decir, una API comprometida
+  # habria podido conectarse con el.
   statement {
-    sid     = "Logs"
-    actions = ["logs:CreateLogStream", "logs:PutLogEvents"]
-    resources = [
-      "${aws_cloudwatch_log_group.api.arn}:*",
-      "${aws_cloudwatch_log_group.migraciones.arn}:*",
-    ]
+    sid       = "Logs"
+    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = ["${aws_cloudwatch_log_group.api.arn}:*"]
   }
 
   # Solo el bucket de marca, y solo sus objetos. La Lambda no tiene por qué
@@ -210,6 +207,71 @@ resource "aws_iam_role_policy" "api" {
   name   = "${local.nombre}-api"
   role   = aws_iam_role.api.id
   policy = data.aws_iam_policy_document.api.json
+}
+
+# ── El rol de las migraciones, aparte del de la API ────────────────────────
+
+/**
+ * Rol propio, y es lo que hace posible quitar la contrasena (hallazgo A3).
+ *
+ * La funcion de migraciones se conecta como `ondexia_migraciones`, que es
+ * miembro de `ondexia_admin` y por tanto puede alterar cualquier objeto. Si ese
+ * `rds-db:connect` viviera en el rol compartido con la API, una API
+ * comprometida podria abrir una conexion con privilegios de maestro — se habria
+ * cambiado un secreto en una variable de entorno por una escalada silenciosa.
+ *
+ * Por eso los roles se separan: cada funcion puede conectarse con SU usuario de
+ * base y con ningun otro.
+ */
+resource "aws_iam_role" "migraciones" {
+  count = local.hay_backend ? 1 : 0
+
+  name                 = "${local.nombre}-migraciones"
+  description          = "Ejecucion de las migraciones de Flyway"
+  assume_role_policy   = data.aws_iam_policy_document.asumir_lambda.json
+  permissions_boundary = aws_iam_policy.frontera_despliegue.arn
+
+  tags = { Name = "${local.nombre}-migraciones" }
+}
+
+resource "aws_iam_role_policy_attachment" "migraciones_vpc" {
+  count = local.hay_backend ? 1 : 0
+
+  role       = aws_iam_role.migraciones[0].name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+}
+
+data "aws_iam_policy_document" "migraciones" {
+  statement {
+    sid       = "Logs"
+    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = ["${aws_cloudwatch_log_group.migraciones.arn}:*"]
+  }
+
+  /**
+   * Conectarse como `ondexia_migraciones`, sin contrasena.
+   *
+   * `ondexia_admin` sigue fuera, igual que en la politica de la API: conserva su
+   * contrasena como salida de emergencia y ninguna funcion debe poder entrar con
+   * el por esta via. El rol de migraciones es miembro suyo, que es otra cosa —
+   * la pertenencia se puede revocar con una sentencia SQL; una contrasena
+   * filtrada, no.
+   */
+  statement {
+    sid     = "ConectarBaseConIam"
+    actions = ["rds-db:connect"]
+    resources = [
+      "arn:aws:rds-db:${var.region}:${data.aws_caller_identity.actual.account_id}:dbuser:${aws_db_instance.principal.resource_id}/ondexia_migraciones"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "migraciones" {
+  count = local.hay_backend ? 1 : 0
+
+  name   = "${local.nombre}-migraciones"
+  role   = aws_iam_role.migraciones[0].id
+  policy = data.aws_iam_policy_document.migraciones.json
 }
 
 # ── Función ────────────────────────────────────────────────────────────────
@@ -435,7 +497,7 @@ resource "aws_lambda_function" "migraciones" {
   count = local.hay_backend ? 1 : 0
 
   function_name = "${local.nombre}-migraciones"
-  role          = aws_iam_role.api.arn
+  role          = aws_iam_role.migraciones[0].arn
 
   s3_bucket        = aws_s3_bucket.artefactos.id
   s3_key           = aws_s3_object.api.key
@@ -454,18 +516,35 @@ resource "aws_lambda_function" "migraciones" {
 
   environment {
     variables = {
-      BD_HOST       = aws_db_instance.principal.address
-      BD_PUERTO     = tostring(aws_db_instance.principal.port)
-      BD_NOMBRE     = aws_db_instance.principal.db_name
-      BD_USUARIO    = aws_db_instance.principal.username
-      BD_CONTRASENA = random_password.bd.result
+      BD_HOST   = aws_db_instance.principal.address
+      BD_PUERTO = tostring(aws_db_instance.principal.port)
+      BD_NOMBRE = aws_db_instance.principal.db_name
+
+      /**
+       * `ondexia_migraciones`, y SIN contrasena (hallazgo A3).
+       *
+       * Aqui estaba `random_password.bd.result`: la contrasena MAESTRA de la
+       * instancia, en texto plano, legible con lambda:GetFunctionConfiguration
+       * por cualquiera con acceso de lectura a Lambda. Con ella se entra como
+       * ondexia_admin.
+       *
+       * Ahora el token lo firma la propia funcion con las credenciales de su
+       * rol, igual que hace la API desde la V8. No hay nada que leer.
+       *
+       * El nombre va a mano y tiene que coincidir letra por letra con el rol que
+       * crea la V13 y con el que autoriza rds-db:connect. Si los tres no dicen
+       * lo mismo, la conexion falla con «PAM authentication failed», que no
+       * menciona IAM por ningun lado.
+       */
+      BD_USUARIO = "ondexia_migraciones"
+
       # Lo lee la siembra de datos de ejemplo para negarse en produccion.
       ENTORNO = var.entorno
     }
   }
 
   depends_on = [
-    aws_iam_role_policy_attachment.api_vpc,
+    aws_iam_role_policy_attachment.migraciones_vpc,
     aws_cloudwatch_log_group.migraciones,
   ]
 
@@ -596,6 +675,35 @@ resource "aws_apigatewayv2_stage" "principal" {
     # bucle en el frontend factura sin límite.
     throttling_burst_limit = 100
     throttling_rate_limit  = 50
+  }
+
+  /**
+   * Techo propio para la consulta del padrón, más bajo (hallazgo C2).
+   *
+   * Compartir los 50 rps de arriba significa dos cosas malas: que la consulta
+   * puede consumir el presupuesto de peticiones de la API entera, y que 50 rps
+   * sostenidos son ~180.000 consultas por hora contra una clave de pago de un
+   * tercero.
+   *
+   * Dos por segundo con ráfagas de diez es holgado para lo que esto es: una
+   * persona escribiendo un RUC en un formulario. Un alta normal hace una
+   * consulta; dos si se equivoca al teclear.
+   *
+   * NO sustituye a una cuota por usuario, que es lo que de verdad cierra el
+   * abuso: esto limita el caudal total, no cuánto gasta cada cual. Lo que cierra
+   * C2 es el autoservicio cerrado del pool de inquilinos (identidad.tf).
+   *
+   * `dynamic` porque la ruta solo existe cuando hay artefacto de consultas, y
+   * un `route_settings` sobre una ruta inexistente hace fallar el apply.
+   */
+  dynamic "route_settings" {
+    for_each = local.hay_consultas ? [1] : []
+
+    content {
+      route_key              = aws_apigatewayv2_route.consulta_ruc[0].route_key
+      throttling_burst_limit = 10
+      throttling_rate_limit  = 2
+    }
   }
 }
 
