@@ -138,6 +138,7 @@ public class Usuarios {
     @Transactional
     public MiembroEmpresa reasignar(UUID asignacionId, UUID rolId, UUID sucursalId) {
         var asignacion = exigirAsignacionDeEstaEmpresa(asignacionId);
+        impedirQueSeAscienda(asignacion);
         var antes = buscarMiembro(asignacionId);
 
         var rol = validarRol(rolId);
@@ -220,6 +221,44 @@ public class Usuarios {
      * fila de administrador — la deja intacta y sin poder entrar, que es
      * exactamente el estado que el disparador existía para impedir.
      */
+    /**
+     * Nadie se cambia su propio rol (hallazgo M1).
+     *
+     * <h2>Lo que se podía hacer</h2>
+     *
+     * <p>Quien tuviera {@code configuracion.usuario:editar} —un permiso que se le
+     * da a un supervisor para que gestione a su equipo— podía llamar a
+     * {@code reasignar} sobre <strong>su propia</strong> asignación y ponerse el
+     * rol ADMINISTRADOR. Es decir: cualquiera que pudiera administrar usuarios
+     * podía convertirse en administrador de la empresa, que es un conjunto de
+     * permisos estrictamente mayor.
+     *
+     * <p>Las otras dos operaciones sí se protegían: {@code retirar} y
+     * {@code cambiarEstado} comprueban «yo mismo» desde el principio. Faltaba
+     * justamente la que sube de nivel, que es la que importa — retirarse el
+     * acceso a uno mismo es un incordio; ascenderse es una escalada.
+     *
+     * <h2>Por qué prohibir y no comprobar el nivel</h2>
+     *
+     * <p>La alternativa era una regla de no elevación: que el rol destino sea un
+     * subconjunto de los permisos de quien actúa. Es más flexible y más difícil
+     * de sostener — hay que compararla en cada cambio del catálogo de permisos, y
+     * el día que dos roles se solapen parcialmente hay que decidir qué significa
+     * «subconjunto».
+     *
+     * <p>Prohibir tocarse a sí mismo no tiene ese problema y no le quita nada a
+     * nadie: cambiar de rol es algo que hace otra persona. Es la misma regla que
+     * ya seguían las otras dos operaciones.
+     */
+    private void impedirQueSeAscienda(UsuarioEmpresa asignacion) {
+        if (asignacion.usuarioId().equals(usuarioActual())) {
+            throw new ReglaDeNegocioViolada(
+                    "no_puedes_cambiarte_el_rol",
+                    "No puedes cambiar tu propio rol ni tu alcance. Pídeselo a otro "
+                            + "administrador.");
+        }
+    }
+
     private void impedirQueSeCierrePorDentro(Usuario usuario) {
         if (usuario.id().equals(usuarioActual())) {
             throw new ReglaDeNegocioViolada(

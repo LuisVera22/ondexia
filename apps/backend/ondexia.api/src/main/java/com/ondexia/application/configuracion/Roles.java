@@ -11,6 +11,7 @@ import com.ondexia.domain.identidad.Permiso;
 import com.ondexia.domain.identidad.PermisoRepositorio;
 import com.ondexia.domain.identidad.Rol;
 import com.ondexia.domain.identidad.RolRepositorio;
+import com.ondexia.domain.identidad.UsuarioEmpresaRepositorio;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -51,16 +52,19 @@ public class Roles {
     private final RolRepositorio roles;
     private final PermisoRepositorio permisos;
     private final CuentaRepositorio cuentas;
+    private final UsuarioEmpresaRepositorio asignaciones;
     private final RegistroDeAuditoria auditoria;
     private final ProveedorDeContexto contexto;
 
     public Roles(RolRepositorio roles, PermisoRepositorio permisos, CuentaRepositorio cuentas,
-            RegistroDeAuditoria auditoria, ProveedorDeContexto contexto) {
+            RegistroDeAuditoria auditoria, ProveedorDeContexto contexto,
+            UsuarioEmpresaRepositorio asignaciones) {
         this.roles = roles;
         this.permisos = permisos;
         this.cuentas = cuentas;
         this.auditoria = auditoria;
         this.contexto = contexto;
+        this.asignaciones = asignaciones;
     }
 
     /**
@@ -182,6 +186,7 @@ public class Roles {
     @Transactional
     public Rol cambiarPermisos(UUID rolId, Set<UUID> permisoIds) {
         var rol = exigirPropio(rolId);
+        impedirTocarSuPropioRol(rolId);
         var antes = new Instantanea(rol.codigo(), rol.nombre(), roles.permisosDe(rolId).size());
 
         var catalogo = permisos.listarCatalogo();
@@ -346,6 +351,40 @@ public class Roles {
             throw new ReglaDeNegocioViolada(codigo, mensaje);
         }
         return valor.trim();
+    }
+
+    /**
+     * Nadie edita los permisos del rol que él mismo tiene (hallazgo M1).
+     *
+     * <h2>Lo que se podía hacer</h2>
+     *
+     * <p>Quien tuviera {@code configuracion.rol:editar} podía abrir <em>su
+     * propio</em> rol y marcarse las casillas que le faltaran. No hacía falta
+     * cambiarse de rol —eso lo cierra {@code Usuarios.reasignar}—: bastaba con
+     * ensanchar el que ya tenía, y el efecto es el mismo pero además silencioso,
+     * porque no aparece ningún cambio de asignación en la bitácora de usuarios.
+     *
+     * <p>Es la variante de M1 que menos se ve, y la más fácil de ejecutar: la
+     * pantalla de roles ya está ahí y no avisa de nada.
+     *
+     * <h2>Por qué mira todas sus empresas y no solo la activa</h2>
+     *
+     * <p>Los roles pertenecen a la CUENTA, no a la empresa: el mismo rol se usa
+     * en las empresas que la cuenta tenga. Comprobar solo la empresa activa
+     * dejaría abierto cambiar de empresa y editar desde allí el rol que se usa
+     * aquí.
+     */
+    private void impedirTocarSuPropioRol(UUID rolId) {
+        boolean esElSuyo = asignaciones
+                .listarAsignacionesDe(contexto.obligatorio().usuarioId()).stream()
+                .anyMatch(asignacion -> rolId.equals(asignacion.rolId()));
+
+        if (esElSuyo) {
+            throw new ReglaDeNegocioViolada(
+                    "no_puedes_editar_tu_rol",
+                    "No puedes cambiar los permisos del rol que tú mismo tienes. "
+                            + "Duplícalo, ajusta la copia y pide que te la asignen.");
+        }
     }
 
     private UUID cuentaActual() {
