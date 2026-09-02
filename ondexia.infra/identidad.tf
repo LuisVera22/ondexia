@@ -340,3 +340,41 @@ resource "aws_cognito_user_pool" "personal" {
     nota = "Personal de Ondexia. Separado de los inquilinos a proposito"
   }
 }
+
+# ── Grupos del personal (hallazgo A5) ──────────────────────────────────────
+
+/**
+ * Dos grupos, porque «todo el personal es superadministrador» no es un modelo.
+ *
+ * Hasta el hallazgo A5, cualquier cuenta del grupo de personal que pasara el
+ * autorizador podia cambiar el plan de un cliente, suspenderle el servicio o
+ * activarle modulos. No habia grupos, ni autorizacion por endpoint: la unica
+ * frontera era estar dentro o fuera.
+ *
+ * Eso es tolerable con una persona y deja de serlo con dos, porque la primera
+ * cuenta que se le crea a alguien —para que consulte algo— viene con la
+ * capacidad de suspender a un cliente en produccion.
+ *
+ *   soporte      mira. Es lo que necesita quien atiende una consulta.
+ *   operaciones  cambia planes, suspende y activa modulos.
+ *
+ * Dos y no cinco: el reparto tiene que corresponderse con trabajos que existen
+ * hoy. Inventar niveles que nadie ocupa produce grupos que acaban teniendo a
+ * todo el mundo dentro, que es donde estabamos.
+ *
+ * La pertenencia se asigna a mano en la consola de Cognito. NO se codifica aqui
+ * a proposito: quien esta en cada grupo es un dato de personal, no de
+ * infraestructura, y ponerlo en Terraform significaria que dar de baja a alguien
+ * exige un despliegue.
+ */
+resource "aws_cognito_user_group" "soporte" {
+  name         = "soporte"
+  user_pool_id = aws_cognito_user_pool.personal.id
+  description  = "Solo lectura: consultar cuentas y sus modulos"
+}
+
+resource "aws_cognito_user_group" "operaciones" {
+  name         = "operaciones"
+  user_pool_id = aws_cognito_user_pool.personal.id
+  description  = "Cambiar plan, suspender y decidir modulos"
+}
