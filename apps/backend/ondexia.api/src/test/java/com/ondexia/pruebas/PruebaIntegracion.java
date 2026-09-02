@@ -100,8 +100,21 @@ public abstract class PruebaIntegracion {
         try (java.sql.Connection conexion = java.sql.DriverManager.getConnection(
                 POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
                 java.sql.Statement sentencia = conexion.createStatement()) {
-            sentencia.execute(
-                    "CREATE ROLE " + ROL_APLICACION + " LOGIN PASSWORD '" + ROL_APLICACION + "'");
+            /*
+             * CREATEROLE, porque las migraciones crean roles.
+             *
+             * En RDS quien aplica Flyway es el usuario maestro, que puede
+             * crearlos. Aqui el rol de la aplicacion es el dueno de su base y
+             * nada mas, asi que la V14 —que crea ondexia_app y ondexia_panel
+             * tambien fuera de RDS, para que GrantsDeLaAplicacionIT pueda mirar
+             * sus privilegios— moria con «permission denied to create role».
+             *
+             * CREATEROLE no exime de Row Level Security: eso solo lo hacen
+             * SUPERUSER y BYPASSRLS, y este rol no tiene ninguno de los dos. El
+             * aislamiento se sigue probando de verdad.
+             */
+            sentencia.execute("CREATE ROLE " + ROL_APLICACION
+                    + " LOGIN CREATEROLE PASSWORD '" + ROL_APLICACION + "'");
             // Dueno de su base: le basta para que Flyway cree tablas, funciones,
             // disparadores y politicas, sin ningun privilegio de cluster.
             sentencia.execute(
