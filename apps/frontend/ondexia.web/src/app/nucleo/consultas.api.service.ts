@@ -117,7 +117,9 @@ export class ConsultasApiService {
       };
     }
 
-    const cuerpo = fallo.error as { mensaje?: string; reintentable?: boolean } | null;
+    const cuerpo = fallo.error as
+      | { codigo?: string; mensaje?: string; reintentable?: boolean }
+      | null;
 
     // Status 0: no hubo respuesta. En local es casi siempre que
     // ondexia.consultas no esta arrancado, y decirlo ahorra media hora de
@@ -130,9 +132,14 @@ export class ConsultasApiService {
       };
     }
 
+    // El texto del servidor solo si trae `codigo` (tabla de bajas): sin él la
+    // respuesta no es de ondexia.consultas sino de la pasarela, y su cuerpo
+    // describe la infraestructura.
+    const esNuestra = typeof cuerpo?.codigo === 'string';
+
     return {
-      mensaje: cuerpo?.mensaje ?? 'No se pudo consultar el RUC.',
-      reintentable: cuerpo?.reintentable ?? false,
+      mensaje: (esNuestra && cuerpo?.mensaje) || 'No se pudo consultar el RUC.',
+      reintentable: (esNuestra && cuerpo?.reintentable) || false,
       noEncontrado: fallo.status === 404,
     };
   }

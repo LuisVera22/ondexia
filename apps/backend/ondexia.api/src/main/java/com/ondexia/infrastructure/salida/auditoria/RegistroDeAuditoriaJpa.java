@@ -91,6 +91,30 @@ public class RegistroDeAuditoriaJpa implements RegistroDeAuditoria {
     }
 
     /**
+     * Solo records: nunca un agregado del dominio (hallazgo M8).
+     *
+     * <p>{@code registrar} acepta {@code Object}, y eso invita a pasarle la
+     * entidad entera «para que quede todo». La entidad {@code Empresa} lleva
+     * {@code usuarioSol} y el ARN del certificado; {@code Usuario} lleva el
+     * {@code sub} de Cognito. Serializar cualquiera de ellas dejaría esos campos
+     * en {@code datos_antes} y {@code datos_despues} para siempre, en una tabla
+     * que se lee desde soporte.
+     *
+     * <p>Todos los casos de uso pasan hoy un {@code record} de instantánea
+     * escrito a mano con los campos que se quieren guardar. Esta comprobación
+     * hace que seguir haciéndolo no sea una costumbre sino una condición: un
+     * agregado revienta aquí, en la prueba del caso de uso que lo intente, y no
+     * en producción meses después.
+     */
+    private static void exigirInstantanea(Object valor) {
+        if (!valor.getClass().isRecord()) {
+            throw new IllegalArgumentException(
+                    "La bitácora solo admite instantáneas (records), no " + valor.getClass().getName()
+                            + ". Un agregado del dominio puede llevar credenciales dentro.");
+        }
+    }
+
+    /**
      * Un fallo de serialización guarda un marcador en vez de propagar. Es la
      * única concesión: impedir que se guarde un establecimiento porque uno de
      * sus campos no supo convertirse a JSON sería dejar que la bitácora bloquee
@@ -100,6 +124,7 @@ public class RegistroDeAuditoriaJpa implements RegistroDeAuditoria {
         if (valor == null) {
             return null;
         }
+        exigirInstantanea(valor);
         try {
             return json.writeValueAsString(valor);
         } catch (JacksonException e) {

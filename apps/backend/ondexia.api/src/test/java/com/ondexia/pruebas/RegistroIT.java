@@ -300,18 +300,18 @@ class RegistroIT extends PruebaIntegracion {
                 .andExpect(jsonPath("$.codigo").value("ya_registrado"));
     }
 
+    /**
+     * La inversión de «con un token sin correo, el alta usa el del cuerpo».
+     *
+     * <p>Aquella prueba fijaba un respaldo: si el token de acceso no traía
+     * `email`, se aceptaba el del cuerpo. Tabla de bajas de la auditoría
+     * 2026-09-01: eso dejaba nacer la fila `usuario` con un correo que nadie
+     * había verificado. Ahora el alta exige el token de identidad —el que trae
+     * el correo— y un token sin él no crea nada.
+     */
     @Test
-    @DisplayName("Con un token sin correo, el alta usa el del cuerpo")
-    void elCorreoLlegaDelCuerpoCuandoElTokenNoLoTrae() throws Exception {
-        /*
-         * El caso que rompió en produccion y no se veia desde la aplicacion.
-         *
-         * Los tokens de ACCESO de Cognito no llevan `email`. La primera version
-         * caia a la reclamacion `username`, que en un pool con acceso por correo
-         * es el UUID — asi que los usuarios registrados quedaban con su `sub`
-         * guardado como correo. No fallaba nada; solo escribia basura, y se
-         * descubrio inspeccionando la tabla.
-         */
+    @DisplayName("Con un token sin correo no hay alta, aunque el cuerpo lo traiga")
+    void sinCorreoEnElTokenNoHayAlta() throws Exception {
         String sub = "sub-sin-correo-en-el-token";
         String atestacion = firmar(padron("20100000092", "CON CORREO EN EL CUERPO S.A.C.",
                 EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO), PRIVADA, sub);
@@ -326,13 +326,12 @@ class RegistroIT extends PruebaIntegracion {
                                   "apellidoTitular": "De Prueba",
                                   "correo": "titular@ejemplo.com"
                                 }""".formatted(atestacion)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isUnauthorized());
 
+        // Y no quedo nada a medias: el contexto sigue diciendo «sin registrar».
         mockMvc.perform(get("/api/v1/contexto")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenSinCorreo(sub)))
-                .andExpect(status().isOk())
-                // Lo que importa: el correo, no el UUID.
-                .andExpect(jsonPath("$.usuario.email").value("titular@ejemplo.com"));
+                .andExpect(status().isNotFound());
     }
 
     /**

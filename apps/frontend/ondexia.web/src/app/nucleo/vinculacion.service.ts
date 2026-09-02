@@ -2,6 +2,7 @@ import { HttpBackend, HttpClient, HttpErrorResponse, HttpHeaders } from '@angula
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { CONFIGURACION } from './configuracion';
+import { interpretarError } from './errores';
 import { SesionService } from './sesion.service';
 
 export interface ResultadoVinculacion {
@@ -71,12 +72,12 @@ export class VinculacionService {
        * la persona vería el formulario de empresa nueva y se crearía una cuenta
        * duplicada creyendo que es lo que toca.
        */
-      const mensaje =
-        fallo instanceof HttpErrorResponse && typeof fallo.error?.detail === 'string'
-          ? fallo.error.detail
-          : null;
-
-      return { vinculado: false, aviso: mensaje };
+      // Por interpretarError, no leyendo `detail` a mano (tabla de bajas):
+      // sin `codigo` la respuesta no es nuestra —es de la pasarela o del
+      // balanceador— y su texto describe la infraestructura, no algo que la
+      // persona deba leer.
+      const error = interpretarError(fallo, 'No se pudo comprobar la invitación.');
+      return { vinculado: false, aviso: error.codigo === 'desconocido' ? null : error.mensaje };
     }
   }
 }

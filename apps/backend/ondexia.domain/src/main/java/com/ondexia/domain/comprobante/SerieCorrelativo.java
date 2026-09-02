@@ -131,6 +131,34 @@ public class SerieCorrelativo {
      * comprobantes que emitió, y su último número queda como estaba: reactivarla
      * debe continuar donde se quedó, no volver a empezar.
      */
+    /**
+     * Coloca el punto de partida al dar de alta, de un salto.
+     *
+     * <p>Tabla de bajas de la auditoría 2026-09-01: el alta llamaba a
+     * {@link #asignarSiguienteNumero()} en un bucle de hasta cien millones de
+     * vueltas para «avanzar el agregado» hasta el número inicial. El argumento
+     * —que hubiera una sola puerta para mover el correlativo— era bueno; el
+     * precio era una petición que podía tardar segundos con un número alto, y
+     * que cualquiera con permiso de crear series podía provocar a voluntad.
+     *
+     * <p>La única puerta sigue siendo esta clase. Lo que se reparte es el
+     * momento: {@code iniciarEn} solo vale sobre una serie recién creada que
+     * todavía no ha emitido nada; después, solo se avanza de uno en uno.
+     */
+    public void iniciarEn(long numeroInicial) {
+        if (ultimoNumero != 0) {
+            throw new ReglaDeNegocioViolada(
+                    "serie_ya_iniciada",
+                    "La serie " + serie + " ya emitió comprobantes y no admite un número inicial.");
+        }
+        if (numeroInicial < 0 || numeroInicial > MAXIMO) {
+            throw new ReglaDeNegocioViolada(
+                    "numero_inicial_invalido",
+                    "El número inicial tiene que estar entre 0 y " + MAXIMO + ".");
+        }
+        this.ultimoNumero = numeroInicial;
+    }
+
     public void desactivar() {
         this.activa = false;
     }

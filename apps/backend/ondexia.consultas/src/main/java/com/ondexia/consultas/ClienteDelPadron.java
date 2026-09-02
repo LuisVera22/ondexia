@@ -63,7 +63,24 @@ class ClienteDelPadron {
          * ejecucion. Para dos peticiones por registro, HTTP/2 y el pool de
          * conexiones no compran nada que compense ese riesgo.
          */
-        SimpleClientHttpRequestFactory fabrica = new SimpleClientHttpRequestFactory();
+        /*
+         * Sin seguir redirecciones (tabla de bajas de la auditoria 2026-09-01).
+         *
+         * HttpURLConnection sigue un 302 por su cuenta y REENVIA las cabeceras,
+         * Authorization incluida, al destino que diga la respuesta — sea el que
+         * sea. Un proveedor comprometido, o un DNS que apunte a otro sitio,
+         * responde con un 302 a un dominio suyo y recibe nuestro token de pago.
+         * Las dos APIs responden en su propia URL: una redireccion no es un caso
+         * que haya que atender, es una senal de que algo va mal.
+         */
+        SimpleClientHttpRequestFactory fabrica = new SimpleClientHttpRequestFactory() {
+            @Override
+            protected void prepareConnection(java.net.HttpURLConnection conexion,
+                    String metodo) throws java.io.IOException {
+                super.prepareConnection(conexion, metodo);
+                conexion.setInstanceFollowRedirects(false);
+            }
+        };
         fabrica.setConnectTimeout(tiempoDeEspera);
         fabrica.setReadTimeout(tiempoDeEspera);
 

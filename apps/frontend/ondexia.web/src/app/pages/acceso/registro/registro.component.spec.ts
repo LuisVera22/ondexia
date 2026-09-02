@@ -44,7 +44,14 @@ describe('RegistroComponent · invitado o empresa nueva', () => {
             cognito: {},
           },
         },
-        { provide: SesionService, useValue: { usuario: () => ({ correo: 'a@b.c', nombre: 'A' }) } },
+        {
+          provide: SesionService,
+          useValue: {
+            usuario: () => ({ correo: 'a@b.c', nombre: 'A' }),
+            // El alta manda el token de IDENTIDAD, que es el que trae el correo.
+            tokenDeIdentidad: () => Promise.resolve('token-de-identidad'),
+          },
+        },
         {
           provide: ContextoService,
           useValue: {
@@ -186,15 +193,23 @@ describe('RegistroComponent · invitado o empresa nueva', () => {
       componente.alVerificar(consulta);
 
       const envio = componente.registrar();
+      // El componente pide primero el token de identidad; hasta que se resuelve
+      // no hay peticion que inspeccionar.
+      await new Promise((resolve) => setTimeout(resolve));
 
       const http = TestBed.inject(HttpTestingController);
       const peticion = http.expectOne('http://api.pruebas/api/v1/registro');
       const cuerpo = peticion.request.body as Record<string, unknown>;
 
       expect(cuerpo['atestacion']).toBe('carga.firma');
+      // Sin `correo`: sale del token de identidad, no del cuerpo (tabla de
+      // bajas de la auditoria 2026-09-01).
       expect(Object.keys(cuerpo).sort())
         .withContext('nada de la empresa viaja aparte de la firma')
-        .toEqual(['apellidoTitular', 'atestacion', 'correo', 'nombreTitular']);
+        .toEqual(['apellidoTitular', 'atestacion', 'nombreTitular']);
+      expect(peticion.request.headers.get('Authorization'))
+        .withContext('el alta va con el token de identidad, que trae el correo verificado')
+        .toBe('Bearer token-de-identidad');
 
       peticion.flush({ cuentaId: 'c-1' });
       await envio;

@@ -106,7 +106,7 @@ public class ManejadorMigraciones implements RequestHandler<Map<String, Object>,
                  * entorno— no aplica aqui: la unica version alta es la semilla,
                  * que solo existe fuera de produccion y no toca el esquema.
                  */
-                .outOfOrder(true)
+                .outOfOrder(!esProduccion())
                 // Mismo criterio que application.yml: 'clean' no está
                 // disponible en ningún entorno. Es un borrado del esquema
                 // completo a una llamada de distancia.
@@ -151,7 +151,8 @@ public class ManejadorMigraciones implements RequestHandler<Map<String, Object>,
                 .locations("classpath:db/migration", "classpath:db/local")
                 // Mismo motivo que en la migracion normal: la V900 de la
                 // semilla deja fuera de orden a toda migracion de esquema
-                // posterior.
+                // posterior. Aqui siempre, porque sembrar ya es de fuera de
+                // produccion —lo comprueba `sembrar` antes de llegar aqui—.
                 .outOfOrder(true)
                 .cleanDisabled(true)
                 .load()
@@ -227,6 +228,20 @@ public class ManejadorMigraciones implements RequestHandler<Map<String, Object>,
                         .hostname(variable("BD_HOST"))
                         .port(Integer.parseInt(variable("BD_PUERTO")))
                         .username(variable("BD_USUARIO")));
+    }
+
+    /**
+     * En producción NO se admiten migraciones fuera de orden.
+     *
+     * <p>Tabla de bajas de la auditoría 2026-09-01. `outOfOrder(true)` existe por
+     * la semilla V900, que solo se aplica fuera de producción; dejarlo también en
+     * prod desactivaba la comprobación que existe para esto: dos ramas que creen
+     * versiones solapadas y se apliquen en distinto orden en cada entorno, sobre
+     * datos fiscales. En prod no hay V900, así que no hay nada que justifique
+     * relajarlo.
+     */
+    private static boolean esProduccion() {
+        return "prod".equalsIgnoreCase(System.getenv("ENTORNO"));
     }
 
     private static String variable(String nombre) {

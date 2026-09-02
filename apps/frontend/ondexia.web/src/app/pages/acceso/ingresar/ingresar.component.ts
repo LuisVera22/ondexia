@@ -51,7 +51,7 @@ export class IngresarComponent {
 
     try {
       // No retorna: la pestaña navega a Cognito.
-      await this.sesion.iniciar(this.ruta.snapshot.queryParamMap.get('volverA') ?? '/');
+      await this.sesion.iniciar(destinoSeguro(this.ruta.snapshot.queryParamMap.get('volverA')));
     } catch {
       this.enviando.set(false);
       this.error.set('No se pudo contactar con el servicio de acceso. Inténtalo de nuevo.');
@@ -74,4 +74,18 @@ export class IngresarComponent {
       this.error.set('No se pudo contactar con el servicio de acceso. Inténtalo de nuevo.');
     }
   }
+}
+
+/**
+ * `volverA` solo puede ser una ruta interna.
+ *
+ * <p>Tabla de bajas de la auditoría 2026-09-01. El valor viene de la URL y se
+ * usaba tal cual: `//ejemplo.mx` es una ruta relativa al protocolo, así que
+ * navegar a ella sale del sitio. No era un redireccionamiento abierto de verdad
+ * —el destino se guarda y se usa DESPUÉS de volver de Cognito, dentro del
+ * enrutador de Angular— pero sí un aterrizaje forzado a una ruta elegida por
+ * quien construyó el enlace. Una barra, y no dos.
+ */
+function destinoSeguro(volverA: string | null): string {
+  return volverA && /^\/(?!\/)/.test(volverA) ? volverA : '/';
 }

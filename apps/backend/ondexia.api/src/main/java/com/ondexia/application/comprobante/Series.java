@@ -165,29 +165,16 @@ public class Series {
     }
 
     /**
-     * Coloca el punto de partida avanzando el agregado, no escribiéndole el
-     * campo.
+     * El punto de partida lo pone el agregado, de un salto.
      *
-     * <p>Podría ser un constructor con el número dentro, y sería peor: el
-     * agregado dejaría de tener una sola puerta para mover el correlativo, que es
-     * la propiedad de la que depende todo lo demás. Aquí el bucle es
-     * intrascendente —corre una vez, al dar de alta— y a cambio
-     * {@code asignarSiguienteNumero} sigue siendo el único camino.
+     * <p>Aquí hubo un bucle que llamaba a {@code asignarSiguienteNumero} tantas
+     * veces como el número inicial —hasta cien millones— para conservar una sola
+     * puerta de avance. La puerta sigue siendo del agregado; ver
+     * {@link SerieCorrelativo#iniciarEn(long)}, que explica por qué ya no se
+     * itera.
      */
     private static void aplicarNumeroInicial(SerieCorrelativo serie, long numeroInicial) {
-        if (numeroInicial < 0) {
-            throw new ReglaDeNegocioViolada(
-                    "numero_inicial_invalido",
-                    "El número inicial no puede ser negativo.");
-        }
-        if (numeroInicial > 99_999_999L) {
-            throw new ReglaDeNegocioViolada(
-                    "numero_inicial_invalido",
-                    "El número inicial supera los ocho dígitos que admite SUNAT.");
-        }
-        for (long i = 0; i < numeroInicial; i++) {
-            serie.asignarSiguienteNumero();
-        }
+        serie.iniciarEn(numeroInicial);
     }
 
     private UUID empresaActiva() {
