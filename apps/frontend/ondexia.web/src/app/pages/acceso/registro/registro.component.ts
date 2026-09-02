@@ -151,18 +151,28 @@ export class RegistroComponent implements OnInit {
     const valores = this.formulario.getRawValue();
 
     try {
+      // Con el token de IDENTIDAD, como la vinculacion: es el que trae el
+      // correo verificado por Cognito. Antes se mandaba el correo en el cuerpo
+      // porque el de acceso no lo lleva, y el backend lo aceptaba sin que nadie
+      // lo hubiera verificado (tabla de bajas de la auditoria 2026-09-01). El
+      // interceptor pondria el de acceso; esta cabecera explicita lo sustituye.
+      const identidad = await this.sesion.tokenDeIdentidad();
+      if (!identidad) {
+        throw new Error('Sin token de identidad no hay alta.');
+      }
+
       await firstValueFrom(
-        this.http.post(`${this.configuracion.api}/api/v1/registro`, {
-          // La firma, no los campos. La razon social, el domicilio y el ubigeo
-          // salen de aqui dentro; enviarlos aparte permitiria enviar otros.
-          atestacion: consulta.atestacion,
-          nombreTitular: valores.nombreTitular,
-          apellidoTitular: valores.apellidoTitular,
-          // El token de ACCESO de Cognito no lleva el correo —eso vive en el de
-          // identidad, que el SPA sí tiene— así que se envía. El backend lo usa
-          // solo para mostrar: la identidad con la que se opera es el `sub`.
-          correo: this.correo,
-        })
+        this.http.post(
+          `${this.configuracion.api}/api/v1/registro`,
+          {
+            // La firma, no los campos. La razon social, el domicilio y el ubigeo
+            // salen de aqui dentro; enviarlos aparte permitiria enviar otros.
+            atestacion: consulta.atestacion,
+            nombreTitular: valores.nombreTitular,
+            apellidoTitular: valores.apellidoTitular,
+          },
+          { headers: { Authorization: `Bearer ${identidad}` } }
+        )
       );
 
       // Con la cuenta creada, el contexto ya resuelve: se carga y directo al

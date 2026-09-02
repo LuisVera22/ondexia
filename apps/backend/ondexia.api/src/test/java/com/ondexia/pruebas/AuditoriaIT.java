@@ -112,13 +112,21 @@ class AuditoriaIT extends PruebaIntegracion {
         // Es la única concesión del servicio: impedir que se guarde un
         // establecimiento porque uno de sus campos no supo convertirse a JSON
         // sería dejar que la bitácora bloquee la operación que documenta.
+        //
+        // Un record, no un objeto anonimo: desde el hallazgo M8 la bitacora
+        // rechaza todo lo que no sea una instantanea ANTES de intentar
+        // serializarlo, asi que lo que tiene que fallar es un campo de dentro.
+        record Instantanea(Object roto) {
+        }
+        Object ilegible = new Object() {
+            @SuppressWarnings("unused")
+            public String getRoto() {
+                throw new UnsupportedOperationException("no se puede leer");
+            }
+        };
+
         transacciones.executeWithoutResult(estado ->
-                auditoria.registrarCreacion("sucursal", entidadId, new Object() {
-                    @SuppressWarnings("unused")
-                    public String getRoto() {
-                        throw new UnsupportedOperationException("no se puede leer");
-                    }
-                }));
+                auditoria.registrarCreacion("sucursal", entidadId, new Instantanea(ilegible)));
 
         List<Anotacion> registros = auditorias.historialDe(EMPRESA, "sucursal", entidadId);
 
