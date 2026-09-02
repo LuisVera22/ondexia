@@ -286,8 +286,30 @@ export class SesionService {
     });
   }
 
+  /**
+   * Borra TODO lo de esta sesión, no solo el token.
+   *
+   * <p>Borraba únicamente `ondexia.sesion`, y sobrevivían `ondexia.empresa` y
+   * `ondexia.destino`: la empresa que estaba mirando la persona anterior y a
+   * dónde iba. En un equipo compartido, quien entra después ve el selector
+   * apuntando a una empresa que no es suya.
+   *
+   * <p>El efecto es solo funcional —`ResolverContexto` rechaza con 403 una
+   * empresa que no esté asignada, así que no se filtra ningún dato—, pero la
+   * pantalla queda diciendo algo falso, y esa es la clase de detalle que un día
+   * respalda una decisión equivocada.
+   *
+   * <p>Se recorre el prefijo en vez de listar las claves: la lista se queda
+   * corta en cuanto alguien añade una, que es exactamente lo que pasó. Las
+   * preferencias de tema y menú viven en `localStorage` y no se tocan — son del
+   * navegador, no de la sesión.
+   */
   limpiar(): void {
-    sessionStorage.removeItem(CLAVE_SESION);
+    for (const clave of Object.keys(sessionStorage)) {
+      if (clave.startsWith('ondexia.')) {
+        sessionStorage.removeItem(clave);
+      }
+    }
     this.identidad = null;
     this._sesion.set(null);
   }

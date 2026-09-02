@@ -37,12 +37,49 @@ export class RetornoComponent {
   // un 404 cualquiera no debe mandar a nadie a registrarse.
   private static readonly SIN_REGISTRAR = 'usuario_no_registrado';
 
+  /**
+   * Mensajes FIJOS por código, nunca el texto que venga en la URL.
+   *
+   * <p>Hallazgo M10 de la auditoría 2026-09-01. Se pintaba
+   * `error_description` tal cual, y ese parámetro lo pone quien construye el
+   * enlace: bastaba mandarle a alguien
+   * `…/acceso/retorno?error=x&error_description=Tu+sesión+caducó,+entra+en+…`
+   * para poner un texto elegido por el atacante dentro de nuestra pantalla de
+   * acceso, con nuestro dominio en la barra y nuestro diseño alrededor.
+   *
+   * <p>No es XSS —Angular escapa el texto— y por eso es fácil de pasar por alto:
+   * lo que se inyecta no es código, es CONFIANZA. La pantalla de acceso es
+   * justamente donde eso vale más.
+   *
+   * <p>Tampoco se comprobaba `state` en esta rama, así que el error ni siquiera
+   * tenía que venir de un flujo iniciado por nosotros.
+   *
+   * <p>Los códigos son los de OAuth 2.0 y los de Cognito. Lo que no esté en la
+   * tabla cae en un mensaje genérico: añadir el texto del servidor «solo para
+   * los casos raros» reabre esto entero.
+   */
+  private static mensajePara(codigo: string): string {
+    switch (codigo) {
+      case 'access_denied':
+        return 'Se canceló el acceso. Puedes intentarlo de nuevo.';
+      case 'invalid_request':
+      case 'invalid_client':
+      case 'unauthorized_client':
+        return 'No se pudo completar el acceso por un problema de configuración. Escríbenos.';
+      case 'temporarily_unavailable':
+      case 'server_error':
+        return 'El servicio de acceso no responde ahora mismo. Inténtalo en unos minutos.';
+      default:
+        return 'No se pudo iniciar sesión. Inténtalo de nuevo.';
+    }
+  }
+
   private async procesar(): Promise<void> {
     const parametros = this.ruta.snapshot.queryParamMap;
 
     const fallo = parametros.get('error');
     if (fallo) {
-      this.error.set(parametros.get('error_description') ?? fallo);
+      this.error.set(RetornoComponent.mensajePara(fallo));
       return;
     }
 
