@@ -162,6 +162,33 @@ class UsuariosIT extends PruebaIntegracion {
                 .hasMessageContaining("a ti mismo");
     }
 
+    /**
+     * La tercera puerta, que faltaba (hallazgo M1).
+     *
+     * <p>Las otras dos —desactivarse y retirarse— estaban cerradas desde el
+     * principio. Faltaba justo la que sube de nivel: quien tuviera
+     * {@code configuracion.usuario:editar} podia llamar a `reasignar` sobre su
+     * propia asignacion y ponerse ADMINISTRADOR.
+     *
+     * <p>El orden en que se cerraron dice algo: se protegio primero lo que
+     * molesta a quien se equivoca —quedarse fuera— y despues lo que aprovecha
+     * quien no se equivoca.
+     */
+    @Test
+    @DisplayName("Nadie se cambia el rol a sí mismo")
+    void noPuedesCambiarteElRol() {
+        comoDemo();
+        var propia = usuarios.listar().stream()
+                .filter(m -> m.usuarioId().equals(UUID.fromString(USUARIO_DEMO)))
+                .findFirst()
+                .orElseThrow();
+
+        assertThatThrownBy(() ->
+                usuarios.reasignar(propia.asignacionId(), rol("ADMINISTRADOR"), null))
+                .isInstanceOf(ReglaDeNegocioViolada.class)
+                .hasMessageContaining("tu propio rol");
+    }
+
     @Test
     @DisplayName("Nadie se retira el acceso a sí mismo")
     void noPuedesRetirarte() {

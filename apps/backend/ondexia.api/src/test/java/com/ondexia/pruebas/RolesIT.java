@@ -12,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.ondexia.application.configuracion.Roles;
 import com.ondexia.application.configuracion.Usuarios;
 import com.ondexia.domain.comun.error.Conflicto;
+import com.ondexia.domain.comun.error.ReglaDeNegocioViolada;
 import com.ondexia.domain.identidad.Permiso;
 import com.ondexia.domain.identidad.PermisoRepositorio;
 import com.ondexia.domain.identidad.RolRepositorio;
@@ -56,6 +57,9 @@ class RolesIT extends PruebaIntegracion {
 
     @Autowired
     private UsuarioRepositorio repositorioUsuarios;
+
+    @Autowired
+    private com.ondexia.domain.identidad.UsuarioEmpresaRepositorio asignaciones;
 
     @AfterEach
     void limpiar() {
@@ -446,5 +450,70 @@ class RolesIT extends PruebaIntegracion {
         roles.cambiarPermisos(aMedida.id(), Set.of());
 
         assertThat(roles.permisosDe(aMedida.id())).isEmpty();
+    }
+
+    // ── Auto-elevacion (hallazgo M1) ────────────────────────────────────────
+
+    /**
+     * Nadie se ensancha el rol que él mismo tiene.
+     *
+     * <p>Es la variante de M1 que menos se ve. Cambiarse de rol lo cierra
+     * {@code Usuarios.reasignar}; esto es lo otro: dejar el rol donde está y
+     * marcarle las casillas que faltan. El efecto es el mismo —más permisos para
+     * quien lo hace— y además no deja rastro de asignación en la bitácora.
+     *
+     * <p>La asignación se cambia aquí por el repositorio y no por el caso de uso,
+     * precisamente porque el caso de uso ya no lo permite.
+     */
+    @Test
+    @DisplayName("No se pueden editar los permisos del rol que uno mismo tiene")
+    void noSePuedeEnsancharElPropioRol() {
+        comoDemo();
+
+        var aMedida = roles.duplicar(
+                repositorioRoles.buscarPredefinido("VENDEDOR").orElseThrow().id(),
+                "Rol del supervisor");
+
+        // Alguien CON ese rol, y con permiso para editar roles: es el caso real
+        // —un supervisor al que se le deja gestionar su equipo—, no un
+        // administrador disfrazado.
+        var supervisor = usuarios.invitar("supervisor@ejemplo.com", "Supervisora", "Apellido",
+                aMedida.id(), null);
+
+        var conMas = new HashSet<>(roles.permisosDe(aMedida.id()));
+        conMas.add(permisoDeModulo("almacen"));
+
+        // Se actua COMO ella. El demo no se toca: reasignarlo dejaria a las
+        // demas pruebas de esta clase sin permisos, y el fallo apareceria en
+        // otra prueba cualquiera.
+        ContextoDePrueba.limpiar();
+        ContextoDePrueba.comoUsuarioDe(supervisor.usuarioId(), CUENTA,
+                UUID.fromString(EMPRESA_ADMINISTRADA));
+
+        assertThatThrownBy(() -> roles.cambiarPermisos(aMedida.id(), conMas))
+                .isInstanceOf(ReglaDeNegocioViolada.class)
+                .hasMessageContaining("rol que tú mismo");
+    }
+
+    /**
+     * Y el rol de OTRO se sigue pudiendo editar, que es para lo que existe la
+     * pantalla. Sin esta mitad, la prueba de arriba pasaría igual con un
+     * `cambiarPermisos` que lanzara siempre.
+     */
+    @Test
+    @DisplayName("El rol de otra persona sí se puede editar")
+    void elRolAjenoSiSeEdita() {
+        comoDemo();
+
+        var ajeno = roles.duplicar(
+                repositorioRoles.buscarPredefinido("VENDEDOR").orElseThrow().id(),
+                "Rol de otra persona");
+
+        var conMas = new HashSet<>(roles.permisosDe(ajeno.id()));
+        conMas.add(permisoDeModulo("almacen"));
+
+        roles.cambiarPermisos(ajeno.id(), conMas);
+
+        assertThat(roles.permisosDe(ajeno.id())).contains(permisoDeModulo("almacen"));
     }
 }
