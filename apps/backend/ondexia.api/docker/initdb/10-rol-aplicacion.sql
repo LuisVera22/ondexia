@@ -29,6 +29,17 @@
 -- contra una topologia de permisos distinta de la de produccion es como se
 -- descubren estas cosas en el peor momento.
 
-CREATE ROLE ondexia LOGIN PASSWORD 'ondexia';
+-- CREATEROLE, porque las migraciones crean roles.
+--
+-- En RDS quien aplica Flyway es el usuario maestro, que puede crearlos. Aqui el
+-- rol de la aplicacion es el dueno de su base y nada mas, asi que la V14 —que
+-- crea ondexia_app y ondexia_panel tambien fuera de RDS, para que sus privilegios
+-- se puedan comprobar en una prueba— moria con «permission denied to create
+-- role».
+--
+-- CREATEROLE no exime de Row Level Security: eso solo lo hacen SUPERUSER y
+-- BYPASSRLS, y este rol no tiene ninguno de los dos. El aislamiento multiempresa
+-- se sigue probando de verdad.
+CREATE ROLE ondexia LOGIN CREATEROLE PASSWORD 'ondexia';
 
 CREATE DATABASE ondexia OWNER ondexia;
