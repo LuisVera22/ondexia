@@ -2,12 +2,25 @@ spring:
   application:
     name: ondexia-api
 
-  # El perfil por defecto es 'local'. Es deliberado: en local uno se olvida de
-  # ponerlo, en un despliegue no — la variable SPRING_PROFILES_ACTIVE la fija
-  # Terraform. Si el defecto fuera 'prod', un arranque local sin perfil buscaria
-  # Cognito y fallaria de forma poco clara.
-  profiles:
-    default: local
+  # SIN perfil por defecto (hallazgo M4).
+  #
+  # Era 'local', con este argumento: en local uno se olvida de ponerlo, en un
+  # despliegue no, porque SPRING_PROFILES_ACTIVE la fija Terraform. El argumento
+  # es bueno hasta que falla una vez — y lo que trae el perfil 'local' es un
+  # EMISOR DE TOKENS DE DESARROLLO sin credencial: quien alcance esa aplicacion
+  # se emite el token que quiera, para el sub que quiera.
+  #
+  # La unica guarda era comprobar AWS_LAMBDA_FUNCTION_NAME, que cubre Lambda y
+  # nada mas: un contenedor, una EC2 de pruebas o un portatil con el puerto
+  # abierto no la disparan.
+  #
+  # Sin defecto, arrancar sin perfil deja la aplicacion sin decodificador de
+  # tokens y el contexto no se construye. Es ruidoso y ocurre en el arranque, que
+  # es donde se quiere.
+  #
+  # PARA ARRANCAR EN LOCAL hay que poner el perfil, en la configuracion de
+  # ejecucion de IntelliJ («Active profiles: local») o con
+  # SPRING_PROFILES_ACTIVE=local. Esta en el README del backend.
 
   datasource:
     # Puerto 5433, no 5432: es el que publica compose.yaml en el anfitrion, y

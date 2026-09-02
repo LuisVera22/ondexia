@@ -17,8 +17,19 @@ cd apps/backend/ondexia.api && docker compose up -d
 ```
 
 ```bash
-cd apps/backend && ./mvnw spring-boot:run -pl ondexia.api -am
+cd apps/backend && ./mvnw spring-boot:run -pl ondexia.api -am -Dspring-boot.run.profiles=local
 ```
+
+**El perfil hay que ponerlo.** No hay ninguno por defecto desde el hallazgo
+M4 de la auditoría 2026-09-01: lo era `local`, y ese perfil trae un emisor de
+tokens sin credencial —quien alcance la aplicación se emite el token que
+quiera, para el `sub` que quiera—. Un defecto que solo protege mientras nadie
+se equivoque no protege.
+
+Sin perfil, el arranque falla al construir el contexto: no hay decodificador de
+tokens. En IntelliJ se pone en **Active profiles: `local`** de la configuración
+de ejecución, o con `SPRING_PROFILES_ACTIVE=local` entre sus variables de
+entorno.
 
 La primera vez, el wrapper descarga Maven 3.9.16 y Flyway crea el esquema con datos de ejemplo.
 
