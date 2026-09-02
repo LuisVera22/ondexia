@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MarcoAccesoComponent } from '../../../shared/layout/marco-acceso/marco-acceso.component';
+import { CONFIGURACION } from '../../../nucleo/configuracion';
 import { SesionService } from '../../../nucleo/sesion.service';
 
 /**
@@ -27,6 +28,15 @@ export class IngresarComponent {
 
   readonly enviando = signal(false);
   readonly error = signal<string | null>(null);
+
+  /**
+   * Si se ofrece «Crear cuenta».
+   *
+   * Lo decide el despliegue, no el SPA: con el autoservicio cerrado —como está
+   * desde el hallazgo C2— Cognito responde a /signup con un error, y un botón
+   * que lleva a un error es peor que no tener botón. Ver `configuracion.ts`.
+   */
+  readonly autoservicio = inject(CONFIGURACION).autoservicio;
 
   constructor() {
     // Si ya hay sesión, no tiene sentido enseñar esta pantalla.

@@ -313,3 +313,21 @@ variable "mfa_personal" {
     error_message = "Valores admitidos: ON, OPTIONAL, OFF."
   }
 }
+
+/**
+ * Autoservicio de alta en el pool de INQUILINOS.
+ *
+ * Cerrado desde el hallazgo C2 de la auditoria 2026-09-01: con el abierto,
+ * cualquiera obtiene en dos minutos un token que abre la consulta de RUC —que
+ * gasta clave de pago de un tercero— y que permite enumerar por el 409 del
+ * registro que RUC del pais son clientes nuestros.
+ *
+ * Revierte una decision de producto del 2026-08-13 (venta con periodo de
+ * prueba, alta como pantalla del producto). Ponerlo en true vuelve a abrirlo;
+ * hacerlo sin haber arreglado antes la consulta de RUC reabre C2.
+ */
+variable "autoservicio_inquilinos" {
+  description = "Permitir que cualquiera se registre solo en el pool de inquilinos"
+  type        = bool
+  default     = false
+}
