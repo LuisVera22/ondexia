@@ -106,6 +106,23 @@
                               CVE-2026-66299 (7.5)   -> sin version corregida,
                                                         suprimido con motivo
 
+      Segunda vuelta, 2026-09-01: el CI se puso rojo otra vez con cinco CVE mas,
+      todos de Tomcat y todos con el rango terminando justo en la 11.0.24 que se
+      habia fijado arriba:
+
+        CVE-2026-65637 (9.8)  validacion de entrada, arreglo incompleto de
+                              CVE-2026-32990
+        CVE-2026-68525 (9.1)  autorizacion incorrecta en autenticacion FORM
+        CVE-2026-65182 (9.1)  omision de restriccion si una ruta larga se
+                              declara antes que una sub-ruta mas restrictiva
+        CVE-2026-68569 (8.1)
+        CVE-2026-68763 (7.5)
+
+      Corregidos en 11.0.25. Sigue aplicando lo de abajo —el contenedor de
+      servlets de produccion no es Tomcat— y sigue subiendose igual, por el mismo
+      motivo: una verja que se abre «porque en nuestro caso no aplica» deja de
+      ser una verja, y la proxima vez nadie volvera a razonarlo.
+
       Se sube a la ultima publicada de cada linea. Son parches dentro de la misma
       version menor, asi que no hay cambio de API; lo que cambia es que el
       analisis vuelve a pasar, y si no pasara lo dira el mismo build.
@@ -122,7 +139,7 @@
       es el que importaba.
     -->
     <postgresql.version>42.7.13</postgresql.version>
-    <tomcat.version>11.0.24</tomcat.version>
+    <tomcat.version>11.0.25</tomcat.version>
 
     <!--
       Clave de API del NIST.
