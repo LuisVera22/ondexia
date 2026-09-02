@@ -1,6 +1,12 @@
 package com.ondexia.admin.seguridad;
 
 import java.util.List;
+import org.springframework.core.convert.converter.Converter;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -68,8 +74,48 @@ public class SeguridadAdmin {
         return fuente;
     }
 
+    /**
+     * Los grupos de Cognito, convertidos en autoridades (hallazgo A5).
+     *
+     * <p>Cognito publica la pertenencia en {@code cognito:groups}, un array de
+     * cadenas. Spring no lo sabe: por omisión busca {@code scope} o {@code scp},
+     * que un token de Cognito no trae, así que TODA cuenta del grupo de personal
+     * llegaba sin ninguna autoridad — y con {@code anyRequest().authenticated()}
+     * eso significaba que estar dentro del pool bastaba para cambiar el plan de
+     * un cliente o suspenderle el servicio.
+     *
+     * <p>El prefijo {@code ROLE_} es lo que permite escribir {@code hasRole}. Sin
+     * él haría falta {@code hasAuthority("operaciones")} en cada endpoint, que es
+     * la clase de detalle que se olvida en el siguiente que se añada.
+     */
     @Bean
-    SecurityFilterChain cadena(HttpSecurity http) throws Exception {
+    JwtAuthenticationConverter conversorDeGrupos() {
+        var deGrupos = new JwtGrantedAuthoritiesConverter();
+        deGrupos.setAuthoritiesClaimName("cognito:groups");
+        deGrupos.setAuthorityPrefix("ROLE_");
+
+        var conversor = new JwtAuthenticationConverter();
+        conversor.setJwtGrantedAuthoritiesConverter(deGrupos);
+        return conversor;
+    }
+
+    /**
+     * Quién puede qué.
+     *
+     * <h2>La autorización va aquí y no en anotaciones</h2>
+     *
+     * <p>Con {@code @PreAuthorize} en cada método, el endpoint que alguien añada
+     * mañana sin la anotación queda abierto a cualquiera del pool: el descuido
+     * falla hacia el lado inseguro. Declarándolo por patrón y método, lo que
+     * queda sin cubrir cae en {@code anyRequest()}, y esa línea exige el grupo
+     * más restrictivo.
+     *
+     * <p>Es la misma razón por la que la API de clientes resuelve permisos en la
+     * base y no confía en anotaciones sueltas.
+     */
+    @Bean
+    SecurityFilterChain cadena(HttpSecurity http, JwtAuthenticationConverter conversor)
+            throws Exception {
         return http
                 .cors(cors -> {
                 })
@@ -79,9 +125,18 @@ public class SeguridadAdmin {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(peticiones -> peticiones
                         .requestMatchers(HttpMethod.GET, "/salud").permitAll()
-                        .anyRequest().authenticated())
-                .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> {
-                }))
+
+                        // Leer: soporte u operaciones. Es lo que necesita quien
+                        // atiende una consulta de un cliente.
+                        .requestMatchers(HttpMethod.GET, "/**")
+                        .hasAnyRole("soporte", "operaciones")
+
+                        // Escribir: solo operaciones. Cambiar el plan de un
+                        // cliente o suspenderle el servicio tiene consecuencias
+                        // de facturación para él.
+                        .anyRequest().hasRole("operaciones"))
+                .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt
+                        .jwtAuthenticationConverter(conversor)))
                 .build();
     }
 }

@@ -379,12 +379,61 @@ resource "aws_apigatewayv2_route" "panel_todo" {
  * importando para las peticiones reales.
  */
 
+resource "aws_cloudwatch_log_group" "panel_api_gateway" {
+  count = local.hay_panel ? 1 : 0
+
+  name              = "/aws/apigateway/${local.nombre}-panel"
+  retention_in_days = var.retencion_logs_dias
+
+  tags = { Name = "${local.nombre}-panel-api-gateway" }
+}
+
 resource "aws_apigatewayv2_stage" "panel" {
   count = local.hay_panel ? 1 : 0
 
   api_id      = aws_apigatewayv2_api.panel[0].id
   name        = "$default"
   auto_deploy = true
+
+  /**
+   * Registro de acceso, que no tenia (hallazgo A5).
+   *
+   * La API de clientes lo lleva desde el principio y esta no. Es exactamente al
+   * reves de lo que conviene: aqui cada peticion la hace una persona de dentro
+   * sobre los datos de un cliente, que es el acceso que mas falta hace poder
+   * reconstruir. Sin esto, la unica huella de quien entro al panel y a que era
+   * la bitacora de la aplicacion — que solo registra lo que CAMBIA, no lo que se
+   * mira.
+   *
+   * Se registra el sub del autorizador, no el correo: el correo lo cambia su
+   * dueno. Mismo motivo que A6.
+   */
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.panel_api_gateway[0].arn
+    format = jsonencode({
+      solicitudId = "$context.requestId"
+      ip          = "$context.identity.sourceIp"
+      metodo      = "$context.httpMethod"
+      ruta        = "$context.path"
+      estado      = "$context.status"
+      latenciaMs  = "$context.responseLatency"
+      operador    = "$context.authorizer.claims.sub"
+      momento     = "$context.requestTime"
+    })
+  }
+
+  /**
+   * Techo bajo, porque el uso real es bajo (hallazgo A5).
+   *
+   * Esta consola la usan dos o tres personas. Cinco por segundo con rafagas de
+   * veinte sobra para eso, y convierte en ruidoso cualquier recorrido automatico
+   * de las cuentas: sin techo, un token de operador robado permite volcar la
+   * lista entera de clientes tan rapido como aguante la Lambda.
+   */
+  default_route_settings {
+    throttling_burst_limit = 20
+    throttling_rate_limit  = 5
+  }
 
   tags = { Name = "${local.nombre}-panel" }
 }

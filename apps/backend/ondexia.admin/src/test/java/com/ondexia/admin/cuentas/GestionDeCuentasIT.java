@@ -51,7 +51,14 @@ class GestionDeCuentasIT extends PruebaDelPanel {
 
     /** Con correo en el token: es lo que debe acabar en la bitácora. */
     private MockHttpServletRequestBuilder comoOperador(MockHttpServletRequestBuilder peticion) {
-        return peticion.with(jwt().jwt(token -> token.claim("email", OPERADOR.correo())))
+        // La autoridad va como `authorities` y no como reclamo: el
+        // postprocesador jwt() no pasa por JwtAuthenticationConverter. Ver la
+        // nota en ConsultaDeCuentasIT.
+        return peticion.with(jwt()
+                        .jwt(token -> token.claim("email", OPERADOR.correo()))
+                        .authorities(
+                            new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                                    "ROLE_operaciones")))
                 .contentType(MediaType.APPLICATION_JSON);
     }
 

@@ -101,7 +101,7 @@ class ConsultaDeCuentasIT extends PruebaDelPanel {
     @Test
     @DisplayName("con token del personal se listan las cuentas con su consumo")
     void listaConConsumo() throws Exception {
-        mockMvc.perform(get("/api/v1/cuentas").with(jwt()))
+        mockMvc.perform(get("/api/v1/cuentas").with(comoSoporte()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.id == '" + CUENTA + "')]").exists())
                 .andExpect(jsonPath("$[?(@.id == '" + CUENTA + "')].planNombre")
@@ -135,7 +135,7 @@ class ConsultaDeCuentasIT extends PruebaDelPanel {
         // Mismo nombre que la cuenta sembrada arriba, distinto titular.
         sembrarCuenta(GEMELA, "Distribuidora de prueba", TITULAR_GEMELA, "otra@ejemplo.com");
 
-        mockMvc.perform(get("/api/v1/cuentas").with(jwt()))
+        mockMvc.perform(get("/api/v1/cuentas").with(comoSoporte()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.id == '" + CUENTA + "')].titular")
                         .value("activo@ejemplo.com"))
@@ -159,7 +159,7 @@ class ConsultaDeCuentasIT extends PruebaDelPanel {
          * parecian suyos. Los datos eran correctos; lo que estaba mal era lo
          * que veia la persona que decide apagar un modulo.
          */
-        String cuerpo = mockMvc.perform(get("/api/v1/cuentas/{id}/modulos", CUENTA).with(jwt()))
+        String cuerpo = mockMvc.perform(get("/api/v1/cuentas/{id}/modulos", CUENTA).with(comoSoporte()))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
@@ -195,5 +195,27 @@ class ConsultaDeCuentasIT extends PruebaDelPanel {
         assertThat(cuenta)
                 .as("nulo es «sin limite»; un cero significaria que no puede tener ninguno")
                 .isNull();
+    }
+
+    /**
+     * Un token del grupo `soporte`.
+     *
+     * <p>Desde el hallazgo A5 no basta con estar en el pool de personal: hay que
+     * pertenecer a un grupo. Antes cualquier cuenta autenticada podia cambiar el
+     * plan de un cliente; ahora leer exige `soporte` u `operaciones`, y escribir
+     * exige `operaciones`.
+     */
+    private static org.springframework.test.web.servlet.request.RequestPostProcessor
+            comoSoporte() {
+        /*
+          * `authorities` y no el reclamo: el postprocesador jwt() construye la
+          * autenticacion el mismo y NO pasa por JwtAuthenticationConverter, asi
+          * que poner cognito:groups aqui no produciria ninguna autoridad. Lo que
+          * esta prueba ejercita son las REGLAS de la cadena de filtros; que el
+          * reclamo se convierta en autoridad lo cubre GruposDelPersonalTest.
+          */
+        return jwt().authorities(
+                new org.springframework.security.core.authority.SimpleGrantedAuthority(
+                        "ROLE_soporte"));
     }
 }
