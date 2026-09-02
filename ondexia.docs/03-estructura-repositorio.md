@@ -14,10 +14,24 @@ Estado: **implementado (v3)** · Fecha: 2026-08-11 · Deriva de [DTE-ONX-001](DT
 |---|---|---|
 | Repositorios que crear y configurar | 1 | 6 |
 | Archivos de workflow | **1** | 6 como mínimo |
-| Configuración de OIDC y secretos | 1 rol, 1 secreto | 1 rol con 6 relaciones de confianza, 6 secretos |
+| Configuración de OIDC y secretos | 1 workflow, **un rol por entorno** | 6 workflows, un rol por entorno |
 | Cambio que toca API y frontend | Un commit atómico | 3 PR coordinados, con ventana de incoherencia |
 | Contrato `openapi.yaml` compartido | Un archivo | **Paquete versionado con su propio pipeline de publicación** |
 | Sobrecarga para **un solo desarrollador (R-13)** | Mínima | Multiplicada por seis |
+
+> **Corregido el 2026-09-01, hallazgo C1 de la auditoría.** Esta fila decía «1
+> rol, 1 secreto» frente a «1 rol con 6 relaciones de confianza, 6 secretos», y
+> esa comparación se cumplió: se desplegó **un rol con `PowerUserAccess` que
+> confiaba en `environment:dev` y en `environment:prod` a la vez**. Como el
+> entorno `dev` de GitHub no exige revisor, la aprobación manual de producción
+> dejó de proteger nada — bastaba lanzar el despliegue con `entorno=dev` y usar
+> esas credenciales contra el estado de prod.
+>
+> **Una frontera de confianza no se colapsa por ahorro operativo.** Un rol por
+> entorno; el mantenimiento se automatiza con `for_each`, no se evita
+> fusionando. El monorepo sigue siendo la decisión correcta y esa fila no era
+> parte de su argumento: el número de repositorios y el número de fronteras de
+> confianza son cosas distintas, y aquí se contaron juntas.
 
 ### 1.1 Por qué separar en repositorios *aumenta* la complejidad del CI/CD
 

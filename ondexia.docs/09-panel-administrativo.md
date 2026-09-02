@@ -77,9 +77,22 @@ La API sigue pudiendo invalidar su caché de permisos y no puede tocar `plan` ni
 autorizador, ni una línea de código que lo use. Su **MFA está en OFF**, con un
 recordatorio pendiente desde entonces.
 
-**Requisito previo, no negociable:** el MFA de ese grupo pasa a `ON` antes de que
-el panel exista. Una consola que ve todas las cuentas cliente detrás de solo
-usuario y contraseña no se despliega.
+**Codificado, no recordado:** el MFA de ese grupo está en `ON` y una
+`precondition` de Terraform aborta el `plan` de producción si alguien lo baja
+([identidad.tf](../ondexia.infra/identidad.tf), `aws_cognito_user_pool.personal`).
+Una consola que ve todas las cuentas cliente detrás de solo usuario y contraseña
+no se despliega, y ahora eso no depende de que nadie se acuerde.
+
+> **Corregido el 2026-09-01, hallazgo A4 de la auditoría.** Esto decía
+> «requisito previo, no negociable: el MFA pasa a `ON` antes de que el panel
+> exista», y el README de infraestructura lo repetía en una lista titulada «Lo
+> que Terraform no hace por ti». El MFA seguía en `OPTIONAL` cuatro meses
+> después.
+>
+> Regla que sale de aquí: **una obligación previa al despliegue se codifica o se
+> comprueba con `precondition`; no se deja como recordatorio.** Si de verdad no
+> se puede codificar —el rol de PostgreSQL de las migraciones es el caso—, el
+> documento dice por qué no se puede, no solo qué hay que acordarse de hacer.
 
 ## 4. Modelo de datos
 
@@ -251,11 +264,29 @@ moverlo a la versión anterior.
 
 ### 6.4 Quién valida el token
 
-**La pasarela, no la aplicación.** El autorizador JWT de la ruta `$default`
-comprueba firma, emisor, audiencia y caducidad antes de invocar la función, y el
-permiso de invocación está atado al ARN de esa API: no hay otra puerta.
-`TokenDeLaPasarela` lee el token sin verificar la firma y revalida lo que se
-puede sin red — emisor, cliente y caducidad.
+**Las dos.** `TokenDeLaPasarela` verifica la firma contra el JWKS del grupo de
+personal, que Terraform descarga al aplicar e inyecta en la función; la pasarela
+la verifica también, antes de invocar.
+
+> **Corregido el 2026-09-01, hallazgo A2 de la auditoría.** Este párrafo decía
+> «la pasarela, no la aplicación», y lo justificaba así: «el permiso de
+> invocación está atado al ARN de esa API: **no hay otra puerta**».
+>
+> Esa premisa era falsa cuando se escribió. La ruta `OPTIONS /{proxy+}` de esa
+> misma API no llevaba autorizador y apuntaba a la misma función: había una
+> puerta sin cerradura. Que no se ejecutara ningún controlador era casualidad de
+> que todos declararan método; un `@RequestMapping` sin método bastaba para
+> convertirlo en toma total de la consola.
+>
+> Y la prueba que acompañaba a la decisión, `unaFirmaQueNadieVerificaPasa`,
+> fijaba la **excepción** en vez de la premisa: dejaba constancia verde de que
+> una firma falsa se aceptaba.
+>
+> Regla que sale de aquí: **toda premisa de seguridad externa lleva en el mismo
+> commit el test que la verifica.** Aquí ese test es `FirmaDelTokenIT`, y la
+> premisa que se verifica ya no es «no hay otra puerta» —eso no lo puede
+> comprobar la aplicación— sino la que sí depende de nosotros: que un token que
+> no firmó Cognito se rechaza.
 
 No es una optimización, es lo único que funciona en esta red. El decodificador
 que Spring construye a partir de `issuer-uri` descarga la configuración del
