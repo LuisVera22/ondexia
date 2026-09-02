@@ -254,6 +254,17 @@ resource "aws_cognito_user_pool_client" "panel" {
     refresh_token = "hours"
   }
 
+  # Igual que el cliente de inquilinos (hallazgo C3): revocacion para que
+  # `cerrar()` tenga a donde llamar, y rotacion para que un refresco robado deje
+  # de servir en cuanto el legitimo renueve. Aqui importa mas que en ninguna
+  # parte: una sesion de esta consola ve las cuentas de todos los clientes.
+  enable_token_revocation = true
+
+  refresh_token_rotation {
+    feature                    = "ENABLED"
+    retry_grace_period_seconds = 60
+  }
+
   prevent_user_existence_errors = "ENABLED"
 }
 

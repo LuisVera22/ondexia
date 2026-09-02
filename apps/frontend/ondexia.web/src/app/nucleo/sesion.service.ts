@@ -231,8 +231,26 @@ export class SesionService {
     return this.renovacionEnCurso;
   }
 
-  /** Cierra sesión aquí y en Cognito. Sin lo segundo, «entrar» volvería a entrar solo. */
+  /**
+   * Cierra sesión: revoca el refresco, lo olvida aquí y sale de Cognito.
+   *
+   * <p>Los tres pasos importan y faltaba el primero (hallazgo C3). Antes se
+   * borraba el `sessionStorage` y se navegaba a `/logout`, que cierra la sesión
+   * del NAVEGADOR en Cognito — pero **el refresh token seguía siendo válido**.
+   * Quien lo hubiera copiado antes podía canjearlo durante los treinta días de su
+   * vigencia; cerrar sesión no le quitaba nada.
+   *
+   * Es `keepalive` y no `await`: la navegación a Cognito ocurre a continuación y
+   * mataría una petición normal a medio vuelo. Con `keepalive` el navegador la
+   * termina aunque la página se vaya.
+   *
+   * Y no se espera la respuesta a propósito. Si la revocación falla —red caída,
+   * Cognito de mal día— igualmente hay que borrar la sesión local y salir: la
+   * alternativa es dejar a alguien dentro porque no se pudo cerrar del todo. El
+   * refresco caduca solo en siete días.
+   */
   cerrar(): void {
+    this.revocarRefresco();
     this.limpiar();
 
     const parametros = new URLSearchParams({
@@ -241,6 +259,31 @@ export class SesionService {
     });
 
     location.assign(`${this.configuracion.cognito.dominio}/logout?${parametros}`);
+  }
+
+  /**
+   * `/oauth2/revoke` invalida el refresco Y todos los tokens de acceso emitidos
+   * con él. Es el endpoint que habilita `enable_token_revocation` en Terraform.
+   *
+   * <p>Sin `client_secret`: el cliente del SPA es público, por eso usa PKCE.
+   */
+  private revocarRefresco(): void {
+    const refresco = this._sesion()?.refresco;
+    if (!refresco) {
+      return;
+    }
+
+    void fetch(`${this.configuracion.cognito.dominio}/oauth2/revoke`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        token: refresco,
+        client_id: this.configuracion.cognito.clienteId,
+      }),
+      keepalive: true,
+    }).catch(() => {
+      // Da igual: la sesión local se borra igualmente y el refresco caduca solo.
+    });
   }
 
   limpiar(): void {
