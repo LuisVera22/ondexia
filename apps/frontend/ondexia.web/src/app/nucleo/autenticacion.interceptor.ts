@@ -17,7 +17,19 @@ import { SesionService } from './sesion.service';
 export const autenticacionInterceptor: HttpInterceptorFn = (peticion, siguiente) => {
   const configuracion = inject(CONFIGURACION);
 
-  if (!peticion.url.startsWith(configuracion.api)) {
+  /*
+   * Se compara el ORIGEN, no el prefijo de la cadena.
+   *
+   * Con `startsWith` y sin barra, la API en `https://api.ondexia.com` hacia que
+   * `https://api.ondexia.com.ejemplo.mx` casara: el token viajaba a un dominio
+   * ajeno que solo tiene que registrar un nombre que empiece igual. Es el
+   * hallazgo de la tabla de bajas, y el error clasico de comparar URL como
+   * texto.
+   *
+   * `URL` normaliza puerto y esquema, asi que tampoco cuela `http://` cuando la
+   * API es `https://`.
+   */
+  if (!esNuestraApi(peticion.url, configuracion.api)) {
     return siguiente(peticion);
   }
 
@@ -93,3 +105,20 @@ export const autenticacionInterceptor: HttpInterceptorFn = (peticion, siguiente)
     })
   );
 };
+
+/**
+ * Si la petición va a nuestra API. Compara origen, no texto.
+ *
+ * <p>Una URL relativa —las que no llevan esquema— se resuelve contra el
+ * documento, así que `new URL(relativa, location.origin)` da el origen del
+ * propio SPA y no coincide con el de la API. Es lo correcto: a `config.json` no
+ * hay que añadirle ningún token.
+ */
+function esNuestraApi(url: string, api: string): boolean {
+  try {
+    return new URL(url, location.origin).origin === new URL(api).origin;
+  } catch {
+    // Una URL que no se puede analizar no es la nuestra.
+    return false;
+  }
+}
