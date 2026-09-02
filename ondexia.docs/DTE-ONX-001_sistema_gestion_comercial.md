@@ -802,6 +802,17 @@ enumeración de cuentas, TOTP, rotación de refresh tokens— es meses de trabaj
 fallo es **silencioso**: funciona perfectamente hasta el día en que alguien entra. Autorizar
 es lógica de dominio y nadie puede escribirla por nosotros.
 
+> **Lo que se compra también se configura.** Corregido el 2026-09-01, hallazgo C3
+> de la auditoría. Esta lista se leyó como inventario de lo que Cognito hace, y
+> la rotación de refresh tokens es una **opción que estaba apagada**: los tokens
+> duraban treinta días, no rotaban, y `cerrar()` no llamaba a `/oauth2/revoke`.
+> Dos comentarios del código afirmaban que Cognito rotaba.
+>
+> Regla que sale de aquí: por cada control que se delegue en el proveedor, el
+> documento nombra **la línea de configuración que lo activa** y el ítem de
+> checklist que lo verifica. Un control comprado y no activado es peor que uno
+> que no se tiene, porque ya nadie vuelve a mirarlo.
+
 - Cognito emite JWT; **API Gateway lo valida de forma nativa**, sin autorizador Lambda. Un
   autorizador propio añadiría un arranque en frío a cada petición y código que mantener,
   y no haría falta: los permisos finos no se resuelven ahí.
@@ -1045,7 +1056,7 @@ Sustitutos admisibles, en orden de valor:
 | Mecanismo | Qué cubre | Qué **no** cubre |
 |---|---|---|
 | **Revisor externo puntual** (contador o desarrollador de confianza, una sesión por artefacto) | Errores de dominio tributario y supuestos falsos | Requiere agenda de un tercero |
-| **Revisión asistida por IA con la checklist doctrinal** aplicada en sesión separada de la de redacción | Inconsistencias, omisiones, criterios de cierre sin cumplir | **No detecta un supuesto de negocio equivocado si el autor y el revisor comparten el error** |
+| **Revisión asistida por IA con la checklist doctrinal** ([`CLAUDE.md`](../CLAUDE.md) en la raíz, más las skills de `ondexia.auditoria/skills/`) aplicada en sesión separada de la de redacción | Inconsistencias, omisiones, criterios de cierre sin cumplir | **No detecta un supuesto de negocio equivocado si el autor y el revisor comparten el error** |
 | **Revisión diferida** — releer el artefacto a los N días con la checklist | Errores de redacción y saltos lógicos | Sesgo del autor intacto |
 | **Pruebas automatizadas como red de seguridad** | Regresiones de código | Nada del diseño |
 
