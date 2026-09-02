@@ -93,7 +93,12 @@ public final class Atestacion {
      * que el verificador aplicara las reglas de otra versión a una carga firmada
      * con esta.
      */
-    private static final String VERSION = "1";
+    /*
+     * "2" desde el hallazgo M17: la carga lleva ademas al solicitante. Una
+     * atestacion de la version 1 no se puede leer con este verificador, y es a
+     * proposito — no hay ninguna que deba sobrevivir a un despliegue.
+     */
+    private static final String VERSION = "2";
 
     private static final char SEPARADOR = (char) 0x1F;
     private static final String ALGORITMO = "Ed25519";
@@ -101,8 +106,13 @@ public final class Atestacion {
     private Atestacion() {
     }
 
-    /** Lo que la API recupera de una atestación válida. */
-    public record Contenido(DatosDeRuc datos, Instant expiraEn) {
+    /**
+     * Lo que la API recupera de una atestación válida.
+     *
+     * @param solicitante el {@code sub} para quien se emitió, ya comprobado
+     *     contra el de quien la presenta
+     */
+    public record Contenido(DatosDeRuc datos, Instant expiraEn, String solicitante) {
     }
 
     /**
@@ -111,21 +121,33 @@ public final class Atestacion {
      * @param expiraEn corto, del orden de minutos: es el tiempo que hay entre
      *     consultar el RUC y enviar el formulario. Más allá, la foto del padrón
      *     envejece y quien la reenvía podría estar reutilizando una vieja
+     * @param solicitante el {@code sub} de quien consulta. Va dentro de la firma
+     *     (hallazgo M17): sin él, una atestación válida servía a cualquiera que
+     *     la tuviera durante esos minutos —otro usuario de la misma cuenta, o de
+     *     otra—, y la caducidad era la única defensa contra el reenvío
      */
-    public static String emitir(DatosDeRuc datos, Instant expiraEn, PrivateKey privada) {
-        byte[] bytes = carga(datos, expiraEn).getBytes(StandardCharsets.UTF_8);
+    public static String emitir(DatosDeRuc datos, Instant expiraEn, PrivateKey privada,
+            String solicitante) {
+        if (solicitante == null || solicitante.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Una atestación se emite para alguien: falta el solicitante.");
+        }
+        byte[] bytes = carga(datos, expiraEn, solicitante).getBytes(StandardCharsets.UTF_8);
         return base64(bytes) + "." + base64(firmar(bytes, privada));
     }
 
     /**
      * Comprueba la firma y devuelve lo que había dentro.
      *
-     * @throws AtestacionInvalida si la firma no cuadra, si caducó o si el
-     *     formato no es el esperado. No se distingue el motivo hacia fuera a
-     *     propósito: quien manipula una atestación no necesita ayuda para saber
-     *     qué parte le falló
+     * @param solicitante el {@code sub} de quien la presenta. Tiene que ser el
+     *     mismo para el que se emitió
+     * @throws AtestacionInvalida si la firma no cuadra, si caducó, si es de
+     *     otro solicitante o si el formato no es el esperado. No se distingue el
+     *     motivo hacia fuera a propósito: quien manipula una atestación no
+     *     necesita ayuda para saber qué parte le falló
      */
-    public static Contenido verificar(String token, PublicKey publica, Instant ahora) {
+    public static Contenido verificar(String token, PublicKey publica, Instant ahora,
+            String solicitante) {
         if (token == null || token.isBlank()) {
             throw new AtestacionInvalida("La verificación del RUC no llegó.");
         }
@@ -148,10 +170,10 @@ public final class Atestacion {
             throw new AtestacionInvalida("La verificación del RUC no es válida.");
         }
 
-        return leer(new String(carga, StandardCharsets.UTF_8), ahora);
+        return leer(new String(carga, StandardCharsets.UTF_8), ahora, solicitante);
     }
 
-    private static String carga(DatosDeRuc datos, Instant expiraEn) {
+    private static String carga(DatosDeRuc datos, Instant expiraEn, String solicitante) {
         StringBuilder sb = new StringBuilder();
         sb.append(VERSION).append(SEPARADOR);
         sb.append(datos.ruc().valor()).append(SEPARADOR);
@@ -167,17 +189,18 @@ public final class Atestacion {
         sb.append(datos.esBuenContribuyente() ? "1" : "0").append(SEPARADOR);
         sb.append(texto(datos.tipoSocietario())).append(SEPARADOR);
         sb.append(datos.consultadoEn().toEpochMilli()).append(SEPARADOR);
-        sb.append(expiraEn.toEpochMilli());
+        sb.append(expiraEn.toEpochMilli()).append(SEPARADOR);
+        sb.append(solicitante);
         return sb.toString();
     }
 
-    private static Contenido leer(String carga, Instant ahora) {
+    private static Contenido leer(String carga, Instant ahora, String solicitante) {
         // -1 para conservar los campos vacios del final: con el limite por
         // omision, un tipo societario nulo seguido de dos numeros no se notaria,
         // pero un cambio de orden futuro si, y el fallo seria un
         // ArrayIndexOutOfBounds en produccion.
         String[] c = carga.split(String.valueOf(SEPARADOR), -1);
-        if (c.length != 15 || !VERSION.equals(c[0])) {
+        if (c.length != 16 || !VERSION.equals(c[0])) {
             throw new AtestacionInvalida("La verificación del RUC está mal formada.");
         }
 
@@ -214,7 +237,21 @@ public final class Atestacion {
             throw new AtestacionInvalida(
                     "La verificación del RUC caducó. Vuelve a consultarlo.");
         }
-        return new Contenido(datos, expiraEn);
+
+        /*
+         * Y para quien se emitio (hallazgo M17). Se comprueba despues de la firma
+         * por el mismo motivo que la caducidad: responder «no es tuya» a una
+         * atestacion inventada regalaria informacion sobre el formato.
+         *
+         * La comparacion es de igualdad exacta: un solicitante nulo o vacio en
+         * el verificador no casa con nada, asi que una API que olvidara pasarlo
+         * rechazaria todo en vez de aceptar todo.
+         */
+        if (solicitante == null || !solicitante.equals(c[15])) {
+            throw new AtestacionInvalida(
+                    "La verificación del RUC no es de quien la presenta. Vuelve a consultarlo.");
+        }
+        return new Contenido(datos, expiraEn, c[15]);
     }
 
     private static byte[] firmar(byte[] mensaje, PrivateKey privada) {

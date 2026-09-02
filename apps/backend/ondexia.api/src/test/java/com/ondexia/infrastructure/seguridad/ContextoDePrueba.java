@@ -21,7 +21,8 @@ public final class ContextoDePrueba {
 
     public static void comoUsuarioDe(UUID usuarioId, UUID cuentaId, UUID empresaId) {
         ContextoActual.establecer(new ContextoOperacion(
-                usuarioId, cuentaId, 1L, empresaId, null, null, true, false, "127.0.0.1"));
+                usuarioId, "sub-" + usuarioId, cuentaId, 1L, empresaId, null, null, true, false,
+                "127.0.0.1"));
     }
 
     public static void establecer(ContextoOperacion contexto) {

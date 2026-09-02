@@ -265,6 +265,13 @@ public final class AdaptadoresIdentidad {
 
         @Override
         @Transactional
+        public long contarActivosEnCuentaBloqueando(UUID cuentaId) {
+            filas.bloquearCuenta(cuentaId);
+            return filas.contarActivosEnCuenta(cuentaId);
+        }
+
+        @Override
+        @Transactional
         public CuentaAdministrador guardar(CuentaAdministrador administrador) {
             return MapeadoresIdentidad.aDominio(
                     filas.save(MapeadoresIdentidad.aFila(administrador)));

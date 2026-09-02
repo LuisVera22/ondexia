@@ -9,7 +9,9 @@ import jakarta.validation.constraints.Pattern;
 import java.security.PrivateKey;
 import java.time.Duration;
 import java.time.Instant;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -62,7 +64,13 @@ public class ConsultaDeRucController {
     @GetMapping("/{ruc}")
     public RespuestaConsulta consultar(
             @PathVariable @Pattern(regexp = "\\d{11}", message = "El RUC son once dígitos.")
-            String ruc) {
+            String ruc,
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false)
+            String autorizacion) {
+
+        // Antes de gastar una consulta del proveedor: sin solicitante no hay
+        // para quien emitir la atestacion (M17).
+        String solicitante = Solicitante.de(autorizacion);
 
         DatosDeRuc datos = padron.consultar(new Ruc(ruc))
                 .orElseThrow(() -> RecursoNoEncontrado.con(
@@ -70,7 +78,7 @@ public class ConsultaDeRucController {
                         "SUNAT no tiene registrado el RUC " + ruc + "."));
 
         String atestacion = Atestacion.emitir(
-                datos, Instant.now().plus(VALIDEZ), clavePrivada);
+                datos, Instant.now().plus(VALIDEZ), clavePrivada, solicitante);
 
         return RespuestaConsulta.de(datos, atestacion);
     }

@@ -94,6 +94,7 @@ public class ResolverContexto {
 
         return new ContextoOperacion(
                 usuario.id(),
+                cognitoSub,
                 cuenta.id(),
                 cuenta.permisosVersion(),
                 activa == null ? null : activa.empresaId(),

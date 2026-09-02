@@ -113,7 +113,8 @@ public class RegistrarCuenta {
          * comprobantes de esa empresa, y el fallo aparece en la primera emision
          * real — semanas despues del alta.
          */
-        DatosDeRuc padron = verificacion.comprobar(datos.atestacion());
+        // Para ESTE sub: una atestacion pedida por otra persona no sirve (M17).
+        DatosDeRuc padron = verificacion.comprobar(datos.atestacion(), cognitoSub);
         var ruc = padron.ruc();
 
         /*

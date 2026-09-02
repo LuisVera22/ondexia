@@ -212,25 +212,20 @@ public class Empresa {
     /**
      * El nombre comercial, que es nuestro y no de SUNAT.
      *
-     * <p>Método aparte de {@link #actualizarDatosFiscales} porque no es un dato
-     * fiscal: SUNAT tiene uno registrado, pero las empresas usan el que quieren
-     * en sus facturas y no hay ninguna consecuencia en que difieran. Metido en
-     * el método de los datos fiscales, cambiarlo obligaría a pasar de nuevo la
-     * razón social y el domicilio — y por ahí es como se sobrescribe sin querer
-     * lo que vino del padrón.
+     * <p>Es el único dato de identificación que se edita a mano: SUNAT tiene uno
+     * registrado, pero las empresas usan el que quieren en sus facturas y no hay
+     * ninguna consecuencia en que difieran. La razón social, el domicilio y el
+     * ubigeo solo entran por {@link #refrescarDesdeSunat}.
+     *
+     * <p>Hubo un {@code actualizarDatosFiscales} que admitía razón social y
+     * domicilio a mano, sin tocar la verificación. Nadie lo llamaba y se retiró
+     * (hallazgo M7): un método que puede sobrescribir lo que vino del padrón es
+     * un método que algún día alguien llama.
      */
     public void renombrarComercialmente(String nombreComercial) {
         this.nombreComercial = nombreComercial == null || nombreComercial.isBlank()
                 ? null
                 : nombreComercial.trim();
-    }
-
-    public void actualizarDatosFiscales(String razonSocial, String nombreComercial,
-            String domicilioFiscal, Ubigeo ubigeo) {
-        this.razonSocial = exigirTexto(razonSocial, "razon_social", "La razón social");
-        this.domicilioFiscal = exigirTexto(domicilioFiscal, "domicilio_fiscal", "El domicilio fiscal");
-        this.nombreComercial = nombreComercial;
-        this.ubigeo = ubigeo;
     }
 
     /**

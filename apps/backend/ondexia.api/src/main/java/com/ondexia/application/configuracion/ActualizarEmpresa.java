@@ -121,7 +121,7 @@ public class ActualizarEmpresa {
         var empresaId = contexto.obligatorio().empresaActivaObligatoria();
         var empresa = empresasDelUsuario.exigirAcceso(empresaId);
 
-        DatosDeRuc datos = verificacion.comprobar(atestacion);
+        DatosDeRuc datos = verificacion.comprobar(atestacion, contexto.obligatorio().sub());
 
         var antes = InstantaneaEmpresa.de(empresa);
 

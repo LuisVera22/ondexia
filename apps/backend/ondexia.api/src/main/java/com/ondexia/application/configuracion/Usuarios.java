@@ -266,9 +266,19 @@ public class Usuarios {
                     "No puedes desactivarte a ti mismo. Pídeselo a otro administrador.");
         }
 
+        /*
+         * Con la cuenta bloqueada y contando solo ACTIVOS (hallazgo M6).
+         *
+         * Antes contaba filas de cuenta_administrador sin bloquear nada: dos
+         * administradores desactivandose el uno al otro a la vez leian «dos» y
+         * los dos pasaban, y ademas un administrador ya desactivado seguia
+         * contando como salida. El disparador de la base protege los BORRADOS de
+         * cuenta_administrador, no `usuario.activo`, asi que esta era la unica
+         * defensa y tenia una carrera.
+         */
         var cuentaId = cuentaActual();
         if (administradores.esAdministrador(cuentaId, usuario.id())
-                && administradores.contarEnCuenta(cuentaId) <= 1) {
+                && administradores.contarActivosEnCuentaBloqueando(cuentaId) <= 1) {
             throw new ReglaDeNegocioViolada(
                     "ultimo_administrador",
                     "Es el único administrador de la cuenta. Nombra a otro antes de "

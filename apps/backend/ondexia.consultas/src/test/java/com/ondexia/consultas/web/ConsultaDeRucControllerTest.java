@@ -65,6 +65,23 @@ class ConsultaDeRucControllerTest {
 
     private static final String RUC = "20601030013";
 
+    /** Quién consulta. Desde M17 la atestación se emite para este {@code sub}. */
+    private static final String SOLICITANTE = "sub-de-prueba";
+
+    /**
+     * Un JWT sin firmar con ese {@code sub}. Basta: este módulo no verifica la
+     * firma —lo hace el autorizador de la pasarela antes de invocar—, solo lee
+     * quién es. Ver {@link Solicitante}.
+     */
+    private static final String TOKEN = "Bearer "
+            + java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(
+                    "{\"alg\":\"none\"}".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            + "."
+            + java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(
+                    ("{\"sub\":\"" + SOLICITANTE + "\"}")
+                            .getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            + ".";
+
     /**
      * Lo que responde el padrón en cada prueba.
      *
@@ -103,7 +120,7 @@ class ConsultaDeRucControllerTest {
         respuesta = ruc -> Optional.of(datos(
                 EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO));
 
-        String cuerpo = mockMvc.perform(get("/consultas/ruc/" + RUC))
+        String cuerpo = mockMvc.perform(get("/consultas/ruc/" + RUC).header("Authorization", TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.datos.ruc").value(RUC))
                 .andExpect(jsonPath("$.datos.razonSocial").value("ONDEXIA S.A.C."))
@@ -127,7 +144,7 @@ class ConsultaDeRucControllerTest {
 
         // Verifica de verdad: si el contexto hubiera montado otra clave, esto
         // lanzaria AtestacionInvalida.
-        Atestacion.verificar(atestacion, publica, Instant.now());
+        Atestacion.verificar(atestacion, publica, Instant.now(), SOLICITANTE);
     }
 
     /**
@@ -144,7 +161,7 @@ class ConsultaDeRucControllerTest {
         respuesta = ruc -> Optional.of(datos(
                 EstadoContribuyente.ACTIVO, CondicionDomicilio.NO_HABIDO));
 
-        mockMvc.perform(get("/consultas/ruc/" + RUC))
+        mockMvc.perform(get("/consultas/ruc/" + RUC).header("Authorization", TOKEN))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.datos.aptaParaRegistro").value(false))
                 .andExpect(jsonPath("$.datos.motivoDeRechazo").value(
@@ -156,7 +173,7 @@ class ConsultaDeRucControllerTest {
     void noEncontrado() throws Exception {
         respuesta = ruc -> Optional.empty();
 
-        mockMvc.perform(get("/consultas/ruc/" + RUC))
+        mockMvc.perform(get("/consultas/ruc/" + RUC).header("Authorization", TOKEN))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.codigo").value("ruc_no_encontrado"))
                 .andExpect(jsonPath("$.reintentable").value(false));
@@ -175,7 +192,7 @@ class ConsultaDeRucControllerTest {
             throw new ConsultaNoDisponible("consulta_no_disponible", "caído", true);
         };
 
-        mockMvc.perform(get("/consultas/ruc/" + RUC))
+        mockMvc.perform(get("/consultas/ruc/" + RUC).header("Authorization", TOKEN))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.codigo").value("consulta_no_disponible"))
                 .andExpect(jsonPath("$.reintentable").value(true));
@@ -188,7 +205,7 @@ class ConsultaDeRucControllerTest {
             throw new ConsultaNoDisponible("consulta_no_disponible", "credenciales", false);
         };
 
-        mockMvc.perform(get("/consultas/ruc/" + RUC))
+        mockMvc.perform(get("/consultas/ruc/" + RUC).header("Authorization", TOKEN))
                 .andExpect(status().isServiceUnavailable())
                 .andExpect(jsonPath("$.reintentable").value(false));
     }
@@ -205,7 +222,7 @@ class ConsultaDeRucControllerTest {
             throw new AssertionError("no debería haberse consultado");
         };
 
-        mockMvc.perform(get("/consultas/ruc/20123456789"))
+        mockMvc.perform(get("/consultas/ruc/20123456789").header("Authorization", TOKEN))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.codigo").value("ruc_invalido"));
     }
@@ -217,8 +234,25 @@ class ConsultaDeRucControllerTest {
             throw new AssertionError("no debería haberse consultado");
         };
 
-        mockMvc.perform(get("/consultas/ruc/123"))
+        mockMvc.perform(get("/consultas/ruc/123").header("Authorization", TOKEN))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.codigo").value("ruc_invalido"));
+    }
+
+    /**
+     * Sin token no se consulta (M17): no habría para quién emitir la atestación,
+     * y además no se gasta una llamada de pago en una petición que no puede
+     * terminar bien.
+     */
+    @Test
+    @DisplayName("Sin token de acceso no hay consulta, y no se llama al proveedor")
+    void sinTokenNoHayConsulta() throws Exception {
+        respuesta = ruc -> {
+            throw new AssertionError("no debería haberse consultado");
+        };
+
+        mockMvc.perform(get("/consultas/ruc/" + RUC))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.codigo").value("sin_solicitante"));
     }
 }

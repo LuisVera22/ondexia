@@ -37,8 +37,8 @@ class VerificacionPorAtestacion implements VerificacionDeRuc {
     }
 
     @Override
-    public DatosDeRuc comprobar(String atestacion) {
-        return Atestacion.verificar(atestacion, publica, reloj.instant()).datos();
+    public DatosDeRuc comprobar(String atestacion, String solicitante) {
+        return Atestacion.verificar(atestacion, publica, reloj.instant(), solicitante).datos();
     }
 
     /**
@@ -61,7 +61,7 @@ class VerificacionPorAtestacion implements VerificacionDeRuc {
     static final class SinClave implements VerificacionDeRuc {
 
         @Override
-        public DatosDeRuc comprobar(String atestacion) {
+        public DatosDeRuc comprobar(String atestacion, String solicitante) {
             throw new AtestacionInvalida(
                     "La verificación de RUC no está configurada en este entorno.");
         }
