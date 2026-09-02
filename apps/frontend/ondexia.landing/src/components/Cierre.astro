@@ -89,7 +89,13 @@ const correo = 'hola@ondexia.com';
                 Acepto que Ondexia use este correo solo para avisarme del acceso, y sé que
                 puedo pedir que lo borren escribiendo a
                 <a href={`mailto:${correo}`} class="font-semibold underline">{correo}</a>.
-                <a href="/privacidad" class="font-semibold underline">Política de privacidad</a>.
+                {/*
+                  Sin enlace a una politica de privacidad: no existe todavia y un
+                  enlace roto en el consentimiento es peor que ninguno. El texto
+                  de arriba ya dice finalidad, responsable y como ejercer el
+                  borrado, que es lo minimo de la Ley 29733. La pagina queda
+                  pendiente, con texto legal de verdad y no inventado aqui.
+                */}
               </span>
             </label>
             <button type="submit" class="btn-oscuro w-full">
