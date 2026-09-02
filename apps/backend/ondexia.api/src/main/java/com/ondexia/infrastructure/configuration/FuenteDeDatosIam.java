@@ -46,6 +46,19 @@ import software.amazon.awssdk.services.rds.RdsUtilities;
  */
 final class FuenteDeDatosIam implements DataSource {
 
+    /**
+     * El paquete de CA de RDS, dentro del artefacto.
+     *
+     * <p>El controlador de PostgreSQL admite un recurso del classpath con este
+     * prefijo, así que no hace falta escribir nada en disco — en Lambda solo
+     * {@code /tmp} es escribible.
+     *
+     * <p>El archivo se descarga de
+     * {@code https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem}
+     * y se actualiza cuando AWS rota sus autoridades, que avisa con meses.
+     */
+    private static final String RAIZ_RDS = "classpath:certificados/rds-global-bundle.pem";
+
     private final String url;
     private final String usuario;
     private final String anfitrion;
@@ -92,7 +105,29 @@ final class FuenteDeDatosIam implements DataSource {
         propiedades.setProperty("user", usuario);
         propiedades.setProperty("password", tokenNuevo());
         propiedades.setProperty("ssl", "true");
-        propiedades.setProperty("sslmode", "require");
+
+        /*
+         * `verify-full`, no `require`.
+         *
+         * `require` cifra y NO COMPRUEBA CONTRA QUIEN: acepta cualquier
+         * certificado, incluido el de alguien que se haya puesto en medio. Cifrar
+         * sin verificar la identidad protege de quien escucha y no de quien
+         * intercepta, que dentro de una VPC es el escenario menos improbable de
+         * los dos —una entrada de DNS o de tabla de rutas basta—.
+         *
+         * `verify-full` ademas comprueba que el nombre del certificado coincida
+         * con el anfitrion al que se llama, que es lo que cierra el redireccion
+         * a otra instancia.
+         *
+         * Necesita el paquete de CA de RDS en el almacen de confianza. Va en el
+         * artefacto y se apunta con `sslrootcert`; sin el, el fallo es
+         * «PKIX path building failed» al abrir la primera conexion — ruidoso y
+         * en el arranque, que es donde se quiere.
+         *
+         * Tabla de bajas de la auditoria 2026-09-01.
+         */
+        propiedades.setProperty("sslmode", "verify-full");
+        propiedades.setProperty("sslrootcert", RAIZ_RDS);
 
         return DriverManager.getConnection(url, propiedades);
     }

@@ -35,6 +35,37 @@ resource "aws_db_parameter_group" "principal" {
     value = "1000"
   }
 
+  /**
+   * TLS obligatorio, declarado y no supuesto.
+   *
+   * `rds.force_ssl` viene en 1 en los grupos por omision de PostgreSQL 16 en
+   * adelante, y el codigo de la aplicacion se apoyaba en eso. Un grupo de
+   * parametros propio —como este— no hereda el valor: si algun dia alguien
+   * anade un parametro mas y AWS cambia el defecto, las conexiones sin cifrar
+   * pasarian a aceptarse sin que nada avise.
+   *
+   * Tabla de bajas de la auditoria 2026-09-01.
+   */
+  parameter {
+    name  = "rds.force_ssl"
+    value = "1"
+  }
+
+  # ── Lo que este registro expone, dicho y no resuelto ──────────────────────
+  #
+  # `log_min_duration_statement` escribe la sentencia ENTERA en CloudWatch,
+  # literales incluidos: RUC, razones sociales, importes. Es una copia parcial de
+  # datos de clientes en un sitio con otra politica de acceso.
+  #
+  # PostgreSQL no tiene ningun parametro que redacte los literales de ese
+  # registro —lo que se acerca es pgaudit, que registra MAS, no menos—, asi que
+  # la unica mitigacion real es que el grupo de registro tenga retencion
+  # declarada, y eso es lo que se anade abajo. Antes no la tenia: los registros
+  # se guardaban para siempre.
+  #
+  # Queda como exposicion aceptada y acotada, no como problema resuelto. Tabla de
+  # bajas de la auditoria 2026-09-01.
+
   lifecycle {
     create_before_destroy = true
   }
@@ -169,4 +200,24 @@ resource "aws_db_instance" "principal" {
   }
 
   tags = { Name = local.nombre }
+}
+
+/**
+ * El grupo de registro de PostgreSQL, declarado (tabla de bajas).
+ *
+ * `enabled_cloudwatch_logs_exports` hace que RDS cree el grupo por su cuenta la
+ * primera vez que escribe, y un grupo creado asi NACE SIN RETENCION: guarda para
+ * siempre. Ahi dentro van las sentencias lentas con sus literales —RUC, razones
+ * sociales, importes—, asi que era una copia de datos de clientes acumulandose
+ * sin fecha de caducidad y sin que nadie la hubiera decidido.
+ *
+ * Declararlo aqui es lo que permite ponerle retencion. El nombre no se elige: lo
+ * fija RDS a partir del identificador de la instancia, y si no coincide se crean
+ * dos grupos y el que escribe sigue siendo el otro.
+ */
+resource "aws_cloudwatch_log_group" "bd_postgresql" {
+  name              = "/aws/rds/instance/${local.nombre}/postgresql"
+  retention_in_days = var.retencion_logs_dias
+
+  tags = { Name = "${local.nombre}-bd-postgresql" }
 }

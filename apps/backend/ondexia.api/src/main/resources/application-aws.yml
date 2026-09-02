@@ -103,6 +103,23 @@ spring:
           # ejercita es FirmaDelTokenIT.
 
 
+# Swagger y el contrato, APAGADOS fuera de local.
+#
+# Estaban abiertos a cualquier usuario autenticado de Cognito, y con el
+# autoservicio de alta eso era «a cualquiera». Un contrato de API completo no es
+# un secreto —quien tenga cuenta puede deducirlo llamando— pero le ahorra a quien
+# busca el trabajo de deducirlo: lista los endpoints que no salen en la interfaz,
+# los campos opcionales y los codigos de error, que es por donde se empieza.
+#
+# En local sigue disponible, que es donde sirve. Tabla de bajas de la auditoria
+# 2026-09-01.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+
 # Marca: donde viven los logos que sube el cliente.
 #
 # Las dos variables las pone Terraform desde el primer despliegue (api.tf), asi

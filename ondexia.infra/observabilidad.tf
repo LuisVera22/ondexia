@@ -127,3 +127,156 @@ resource "aws_cloudwatch_metric_alarm" "espacio_bd" {
 
   alarm_actions = [aws_sns_topic.alertas.arn]
 }
+
+# ── CloudTrail (hallazgo M12) ──────────────────────────────────────────────
+
+/**
+ * Quien hizo que en la cuenta de AWS. No habia nada.
+ *
+ * Sin CloudTrail, la unica huella de una accion sobre la infraestructura son los
+ * registros de la aplicacion —que solo cubren la aplicacion— y el estado de
+ * Terraform, que dice como quedo todo pero no quien lo cambio ni cuando. Si
+ * manana aparece un rol que nadie recuerda haber creado, no hay forma de saber
+ * de donde salio.
+ *
+ * Importa mas aqui que en una cuenta cualquiera por lo que este proyecto emite:
+ * un comprobante con valor tributario. La pregunta «quien toco esto» tiene un
+ * destinatario legal, no solo tecnico.
+ *
+ * COSTO: el primer trail de gestion de una cuenta es GRATIS —AWS no cobra por
+ * los eventos de gestion del primer trail—, y lo que se paga es el
+ * almacenamiento en S3: unos megabytes al mes para una cuenta de este tamano. No
+ * se registran eventos de DATOS (lecturas de objetos de S3), que si se cobran y
+ * en este proyecto serian ruido.
+ */
+resource "aws_s3_bucket" "cloudtrail" {
+  bucket = "${local.nombre}-cloudtrail-${local.sufijo}"
+
+  tags = { Name = "${local.nombre}-cloudtrail" }
+}
+
+resource "aws_s3_bucket_public_access_block" "cloudtrail" {
+  bucket = aws_s3_bucket.cloudtrail.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "cloudtrail" {
+  bucket = aws_s3_bucket.cloudtrail.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+  }
+}
+
+# Sin versionado y con caducidad: los registros de auditoria se leen semanas
+# despues, no anos, y la validacion de integridad del propio trail ya detecta
+# manipulaciones sin necesidad de versiones.
+resource "aws_s3_bucket_lifecycle_configuration" "cloudtrail" {
+  bucket = aws_s3_bucket.cloudtrail.id
+
+  rule {
+    id     = "caducar"
+    status = "Enabled"
+
+    filter {}
+
+    expiration {
+      days = var.entorno == "prod" ? 365 : 90
+    }
+  }
+}
+
+data "aws_iam_policy_document" "cloudtrail" {
+  statement {
+    sid     = "PermitirComprobacionDeAcl"
+    actions = ["s3:GetBucketAcl"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["cloudtrail.amazonaws.com"]
+    }
+
+    resources = [aws_s3_bucket.cloudtrail.arn]
+  }
+
+  statement {
+    sid     = "PermitirEscritura"
+    actions = ["s3:PutObject"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["cloudtrail.amazonaws.com"]
+    }
+
+    resources = ["${aws_s3_bucket.cloudtrail.arn}/AWSLogs/${data.aws_caller_identity.actual.account_id}/*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "s3:x-amz-acl"
+      values   = ["bucket-owner-full-control"]
+    }
+  }
+
+  # Nada sin TLS, ni siquiera para el propio servicio.
+  statement {
+    sid     = "NadaSinTls"
+    effect  = "Deny"
+    actions = ["s3:*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+
+    resources = [
+      aws_s3_bucket.cloudtrail.arn,
+      "${aws_s3_bucket.cloudtrail.arn}/*",
+    ]
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
+    }
+  }
+}
+
+resource "aws_s3_bucket_policy" "cloudtrail" {
+  bucket = aws_s3_bucket.cloudtrail.id
+  policy = data.aws_iam_policy_document.cloudtrail.json
+}
+
+resource "aws_cloudtrail" "principal" {
+  name           = "${local.nombre}-auditoria"
+  s3_bucket_name = aws_s3_bucket.cloudtrail.id
+
+  /**
+   * Multi-region, y no es por completismo.
+   *
+   * Un trail de una sola region no ve lo que pase en las demas, y crear recursos
+   * en una region que nadie mira es la forma habitual de usar una cuenta ajena
+   * sin que se note. Los eventos globales —IAM, STS— solo se registran con esta
+   * opcion.
+   */
+  is_multi_region_trail         = true
+  include_global_service_events = true
+
+  /**
+   * Validacion de integridad: CloudTrail firma un resumen por hora.
+   *
+   * Sin esto, quien tenga acceso de escritura al bucket puede borrar o editar
+   * los registros que le incomoden y no queda rastro. Con esto, el archivo de
+   * resumen no cuadra.
+   */
+  enable_log_file_validation = true
+
+  depends_on = [aws_s3_bucket_policy.cloudtrail]
+
+  tags = { Name = "${local.nombre}-auditoria" }
+}
