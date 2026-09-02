@@ -9,6 +9,16 @@ on:
     branches: [main, develop]
   workflow_dispatch:
 
+# Solo lectura, y explicito (hallazgo M15).
+#
+# Sin este bloque el GITHUB_TOKEN hereda los permisos por omision del
+# repositorio, que en repos creados hace tiempo son de ESCRITURA sobre
+# contenidos, paquetes y despliegues. Este workflow solo necesita leer el
+# codigo: cualquier accion o dependencia comprometida durante el build tendria,
+# si no, un token con el que empujar commits.
+permissions:
+  contents: read
+
 # Un solo job, sin filtros de rutas. Con un desarrollador y un proyecto de este
 # tamaño, construir todo en cada commit cuesta minutos y ahorra la clase de
 # error que aparece cuando el frontend y el backend se compilan por separado.
@@ -43,7 +53,7 @@ jobs:
       # con `push` y `pull_request`— y además es la clase de protección que
       # queremos, porque ese patrón es justo el que filtra secretos a una PR
       # ajena.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
 
       # pnpm antes que setup-node: el runner no lo trae, y setup-node necesita
       # que exista para poder cachear su almacén.
@@ -57,17 +67,17 @@ jobs:
       # Se apunta al archivo en vez de fijar `version:` aquí para que la versión
       # siga estando en un solo sitio. Con las dos, la del workflow y la del
       # package.json se separan el día que alguien actualice una.
-      - uses: pnpm/action-setup@v6
+      - uses: pnpm/action-setup@f520eceda224fe1a4aed5a2a27a194379a409996  # v6
         with:
           package_json_file: apps/frontend/ondexia.web/package.json
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7
         with:
           node-version: '22'
           cache: pnpm
           cache-dependency-path: apps/frontend/ondexia.web/pnpm-lock.yaml
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961  # v5
         with:
           distribution: temurin
           java-version: '21'
@@ -87,6 +97,8 @@ jobs:
         # construir con versiones distintas a las de tu máquina.
         run: |
           pnpm install --frozen-lockfile
+          # Ver la nota del frontend principal (hallazgo M11).
+          pnpm audit --prod --audit-level=high
           pnpm run build
           pnpm run test:ci
 
@@ -124,7 +136,7 @@ jobs:
       # v4.2 justamente porque no cubría este caso.
       - name: Restaurar la base de vulnerabilidades
         if: hashFiles('apps/backend/pom.xml') != ''
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
           key: nvd-${{ github.run_id }}
@@ -139,6 +151,8 @@ jobs:
         working-directory: apps/frontend/ondexia.landing
         run: |
           pnpm install --frozen-lockfile
+          # Ver la nota del frontend principal (hallazgo M11).
+          pnpm audit --prod --audit-level=high
           pnpm run build
 
       - name: Panel interno
@@ -146,6 +160,8 @@ jobs:
         working-directory: apps/frontend/ondexia.admin
         run: |
           pnpm install --frozen-lockfile
+          # Ver la nota del frontend principal (hallazgo M11).
+          pnpm audit --prod --audit-level=high
           rm -rf .angular/cache
           pnpm run build
           pnpm run test:ci
@@ -195,7 +211,7 @@ jobs:
       # sobreviva a un backend en rojo, que es justo cuando hace falta.
       - name: Guardar la base de vulnerabilidades
         if: always() && hashFiles('apps/backend/pom.xml') != ''
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
           key: nvd-${{ github.run_id }}
@@ -211,7 +227,7 @@ jobs:
       # precisamente el que aborta el job.
       - name: Publicar el informe de dependencias
         if: always() && hashFiles('apps/backend/ondexia.api/target/dependency-check-report.html') != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
         with:
           name: dependency-check
           path: apps/backend/**/target/dependency-check-report.*
@@ -220,7 +236,7 @@ jobs:
       # DT-16 sustituyó AWS CDK por Terraform. Este paso buscaba
       # ondexia.infra/package.json y ejecutaba `cdk synth`: no se disparaba
       # nunca y no validaba nada.
-      - uses: hashicorp/setup-terraform@v4
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e  # v4
         if: hashFiles('ondexia.infra/versions.tf') != ''
         with:
           terraform_version: '1.15.8'
