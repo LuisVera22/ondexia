@@ -1,5 +1,6 @@
 package com.ondexia.application.configuracion;
 
+import com.ondexia.domain.auditoria.RegistroDeAuditoria;
 import com.ondexia.domain.comun.ProveedorDeContexto;
 import com.ondexia.domain.comun.error.AccesoDenegado;
 import com.ondexia.domain.comun.error.Conflicto;
@@ -49,16 +50,19 @@ public class RegistrarEmpresa {
     private final SucursalRepositorio sucursales;
     private final UsuarioEmpresaRepositorio asignaciones;
     private final ProveedorDeContexto contexto;
+    private final RegistroDeAuditoria auditoria;
 
     public RegistrarEmpresa(VerificacionDeRuc verificacion, LimitesDeCuentaRepositorio limites,
             EmpresaRepositorio empresas, SucursalRepositorio sucursales,
-            UsuarioEmpresaRepositorio asignaciones, ProveedorDeContexto contexto) {
+            UsuarioEmpresaRepositorio asignaciones, ProveedorDeContexto contexto,
+            RegistroDeAuditoria auditoria) {
         this.verificacion = verificacion;
         this.limites = limites;
         this.empresas = empresas;
         this.sucursales = sucursales;
         this.asignaciones = asignaciones;
         this.contexto = contexto;
+        this.auditoria = auditoria;
     }
 
     /**
@@ -94,10 +98,31 @@ public class RegistrarEmpresa {
                     "Solo el administrador de la cuenta puede registrar empresas.");
         }
 
-        UUID cuentaId = contexto.obligatorio().cuentaId();
+        var actual = contexto.obligatorio();
+        UUID cuentaId = actual.cuentaId();
 
-        // 1. La firma. Lanza AtestacionInvalida si no cuadra o si caduco.
-        DatosDeRuc datos = verificacion.comprobar(peticion.atestacion());
+        /*
+         * Hallazgo M5: dos comprobaciones que faltaban.
+         *
+         * Una cuenta en solo lectura —suscripcion caida, doc 09 §5.1— no puede
+         * dar de alta empresas. El recorte de permisos lo aplica
+         * PermisosEfectivos, pero este caso de uso no pasa por la matriz de
+         * permisos (ver arriba), asi que el recorte no le alcanzaba: era la unica
+         * escritura que una cuenta suspendida seguia pudiendo hacer.
+         *
+         * Y hace falta una empresa activa. La asignacion de mas abajo copia el
+         * rol de la empresa desde la que se registra; sin empresa activa ese rol
+         * es nulo y el INSERT reventaba con un 500 que no decia por que.
+         */
+        if (actual.soloLectura()) {
+            throw new ReglaDeNegocioViolada("cuenta_solo_lectura",
+                    "La cuenta está en solo lectura y no puede registrar empresas.");
+        }
+        actual.empresaActivaObligatoria();
+
+        // 1. La firma. Lanza AtestacionInvalida si no cuadra, si caduco o si la
+        // pidio otra persona (M17).
+        DatosDeRuc datos = verificacion.comprobar(peticion.atestacion(), actual.sub());
 
         // 2. El cupo del plan.
         LimitesDeCuenta cupo = limites.de(cuentaId);
@@ -127,6 +152,16 @@ public class RegistrarEmpresa {
         empresa.renombrarComercialmente(peticion.nombreComercial());
         empresa.anotarCuentaDetracciones(peticion.cuentaDetracciones());
         empresa = empresas.guardar(empresa);
+
+        /*
+         * A la bitacora (M5). Dar de alta una empresa es de las pocas cosas que
+         * cambian lo que factura la cuenta, y no dejaba rastro. Va como
+         * instantanea y no como el agregado: Empresa lleva usuarioSol y el ARN
+         * del certificado, que no deben acabar en datos_despues (M8).
+         */
+        auditoria.registrarCreacion("empresa", empresa.id(),
+                new Instantanea(empresa.ruc().valor(), empresa.razonSocial(),
+                        empresa.nombreComercial()));
 
         /*
          * La casa matriz, con codigo 0000.
@@ -171,5 +206,8 @@ public class RegistrarEmpresa {
      */
     public LimitesDeCuenta cupo() {
         return limites.de(contexto.obligatorio().cuentaId());
+    }
+
+    private record Instantanea(String ruc, String razonSocial, String nombreComercial) {
     }
 }

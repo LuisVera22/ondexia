@@ -45,12 +45,15 @@ class AtestacionTest {
         }
     }
 
+    /** Para quién se emite. Desde M17 va dentro de la firma. */
+    private static final String SOLICITANTE = "sub-de-quien-consulta";
+
     private static String emitir(DatosDeRuc datos) {
-        return Atestacion.emitir(datos, EXPIRA, CLAVES.getPrivate());
+        return Atestacion.emitir(datos, EXPIRA, CLAVES.getPrivate(), SOLICITANTE);
     }
 
     private static Atestacion.Contenido verificar(String token, Instant cuando) {
-        return Atestacion.verificar(token, CLAVES.getPublic(), cuando);
+        return Atestacion.verificar(token, CLAVES.getPublic(), cuando, SOLICITANTE);
     }
     private static final Instant EXPIRA = AHORA.plus(Duration.ofMinutes(10));
 
@@ -73,6 +76,7 @@ class AtestacionTest {
 
             assertThat(contenido.datos()).isEqualTo(datos());
             assertThat(contenido.expiraEn()).isEqualTo(EXPIRA);
+            assertThat(contenido.solicitante()).isEqualTo(SOLICITANTE);
         }
 
         /**
@@ -135,7 +139,8 @@ class AtestacionTest {
         void otra_clave_no_vale() {
             String token = emitir(datos());
 
-            assertThatThrownBy(() -> Atestacion.verificar(token, OTRAS.getPublic(), AHORA))
+            assertThatThrownBy(() ->
+                    Atestacion.verificar(token, OTRAS.getPublic(), AHORA, SOLICITANTE))
                     .isInstanceOf(AtestacionInvalida.class);
         }
 
@@ -204,6 +209,46 @@ class AtestacionTest {
                     .isInstanceOf(AtestacionInvalida.class);
         }
 
+        /**
+         * El reenvío (hallazgo M17).
+         *
+         * <p>Una atestación válida, sin caducar, presentada por OTRA persona. Antes
+         * pasaba: la firma cubría los datos pero no a quién se le dieron, así que
+         * durante sus diez minutos servía a cualquiera que la tuviera —otro
+         * usuario de la misma cuenta, o de otra—. La caducidad era la única
+         * defensa contra el reenvío, y diez minutos son muchos.
+         */
+        @Test
+        @DisplayName("una atestación de otro solicitante no vale, aunque sea válida")
+        void reenviarla_como_otra_persona_no_vale() {
+            String token = emitir(datos());
+
+            assertThatThrownBy(() ->
+                    Atestacion.verificar(token, CLAVES.getPublic(), AHORA, "sub-de-otro"))
+                    .isInstanceOf(AtestacionInvalida.class)
+                    .hasMessageContaining("quien la presenta");
+        }
+
+        /**
+         * Un verificador que olvide pasar el solicitante rechaza TODO, no acepta
+         * todo. Es la dirección correcta para fallar.
+         */
+        @Test
+        void sin_solicitante_en_el_verificador_no_pasa_nada() {
+            String token = emitir(datos());
+
+            assertThatThrownBy(() ->
+                    Atestacion.verificar(token, CLAVES.getPublic(), AHORA, null))
+                    .isInstanceOf(AtestacionInvalida.class);
+        }
+
+        @Test
+        void no_se_emite_para_nadie() {
+            assertThatThrownBy(() ->
+                    Atestacion.emitir(datos(), EXPIRA, CLAVES.getPrivate(), " "))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
         @Test
         void una_atestacion_caducada_no_vale() {
             String token = emitir(datos());
@@ -247,9 +292,9 @@ class AtestacionTest {
          */
         @Test
         void sin_clave_no_se_firma_ni_se_verifica() {
-            assertThatThrownBy(() -> Atestacion.emitir(datos(), EXPIRA, null))
+            assertThatThrownBy(() -> Atestacion.emitir(datos(), EXPIRA, null, SOLICITANTE))
                     .isInstanceOf(IllegalStateException.class);
-            assertThatThrownBy(() -> Atestacion.verificar(emitir(datos()), null, AHORA))
+            assertThatThrownBy(() -> Atestacion.verificar(emitir(datos()), null, AHORA, SOLICITANTE))
                     .isInstanceOf(IllegalStateException.class);
         }
     }
@@ -289,10 +334,10 @@ class AtestacionTest {
         @DisplayName("con el envoltorio PEM y los saltos de linea, tal como salen")
         void un_par_de_openssl_firma_y_verifica() {
             String token = Atestacion.emitir(datos(), EXPIRA,
-                    Atestacion.clavePrivada(PRIVADA_PEM));
+                    Atestacion.clavePrivada(PRIVADA_PEM), SOLICITANTE);
 
             Atestacion.Contenido leido = Atestacion.verificar(
-                    token, Atestacion.clavePublica(PUBLICA_PEM), AHORA);
+                    token, Atestacion.clavePublica(PUBLICA_PEM), AHORA, SOLICITANTE);
 
             assertThat(leido.datos()).isEqualTo(datos());
         }
@@ -317,10 +362,10 @@ class AtestacionTest {
         @Test
         void la_publica_equivocada_no_verifica() {
             String token = Atestacion.emitir(datos(), EXPIRA,
-                    Atestacion.clavePrivada(PRIVADA_PEM));
+                    Atestacion.clavePrivada(PRIVADA_PEM), SOLICITANTE);
 
             assertThatThrownBy(() ->
-                    Atestacion.verificar(token, CLAVES.getPublic(), AHORA))
+                    Atestacion.verificar(token, CLAVES.getPublic(), AHORA, SOLICITANTE))
                     .isInstanceOf(AtestacionInvalida.class);
         }
 

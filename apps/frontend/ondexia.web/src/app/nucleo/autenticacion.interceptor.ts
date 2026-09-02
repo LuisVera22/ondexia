@@ -29,7 +29,13 @@ export const autenticacionInterceptor: HttpInterceptorFn = (peticion, siguiente)
    * `URL` normaliza puerto y esquema, asi que tampoco cuela `http://` cuando la
    * API es `https://`.
    */
-  if (!esNuestraApi(peticion.url, configuracion.api)) {
+  // `consultas` va aparte porque en local vive en otro puerto. Sin esto la
+  // consulta de RUC salia sin token en desarrollo, y desde el hallazgo M17 la
+  // atestacion se emite para el `sub` del token: sin token no hay consulta.
+  if (
+    !esNuestraApi(peticion.url, configuracion.api) &&
+    !esNuestraApi(peticion.url, configuracion.consultas)
+  ) {
     return siguiente(peticion);
   }
 

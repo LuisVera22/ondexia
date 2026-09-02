@@ -85,6 +85,15 @@ public class ManejadorDeErrores {
     }
 
     /** El RUC no tiene once dígitos: lo rechaza la anotación del controlador. */
+    @ExceptionHandler(Solicitante.SolicitanteDesconocido.class)
+    public ResponseEntity<Fallo> sinSolicitante(Solicitante.SolicitanteDesconocido error) {
+        // 401 y no 400: no es que la peticion este mal, es que no se sabe de
+        // quien es. Desplegado no deberia llegar aqui nunca —la pasarela
+        // rechaza antes—; en local es lo que se ve si el SPA no manda el token.
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new Fallo("sin_solicitante", error.getMessage(), false));
+    }
+
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Fallo> formato(ConstraintViolationException error) {
         return ResponseEntity.badRequest()

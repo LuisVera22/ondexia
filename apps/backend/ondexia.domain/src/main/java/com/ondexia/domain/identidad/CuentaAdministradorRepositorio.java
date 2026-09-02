@@ -11,6 +11,16 @@ public interface CuentaAdministradorRepositorio {
 
     long contarEnCuenta(UUID cuentaId);
 
+    /**
+     * Cuantos administradores ACTIVOS quedan, con la cuenta bloqueada hasta que
+     * termine la transaccion (hallazgo M6).
+     *
+     * <p>Es la version que hay que usar antes de desactivar a alguien: dos
+     * operaciones concurrentes sobre la misma cuenta se serializan aqui, y la
+     * segunda ve el resultado de la primera.
+     */
+    long contarActivosEnCuentaBloqueando(UUID cuentaId);
+
     CuentaAdministrador guardar(CuentaAdministrador administrador);
 
     /**

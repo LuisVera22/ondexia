@@ -74,9 +74,10 @@ class RegistroIT extends PruebaIntegracion {
                 false, false, "SOCIEDAD ANONIMA CERRADA", Instant.now());
     }
 
-    private static String firmar(DatosDeRuc datos, String privada) {
+    /** Firmada para {@code sub}: desde M17 la atestación solo vale para él. */
+    private static String firmar(DatosDeRuc datos, String privada, String sub) {
         return Atestacion.emitir(datos, Instant.now().plus(Duration.ofMinutes(10)),
-                Atestacion.clavePrivada(privada));
+                Atestacion.clavePrivada(privada), sub);
     }
 
     /** El cuerpo del alta: la verificación del RUC y quién eres. Nada más. */
@@ -89,10 +90,10 @@ class RegistroIT extends PruebaIntegracion {
                 }""".formatted(atestacion);
     }
 
-    private static String cuerpoPara(String ruc, String razonSocial) {
+    private static String cuerpoPara(String ruc, String razonSocial, String sub) {
         return cuerpo(firmar(
                 padron(ruc, razonSocial, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
-                PRIVADA));
+                PRIVADA, sub));
     }
 
     @Test
@@ -103,7 +104,7 @@ class RegistroIT extends PruebaIntegracion {
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(cuerpoPara("20100000033", "EMPRESA RECIEN CREADA S.A.C.")))
+                        .content(cuerpoPara("20100000033", "EMPRESA RECIEN CREADA S.A.C.", "sub-recien-llegado")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.cuentaId").isNotEmpty());
 
@@ -146,7 +147,7 @@ class RegistroIT extends PruebaIntegracion {
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(cuerpoPara("20100001005", "LO QUE DICE SUNAT S.A.C.")))
+                        .content(cuerpoPara("20100001005", "LO QUE DICE SUNAT S.A.C.", "sub-datos-del-padron")))
                 .andExpect(status().isCreated());
 
         mockMvc.perform(get("/api/v1/configuracion/empresa")
@@ -172,7 +173,7 @@ class RegistroIT extends PruebaIntegracion {
     @DisplayName("Un RUC no habido no puede crear una cuenta")
     void unRucNoHabidoNoCreaCuenta() throws Exception {
         String firmada = firmar(padron("20100001013", "NO HABIDA S.A.C.",
-                EstadoContribuyente.ACTIVO, CondicionDomicilio.NO_HABIDO), PRIVADA);
+                EstadoContribuyente.ACTIVO, CondicionDomicilio.NO_HABIDO), PRIVADA, "sub-no-habido");
 
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-no-habido"))
@@ -188,7 +189,7 @@ class RegistroIT extends PruebaIntegracion {
     @DisplayName("Un RUC de baja tampoco")
     void unRucDeBajaNoCreaCuenta() throws Exception {
         String firmada = firmar(padron("20100001021", "DE BAJA S.A.C.",
-                EstadoContribuyente.BAJA_DEFINITIVA, CondicionDomicilio.HABIDO), PRIVADA);
+                EstadoContribuyente.BAJA_DEFINITIVA, CondicionDomicilio.HABIDO), PRIVADA, "sub-de-baja");
 
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-de-baja"))
@@ -207,7 +208,7 @@ class RegistroIT extends PruebaIntegracion {
     @DisplayName("Una atestación firmada con otra clave no crea nada")
     void firmaAjenaNoCreaCuenta() throws Exception {
         String falsa = firmar(padron("20100001030", "FALSIFICADA S.A.C.",
-                EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO), PRIVADA_AJENA);
+                EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO), PRIVADA_AJENA, "sub-falsario");
 
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-falsario"))
@@ -224,7 +225,7 @@ class RegistroIT extends PruebaIntegracion {
                 padron("20100001048", "TARDONA S.A.C.",
                         EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
                 Instant.now().minus(Duration.ofMinutes(1)),
-                Atestacion.clavePrivada(PRIVADA));
+                Atestacion.clavePrivada(PRIVADA), "sub-tardon");
 
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-tardon"))
@@ -252,7 +253,7 @@ class RegistroIT extends PruebaIntegracion {
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-primero"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(cuerpoPara("20100000041", "PRIMERA S.A.C.")))
+                        .content(cuerpoPara("20100000041", "PRIMERA S.A.C.", "sub-primero")))
                 .andExpect(status().isCreated());
 
         // Otra persona, mismo RUC. No puede pasar: dos clientes emitiendo con el
@@ -260,7 +261,7 @@ class RegistroIT extends PruebaIntegracion {
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-segundo"))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(cuerpoPara("20100000041", "SEGUNDA S.A.C.")))
+                        .content(cuerpoPara("20100000041", "SEGUNDA S.A.C.", "sub-segundo")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.codigo").value("registro_no_disponible"))
                 // Sigue diciendo qué hacer, que es lo que necesita quien de
@@ -286,7 +287,7 @@ class RegistroIT extends PruebaIntegracion {
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(cuerpoPara("20100000068", "UNICA S.A.C.")))
+                        .content(cuerpoPara("20100000068", "UNICA S.A.C.", "sub-insistente")))
                 .andExpect(status().isCreated());
 
         // Recargar la pantalla o pulsar dos veces no debe crear una segunda
@@ -294,7 +295,7 @@ class RegistroIT extends PruebaIntegracion {
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(cuerpoPara("20100000076", "OTRA MAS S.A.C.")))
+                        .content(cuerpoPara("20100000076", "OTRA MAS S.A.C.", "sub-insistente")))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.codigo").value("ya_registrado"));
     }
@@ -313,7 +314,7 @@ class RegistroIT extends PruebaIntegracion {
          */
         String sub = "sub-sin-correo-en-el-token";
         String atestacion = firmar(padron("20100000092", "CON CORREO EN EL CUERPO S.A.C.",
-                EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO), PRIVADA);
+                EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO), PRIVADA, sub);
 
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenSinCorreo(sub))
@@ -334,12 +335,35 @@ class RegistroIT extends PruebaIntegracion {
                 .andExpect(jsonPath("$.usuario.email").value("titular@ejemplo.com"));
     }
 
+    /**
+     * El reenvío (hallazgo M17): una atestación válida presentada por otra
+     * persona.
+     *
+     * <p>Es el escenario que la caducidad no cubría. Quien consulta un RUC recibe
+     * una firma que vale diez minutos; si otra cuenta la obtiene en ese rato
+     * —una pestaña compartida, un proxy, un registro—, antes podía registrarse
+     * con ella. Ahora la firma dice para quién es.
+     */
+    @Test
+    @DisplayName("Una atestación pedida por otra persona no sirve para registrarse")
+    void laAtestacionDeOtroNoVale() throws Exception {
+        String deOtro = firmar(padron("20100000106", "PRESTADA S.A.C.",
+                EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO), PRIVADA, "sub-el-que-consulto");
+
+        mockMvc.perform(post(REGISTRO)
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-el-que-la-reenvia"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cuerpo(deOtro)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("atestacion_invalida"));
+    }
+
     @Test
     @DisplayName("Sin token no hay registro")
     void sinTokenNoHayRegistro() throws Exception {
         mockMvc.perform(post(REGISTRO)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(cuerpoPara("20100000084", "ANONIMA S.A.C.")))
+                        .content(cuerpoPara("20100000084", "ANONIMA S.A.C.", "sub-anonimo")))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -365,7 +389,7 @@ class RegistroIT extends PruebaIntegracion {
                 padron("20100001056", "ACENTOS S.A.C.",
                         EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
                 Instant.now().minus(Duration.ofMinutes(1)),
-                Atestacion.clavePrivada(PRIVADA));
+                Atestacion.clavePrivada(PRIVADA), "sub-acentos");
 
         String detalle = mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-acentos"))

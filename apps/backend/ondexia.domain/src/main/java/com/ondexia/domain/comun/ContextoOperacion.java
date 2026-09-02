@@ -29,6 +29,15 @@ import java.util.UUID;
  */
 public record ContextoOperacion(
         UUID usuarioId,
+        /**
+         * El {@code sub} de Cognito de quien opera (hallazgo M17).
+         *
+         * <p>Es lo que ata una atestación de RUC a quien la pidió: la firma de
+         * {@code ondexia.consultas} incluye el {@code sub} del solicitante y la
+         * API exige que coincida con el de quien la presenta. Sin esto, una
+         * atestación era reenviable por cualquiera durante sus diez minutos.
+         */
+        String sub,
         UUID cuentaId,
         long permisosVersion,
         UUID empresaId,

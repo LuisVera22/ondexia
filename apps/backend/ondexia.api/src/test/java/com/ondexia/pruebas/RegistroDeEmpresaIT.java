@@ -68,6 +68,9 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
     @Autowired
     private JdbcClient jdbc;
 
+    @Autowired
+    private com.ondexia.application.configuracion.RegistrarEmpresa registro;
+
     @AfterEach
     void limpiar() {
         ContextoDePrueba.limpiar();
@@ -128,9 +131,14 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
                 false, false, "SOCIEDAD ANONIMA CERRADA", Instant.now());
     }
 
+    /** Para el usuario demo, que es quien hace todas las peticiones de aquí. */
     private static String atestacion(DatosDeRuc datos, String privada) {
+        return atestacion(datos, privada, SUB_DEMO);
+    }
+
+    private static String atestacion(DatosDeRuc datos, String privada, String sub) {
         return Atestacion.emitir(datos, Instant.now().plus(Duration.ofMinutes(10)),
-                Atestacion.clavePrivada(privada));
+                Atestacion.clavePrivada(privada), sub);
     }
 
     private static String cuerpo(String atestacion) {
@@ -176,6 +184,24 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
                 .andExpect(jsonPath("$.codigo").value("atestacion_invalida"));
     }
 
+    /** El reenvío (M17): válida, sin caducar, pero pedida por otra persona. */
+    @Test
+    @DisplayName("Una atestación pedida por otro usuario no registra nada")
+    void atestacionDeOtroNoVale() throws Exception {
+        ampliarCupo();
+        String prestada = atestacion(
+                datos(RUC_NUEVO, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
+                PRIVADA, "sub-de-otra-persona");
+
+        mockMvc.perform(post(EMPRESAS)
+                        .header("Authorization", autorizacionDemo())
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cuerpo(prestada)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("atestacion_invalida"));
+    }
+
     @Test
     @DisplayName("Una atestación caducada no registra nada")
     void atestacionCaducadaNoVale() throws Exception {
@@ -183,7 +209,7 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
         String vieja = Atestacion.emitir(
                 datos(RUC_NUEVO, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
                 Instant.now().minus(Duration.ofMinutes(1)),
-                Atestacion.clavePrivada(PRIVADA));
+                Atestacion.clavePrivada(PRIVADA), SUB_DEMO);
 
         mockMvc.perform(post(EMPRESAS)
                         .header("Authorization", autorizacionDemo())
@@ -528,5 +554,58 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
         verificar(atestacion(malas, PRIVADA))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.condicion").value("NO_HABIDO"));
+    }
+
+    // ── Lo que RegistrarEmpresa no comprobaba (hallazgo M5) ────────────────
+
+    /**
+     * Una cuenta en solo lectura no registra empresas.
+     *
+     * <p>El recorte de permisos de una suscripción caída lo aplica
+     * PermisosEfectivos, pero este caso de uso no pasa por la matriz de
+     * permisos —lo autoriza ser administrador de la cuenta—, así que el recorte
+     * no le alcanzaba: era la única escritura que una cuenta suspendida seguía
+     * pudiendo hacer.
+     *
+     * <p>Se prueba con un contexto sintético porque la comprobación tiene que
+     * ocurrir ANTES de tocar la base: si llegara a consultar algo con estos
+     * identificadores inventados fallaría por otro motivo, y eso también lo
+     * delataría.
+     */
+    @Test
+    @DisplayName("Una cuenta en solo lectura no puede registrar empresas")
+    void enSoloLecturaNoSeRegistra() {
+        ContextoDePrueba.establecer(new com.ondexia.domain.comun.ContextoOperacion(
+                java.util.UUID.randomUUID(), "sub-suspendido", java.util.UUID.randomUUID(), 1L,
+                java.util.UUID.randomUUID(), null, java.util.UUID.randomUUID(),
+                true, /* soloLectura */ true, "127.0.0.1"));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> registro.ejecutar(
+                new com.ondexia.application.configuracion.RegistrarEmpresa.Peticion(
+                        "da-igual", null, null)))
+                .isInstanceOf(com.ondexia.domain.comun.error.ReglaDeNegocioViolada.class)
+                .hasMessageContaining("solo lectura");
+    }
+
+    /**
+     * Sin empresa activa, un error con nombre y no un 500.
+     *
+     * <p>La asignación que se crea al final copia el rol de la empresa desde la
+     * que se registra. Sin empresa activa ese rol es nulo y el INSERT reventaba
+     * con una violación de NOT NULL que no decía por qué.
+     */
+    @Test
+    @DisplayName("Sin empresa activa se rechaza con motivo, no con un 500")
+    void sinEmpresaActivaSeRechazaConMotivo() {
+        ContextoDePrueba.establecer(new com.ondexia.domain.comun.ContextoOperacion(
+                java.util.UUID.randomUUID(), "sub-sin-empresa", java.util.UUID.randomUUID(), 1L,
+                /* empresa */ null, null, null,
+                true, false, "127.0.0.1"));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> registro.ejecutar(
+                new com.ondexia.application.configuracion.RegistrarEmpresa.Peticion(
+                        "da-igual", null, null)))
+                .isInstanceOf(com.ondexia.domain.comun.error.ReglaDeNegocioViolada.class)
+                .hasMessageContaining("empresa activa");
     }
 }

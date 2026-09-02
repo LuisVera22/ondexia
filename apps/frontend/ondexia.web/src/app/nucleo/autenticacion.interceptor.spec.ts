@@ -20,6 +20,7 @@ import { SesionService } from './sesion.service';
  */
 describe('autenticacionInterceptor', () => {
   const API = 'https://api.ondexia.com';
+  const CONSULTAS = 'http://127.0.0.1:8081';
 
   let http: HttpClient;
   let httpMock: HttpTestingController;
@@ -33,7 +34,7 @@ describe('autenticacionInterceptor', () => {
           provide: CONFIGURACION,
           useValue: {
             api: API,
-            consultas: API,
+            consultas: CONSULTAS,
             autoservicio: false,
             cognito: { dominio: 'https://cognito.ejemplo', clienteId: 'c' },
           },
@@ -61,6 +62,21 @@ describe('autenticacionInterceptor', () => {
     const respuesta = firstValue(http.get(`${API}/api/v1/contexto`));
 
     const peticion = httpMock.expectOne(`${API}/api/v1/contexto`);
+    expect(peticion.request.headers.has('Authorization')).toBeTrue();
+    peticion.flush({});
+    await respuesta;
+  });
+
+  /**
+   * En local, consultas vive en otro origen y también lleva token: desde M17
+   * la atestación se emite para el `sub` del token, así que sin él no hay
+   * consulta.
+   */
+  it('añade el token a la consulta de RUC aunque esté en otro origen', async () => {
+    const url = `${CONSULTAS}/consultas/ruc/20100000033`;
+    const respuesta = firstValue(http.get(url));
+
+    const peticion = httpMock.expectOne(url);
     expect(peticion.request.headers.has('Authorization')).toBeTrue();
     peticion.flush({});
     await respuesta;

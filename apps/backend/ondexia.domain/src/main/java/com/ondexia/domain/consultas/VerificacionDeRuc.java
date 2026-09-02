@@ -25,10 +25,13 @@ public interface VerificacionDeRuc {
 
     /**
      * @param atestacion lo que devolvió {@code ondexia.consultas}
+     * @param solicitante el {@code sub} de quien la presenta. La atestación se
+     *     emitió para un {@code sub} concreto y solo vale para él (hallazgo M17)
      * @return lo que SUNAT dijo, ya comprobado
-     * @throws AtestacionInvalida si la firma no cuadra, caducó o no se entiende
+     * @throws AtestacionInvalida si la firma no cuadra, caducó, es de otro
+     *     solicitante o no se entiende
      */
-    DatosDeRuc comprobar(String atestacion);
+    DatosDeRuc comprobar(String atestacion, String solicitante);
 
     /**
      * Si este entorno puede comprobar atestaciones.
