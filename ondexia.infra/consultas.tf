@@ -307,9 +307,9 @@ resource "aws_apigatewayv2_integration" "consultas" {
  * Una ruta específica gana sobre `ANY /{proxy+}`, igual que ya hacen
  * `OPTIONS /{proxy+}` y `GET /salud` en api.tf. No hace falta tocar esa ruta.
  *
- * El preflight lo sigue atendiendo `OPTIONS /{proxy+}`, que va a Spring. Spring
- * responde a un origen que reconoce sin mirar la ruta, así que esto funciona
- * sin ruta de preflight propia.
+ * El preflight lo responde la propia pasarela desde su `cors_configuration`
+ * (hallazgo A2: la ruta `OPTIONS /{proxy+}` que iba a Spring se retiro por ser
+ * una via de invocacion sin autorizador). Esta ruta no necesita nada propio.
  */
 resource "aws_apigatewayv2_route" "consulta_ruc" {
   count              = local.hay_consultas ? 1 : 0

@@ -119,6 +119,19 @@ ondexia:
   cors:
     origenes: ${CORS_ORIGENES:http://localhost:4200}
 
+  # ── Verificacion del token en el perfil 'aws' (hallazgo A1) ───────────────
+  #
+  # Las claves PUBLICAS del grupo de usuarios, descargadas por Terraform al
+  # aplicar y horneadas en la funcion: en subred privada sin NAT no se puede
+  # descargar el JWKS en ejecucion. No es un secreto.
+  #
+  # Vacias fuera de 'aws': ahi el decodificador lo pone SeguridadDesarrolloConfig
+  # y estas no se leen. Con el perfil 'aws' activo y sin JWKS, la aplicacion NO
+  # arranca, que es lo correcto — arrancar significaria no verificar firmas.
+  cognito:
+    cliente: ${COGNITO_CLIENTE_ID:}
+    jwks: ${COGNITO_JWKS:}
+
   # Verificacion del RUC (DT-19, doc 11).
   #
   # Aqui NO hay ningun secreto, y es el punto. La API no consulta a nadie: su

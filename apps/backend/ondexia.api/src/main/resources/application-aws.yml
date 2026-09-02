@@ -82,17 +82,25 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          # Fuera del perfil 'local' no hay ningun bean JwtDecoder: lo construye
-          # Spring a partir de esta URL, descargando el JWKS del pool.
+          # El emisor que se exige. NO se usa para descargar nada: el decodificador
+          # lo construye SeguridadPasarelaConfig sobre el JWKS que Terraform
+          # inyecta, porque esta funcion no tiene salida a internet.
           #
           # AWS_REGION la pone el propio runtime de Lambda; COGNITO_POOL_ID la
           # pone Terraform.
           issuer-uri: https://cognito-idp.${AWS_REGION}.amazonaws.com/${COGNITO_POOL_ID}
-          # No se declara 'audiences' a proposito. La pasarela ya valida la
-          # audiencia contra el cliente del SPA (aws_apigatewayv2_authorizer), y
-          # aqui rechazaria los tokens de acceso de Cognito, que llevan
-          # 'client_id' en vez de 'aud'. Lo que si se revalida es la firma y el
-          # emisor: la pasarela puede estar bien configurada hoy y mal manana.
+          # No se declara 'audiences' a proposito, y no es que no se compruebe:
+          # lo hace ExigeUsoYAudiencia dentro de SeguridadPasarelaConfig. El
+          # soporte de Spring mira solo 'aud', y los tokens de ACCESO de Cognito
+          # llevan 'client_id' y ningun 'aud' — declararlo aqui los rechazaria
+          # todos.
+          #
+          # Este comentario decia antes «lo que si se revalida es la firma y el
+          # emisor». Era falso desde que el bean cambio: se revalidaba el emisor
+          # y la firma NO. Es el hallazgo A1 de la auditoria 2026-09-01, y el
+          # motivo de la regla de CLAUDE.md sobre comentarios que describen
+          # controles. Hoy la firma se verifica de verdad y la prueba que lo
+          # ejercita es FirmaDelTokenIT.
 
 
 # Marca: donde viven los logos que sube el cliente.

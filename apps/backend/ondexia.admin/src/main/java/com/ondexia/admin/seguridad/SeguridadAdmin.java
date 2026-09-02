@@ -68,25 +68,6 @@ public class SeguridadAdmin {
         return fuente;
     }
 
-    /**
-     * El decodificador va a mano, y no lo construye Spring desde
-     * {@code issuer-uri}.
-     *
-     * <p>El de Spring descarga la configuración del emisor al primer token, y
-     * esta función no tiene por dónde salir a internet. El porqué completo, y la
-     * alternativa que se descartó, están en {@link TokenDeLaPasarela}.
-     *
-     * <p>Las dos propiedades son obligatorias a propósito: sin valor por
-     * omisión, la aplicación no arranca fuera de los perfiles que las declaran.
-     * Una consola que ve las cuentas de todos los clientes no debería levantarse
-     * con una configuración de token a medias.
-     */
-    @Bean
-    JwtDecoder decodificador(@Value("${ondexia.panel.emisor}") String emisor,
-            @Value("${ondexia.panel.cliente}") String cliente) {
-        return new TokenDeLaPasarela(emisor, cliente);
-    }
-
     @Bean
     SecurityFilterChain cadena(HttpSecurity http) throws Exception {
         return http
