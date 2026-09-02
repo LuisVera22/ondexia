@@ -1,35 +1,51 @@
 package com.ondexia.admin.seguridad;
 
-import com.nimbusds.jwt.JWT;
-import com.nimbusds.jwt.JWTParser;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.proc.JWSVerificationKeySelector;
+import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import java.text.ParseException;
-import java.time.Instant;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
-import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.JwtIssuerValidator;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
-import org.springframework.security.oauth2.jwt.JwtValidationException;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
 /**
- * Lee el token que la pasarela ya validó. No comprueba la firma, y es a
- * propósito.
+ * Verifica el token del panel: firma incluida.
  *
- * <h2>El problema que resuelve</h2>
+ * <h2>Lo que había aquí, y por qué era la falla A2</h2>
  *
- * <p>La Lambda del panel vive en una subred privada sin NAT: su grupo de
- * seguridad solo deja salir al 5432 hacia la base y al 443 hacia S3. El
- * decodificador que construye Spring a partir de {@code issuer-uri} necesita
- * descargar la configuración del emisor, y esa descarga no llega a ninguna
- * parte. El contexto no levantaba y la pasarela devolvía 502:
+ * <p>Este decodificador NO comprobaba la firma. Aceptaba cualquier token bien
+ * formado —incluido uno con {@code alg: none}— y se limitaba a mirar emisor,
+ * caducidad y cliente. La premisa escrita era esta: «la pasarela es la única
+ * puerta; el permiso de invocación está atado al ARN de esa API, no hay otra
+ * puerta».
+ *
+ * <p>La premisa era falsa cuando se escribió. La ruta {@code OPTIONS /{proxy+}}
+ * de esa misma API <strong>no lleva autorizador</strong> y apunta a esta misma
+ * función: ya existía una puerta sin cerradura. Que hoy no se llegue a ejecutar
+ * ningún controlador es una casualidad de que todos declaren método —{@code GET}
+ * o {@code PUT}—; un {@code @RequestMapping} sin método bastaría para convertir
+ * eso en toma total de una consola que ve las cuentas de todos los clientes.
+ *
+ * <p>Y había una prueba, {@code unaFirmaQueNadieVerificaPasa}, que fijaba la
+ * excepción en vez de la premisa: dejaba constancia de que una firma falsa
+ * pasaba, en lugar de comprobar lo que la premisa afirmaba. Está invertida.
+ *
+ * <h2>Cómo se verifica sin salir a internet</h2>
+ *
+ * <p>El obstáculo era real: esta Lambda vive en subred privada sin NAT, y el
+ * decodificador que Spring construye desde {@code issuer-uri} descarga la
+ * configuración del emisor al primer token. Esa descarga se agotaba, el contexto
+ * no levantaba y la pasarela devolvía 502:
  *
  * <pre>
  *   Unable to resolve the Configuration with the provided Issuer of
@@ -37,99 +53,97 @@ import org.springframework.security.oauth2.jwt.JwtValidationException;
  *   Caused by: java.net.SocketTimeoutException: Connect timed out
  * </pre>
  *
- * <h2>Por qué se puede confiar en la pasarela</h2>
+ * <p>La salida no era elegir entre pagar un endpoint de interfaz y no verificar:
+ * las claves públicas las descarga <strong>Terraform</strong> al aplicar
+ * —{@code data.http.jwks_personal}— y llegan en {@code COGNITO_JWKS}. La fuente
+ * es inmutable, así que en ejecución no hay red, ni caché, ni espera que agotar.
  *
- * <p>Porque es la única puerta. La ruta {@code $default} lleva un autorizador
- * JWT que comprueba firma, emisor, audiencia y caducidad <strong>antes</strong>
- * de invocar la función, y el permiso de invocación está atado al ARN de esa API
- * — nadie más puede llamarla. Revalidar la firma aquí es repetir un trabajo ya
- * hecho, y hacerlo costaba una salida a internet que esta red no tiene.
- *
- * <p>La contrapartida, dicha con todas las letras: si algún día se añade otra
- * ruta sin autorizador, u otro disparador sobre esta misma función, este
- * decodificador aceptaría un token que nadie verificó. Por eso las
- * comprobaciones que <em>sí</em> se pueden hacer sin red se hacen igualmente —
- * emisor, caducidad y cliente—, y por eso la prueba
- * {@code unaFirmaFalsaPasa} existe: para que la decisión esté escrita en algo
- * que se ejecuta, y no solo en un comentario.
- *
- * <h2>La alternativa que se descartó</h2>
- *
- * <p>Copiar SnapStart de {@code ondexia.api}, que es lo que hace que allí esta
- * descarga funcione: al crear la instantánea la función todavía no está
+ * <p>Se descartó copiar SnapStart de {@code ondexia.api}, que es lo que hacía que
+ * allí la descarga funcionara: al crear la instantánea la función todavía no está
  * enganchada a la red privada, así que sale a internet y el JWKS queda dentro de
  * la foto. Sale gratis, pero apoya la validación en un detalle de plataforma que
- * AWS no ha prometido, y congela las claves de Cognito hasta el siguiente
- * despliegue — si Cognito rota una, deja de validar. No se copió una fragilidad;
- * el camino es quitársela también a la API.
+ * AWS no ha prometido. Con el JWKS inyectado, ni la API depende ya de eso.
+ *
+ * <p>Sobre la rotación: Cognito no rota las claves de un grupo por su cuenta. Si
+ * lo hiciera, el síntoma sería un 401 en toda petición y se arregla volviendo a
+ * aplicar.
+ *
+ * @see TokenDeLaPasarelaTest la prueba que ejercita esto
  */
 public class TokenDeLaPasarela implements JwtDecoder {
 
-    private final OAuth2TokenValidator<Jwt> validaciones;
+    private final NimbusJwtDecoder decodificador;
 
     /**
      * @param emisor  el grupo de PERSONAL, no el de inquilinos
      * @param cliente el cliente de Cognito del panel, tal como llega en
      *                {@code client_id} (token de acceso) o {@code aud} (token de
      *                identidad)
+     * @param jwks    las claves públicas del grupo, en JSON. Las inyecta
+     *                Terraform; sin ellas no hay nada que verificar y el
+     *                constructor falla
      */
-    public TokenDeLaPasarela(String emisor, String cliente) {
-        this.validaciones = new DelegatingOAuth2TokenValidator<>(
+    public TokenDeLaPasarela(String emisor, String cliente, String jwks) {
+        JWKSet claves;
+        try {
+            claves = JWKSet.parse(jwks);
+        } catch (ParseException e) {
+            /*
+             * Falla al arrancar, no en la primera peticion. Una consola que ve
+             * las cuentas de todos los clientes no debe levantarse sin saber
+             * verificar firmas: es preferible que el despliegue se detenga.
+             */
+            throw new IllegalStateException(
+                    "COGNITO_JWKS no es un juego de claves JSON valido. Lo inyecta "
+                            + "Terraform desde data.http.jwks_personal.", e);
+        }
+        if (claves.getKeys().isEmpty()) {
+            throw new IllegalStateException("COGNITO_JWKS no trae ninguna clave.");
+        }
+
+        /*
+         * RS256 y solo RS256, que es con lo que firma Cognito. Fijar el algoritmo
+         * cierra la confusion de algoritmo: `alg: none` —que antes pasaba— y un
+         * HS256 firmado con la clave publica RSA como si fuera secreto
+         * compartido. Aceptar lo que diga la cabecera es dejar que quien ataca
+         * elija como se le verifica.
+         */
+        var procesador = new DefaultJWTProcessor<SecurityContext>();
+        procesador.setJWSKeySelector(
+                new JWSVerificationKeySelector<>(JWSAlgorithm.RS256, new ImmutableJWKSet<>(claves)));
+        // Las reclamaciones las miran los validadores de abajo. Tenerlas en dos
+        // sitios significa que un dia solo se actualiza uno.
+        procesador.setJWTClaimsSetVerifier((reclamaciones, contexto) -> { });
+
+        this.decodificador = new NimbusJwtDecoder(procesador);
+        this.decodificador.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
                 new JwtIssuerValidator(emisor),
                 new JwtTimestampValidator(),
-                new ValidadorDeCliente(cliente));
+                new ExigeCaducidad(),
+                new ValidadorDeCliente(cliente)));
     }
 
     @Override
     public Jwt decode(String token) throws JwtException {
-        Jwt leido = leer(token);
-
-        OAuth2TokenValidatorResult resultado = validaciones.validate(leido);
-        if (resultado.hasErrors()) {
-            throw new JwtValidationException(
-                    "El token no supera las comprobaciones del panel",
-                    resultado.getErrors());
-        }
-        return leido;
+        return decodificador.decode(token);
     }
 
-    private static Jwt leer(String token) {
-        JWT analizado;
-        Map<String, Object> reclamos;
-        try {
-            analizado = JWTParser.parse(token);
-            reclamos = new HashMap<>(analizado.getJWTClaimsSet().getClaims());
-        } catch (ParseException e) {
-            throw new BadJwtException("El token no es un JWT legible", e);
+    /**
+     * {@code exp} obligatorio.
+     *
+     * <p>{@link JwtTimestampValidator} acepta un token SIN caducidad: comprueba
+     * que no esté vencida si existe. Un token sin ella es una sesión que no
+     * termina nunca, y en esta consola eso es peor que en ninguna otra parte.
+     */
+    private record ExigeCaducidad() implements OAuth2TokenValidator<Jwt> {
+
+        @Override
+        public OAuth2TokenValidatorResult validate(Jwt token) {
+            return token.getExpiresAt() != null
+                    ? OAuth2TokenValidatorResult.success()
+                    : OAuth2TokenValidatorResult.failure(new OAuth2Error(
+                            "invalid_token", "El token no declara caducidad", null));
         }
-
-        // Nimbus devuelve las fechas como Date; Spring espera Instant, y sin
-        // esta conversion getClaimAsInstant falla en cuanto alguien la use.
-        reclamos.replaceAll((nombre, valor) ->
-                valor instanceof Date fecha ? fecha.toInstant() : valor);
-
-        try {
-            return new Jwt(token,
-                    instante(reclamos.get("iat")),
-                    instante(reclamos.get("exp")),
-                    analizado.getHeader().toJSONObject(),
-                    reclamos);
-        } catch (IllegalArgumentException e) {
-            /*
-             * Jwt exige, entre otras cosas, que la caducidad sea posterior a la
-             * emision, y protesta con IllegalArgumentException. Esa excepcion no
-             * es una JwtException, asi que el filtro de Spring Security no la
-             * reconoce: se escapa de la cadena y sale un 500 —un fallo nuestro—
-             * donde corresponde un 401 —un token que no sirve—. Ademas de
-             * confundir a quien lea los registros, un 500 revela mas de lo que
-             * deberia sobre lo que ocurre dentro.
-             */
-            throw new BadJwtException("El token tiene reclamos incoherentes", e);
-        }
-    }
-
-    private static Instant instante(Object valor) {
-        return valor instanceof Instant momento ? momento : null;
     }
 
     /**

@@ -389,15 +389,17 @@ resource "aws_lambda_function" "api" {
        *     API Gateway ignores CORS headers returned from your backend
        *     integration.» Las que ponga Spring se descartan.
        *
-       *   · Pero el preflight lo RESPONDE Spring, porque la ruta
-       *     `OPTIONS /{proxy+}` de más abajo gana sobre `ANY`. Y Spring
-       *     rechaza con 403 un origen que no reconozca — lo cubre CorsIT.
+       *   · El PREFLIGHT lo responde la pasarela, no Spring. Antes lo
+       *     respondia Spring por una ruta `OPTIONS /{proxy+}` sin autorizador,
+       *     que se retiro en el hallazgo A2 — era la unica via de invocacion
+       *     sin token.
        *
-       * De ahí que esto importe: si aquí quedara el localhost:4200 por
-       * omisión, Spring devolvería 403 a cada preflight, la pasarela le
-       * pegaría sus cabeceras correctas a esa respuesta, y el navegador
-       * bloquearía igual. Los registros mostrarían 403 sobre OPTIONS; en el
-       * navegador solo se vería un error de red sin cuerpo.
+       * De ahí que esto siga importando: Spring comprueba el `Origin` en CADA
+       * peticion, no solo en el preflight, y con el localhost:4200 por omisión
+       * devolvería 403 —«Invalid CORS request», texto plano— a toda llamada
+       * real. La pasarela le pegaría sus cabeceras correctas a esa respuesta y
+       * el navegador solo vería un 403 sin cuerpo legible. Es exactamente lo que
+       * paso con la funcion de consultas.
        *
        * Por eso este valor y `allow_origins` de la pasarela salen los dos de
        * `local.origen_app`: tienen que ser el mismo o no funciona ninguno.
@@ -445,8 +447,12 @@ resource "aws_lambda_function" "api" {
 
       COGNITO_POOL_ID    = aws_cognito_user_pool.inquilinos.id
       COGNITO_CLIENTE_ID = aws_cognito_user_pool_client.spa.id
-      BUCKET_MARCA       = aws_s3_bucket.marca.id
-      CDN_MARCA          = var.gestionar_dns ? "https://cdn.${var.dominio}" : "https://${aws_cloudfront_distribution.marca.domain_name}"
+
+      # Las claves publicas con las que se verifica la firma. Ver el data source
+      # `jwks_inquilinos` mas abajo.
+      COGNITO_JWKS = data.http.jwks_inquilinos.response_body
+      BUCKET_MARCA = aws_s3_bucket.marca.id
+      CDN_MARCA    = var.gestionar_dns ? "https://cdn.${var.dominio}" : "https://${aws_cloudfront_distribution.marca.domain_name}"
     }
   }
 
@@ -551,6 +557,39 @@ resource "aws_lambda_function" "migraciones" {
   tags = { Name = "${local.nombre}-migraciones" }
 }
 
+
+/**
+ * El JWKS del pool, descargado AL APLICAR y horneado en la funcion (hallazgo A1).
+ *
+ * Las Lambdas estan en subred privada sin NAT: no pueden descargar
+ * `/.well-known/jwks.json` en ejecucion, y por eso la aplicacion se limitaba a
+ * mirar emisor y caducidad SIN VERIFICAR LA FIRMA. La premisa era que la
+ * pasarela ya la habia verificado, lo que convierte cualquier descuido futuro
+ * —una ruta sin autorizador, un permiso de invocacion mas ancho— en
+ * autenticacion arbitraria.
+ *
+ * Traerlo aqui es la tercera via: la descarga la hace quien aplica Terraform,
+ * que si tiene internet, y el valor viaja como variable de entorno. No es un
+ * secreto —son claves publicas— asi que que quede en el estado no importa.
+ *
+ * SOBRE LA ROTACION. Cognito no rota las claves de firma de un grupo de usuarios
+ * por su cuenta: viven lo que el grupo. Si algun dia lo hiciera, el sintoma
+ * seria un 401 en toda peticion y se arregla volviendo a aplicar. Ese es el
+ * precio de no pagar un endpoint de interfaz (~7.30 USD/mes), y es explicito.
+ */
+data "http" "jwks_inquilinos" {
+  url = "https://cognito-idp.${var.region}.amazonaws.com/${aws_cognito_user_pool.inquilinos.id}/.well-known/jwks.json"
+
+  # Sin esto, un 500 de Cognito se hornearia como cuerpo del JWKS y la funcion
+  # arrancaria con un juego de claves que no parsea.
+  lifecycle {
+    postcondition {
+      condition     = self.status_code == 200
+      error_message = "No se pudo descargar el JWKS del pool de inquilinos (HTTP ${self.status_code})."
+    }
+  }
+}
+
 # ── API Gateway ────────────────────────────────────────────────────────────
 
 resource "aws_apigatewayv2_api" "principal" {
@@ -621,28 +660,30 @@ resource "aws_apigatewayv2_route" "todo" {
 }
 
 /**
- * La comprobación previa de CORS, sin autorizador. Ruta aparte y explícita.
+ * NO hay ruta `OPTIONS /{proxy+}`, y esa ausencia es el arreglo (hallazgo A2).
  *
- * `ANY /{proxy+}` incluye OPTIONS, así que sin esto la comprobación previa cae
- * en la ruta protegida. El navegador la envía **sin credenciales** —lo exige la
- * especificación de CORS— de modo que el autorizador JWT responde 401 y el
- * navegador cancela la petición real antes de intentarla.
+ * La habia, sin autorizador, apuntando a la misma integracion que todo lo demas:
+ * una puerta por la que se llegaba a la funcion sin presentar ningun token. Se
+ * habia anadido por un motivo real —el navegador manda el preflight SIN
+ * credenciales, asi que caia en la ruta protegida y el autorizador respondia 401,
+ * y el sintoma engana: la sesion se abre bien, el token es valido, y aun asi toda
+ * llamada falla con un error de red sin cuerpo—.
  *
- * El síntoma es de los que engañan: la sesión se abre bien, el token es válido,
- * y aun así toda llamada a la API falla. En los registros de la pasarela se ve
- * el 401 sobre OPTIONS; en el navegador solo se ve un error de red sin cuerpo,
- * porque una respuesta que no pasa CORS es ilegible para el JavaScript que la
- * pidió.
+ * Pero la solucion era otra. API Gateway responde el preflight POR SU CUENTA en
+ * cuanto la API declara `cors_configuration`, sin invocar la integracion:
  *
- * API Gateway prefiere la ruta más específica, así que esta gana sobre ANY.
- * Responde Spring, que ya tiene configurado el origen permitido (CORS_ORIGENES).
+ *   «If you configure CORS for an HTTP API, API Gateway automatically sends a
+ *   response to preflight OPTIONS requests, even if there isn't an OPTIONS route
+ *   configured.»
+ *
+ * Es decir, la ruta no hacia falta ni siquiera para lo que la motivo. Quitarla
+ * cierra la unica via de invocacion sin autorizador que existia — la premisa
+ * «la pasarela es la unica puerta» pasa a ser cierta.
+ *
+ * Consecuencia para la aplicacion: Spring ya no responde ningun preflight, asi
+ * que las cabeceras las pone entera la pasarela. `CORS_ORIGENES` sigue
+ * importando para las peticiones reales.
  */
-resource "aws_apigatewayv2_route" "preflight" {
-  api_id             = aws_apigatewayv2_api.principal.id
-  route_key          = "OPTIONS /{proxy+}"
-  target             = "integrations/${aws_apigatewayv2_integration.api.id}"
-  authorization_type = "NONE"
-}
 
 # Sonda de vida, sin token: es lo que se consulta para saber si el sistema
 # responde, y exigirle credenciales lo haría inútil.

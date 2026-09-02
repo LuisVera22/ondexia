@@ -6,6 +6,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.RSASSASigner;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.gen.RSAKeyGenerator;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import java.time.Instant;
@@ -14,15 +18,20 @@ import java.util.Date;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.jwt.BadJwtException;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.security.oauth2.jwt.JwtValidationException;
 
 /**
- * Lo que el panel comprueba de un token, ahora que la firma la comprueba la
- * pasarela.
+ * Lo que el panel comprueba de un token.
  *
- * <p>Los tokens de aquí se firman con una clave inventada, y eso no es una
- * simplificación de la prueba: es el comportamiento. Ver
- * {@link #unaFirmaQueNadieVerificaPasa()}.
+ * <p>Los tokens de aquí se firman con una clave RSA generada en la propia
+ * prueba, cuya pública se le entrega al decodificador. Eso <em>es</em> el
+ * comportamiento desde el hallazgo A2: antes se firmaban con una clave inventada
+ * que nadie miraba, y pasaban.
+ *
+ * <p>Los casos de firma viven en {@code FirmaDelTokenIT}, que además levanta el
+ * contexto con el perfil {@code aws}. Aquí quedan las comprobaciones que no
+ * necesitan Spring, incluida la que distingue un 401 de un 500.
  */
 class TokenDeLaPasarelaTest {
 
@@ -30,10 +39,18 @@ class TokenDeLaPasarelaTest {
             "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_personal";
     private static final String CLIENTE = "cliente-del-panel";
 
-    private final TokenDeLaPasarela decodificador = new TokenDeLaPasarela(EMISOR, CLIENTE);
+    private static final RSAKey CLAVE = generar();
 
-    /** Una clave cualquiera: el panel no la usa para nada, y ese es el punto. */
-    private static final byte[] CLAVE = "clave-de-32-bytes-para-la-prueba".getBytes();
+    private final TokenDeLaPasarela decodificador =
+            new TokenDeLaPasarela(EMISOR, CLIENTE, new JWKSet(CLAVE.toPublicJWK()).toString());
+
+    private static RSAKey generar() {
+        try {
+            return new RSAKeyGenerator(2048).keyID("clave-de-la-prueba").generate();
+        } catch (Exception e) {
+            throw new IllegalStateException("No se pudo generar la clave de prueba", e);
+        }
+    }
 
     private static String token(String emisor, String cliente, Instant caduca) {
         // Emitido una hora antes de caducar, como los de Cognito. Fechar la
@@ -53,8 +70,10 @@ class TokenDeLaPasarelaTest {
                     .expirationTime(Date.from(caduca))
                     .build();
 
-            var firmado = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), reclamos);
-            firmado.sign(new MACSigner(CLAVE));
+            var firmado = new SignedJWT(
+                    new JWSHeader.Builder(JWSAlgorithm.RS256).keyID(CLAVE.getKeyID()).build(),
+                    reclamos);
+            firmado.sign(new RSASSASigner(CLAVE));
             return firmado.serialize();
         } catch (Exception e) {
             throw new IllegalStateException("No se pudo construir el token de prueba", e);
@@ -129,28 +148,37 @@ class TokenDeLaPasarelaTest {
         String imposible = token(EMISOR, CLIENTE, ahora, ahora.minus(1, ChronoUnit.HOURS));
 
         assertThatThrownBy(() -> decodificador.decode(imposible))
-                .isInstanceOf(BadJwtException.class);
+                .isInstanceOf(JwtException.class);
     }
 
+    /**
+     * La inversión de {@code unaFirmaQueNadieVerificaPasa} (hallazgo A2).
+     *
+     * <p>Aquella prueba existía «para que la decisión estuviera escrita en algo
+     * que se ejecuta»: firmaba con una clave inventada en la propia clase y
+     * comprobaba que el panel lo aceptaba. Fijaba la excepción, no la premisa —
+     * y la premisa que la justificaba, «no hay otra puerta», era falsa: la ruta
+     * {@code OPTIONS /{proxy+}} llega a esta función sin autorizador.
+     *
+     * <p>Ahora comprueba lo contrario, con el mismo token de entonces: un HMAC
+     * firmado con una cadena cualquiera. Se rechaza porque el selector de claves
+     * solo admite RS256 contra el JWKS del grupo, así que la confusión de
+     * algoritmo tampoco entra por aquí.
+     */
     @Test
-    @DisplayName("una firma que nadie verifica pasa: la comprueba la pasarela")
-    void unaFirmaQueNadieVerificaPasa() {
-        /*
-         * Esta prueba no describe un descuido, describe la decision, y esta
-         * escrita para que se caiga si alguien la cambia sin querer.
-         *
-         * El token va firmado con una clave inventada en esta misma clase, que
-         * no tiene nada que ver con Cognito, y aun asi se acepta. Se puede
-         * porque la funcion solo es invocable desde su pasarela —el permiso de
-         * invocacion esta atado al ARN de esa API— y la ruta $default lleva un
-         * autorizador JWT que valida la firma antes de invocar.
-         *
-         * Si algun dia se anade otra ruta sin autorizador, u otro disparador
-         * sobre esta funcion, esta linea deja de ser aceptable. Que este aqui,
-         * verde y con nombre explicito, es lo que hace que alguien lo note.
-         */
-        String conFirmaInventada = tokenValido();
+    @DisplayName("una firma que no es de Cognito se rechaza")
+    void unaFirmaAjenaNoPasa() throws Exception {
+        var reclamos = new JWTClaimsSet.Builder()
+                .issuer(EMISOR)
+                .subject("f468a438-d011-70a1-5a2a-d6caa87fa921")
+                .claim("client_id", CLIENTE)
+                .issueTime(Date.from(Instant.now()))
+                .expirationTime(Date.from(Instant.now().plus(30, ChronoUnit.MINUTES)))
+                .build();
+        var conHmac = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), reclamos);
+        conHmac.sign(new MACSigner("clave-de-32-bytes-para-la-prueba".getBytes()));
 
-        assertThat(decodificador.decode(conFirmaInventada).getSubject()).isNotNull();
+        assertThatThrownBy(() -> decodificador.decode(conHmac.serialize()))
+                .isInstanceOf(JwtException.class);
     }
 }

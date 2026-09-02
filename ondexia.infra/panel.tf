@@ -178,9 +178,14 @@ resource "aws_lambda_function" "panel" {
       # (ver TokenDeLaPasarela).
       COGNITO_CLIENTE_PANEL = aws_cognito_user_pool_client.panel.id
 
-      # Quien responde el preflight es Spring, porque la ruta OPTIONS apunta a
-      # la funcion. Sin este origen, contesta pero sin las cabeceras que el
-      # navegador exige.
+      # Las claves publicas del pool de PERSONAL, para verificar la firma dentro
+      # de la funcion (hallazgo A2). Mismo mecanismo que en la API; el data
+      # source esta al final de este archivo.
+      COGNITO_JWKS = data.http.jwks_personal.response_body
+
+      # El preflight lo responde la pasarela desde el hallazgo A2. Esto sigue
+      # haciendo falta para las peticiones REALES: Spring comprueba el Origin en
+      # cada una y sin el valor correcto responde 403 a todas.
       CORS_ORIGENES = local.origen_panel
 
       ONDEXIA_VERSION = substr(filemd5(var.artefacto_panel), 0, 12)
@@ -338,25 +343,30 @@ resource "aws_apigatewayv2_route" "panel_todo" {
 }
 
 /**
- * El preflight, sin autorizador.
+ * NO hay ruta `OPTIONS /{{proxy+}}`, y esa ausencia es el arreglo (hallazgo A2).
  *
- * Un OPTIONS de comprobacion previa NO lleva cabecera Authorization —el navegador
- * no la manda, por especificacion— asi que el autorizador JWT lo rechaza con 401
- * y el navegador da por fallado el CORS. El sintoma engaña: en la consola sale
- * «Response to preflight request doesn't pass access control check» y todo
- * parece un problema de origenes, cuando es de autorizacion.
+ * La habia, sin autorizador, apuntando a la misma integracion que todo lo demas:
+ * una puerta por la que se llegaba a la funcion sin presentar ningun token. Se
+ * habia anadido por un motivo real —el navegador manda el preflight SIN
+ * credenciales, asi que caia en la ruta protegida y el autorizador respondia 401,
+ * y el sintoma engana: la sesion se abre bien, el token es valido, y aun asi toda
+ * llamada falla con un error de red sin cuerpo—.
  *
- * API Gateway prefiere la ruta mas especifica, asi que esta gana sobre $default.
- * Es el mismo arreglo que ya lleva la API de clientes.
+ * Pero la solucion era otra. API Gateway responde el preflight POR SU CUENTA en
+ * cuanto la API declara `cors_configuration`, sin invocar la integracion:
+ *
+ *   «If you configure CORS for an HTTP API, API Gateway automatically sends a
+ *   response to preflight OPTIONS requests, even if there isn't an OPTIONS route
+ *   configured.»
+ *
+ * Es decir, la ruta no hacia falta ni siquiera para lo que la motivo. Quitarla
+ * cierra la unica via de invocacion sin autorizador que existia — la premisa
+ * «la pasarela es la unica puerta» pasa a ser cierta.
+ *
+ * Consecuencia para la aplicacion: Spring ya no responde ningun preflight, asi
+ * que las cabeceras las pone entera la pasarela. `CORS_ORIGENES` sigue
+ * importando para las peticiones reales.
  */
-resource "aws_apigatewayv2_route" "panel_preflight" {
-  count = local.hay_panel ? 1 : 0
-
-  api_id             = aws_apigatewayv2_api.panel[0].id
-  route_key          = "OPTIONS /{proxy+}"
-  target             = "integrations/${aws_apigatewayv2_integration.panel[0].id}"
-  authorization_type = "NONE"
-}
 
 resource "aws_apigatewayv2_stage" "panel" {
   count = local.hay_panel ? 1 : 0
@@ -392,4 +402,26 @@ resource "aws_lambda_permission" "panel" {
    * TokenDeLaPasarela: dejaría de ser cierto que alguien comprobó la firma.
    */
   source_arn = "${aws_apigatewayv2_api.panel[0].execution_arn}/*/*"
+}
+
+/**
+ * El JWKS del pool de PERSONAL, descargado al aplicar (hallazgo A2).
+ *
+ * Aqui el hallazgo era mas grave que en la API: `TokenDeLaPasarela` aceptaba
+ * cualquier firma, incluida `alg: none`, y la ruta `OPTIONS /{proxy+}` llega a
+ * esta misma funcion SIN pasar por el autorizador. Hoy no ejecuta ningun
+ * controlador porque todos son GET o PUT, pero un `@RequestMapping` sin metodo
+ * bastaria para convertirlo en toma total de la consola.
+ *
+ * Ver la nota equivalente en api.tf sobre la rotacion de claves.
+ */
+data "http" "jwks_personal" {
+  url = "https://cognito-idp.${var.region}.amazonaws.com/${aws_cognito_user_pool.personal.id}/.well-known/jwks.json"
+
+  lifecycle {
+    postcondition {
+      condition     = self.status_code == 200
+      error_message = "No se pudo descargar el JWKS del pool de personal (HTTP ${self.status_code})."
+    }
+  }
 }

@@ -27,3 +27,9 @@ ondexia:
     # El cliente de Cognito del panel: que el token sea para esta consola y no
     # para otra aplicacion del mismo grupo.
     cliente: ${COGNITO_CLIENTE_PANEL}
+
+    # Las claves PUBLICAS del grupo de personal, descargadas por Terraform al
+    # aplicar (data.http.jwks_personal) porque esta funcion no puede salir a
+    # internet. Sin ellas la aplicacion no arranca, que es lo correcto: arrancar
+    # significaria aceptar tokens sin verificar la firma, que es el hallazgo A2.
+    jwks: ${COGNITO_JWKS}
