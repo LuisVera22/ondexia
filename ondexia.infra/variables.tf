@@ -37,9 +37,21 @@ variable "gestionar_dns" {
     CloudFront. Se deja en false para poder desplegar y probar sin tener el
     dominio apuntando todavía: CloudFront sirve igual por su dominio
     predeterminado.
+
+    En prod es OBLIGATORIO (tabla de bajas de la auditoria 2026-09-01). Sin
+    dominio propio, CloudFront sirve por su dominio predeterminado y ahi la
+    version minima de TLS es la 1.0 —no se puede subir sin certificado propio—, y
+    la CSP del SPA cae al comodin de execute-api (estatico.tf). Las dos cosas
+    son aceptables en dev y no delante de un cliente. La validacion de abajo es lo
+    que convierte «bloqueante antes de clientes» en algo que Terraform impone.
   TEXTO
   type        = bool
   default     = false
+
+  validation {
+    condition     = var.entorno != "prod" || var.gestionar_dns
+    error_message = "En prod hace falta gestionar_dns = true: sin dominio propio CloudFront acepta TLS 1.0 y la CSP queda con comodines. Registra el dominio y carga los servidores de nombres antes de desplegar produccion."
+  }
 }
 
 variable "correo_alertas" {

@@ -164,18 +164,22 @@ resource "aws_cognito_user_pool_client" "spa" {
    * lanzar el flujo con una `redirect_uri` propia y recibir él el código de
    * autorización de la víctima.
    *
-   * localhost está permitido a propósito para desarrollar, y es la única
-   * excepción de http que acepta Cognito. En prod conviene quitarlo.
+   * localhost está permitido para desarrollar —es la única excepción de http
+   * que acepta Cognito— y SOLO fuera de prod. Antes estaba en la lista de todos
+   * los entornos con la nota «en prod conviene quitarlo» (tabla de bajas de la
+   * auditoría 2026-09-01): en producción significaba que un código de
+   * autorización podía terminar en el localhost de quien tuviera a la víctima en
+   * su red. Una obligación que se codifica, no que se recuerda.
    */
-  callback_urls = [
-    "${local.origen_app}/acceso/retorno",
-    "http://localhost:4200/acceso/retorno",
-  ]
+  callback_urls = concat(
+    ["${local.origen_app}/acceso/retorno"],
+    var.entorno == "prod" ? [] : ["http://localhost:4200/acceso/retorno"],
+  )
 
-  logout_urls = [
-    "${local.origen_app}/acceso/ingresar",
-    "http://localhost:4200/acceso/ingresar",
-  ]
+  logout_urls = concat(
+    ["${local.origen_app}/acceso/ingresar"],
+    var.entorno == "prod" ? [] : ["http://localhost:4200/acceso/ingresar"],
+  )
 
   # Una hora de token de acceso limita cuánto sobrevive uno robado. Los
   # permisos no viajan en él, así que revocar un permiso surte efecto de
