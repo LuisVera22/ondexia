@@ -40,7 +40,7 @@ public class GestionDeCuentas {
             List.of("EN_PRUEBA", "ACTIVA", "SUSPENDIDA", "CANCELADA");
 
     @Transactional
-    public void cambiarPlan(UUID cuentaId, String planCodigo, String actor) {
+    public void cambiarPlan(UUID cuentaId, String planCodigo, Operador actor) {
         String anterior = planActual(cuentaId);
 
         if (!existePlan(planCodigo)) {
@@ -66,7 +66,7 @@ public class GestionDeCuentas {
      * cliente.
      */
     @Transactional
-    public void cambiarEstado(UUID cuentaId, String estado, String motivo, String actor) {
+    public void cambiarEstado(UUID cuentaId, String estado, String motivo, Operador actor) {
         if (!ESTADOS.contains(estado)) {
             throw new ReglaDeNegocioViolada("estado_invalido",
                     "Estado no valido: " + estado + ". Los validos son " + ESTADOS + ".");
@@ -102,7 +102,7 @@ public class GestionDeCuentas {
      */
     @Transactional
     public void decidirModulo(UUID cuentaId, UUID permisoId, Boolean habilitado,
-            String motivo, String actor) {
+            String motivo, Operador actor) {
 
         String nivel = jdbc.sql("select nivel from permiso where id = :id")
                 .param("id", permisoId).query(String.class).optional()
@@ -125,7 +125,7 @@ public class GestionDeCuentas {
                     """)
                     .param("cuenta", cuentaId).param("permiso", permisoId)
                     .param("nivel", nivel).param("habilitado", habilitado)
-                    .param("motivo", motivo).param("actor", actor)
+                    .param("motivo", motivo).param("actor", actor.correo())
                     .update();
         }
 

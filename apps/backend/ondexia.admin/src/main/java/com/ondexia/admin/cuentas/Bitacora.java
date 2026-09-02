@@ -35,22 +35,25 @@ public class Bitacora {
     }
 
     /**
-     * @param actor   quién lo hizo, tal como llega en el token del personal
+     * @param actor   quién lo hizo. Se guardan su sub —que identifica— y su
+     *                correo —que se lee—; ver {@link Operador}
      * @param antes   estado previo, o {@code null} si no lo había
      * @param despues estado resultante. <strong>Nunca credenciales ni contenido
      *                de certificados</strong> (DTE §8.4): aquí solo entran datos
      *                comerciales — plan, estado, módulos
      */
-    public void registrar(UUID cuentaId, String actor, String accion,
+    public void registrar(UUID cuentaId, Operador actor, String accion,
             Map<String, Object> antes, Map<String, Object> despues) {
 
         jdbc.sql("""
-                insert into auditoria_admin (id, cuenta_id, actor, accion, antes, despues)
-                values (gen_random_uuid(), :cuenta, :actor, :accion,
+                insert into auditoria_admin
+                       (id, cuenta_id, actor_sub, actor, accion, antes, despues)
+                values (gen_random_uuid(), :cuenta, :actorSub, :actor, :accion,
                         cast(:antes as jsonb), cast(:despues as jsonb))
                 """)
                 .param("cuenta", cuentaId)
-                .param("actor", actor)
+                .param("actorSub", actor.sub())
+                .param("actor", actor.correo())
                 .param("accion", accion)
                 .param("antes", serializar(antes))
                 .param("despues", serializar(despues))
