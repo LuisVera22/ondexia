@@ -78,20 +78,31 @@ public class ContextoInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * Detrás de CloudFront y API Gateway la IP del socket es la del último salto
-     * de AWS. La real llega en {@code X-Forwarded-For}, cuyo primer elemento es
-     * el cliente original.
+     * La IP que se guarda en la bitácora, tomada del socket y no de una cabecera.
      *
-     * <p>Esa cabecera es falsificable por quien llegue directo al origen. Aquí no
-     * decide nada —solo se registra— y por eso se acepta. <strong>No debe usarse
-     * jamás para autorizar.</strong>
+     * <h2>Por qué ya no se lee {@code X-Forwarded-For}</h2>
+     *
+     * <p>Hallazgo M3 de la auditoría 2026-09-01. Se leía su primer elemento, y
+     * <strong>ese elemento lo escribe el cliente</strong>: la cabecera es una
+     * lista que cada salto amplía por la derecha, así que el valor de más a la
+     * izquierda es exactamente el que mandó quien llama. Cualquiera podía firmar
+     * sus acciones con la IP que quisiera.
+     *
+     * <p>El comentario que había aquí decía «no debe usarse jamás para
+     * autorizar», y era cierto y no bastaba: una bitácora que registra la IP que
+     * el propio actor eligió no sirve para lo único que sirve una bitácora, que
+     * es reconstruir qué pasó. Peor que no tener el dato es tenerlo falseable sin
+     * que se note.
+     *
+     * <p>Con el adaptador de Lambda, {@code getRemoteAddr()} devuelve
+     * {@code requestContext.http.sourceIp}, que pone API Gateway a partir de la
+     * conexión. No es falsificable desde el cliente.
+     *
+     * <p>Lo que se pierde: detrás de CloudFront esa IP puede ser la del punto de
+     * presencia y no la del navegador. Es un dato menos preciso y verdadero, en
+     * lugar de uno preciso y a elección de quien se investiga.
      */
     private String obtenerIp(HttpServletRequest peticion) {
-        String reenviada = peticion.getHeader("X-Forwarded-For");
-        if (reenviada != null && !reenviada.isBlank()) {
-            int coma = reenviada.indexOf(',');
-            return recortar((coma >= 0 ? reenviada.substring(0, coma) : reenviada).trim());
-        }
         return recortar(peticion.getRemoteAddr());
     }
 
