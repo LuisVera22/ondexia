@@ -24,6 +24,8 @@
     "cuando otra cosa: la clase de rama que se prueba en un entorno y falla en el",
     "otro."
   ],
+  "_autoservicio": "Si la pantalla de acceso ofrece Crear cuenta. Lo manda Cognito: con el autoservicio cerrado (hallazgo C2 de la auditoria 2026-09-01) la interfaz alojada responde a /signup con un error. En despliegue sale de var.autoservicio_inquilinos.",
+  "autoservicio": false,
   "api": "https://dow0eru03l.execute-api.us-east-1.amazonaws.com",
   "consultas": "https://dow0eru03l.execute-api.us-east-1.amazonaws.com",
   "cognito": {

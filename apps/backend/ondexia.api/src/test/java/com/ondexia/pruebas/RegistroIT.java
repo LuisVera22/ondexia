@@ -234,8 +234,20 @@ class RegistroIT extends PruebaIntegracion {
                 .andExpect(jsonPath("$.codigo").value("atestacion_invalida"));
     }
 
+    /**
+     * El rechazo NO puede confirmar que ese RUC este registrado.
+     *
+     * Hallazgos C2 y M16 de la auditoria 2026-09-01: el mensaje decia «El RUC X
+     * ya está registrado en Ondexia», con lo que cualquiera con una cuenta podia
+     * recorrer el padron y quedarse con la lista de contribuyentes que son
+     * clientes nuestros.
+     *
+     * La prueba fija las dos mitades: que siga habiendo una salida para quien
+     * tiene un motivo legitimo, y que ni el codigo ni el texto digan que el RUC
+     * existe.
+     */
     @Test
-    @DisplayName("Un RUC ya registrado se rechaza con una salida para el usuario")
+    @DisplayName("Un RUC ya registrado se rechaza sin confirmar que lo esta")
     void rucRepetido() throws Exception {
         mockMvc.perform(post(REGISTRO)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenPara("sub-primero"))
@@ -250,10 +262,20 @@ class RegistroIT extends PruebaIntegracion {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(cuerpoPara("20100000041", "SEGUNDA S.A.C.")))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.codigo").value("ruc_ya_registrado"))
-                // El mensaje dice qué hacer, no solo que no se puede.
+                .andExpect(jsonPath("$.codigo").value("registro_no_disponible"))
+                // Sigue diciendo qué hacer, que es lo que necesita quien de
+                // verdad es de esa empresa.
                 .andExpect(jsonPath("$.detail").value(
-                        org.hamcrest.Matchers.containsString("administrador")));
+                        org.hamcrest.Matchers.containsString("administrador")))
+                // Y no confirma nada. Ni el RUC ni la palabra «registrado»:
+                // sin esto, el mensaje seguiría siendo un oráculo aunque el
+                // código hubiera cambiado.
+                .andExpect(jsonPath("$.detail").value(
+                        org.hamcrest.Matchers.not(
+                                org.hamcrest.Matchers.containsString("20100000041"))))
+                .andExpect(jsonPath("$.detail").value(
+                        org.hamcrest.Matchers.not(
+                                org.hamcrest.Matchers.containsString("registrado"))));
     }
 
     @Test
