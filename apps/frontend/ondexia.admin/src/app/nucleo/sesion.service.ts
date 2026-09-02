@@ -189,8 +189,22 @@ export class SesionService {
     return this.renovacionEnCurso;
   }
 
-  /** Cierra sesión aquí y en Cognito. Sin lo segundo, «entrar» volvería a entrar solo. */
+  /**
+   * Cierra sesión: revoca el refresco, lo olvida aquí y sale de Cognito.
+   *
+   * <p>Los tres pasos importan y faltaba el primero (hallazgo C3). Antes se
+   * borraba el `sessionStorage` y se navegaba a `/logout`, que cierra la sesión
+   * del NAVEGADOR en Cognito — pero **el refresh token seguía siendo válido**.
+   * Quien lo hubiera copiado antes podía canjearlo hasta que caducara; cerrar
+   * sesión no le quitaba nada. En esta consola eso es acceso a todas las cuentas.
+   *
+   * <p>`keepalive` porque la navegación a Cognito ocurre a continuación y mataría
+   * una petición normal a medio vuelo. No se espera la respuesta: si la
+   * revocación falla hay que borrar la sesión local y salir igualmente, que la
+   * alternativa es dejar a alguien dentro porque no se pudo cerrar del todo.
+   */
   cerrar(): void {
+    this.revocarRefresco();
     this.limpiar();
 
     const parametros = new URLSearchParams({
@@ -201,6 +215,31 @@ export class SesionService {
     });
 
     location.assign(`${this.configuracion.cognito.dominio}/logout?${parametros}`);
+  }
+
+  /**
+   * `/oauth2/revoke` invalida el refresco Y todos los tokens de acceso emitidos
+   * con él. Lo habilita `enable_token_revocation` en Terraform.
+   *
+   * <p>Sin `client_secret`: el cliente del panel es público, por eso usa PKCE.
+   */
+  private revocarRefresco(): void {
+    const refresco = this._sesion()?.refresco;
+    if (!refresco) {
+      return;
+    }
+
+    void fetch(`${this.configuracion.cognito.dominio}/oauth2/revoke`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        token: refresco,
+        client_id: this.configuracion.cognito.clienteId,
+      }),
+      keepalive: true,
+    }).catch(() => {
+      // Da igual: la sesión local se borra igualmente y el refresco caduca solo.
+    });
   }
 
   limpiar(): void {

@@ -129,6 +129,198 @@ resource "aws_s3_bucket_versioning" "marca" {
   }
 }
 
+
+# -- Cabeceras de seguridad, con CSP ----------------------------------------
+
+/**
+ * Politica propia en vez de la gestionada de AWS (hallazgos M9 y C3).
+ *
+ * `SecurityHeadersPolicy` —67f7725c…— pone HSTS, X-Content-Type-Options,
+ * X-Frame-Options y Referrer-Policy, y NO pone Content-Security-Policy: AWS no
+ * puede adivinar de donde carga recursos cada sitio. El resultado era que las
+ * cuatro distribuciones se servian sin CSP.
+ *
+ * Lo que compra una CSP aqui: un XSS en el SPA no puede exfiltrar el refresh
+ * token a un dominio del atacante, porque `connect-src` solo admite la API y
+ * Cognito. Sin ella, un solo script inyectado que llegara a ejecutarse se lleva
+ * la sesion entera — que es lo que hace grave la cadena C3.
+ *
+ * `unsafe-inline` en `style-src` y no en `script-src`. Angular inyecta estilos
+ * en linea en tiempo de ejecucion y sin eso la aplicacion sale sin formato; los
+ * scripts, en cambio, son todos archivos con hash servidos desde el mismo
+ * origen, asi que ahi no hace falta y no se concede. Un CSS inyectado puede
+ * afear la pagina; un script inyectado se lleva la sesion.
+ */
+locals {
+  # De donde puede hablar cada SPA. La API y Cognito viven en dominios distintos
+  # del sitio, asi que sin nombrarlos aqui el navegador bloquea toda llamada — el
+  # sintoma seria una aplicacion que carga y no hace nada.
+  cognito_idp    = "https://cognito-idp.${var.region}.amazonaws.com"
+  cognito_hosted = "https://${aws_cognito_user_pool_domain.inquilinos.domain}.auth.${var.region}.amazoncognito.com"
+  /**
+   * A donde deja hablar la CSP, SIN referirse a los recursos.
+   *
+   * Nombrar `aws_apigatewayv2_api.principal.api_endpoint` aqui crea un ciclo, y
+   * el ciclo es real, no un tecnicismo de Terraform: la distribucion necesita la
+   * CSP, la CSP necesita la URL de la API, y la API necesita el dominio de la
+   * distribucion para su `cors_configuration`. Alguien tiene que ceder.
+   *
+   * Cede la CSP, y solo cuando no hay dominio propio:
+   *
+   *   · Con `gestionar_dns`, los dos son nombres fijos —api.<dominio>,
+   *     cdn.<dominio>— y la politica es exacta.
+   *   · Sin el, se usa el comodin de execute-api de la region. Es mas debil: un
+   *     atacante con XSS podria exfiltrar a SU pasarela si la tiene en la misma
+   *     region. Se acepta porque sin dominio propio esto es dev, y el dia que
+   *     haya clientes hay dominio.
+   *
+   * Es la misma frontera que ya marca `prod.tfvars` con TLS 1.0: varias cosas
+   * mejoran a la vez al activar el dominio.
+   */
+  origen_api       = var.gestionar_dns ? "https://api.${var.dominio}" : "https://*.execute-api.${var.region}.amazonaws.com"
+  origen_cdn_marca = var.gestionar_dns ? "https://cdn.${var.dominio}" : "https://*.cloudfront.net"
+
+  csp_app = join("; ", [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: ${local.origen_cdn_marca}",
+    "font-src 'self'",
+    "connect-src 'self' ${local.origen_api} ${local.cognito_idp} ${local.cognito_hosted}",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "object-src 'none'",
+  ])
+
+  csp_panel = join("; ", [
+    "default-src 'self'",
+    "script-src 'self'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data:",
+    "font-src 'self'",
+    # El comodin de execute-api SIEMPRE, tambien con dominio propio: la pasarela
+    # del panel no tiene nombre a medida —solo lo tienen la app, la API de
+    # clientes y el CDN de marca—, asi que no hay un valor exacto que poner. Es
+    # una consola interna de dos o tres personas; el dia que se le ponga dominio,
+    # esta linea se estrecha.
+    "connect-src 'self' https://*.execute-api.${var.region}.amazonaws.com ${local.cognito_idp}",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "object-src 'none'",
+  ])
+
+  # La landing no tiene JavaScript ni habla con nadie (doc 03 §3). Su CSP puede
+  # ser la mas estricta de las cuatro, y que lo sea es ademas una prueba de que
+  # sigue siendo estatica: el dia que alguien le meta un script de analitica,
+  # deja de cargar.
+  csp_landing = join("; ", [
+    "default-src 'none'",
+    "img-src 'self' data:",
+    "style-src 'self' 'unsafe-inline'",
+    "font-src 'self'",
+    "frame-ancestors 'none'",
+    "base-uri 'none'",
+    "form-action 'none'",
+  ])
+
+  csp_por_sitio = {
+    app     = local.csp_app
+    panel   = local.csp_panel
+    landing = local.csp_landing
+  }
+}
+
+resource "aws_cloudfront_response_headers_policy" "sitio" {
+  for_each = local.sitios
+
+  name    = "${local.nombre}-${each.key}"
+  comment = "Cabeceras de seguridad con CSP para ${each.value.descripcion}"
+
+  security_headers_config {
+    content_security_policy {
+      content_security_policy = local.csp_por_sitio[each.key]
+      override                = true
+    }
+
+    content_type_options {
+      override = true
+    }
+
+    frame_options {
+      frame_option = "DENY"
+      override     = true
+    }
+
+    referrer_policy {
+      referrer_policy = "strict-origin-when-cross-origin"
+      override        = true
+    }
+
+    # Dos anos y subdominios. `preload` NO: entrar en la lista de precarga de los
+    # navegadores es practicamente irreversible, y este dominio todavia no esta
+    # en produccion.
+    strict_transport_security {
+      access_control_max_age_sec = 63072000
+      include_subdomains         = true
+      override                   = true
+    }
+  }
+}
+
+/**
+ * El CDN de marca: contenido que SUBEN LOS CLIENTES.
+ *
+ * Politica aparte y mucho mas dura, porque el riesgo es distinto: aqui no
+ * servimos codigo nuestro sino archivos de terceros. Sin esto, quien suba un
+ * HTML con `Content-Type: text/html` —el tipo lo declara el cliente al pedir la
+ * URL firmada— consigue que ese HTML se ejecute en un dominio nuestro.
+ *
+ * `default-src 'none'` mas `sandbox` deja el documento sin scripts, sin
+ * formularios y sin origen: aunque se sirva HTML, no puede hacer nada. El
+ * `Content-Disposition: attachment` remata cerrando la visualizacion en linea.
+ */
+resource "aws_cloudfront_response_headers_policy" "marca" {
+  name    = "${local.nombre}-marca"
+  comment = "Contenido subido por clientes: sin ejecucion posible"
+
+  security_headers_config {
+    content_security_policy {
+      content_security_policy = "default-src 'none'; sandbox; frame-ancestors 'none'"
+      override                = true
+    }
+
+    content_type_options {
+      override = true
+    }
+
+    frame_options {
+      frame_option = "DENY"
+      override     = true
+    }
+
+    referrer_policy {
+      referrer_policy = "no-referrer"
+      override        = true
+    }
+
+    strict_transport_security {
+      access_control_max_age_sec = 63072000
+      include_subdomains         = true
+      override                   = true
+    }
+  }
+
+  custom_headers_config {
+    items {
+      header   = "Content-Disposition"
+      value    = "attachment"
+      override = true
+    }
+  }
+}
+
 /**
  * CORS del bucket de marca.
  *
@@ -206,10 +398,10 @@ resource "aws_cloudfront_distribution" "sitio" {
     cached_methods         = ["GET", "HEAD"]
     compress               = true
 
-    # Políticas gestionadas por AWS: CachingOptimized y la de cabeceras de
-    # seguridad. Mantenerlas propias solo añade algo que revisar.
+    # La cache, gestionada por AWS (CachingOptimized). Las cabeceras, propias:
+    # la gestionada de seguridad no incluye CSP y AWS no puede adivinarla.
     cache_policy_id            = "658327ea-f89d-4fab-a63d-7e88639e58f6"
-    response_headers_policy_id = "67f7725c-6f97-4210-82d7-5512b31e9d03"
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.sitio[each.key].id
   }
 
   /**
@@ -271,7 +463,7 @@ resource "aws_cloudfront_distribution" "marca" {
     compress               = true
 
     cache_policy_id            = "658327ea-f89d-4fab-a63d-7e88639e58f6"
-    response_headers_policy_id = "67f7725c-6f97-4210-82d7-5512b31e9d03"
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.marca.id
   }
 
   restrictions {

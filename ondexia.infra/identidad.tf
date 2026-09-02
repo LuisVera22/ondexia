@@ -180,9 +180,22 @@ resource "aws_cognito_user_pool_client" "spa" {
   # Una hora de token de acceso limita cuánto sobrevive uno robado. Los
   # permisos no viajan en él, así que revocar un permiso surte efecto de
   # inmediato: se resuelve en la base en cada petición.
-  access_token_validity  = 1
-  id_token_validity      = 1
-  refresh_token_validity = 30
+  access_token_validity = 1
+  id_token_validity     = 1
+
+  /**
+   * Siete dias de refresco, no treinta (hallazgo C3).
+   *
+   * El SPA guarda el refresco en sessionStorage, que es legible por cualquier
+   * JavaScript de la pagina. Treinta dias significa que uno robado da acceso un
+   * mes entero. Siete es el compromiso: no obliga a volver a entrar cada dia y
+   * acota el dano.
+   *
+   * Lo que de verdad lo cierra es no tenerlo en sessionStorage —refresco en
+   * memoria, o un BFF con cookie HttpOnly—. Es un rediseno del acceso y no
+   * entra aqui; queda dicho para que no se confunda esto con la solucion.
+   */
+  refresh_token_validity = 7
 
   token_validity_units {
     access_token  = "hours"
@@ -190,8 +203,36 @@ resource "aws_cognito_user_pool_client" "spa" {
     refresh_token = "days"
   }
 
-  # Al renovar se emite un refresh token nuevo y el anterior deja de valer.
+  /**
+   * Habilita /oauth2/revoke. NO rota nada: eso es lo de abajo.
+   *
+   * El comentario que habia aqui decia «al renovar se emite un refresh token
+   * nuevo y el anterior deja de valer», que describe la ROTACION y no lo que
+   * hace esta linea. Es el hallazgo C3, y su origen esta en el DTE §8.1, donde
+   * la rotacion figura entre lo que «se compra» con Cognito: se compra la
+   * opcion, no el comportamiento.
+   *
+   * Ahora si hace falta de verdad: sin esto, el `cerrar()` del SPA no tendria
+   * a donde llamar para revocar.
+   */
   enable_token_revocation = true
+
+  /**
+   * La rotacion, esta vez activada.
+   *
+   * Cada renovacion emite un refresco nuevo e invalida el anterior. Lo que compra
+   * no es solo acortar la vida del robado: si el ladron lo usa, el legitimo deja
+   * de funcionar y la persona lo nota. Un refresco que no rota se puede usar en
+   * paralelo durante semanas sin que nadie se entere.
+   *
+   * La gracia de 60 s cubre la carrera real: dos pestanas que renuevan a la vez,
+   * o una respuesta que se pierde despues de que el servidor rotara. Sin ella, el
+   * sintoma es cerrar sesion sola de vez en cuando y sin patron.
+   */
+  refresh_token_rotation {
+    feature                    = "ENABLED"
+    retry_grace_period_seconds = 60
+  }
 
   prevent_user_existence_errors = "ENABLED"
 
