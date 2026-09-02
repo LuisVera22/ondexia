@@ -26,11 +26,21 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 class GestionDeCuentasIT extends PruebaDelPanel {
 
     private static final UUID CUENTA = UUID.fromString("00000000-0000-4000-9000-000000000002");
-    private static final String OPERADOR = "operador@ondexia.com";
+    private static final Operador OPERADOR =
+            new Operador("sub-del-operador", "operador@ondexia.com");
 
     @BeforeEach
     void sembrar() {
+        /*
+         * La bitacora del panel es de solo insercion desde la V15 (hallazgo A6),
+         * asi que borrarla exige desactivar el disparador a proposito. Se hace
+         * aqui y en ningun sitio mas: dejar la limpieza y quitar el disparador
+         * seria mucho peor que la molestia de estas dos lineas, y que cueste es
+         * parte de lo que se buscaba.
+         */
+        jdbc.execute("ALTER TABLE auditoria_admin DISABLE TRIGGER auditoria_admin_solo_insercion");
         jdbc.update("delete from auditoria_admin where cuenta_id = cast(? as uuid)", CUENTA.toString());
+        jdbc.execute("ALTER TABLE auditoria_admin ENABLE TRIGGER auditoria_admin_solo_insercion");
         jdbc.update("delete from cuenta_modulo where cuenta_id = cast(? as uuid)", CUENTA.toString());
         jdbc.update("delete from cuenta where id = cast(? as uuid)", CUENTA.toString());
         jdbc.update("""
@@ -41,7 +51,7 @@ class GestionDeCuentasIT extends PruebaDelPanel {
 
     /** Con correo en el token: es lo que debe acabar en la bitácora. */
     private MockHttpServletRequestBuilder comoOperador(MockHttpServletRequestBuilder peticion) {
-        return peticion.with(jwt().jwt(token -> token.claim("email", OPERADOR)))
+        return peticion.with(jwt().jwt(token -> token.claim("email", OPERADOR.correo())))
                 .contentType(MediaType.APPLICATION_JSON);
     }
 
@@ -55,7 +65,7 @@ class GestionDeCuentasIT extends PruebaDelPanel {
         return jdbc.queryForObject("""
                 select count(*) from auditoria_admin
                 where cuenta_id = cast(? as uuid) and accion = ? and actor = ?
-                """, Integer.class, CUENTA.toString(), accion, OPERADOR);
+                """, Integer.class, CUENTA.toString(), accion, OPERADOR.correo());
     }
 
     @Test

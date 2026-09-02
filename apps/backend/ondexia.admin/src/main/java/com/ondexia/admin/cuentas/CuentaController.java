@@ -57,34 +57,20 @@ public class CuentaController {
     @PutMapping("/{id}/plan")
     public void cambiarPlan(@PathVariable UUID id, @RequestBody CambioDePlan cambio,
             @AuthenticationPrincipal Jwt token) {
-        gestion.cambiarPlan(id, cambio.plan(), actor(token));
+        gestion.cambiarPlan(id, cambio.plan(), Operador.de(token));
     }
 
     @PutMapping("/{id}/estado")
     public void cambiarEstado(@PathVariable UUID id, @RequestBody CambioDeEstado cambio,
             @AuthenticationPrincipal Jwt token) {
-        gestion.cambiarEstado(id, cambio.estado(), cambio.motivo(), actor(token));
+        gestion.cambiarEstado(id, cambio.estado(), cambio.motivo(), Operador.de(token));
     }
 
     @PutMapping("/{id}/modulos")
     public void decidirModulo(@PathVariable UUID id, @RequestBody DecisionDeModulo decision,
             @AuthenticationPrincipal Jwt token) {
         gestion.decidirModulo(id, decision.permisoId(), decision.habilitado(),
-                decision.motivo(), actor(token));
+                decision.motivo(), Operador.de(token));
     }
 
-    /**
-     * Quién queda en la bitácora.
-     *
-     * <p>El correo y no el {@code sub}, porque esta bitácora la lee una persona
-     * meses después. Si el token no trae correo se guarda el {@code sub}: es peor
-     * de leer, pero perder el rastro por un reclamo ausente sería mucho peor.
-     */
-    private static String actor(Jwt token) {
-        if (token == null) {
-            return "desconocido";
-        }
-        String correo = token.getClaimAsString("email");
-        return correo != null ? correo : token.getSubject();
-    }
 }
