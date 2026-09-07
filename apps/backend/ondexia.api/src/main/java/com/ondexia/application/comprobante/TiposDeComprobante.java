@@ -63,6 +63,8 @@ public class TiposDeComprobante {
         boolean emiteFacturas = empresa.ejecutar().emiteFacturas();
 
         return Arrays.stream(TipoDocumento.values())
+                // La nota de venta no es comprobante: siempre se emite y no se apaga.
+                .filter(TipoDocumento::esFiscal)
                 .map(tipo -> new EstadoDeTipo(
                         tipo,
                         !apagados.contains(tipo) && (tipo != TipoDocumento.FACTURA || emiteFacturas),
@@ -81,6 +83,11 @@ public class TiposDeComprobante {
     @Transactional
     public EstadoDeTipo cambiarEstado(String codigoTipo, boolean emite) {
         var tipo = TipoDocumento.porCodigo(codigoTipo);
+        if (!tipo.esFiscal()) {
+            throw new ReglaDeNegocioViolada(
+                    "tipo_no_configurable",
+                    "La nota de venta no es un comprobante: siempre se emite y no se desactiva.");
+        }
 
         /*
          * El regimen manda sobre la casilla (doc 12 §3.1). Una empresa en el

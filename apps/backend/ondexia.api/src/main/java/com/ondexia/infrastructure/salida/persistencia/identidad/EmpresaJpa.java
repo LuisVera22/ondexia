@@ -92,6 +92,17 @@ public class EmpresaJpa extends EntidadJpaBase {
     @Column(name = "regimen_tributario", nullable = false, length = 20)
     private RegimenTributario regimenTributario = RegimenTributario.porOmision();
 
+    @Column(name = "permite_venta_sin_stock", nullable = false)
+    private boolean permiteVentaSinStock = true;
+
+    public boolean isPermiteVentaSinStock() {
+        return permiteVentaSinStock;
+    }
+
+    public void setPermiteVentaSinStock(boolean permiteVentaSinStock) {
+        this.permiteVentaSinStock = permiteVentaSinStock;
+    }
+
     protected EmpresaJpa() {
     }
 

@@ -160,7 +160,8 @@ class ConfiguracionEmpresaIT extends PruebaIntegracion {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.editable").value(
                         org.hamcrest.Matchers.containsInAnyOrder(
-                                "nombreComercial", "cuentaDetracciones", "regimenTributario")));
+                                "nombreComercial", "cuentaDetracciones", "regimenTributario",
+                                "permiteVentaSinStock")));
     }
 
     /**

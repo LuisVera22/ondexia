@@ -132,6 +132,9 @@ export class EmpresaComponent implements ConCambiosSinGuardar {
     cuentaDetracciones: ['', [Validators.pattern(/^\d*$/)]],
     // Solo editable para una persona natural (RUC 10); ver `preguntaRegimen`.
     regimenTributario: ['OTRO' as RegimenTributario],
+    // Doc 12 §3.5: el mostrador vende con existencias insuficientes y avisa,
+    // salvo que la empresa lo prohíba aquí.
+    permiteVentaSinStock: [true],
   });
 
   /** El régimen solo se pregunta a una persona natural: es la única que puede estar en el RUS. */
@@ -201,6 +204,7 @@ export class EmpresaComponent implements ConCambiosSinGuardar {
       nombreComercial: empresa.nombreComercial ?? '',
       cuentaDetracciones: empresa.cuentaDetracciones ?? '',
       regimenTributario: empresa.regimenTributario,
+      permiteVentaSinStock: empresa.permiteVentaSinStock,
     });
     this.aplicarModoLectura();
     this.cambios.fijarBase();
@@ -339,6 +343,7 @@ export class EmpresaComponent implements ConCambiosSinGuardar {
           // Solo si se pregunto: a una persona juridica no se le envia nada y
           // el servidor conserva OTRO.
           regimenTributario: this.preguntaRegimen() ? valores.regimenTributario : null,
+          permiteVentaSinStock: valores.permiteVentaSinStock,
         })
       );
 

@@ -117,6 +117,8 @@ export class MenuLateralComponent {
           submenu: [
             // Primero: sin caja abierta no se vende (doc 12 §3.4).
             { nombre: 'Cajas', ruta: '/ventas/cajas', permiso: 'ventas.caja' },
+            { nombre: 'Punto de venta', ruta: '/ventas/punto-de-venta', permiso: 'ventas.nota_venta' },
+            { nombre: 'Notas de venta', ruta: '/ventas/notas-venta', permiso: 'ventas.nota_venta' },
             { nombre: 'Clientes', ruta: '/ventas/clientes', permiso: 'ventas.cliente' },
             { nombre: 'Cotizaciones', ruta: '/ventas/cotizaciones', permiso: 'ventas.cotizacion' },
             // Facturas y boletas son el mismo submódulo: `ventas.comprobante`.

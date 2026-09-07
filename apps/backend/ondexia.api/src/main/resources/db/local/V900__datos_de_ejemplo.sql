@@ -62,6 +62,33 @@ INSERT INTO sucursal (id, empresa_id, codigo, nombre, direccion, ubigeo, activo)
      '00000000-0000-4000-8000-000000000011',
      '0000', 'Principal', 'Jr. Union 100, Lima', '150101', true);
 
+-- El almacen de cada establecimiento, como lo deja el alta desde la iteracion 2
+-- (DotacionDeEstablecimiento): el punto de venta descarga de aqui. Bajo RLS.
+SELECT set_config('ondexia.empresa_id', '00000000-0000-4000-8000-000000000010', true);
+INSERT INTO almacen (id, empresa_id, sucursal_id, codigo, nombre) VALUES
+    ('00000000-0000-4000-8000-000000000090', '00000000-0000-4000-8000-000000000010',
+     '00000000-0000-4000-8000-000000000020', 'PRINCIPAL', 'Almacen principal'),
+    ('00000000-0000-4000-8000-000000000091', '00000000-0000-4000-8000-000000000010',
+     '00000000-0000-4000-8000-000000000021', 'ALM-0001', 'Almacen Miraflores');
+-- Series del mostrador de la matriz (iteracion 4): la nota de venta es interna
+-- y las otras dos quedan PENDIENTES hasta la iteracion 5.
+INSERT INTO serie_correlativo (id, empresa_id, sucursal_id, tipo_documento, serie) VALUES
+    ('00000000-0000-4000-8000-0000000000a0', '00000000-0000-4000-8000-000000000010',
+     '00000000-0000-4000-8000-000000000020', 'NV', 'N001'),
+    ('00000000-0000-4000-8000-0000000000a1', '00000000-0000-4000-8000-000000000010',
+     '00000000-0000-4000-8000-000000000020', '03', 'B001'),
+    ('00000000-0000-4000-8000-0000000000a2', '00000000-0000-4000-8000-000000000010',
+     '00000000-0000-4000-8000-000000000020', '01', 'F001');
+
+SELECT set_config('ondexia.empresa_id', '00000000-0000-4000-8000-000000000011', true);
+INSERT INTO almacen (id, empresa_id, sucursal_id, codigo, nombre) VALUES
+    ('00000000-0000-4000-8000-000000000092', '00000000-0000-4000-8000-000000000011',
+     '00000000-0000-4000-8000-000000000022', 'PRINCIPAL', 'Almacen principal');
+INSERT INTO serie_correlativo (id, empresa_id, sucursal_id, tipo_documento, serie) VALUES
+    ('00000000-0000-4000-8000-0000000000a3', '00000000-0000-4000-8000-000000000011',
+     '00000000-0000-4000-8000-000000000022', 'NV', 'N001');
+SELECT set_config('ondexia.empresa_id', '', true);
+
 -- La primera caja de cada establecimiento, como la deja el alta desde la
 -- iteracion 2 (DotacionDeEstablecimiento). Los datos de ejemplo se insertan
 -- sin pasar por el caso de uso, asi que se ponen a mano.
@@ -158,6 +185,8 @@ WHERE p.nivel = 'FUNCION'
          AND p.accion IN ('consultar', 'registrar', 'emitir'))
      -- Abre y cierra su caja; no crea cajas ni las desactiva.
      OR (p.modulo = 'ventas.caja' AND p.accion IN ('consultar', 'abrir', 'cerrar'))
+     -- Vende con nota de venta desde el mostrador.
+     OR (p.modulo = 'ventas.nota_venta' AND p.accion IN ('consultar', 'registrar'))
      OR (p.modulo IN ('almacen.producto', 'almacen.marca', 'almacen.modelo',
                       'almacen.presentacion', 'almacen.precio', 'almacen.stock')
          AND p.accion = 'consultar')

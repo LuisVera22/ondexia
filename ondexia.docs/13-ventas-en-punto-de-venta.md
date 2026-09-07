@@ -10,7 +10,8 @@ está marcado como pendiente y no se describe como si existiera.
 | §1 Caja y sesiones de caja | 2 | Hecho |
 | §2 Productos, disponibilidad por local y existencias | 3 | Hecho |
 | §3 Clientes | 3 | Hecho |
-| §4 Nota de venta y canje | 4 | Pendiente |
+| §4 Punto de venta: nota de venta, boleta y factura | 4 | Hecho |
+| §5 Canje y anulación | 6 | Pendiente |
 
 ## 1. Caja y sesiones de caja
 
@@ -248,11 +249,98 @@ número después de consultar la descarta, porque era de otro RUC
 (`FichaClienteComponent`, con su prueba). El listado marca «RUC sin verificar»
 para que no sorprenda al facturar.
 
-## 4. Nota de venta y canje
+## 4. Punto de venta: nota de venta, boleta y factura
 
-Pendiente: iteración 4.
+### 4.1 El documento de venta
+
+`documento_venta` (V19) guarda la venta completa: tipo (`01` factura, `03`
+boleta, `NV` nota de venta), serie y correlativo, cliente o ninguno, sesión de
+caja, líneas (`documento_venta_detalle`), pagos (`pago`) y totales por
+afectación. Nace completo e **inmutable salvo el estado**: un disparador rechaza
+cualquier `UPDATE` que toque otra columna y todo `DELETE`. Corregir una venta es
+emitir otra cosa, no editarla.
+
+La **nota de venta** es lo que el doc 12 §3.3 fijó: un `documento_venta` con
+`tipo_documento = 'NV'` y `fiscal = false`, fuera del catálogo 01, con serie
+propia por establecimiento (letra `N`) que la V19 añade a los `CHECK` de la V4.
+`TipoDocumento.NOTA_VENTA` la trae al enumerado con `esFiscal() == false`; la
+pantalla de Comprobantes no la lista porque siempre se emite y no se apaga.
+Nace `EMITIDO`. Boleta y factura nacen `PENDIENTE`: registradas y sin enviar
+hasta la iteración 5.
+
+### 4.2 Reglas y dónde viven
+
+| Regla | Dónde | Prueba |
+|---|---|---|
+| Una factura exige cliente con RUC | `DocumentoVenta.exigirAdquirente` | `DocumentoVentaTest.unaFacturaSinRucNoSeEmite`, `PuntoDeVentaIT.facturaExigeRuc` |
+| Una boleta de más de S/ 700 identifica al adquirente; el mensaje dice el motivo y la cifra | ídem | `DocumentoVentaTest.unaBoletaDe701SolesSinDniNoSeEmite`, `PuntoDeVentaIT.boletaDeMasDe700` |
+| La nota de venta lleva la leyenda «Documento interno, no válido como comprobante de pago» y no se parece a una boleta | `DetalleDocumentoComponent`, en pantalla y en papel | Revisión visual; la leyenda está en la plantilla |
+| Los pagos suman exactamente el total; varios es pago mixto | `DocumentoVenta.exigirPagosCuadrados` | `DocumentoVentaTest.pagosCuadrados`, `PuntoDeVentaIT.cajaCerradaYPagos` |
+| No se vende con la caja cerrada | `DocumentosDeVenta.emitir` exige la sesión abierta de la caja; el local es el de la caja | `PuntoDeVentaIT.cajaCerradaYPagos` |
+| El correlativo se reserva bajo bloqueo en la misma transacción; un intento fallido no lo gasta | `AsignadorDeCorrelativo` (F-02 del DTE) | `PuntoDeVentaIT.cajaCerradaYPagos` |
+| La venta descarga del almacén del local; sin existencias se avisa, salvo que la empresa lo prohíba | `DocumentosDeVenta.descargarExistencias`, `empresa.permite_venta_sin_stock` | `PuntoDeVentaIT.ventaSinExistencias` |
+| El arqueo suma los pagos de la sesión por forma | `CobrosDeSesionJdbc`, que sustituye a la implementación vacía de la iteración 2 sin tocar `SesionesDeCaja` | `PuntoDeVentaIT.notaDeVentaCompleta` |
+| Inmutable salvo el estado | Disparador `documento_venta_inmutable` | `PuntoDeVentaIT.inmutable` |
+| Los precios los pone el servidor | La petición lleva producto, cantidad y descuento; el precio es el del local o el de lista | `PuntoDeVentaComponent` (prueba: la petición no lleva precio) |
+
+### 4.3 La aritmética parte del total
+
+El precio del catálogo lleva el IGV incluido: es lo que ve el cliente. El total
+de la línea es **cantidad × precio − descuento**, exacto en céntimos; el valor de
+venta es ese total entre 1.18 y el IGV la diferencia. Calcularlo al revés
+—valor sin IGV redondeado más el 18 % redondeado— hace que dos bolsas a S/ 32.50
+cuesten S/ 64.99, y un cliente que paga S/ 65.00 no acepta un céntimo que no
+existe. SUNAT valida el IGV de la línea con tolerancia de un céntimo y ambos
+valores caen dentro; el valor unitario sin IGV se guarda a seis decimales para
+el XML. El descuento se expresa con IGV incluido, como el precio; en el XML irá
+como cargo o descuento de la línea sobre el valor sin IGV (iteración 5). Está en
+`LineaDeVenta.calcular` y en `DocumentoVentaTest.aritmeticaDeLaLinea`.
+
+### 4.4 API
+
+| Método y ruta | Permiso | Qué hace |
+|---|---|---|
+| `POST /api/v1/ventas/notas-de-venta` | nota_venta:registrar | Emite una nota de venta. Cuerpo: `cajaId`, `serieId` (opcional si hay una sola), `clienteId` (opcional), `lineas[{productoId, cantidad, descuento}]`, `pagos[{forma, monto, referencia}]`, `observaciones`. Devuelve el documento y los `avisos` de existencias |
+| `GET /api/v1/ventas/notas-de-venta`, `/{id}` | nota_venta:consultar | Las últimas y una |
+| `POST /api/v1/ventas/comprobantes` | comprobante:emitir | `{tipo: BOLETA \| FACTURA, venta: {…}}`. Queda `PENDIENTE` |
+| `GET /api/v1/ventas/comprobantes?tipo=`, `/{id}` | comprobante:consultar | Los últimos y uno |
+| `GET /api/v1/ventas/series?tipo=&sucursalId=` | nota_venta:consultar | Las series activas para elegir; con varias, el cuerpo tiene que indicar una |
+| `GET /api/v1/almacen/productos/disponibles?sucursalId=&q=` | producto:consultar | El catálogo del local con precio efectivo y existencias, para el autocompletado |
+
+Dos puertas para un mismo caso de uso, `DocumentosDeVenta.emitir`, porque los
+permisos son distintos: un cajero puede emitir notas de venta sin poder registrar
+comprobantes. El submódulo `ventas.nota_venta` (V19: consultar, registrar,
+canjear, anular) sigue el idioma de la V17; boleta y factura siguen bajo
+`ventas.comprobante`.
+
+### 4.5 Pantallas
+
+`Ventas → Punto de venta`: sin caja abierta en el establecimiento activo no hay
+venta, y la pantalla lleva a Cajas. Con ella: buscador del catálogo del local,
+líneas con cantidad y descuento, tipo de documento según permisos y régimen,
+cliente opcional u obligatorio según el tipo, cobro por una o varias formas con
+«Resto» para completar, y el impedimento que el servidor diría, dicho antes. Al
+emitir lleva al documento.
+
+`Ventas → Notas de venta`, `Boletas` y `Facturas` son el mismo listado con la
+ruta diciendo el tipo. El detalle imprime desde el navegador (doc 12 §5.4) en
+ticket de 80 mm o A4; la nota de venta lleva la leyenda arriba y una nota al pie
+de que no otorga crédito fiscal. Las maquetas de emitir boleta y factura quedan
+sin ruta: se emite desde el punto de venta.
+
+### 4.6 Lo que queda para las iteraciones 5 y 6
+
+- QR, hash y estado ante SUNAT en la representación impresa de boleta y factura.
+- Canje de nota de venta a boleta o factura, con `documento_origen_id` y estado
+  `CANJEADO`; anulación por nota de crédito, baja o resumen.
+- Series por caja no se contemplan (doc 12 §3.4).
+
+## 5. Canje y anulación
+
+Pendiente: iteración 6.
 
 ## Registro de cambios
 
 - **v1 (2026-09-07)** — §1, con la iteración 2.
 - **v1.1 (2026-09-07)** — §2 y §3, con la iteración 3.
+- **v1.2 (2026-09-07)** — §4, con la iteración 4.

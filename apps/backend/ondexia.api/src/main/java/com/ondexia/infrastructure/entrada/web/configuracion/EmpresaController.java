@@ -61,7 +61,7 @@ public class EmpresaController {
     public RespuestaEmpresa actualizar(@Valid @RequestBody PeticionEmpresa peticion) {
         return RespuestaEmpresa.desde(actualizar.ejecutar(
                 peticion.nombreComercial(), peticion.cuentaDetracciones(),
-                peticion.regimenTributario()));
+                peticion.regimenTributario(), peticion.permiteVentaSinStock()));
     }
 
     @Operation(
@@ -97,7 +97,10 @@ public class EmpresaController {
             String cuentaDetracciones,
 
             /** {@code null} = no cambiarlo. Ver {@link RegimenTributario}. */
-            RegimenTributario regimenTributario) {
+            RegimenTributario regimenTributario,
+
+            /** {@code null} = no cambiarlo. Si el mostrador vende con existencias insuficientes. */
+            Boolean permiteVentaSinStock) {
     }
 
     public record PeticionVerificacion(
@@ -135,13 +138,14 @@ public class EmpresaController {
             String cuentaDetracciones,
             String regimenTributario,
             boolean emiteFacturas,
+            boolean permiteVentaSinStock,
             String modoSunat,
             boolean activa,
             java.util.List<String> editable) {
 
         /** Los únicos campos que son nuestros y no de SUNAT. */
-        private static final java.util.List<String> EDITABLE =
-                java.util.List.of("nombreComercial", "cuentaDetracciones", "regimenTributario");
+        private static final java.util.List<String> EDITABLE = java.util.List.of(
+                "nombreComercial", "cuentaDetracciones", "regimenTributario", "permiteVentaSinStock");
 
         static RespuestaEmpresa desde(Empresa empresa) {
             var verificacion = empresa.verificacion();
@@ -164,6 +168,7 @@ public class EmpresaController {
                     empresa.cuentaDetracciones(),
                     empresa.regimen().name(),
                     empresa.emiteFacturas(),
+                    empresa.permiteVentaSinStock(),
                     empresa.modoSunat().name(),
                     empresa.estaActiva(),
                     EDITABLE);

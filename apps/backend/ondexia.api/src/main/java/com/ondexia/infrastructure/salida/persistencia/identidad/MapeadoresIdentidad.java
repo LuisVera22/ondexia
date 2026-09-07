@@ -56,7 +56,7 @@ final class MapeadoresIdentidad {
                 fila.getUbigeo() == null ? null : new Ubigeo(fila.getUbigeo()),
                 fila.getSecretArnCertificado(), fila.getUsuarioSol(), fila.getModoSunat(),
                 fila.isActivo(), verificacion(fila), fila.getCuentaDetracciones(),
-                fila.getRegimenTributario());
+                fila.getRegimenTributario(), fila.isPermiteVentaSinStock());
     }
 
     /**
@@ -96,6 +96,7 @@ final class MapeadoresIdentidad {
         }
         fila.setCuentaDetracciones(empresa.cuentaDetracciones());
         fila.setRegimenTributario(empresa.regimen());
+        fila.setPermiteVentaSinStock(empresa.permiteVentaSinStock());
         return fila;
     }
 

@@ -54,6 +54,16 @@ public class ProductoController {
         return productos.buscar(q).stream().map(RespuestaProducto::desde).toList();
     }
 
+    @Operation(
+            summary = "El catálogo del establecimiento para el mostrador",
+            description = "Activos y disponibles en el local, con el precio que rige ahí y lo que hay en su almacén. Hasta 50.")
+    @RequierePermiso(modulo = "almacen.producto", accion = "consultar")
+    @GetMapping("/disponibles")
+    public List<RespuestaDisponible> disponibles(@RequestParam UUID sucursalId,
+            @RequestParam(required = false) String q) {
+        return productos.disponiblesEn(sucursalId, q).stream().map(RespuestaDisponible::desde).toList();
+    }
+
     @Operation(summary = "Los catálogos de SUNAT que admite el producto: unidades (03) y afectaciones (07)")
     @RequierePermiso(modulo = "almacen.producto", accion = "consultar")
     @GetMapping("/catalogos")
@@ -211,6 +221,19 @@ public class ProductoController {
                     p.unidad().codigo(), p.unidad().nombre(), p.afectacion().name(),
                     p.afectacion().nombre(), p.afectacion().llevaIgv(), p.precioLista(),
                     p.controlaStock(), p.estaActivo());
+        }
+    }
+
+    /** @param existencia {@code null}: no controla existencias, o el local no tiene almacén */
+    public record RespuestaDisponible(UUID id, String codigo, String nombre, String unidad,
+            String unidadNombre, String afectacion, boolean llevaIgv, BigDecimal precio,
+            boolean controlaStock, BigDecimal existencia) {
+
+        static RespuestaDisponible desde(Productos.ProductoDisponible d) {
+            var p = d.producto();
+            return new RespuestaDisponible(p.id(), p.codigo(), p.nombre(), p.unidad().codigo(),
+                    p.unidad().nombre(), p.afectacion().name(), p.afectacion().llevaIgv(), d.precio(),
+                    p.controlaStock(), d.existencia());
         }
     }
 
