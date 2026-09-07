@@ -677,6 +677,11 @@ un RUC por prueba. El almacén de un local que no es la matriz se llama
   (listado y ficha con consulta a SUNAT o RENIEC) conectadas; las pestañas de la
   maqueta que no existen en el primer producto se retiraron.
 - `ReglaDeNegocioViolada` puede señalar un campo, como ya hacía `Conflicto`.
+- **Spring Boot 4.0.8** (Spring Framework 7.0.9, Spring Security 7.0.7). El
+  análisis de dependencias de la PR encontró siete CVE de 9.8 en 7.0.8 y dos en
+  Security 7.0.6; la 4.0.8 los cierra y la suite entera pasa con ella. La DT-18
+  del DTE eligió 4.0.7 por madurez; el criterio se mantiene: se toma el parche,
+  no la 4.1.
 
 **Diferencias con lo planeado.** Ninguna en el modelo de §4.1 y §4.3. Dos
 decisiones que el plan dejaba abiertas: el DNI se consulta sin atestación, y el
