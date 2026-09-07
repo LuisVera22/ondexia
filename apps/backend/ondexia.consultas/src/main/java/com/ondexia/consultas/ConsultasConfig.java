@@ -1,6 +1,7 @@
 package com.ondexia.consultas;
 
 import com.ondexia.domain.consultas.Atestacion;
+import com.ondexia.domain.consultas.ConsultaDeDni;
 import com.ondexia.domain.consultas.ConsultaDeRuc;
 import java.security.PrivateKey;
 import java.util.ArrayList;
@@ -76,6 +77,35 @@ public class ConsultasConfig {
             PropiedadesConsultas propiedades) {
         return new com.ondexia.consultas.web.CuotaPorSolicitante(
                 propiedades.cuotaPorHora(), java.time.Clock.systemUTC());
+    }
+
+    /**
+     * RENIEC por los mismos proveedores y credenciales que el padrón. Sin
+     * atestación: el nombre de una persona natural no decide nada fiscal.
+     */
+    @Bean
+    ConsultaDeDni consultaDeDni(PropiedadesConsultas propiedades, Claves claves) {
+        List<ConsultaDeDni> cascada = new ArrayList<>();
+        String decolecta =
+                claves.resolver(propiedades.decolectaParametro(), propiedades.decolectaToken());
+        if (decolecta != null) {
+            cascada.add(new ProveedorDecolecta(
+                    new ClienteDelPadron("decolecta", decolecta, propiedades.tiempoDeEspera()),
+                    propiedades.decolectaUrl()));
+        }
+        String apiperu =
+                claves.resolver(propiedades.apiperuParametro(), propiedades.apiperuToken());
+        if (apiperu != null) {
+            cascada.add(new ProveedorApiPeru(
+                    new ClienteDelPadron("apiperu", apiperu, propiedades.tiempoDeEspera()),
+                    propiedades.apiperuUrl()));
+        }
+        if (cascada.isEmpty()) {
+            throw new IllegalStateException(
+                    "Ningún proveedor de consulta configurado para el DNI. Son los mismos que "
+                            + "para el RUC: " + propiedades.resumenDeProveedores());
+        }
+        return new CascadaDeConsultasDeDni(cascada);
     }
 
     @Bean

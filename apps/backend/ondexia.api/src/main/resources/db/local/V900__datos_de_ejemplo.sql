@@ -87,6 +87,37 @@ INSERT INTO caja (id, empresa_id, sucursal_id, codigo, nombre) VALUES
 
 SELECT set_config('ondexia.empresa_id', '', true);
 
+-- Un catalogo minimo y dos clientes en la primera empresa (iteracion 3), para
+-- que el punto de venta tenga con que trabajar en desarrollo. Los productos se
+-- ofrecen en la matriz; Miraflores se activa desde la ficha, como haria un
+-- cliente. Bajo RLS, igual que las cajas.
+SELECT set_config('ondexia.empresa_id', '00000000-0000-4000-8000-000000000010', true);
+INSERT INTO producto (id, empresa_id, codigo, nombre, unidad_medida, afectacion_igv,
+                      precio_lista, controla_stock) VALUES
+    ('00000000-0000-4000-8000-000000000060', '00000000-0000-4000-8000-000000000010',
+     'CEM-001', 'Cemento Portland Tipo I 42.5 kg', 'BG', '10', 32.500000, true),
+    ('00000000-0000-4000-8000-000000000061', '00000000-0000-4000-8000-000000000010',
+     'FIE-012', 'Fierro corrugado 1/2" x 9 m', 'NIU', '10', 48.000000, true),
+    ('00000000-0000-4000-8000-000000000062', '00000000-0000-4000-8000-000000000010',
+     'SRV-INST', 'Instalacion a domicilio', 'ZZ', '10', 80.000000, false);
+
+INSERT INTO producto_local (id, empresa_id, producto_id, sucursal_id, disponible) VALUES
+    ('00000000-0000-4000-8000-000000000070', '00000000-0000-4000-8000-000000000010',
+     '00000000-0000-4000-8000-000000000060', '00000000-0000-4000-8000-000000000020', true),
+    ('00000000-0000-4000-8000-000000000071', '00000000-0000-4000-8000-000000000010',
+     '00000000-0000-4000-8000-000000000061', '00000000-0000-4000-8000-000000000020', true),
+    ('00000000-0000-4000-8000-000000000072', '00000000-0000-4000-8000-000000000010',
+     '00000000-0000-4000-8000-000000000062', '00000000-0000-4000-8000-000000000020', true);
+
+INSERT INTO cliente (id, empresa_id, tipo_documento, numero_documento, nombre, direccion) VALUES
+    ('00000000-0000-4000-8000-000000000080', '00000000-0000-4000-8000-000000000010',
+     '1', '70123456', 'Juan Perez Gomez', NULL),
+    ('00000000-0000-4000-8000-000000000081', '00000000-0000-4000-8000-000000000010',
+     '6', '20131312955', 'SUPERINTENDENCIA NACIONAL DE ADUANAS Y DE ADMINISTRACION TRIBUTARIA',
+     'AV. GARCILASO DE LA VEGA 1472, LIMA');
+
+SELECT set_config('ondexia.empresa_id', '', true);
+
 -- Administrador en la primera empresa, con acceso a todas sus sucursales.
 --
 -- Ser administrador de la CUENTA no da acceso a las empresas: concede quien

@@ -27,18 +27,10 @@ tags:
   description: Datos fiscales de la empresa activa
 - name: Contexto
   description: "Identidad, empresas accesibles y permisos efectivos"
-- name: Registro
-  description: "Alta de cuenta, empresa y primer administrador"
 - name: Almacenes
   description: Ubicaciones físicas de las existencias
 - name: Establecimientos
   description: Anexos de la empresa ante SUNAT
-- name: Perfil
-  description: Los datos que cada persona edita de sí misma
-- name: Identidad visual
-  description: Logos de la empresa
-- name: Roles
-  description: Roles de la cuenta y su matriz de permisos
 - name: Usuarios
   description: "Quién entra en la empresa, con qué rol y hasta dónde"
 - name: Cajas
@@ -47,7 +39,90 @@ tags:
   description: Tipos de comprobante que emite la empresa
 - name: Series
   description: Series de comprobante y su correlativo
+- name: Clientes
+  description: "Adquirentes identificados: a quién se le emite"
+- name: Registro
+  description: "Alta de cuenta, empresa y primer administrador"
+- name: Perfil
+  description: Los datos que cada persona edita de sí misma
+- name: Identidad visual
+  description: Logos de la empresa
+- name: Roles
+  description: Roles de la cuenta y su matriz de permisos
+- name: Productos
+  description: "Catálogo de la empresa, disponibilidad por local y existencias"
 paths:
+  /api/v1/ventas/clientes/{id}:
+    get:
+      tags:
+      - Clientes
+      summary: Ficha de un cliente
+      operationId: obtener
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaCliente"
+    put:
+      tags:
+      - Clientes
+      summary: Actualiza contacto y nombre. El documento no cambia
+      operationId: actualizar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionEdicion"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaCliente"
+  /api/v1/ventas/clientes/{id}/estado:
+    put:
+      tags:
+      - Clientes
+      summary: "Activa o desactiva. Nunca se borra: los comprobantes lo referencian"
+      operationId: cambiarEstado
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionEstado"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaCliente"
   /api/v1/ventas/cajas/{id}:
     put:
       tags:
@@ -81,7 +156,7 @@ paths:
       summary: Activa o desactiva una caja
       description: "No se desactiva con una sesión abierta. Nunca se borra: sus sesiones\
         \ la referencian."
-      operationId: cambiarEstado
+      operationId: cambiarEstado_1
       parameters:
       - name: id
         in: path
@@ -151,7 +226,7 @@ paths:
       description: "El correo no se puede cambiar: es la credencial de Cognito, y\
         \ cambiarlo aquí dejaría la fila apuntando a un buzón con el que ya no se\
         \ puede entrar. La contraseña tampoco pasa por la API — vive en Cognito."
-      operationId: actualizar
+      operationId: actualizar_1
       requestBody:
         content:
           application/json:
@@ -217,7 +292,7 @@ paths:
       summary: Activa o desactiva a la persona
       description: "Afecta a toda la cuenta, no solo a esta empresa: es la única forma\
         \ de revocar el acceso antes de que caduque su token."
-      operationId: cambiarEstado_1
+      operationId: cambiarEstado_2
       parameters:
       - name: asignacionId
         in: path
@@ -246,7 +321,7 @@ paths:
       description: "Lo único editable. Desactivar no borra ni reinicia: el último\
         \ número queda como estaba, de modo que reactivarla continúa donde se quedó\
         ."
-      operationId: cambiarEstado_2
+      operationId: cambiarEstado_3
       parameters:
       - name: id
         in: path
@@ -423,7 +498,7 @@ paths:
       - Establecimientos
       summary: Actualiza un establecimiento
       description: "El código no se puede cambiar: identifica al anexo ante SUNAT."
-      operationId: actualizar_1
+      operationId: actualizar_2
       parameters:
       - name: id
         in: path
@@ -453,7 +528,7 @@ paths:
         \ emitidos: borrarlo dejaria documentos apuntando a nada. Desactivarlo lo\
         \ saca de los desplegables y conserva su codigo, sus series y su numeracion,\
         \ de modo que reactivarlo lo devuelve tal como estaba."
-      operationId: cambiarEstado_3
+      operationId: cambiarEstado_4
       parameters:
       - name: id
         in: path
@@ -496,7 +571,7 @@ paths:
         \ y el ubigeo no estan en el cuerpo: un valor distinto del padron hace que\
         \ SUNAT rechace todos los comprobantes de la empresa. Para traerlos del padron\
         \ esta POST /empresa/verificacion."
-      operationId: actualizar_2
+      operationId: actualizar_3
       requestBody:
         content:
           application/json:
@@ -517,7 +592,7 @@ paths:
       summary: Habilita o deshabilita un tipo
       description: "No se puede deshabilitar un tipo con series activas: la pantalla\
         \ diría una cosa y el sistema haría otra. Responde 400 con `tipo_con_series_activas`."
-      operationId: cambiarEstado_4
+      operationId: cambiarEstado_5
       parameters:
       - name: codigo
         in: path
@@ -537,6 +612,110 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaTipo"
+  /api/v1/almacen/productos/{id}:
+    get:
+      tags:
+      - Productos
+      summary: Ficha de un producto
+      operationId: obtener_1
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaProducto"
+    put:
+      tags:
+      - Productos
+      summary: Actualiza la ficha. El código no cambia
+      operationId: actualizar_4
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionEdicion"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaProducto"
+  /api/v1/almacen/productos/{id}/locales/{sucursalId}:
+    put:
+      tags:
+      - Productos
+      summary: "Fija si se ofrece en un establecimiento y su precio propio (null:\
+        \ el de lista)"
+      operationId: fijarDisponibilidad
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: sucursalId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionDisponibilidad"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaDisponibilidad"
+  /api/v1/almacen/productos/{id}/estado:
+    put:
+      tags:
+      - Productos
+      summary: "Activa o desactiva. Nunca se borra: los comprobantes lo referencian"
+      operationId: cambiarEstado_6
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionEstado"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaProducto"
   /api/v1/almacen/almacenes/{id}:
     put:
       tags:
@@ -544,7 +723,7 @@ paths:
       summary: Actualiza un almacén
       description: "El código no cambia: identifica al almacén en los movimientos\
         \ ya registrados."
-      operationId: actualizar_3
+      operationId: actualizar_5
       parameters:
       - name: id
         in: path
@@ -571,7 +750,7 @@ paths:
       - Almacenes
       summary: Activa o desactiva un almacen
       description: "Nunca borra: aparece en cada movimiento de stock que lo toco."
-      operationId: cambiarEstado_5
+      operationId: cambiarEstado_7
       parameters:
       - name: id
         in: path
@@ -592,13 +771,81 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaAlmacen"
+  /api/v1/ventas/clientes:
+    get:
+      tags:
+      - Clientes
+      summary: Lista o busca clientes
+      description: "Sin `q`, todos. Con `q`, por nombre o documento, hasta 50."
+      operationId: listar
+      parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaCliente"
+    post:
+      tags:
+      - Clientes
+      summary: Registra un cliente
+      description: "Con RUC puede traer la atestación de la consulta al padrón: la\
+        \ razón social y el domicilio salen de ella."
+      operationId: registrar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionNuevo"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaCliente"
+  /api/v1/ventas/clientes/{id}/verificacion:
+    post:
+      tags:
+      - Clientes
+      summary: Vuelve a verificar el RUC contra el padrón con una atestación nueva
+      operationId: verificar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionVerificacion"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaCliente"
   /api/v1/ventas/cajas:
     get:
       tags:
       - Cajas
       summary: "Lista las cajas que el usuario alcanza, con su sesión abierta si la\
         \ hay"
-      operationId: listar
+      operationId: listar_1
       responses:
         "200":
           description: OK
@@ -613,7 +860,7 @@ paths:
       - Cajas
       summary: Registra una caja en un establecimiento
       description: El código es único por establecimiento y no cambia después.
-      operationId: registrar
+      operationId: registrar_1
       requestBody:
         content:
           application/json:
@@ -688,7 +935,7 @@ paths:
         \ devuelve GET /consultas/ruc/{ruc}, así que no hay alta posible con un RUC\
         \ que no esté ACTIVO y HABIDO en SUNAT. Responde 400 si la atestación no es\
         \ válida o caducó, y 409 si el RUC ya está registrado."
-      operationId: registrar_1
+      operationId: registrar_2
       requestBody:
         content:
           application/json:
@@ -724,7 +971,7 @@ paths:
       tags:
       - Usuarios
       summary: "Lista los usuarios de la empresa, activos e inactivos"
-      operationId: listar_1
+      operationId: listar_2
       responses:
         "200":
           description: OK
@@ -760,7 +1007,7 @@ paths:
       tags:
       - Series
       summary: "Lista las series, activas e inactivas"
-      operationId: listar_2
+      operationId: listar_3
       responses:
         "200":
           description: OK
@@ -778,7 +1025,7 @@ paths:
         \ B para boleta, T para guía. El `numeroInicial` es para quien migra desde\
         \ otro sistema y no puede volver a numerar desde el 1; se fija aquí y no se\
         \ vuelve a tocar."
-      operationId: registrar_2
+      operationId: registrar_3
       requestBody:
         content:
           application/json:
@@ -854,7 +1101,7 @@ paths:
       tags:
       - Establecimientos
       summary: "Lista los establecimientos, activos e inactivos"
-      operationId: listar_3
+      operationId: listar_4
       responses:
         "200":
           description: OK
@@ -870,7 +1117,7 @@ paths:
       summary: Registra un establecimiento
       description: El código son los cuatro dígitos que asigna SUNAT y aparecen en
         la ficha RUC; no se genera aquí. La casa matriz es 0000.
-      operationId: registrar_3
+      operationId: registrar_4
       requestBody:
         content:
           application/json:
@@ -892,7 +1139,7 @@ paths:
       description: "Las de la cuenta a las que tiene asignación, que son las mismas\
         \ que ofrece el selector de contexto. No las de la cuenta entera: dos usuarios\
         \ de la misma cuenta pueden alcanzar empresas distintas."
-      operationId: listar_4
+      operationId: listar_5
       responses:
         "200":
           description: OK
@@ -914,7 +1161,7 @@ paths:
         \                  cuenta, y 400 si la atestacion caduco, si no es valida,\
         \ si el RUC no esta                     habido activo, o si el plan no admite\
         \ otra empresa."
-      operationId: registrar_4
+      operationId: registrar_5
       requestBody:
         content:
           application/json:
@@ -937,7 +1184,7 @@ paths:
         \ cambia en SUNAT, y verificar por primera vez una empresa creada en el onboarding,\
         \ cuyos datos los teclearon a mano. Responde 400 si la atestacion no es valida,\
         \ si caduco, o si es de un RUC distinto al de la empresa activa."
-      operationId: verificar
+      operationId: verificar_1
       requestBody:
         content:
           application/json:
@@ -951,12 +1198,81 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaEmpresa"
+  /api/v1/almacen/productos:
+    get:
+      tags:
+      - Productos
+      summary: Lista o busca productos
+      description: "Sin `q`, todo el catálogo. Con `q`, por código o nombre, hasta\
+        \ 50."
+      operationId: listar_6
+      parameters:
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaProducto"
+    post:
+      tags:
+      - Productos
+      summary: "Registra un producto, disponible en el establecimiento indicado"
+      operationId: registrar_6
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionNuevo"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaProducto"
+  /api/v1/almacen/productos/{id}/existencias/ajustes:
+    post:
+      tags:
+      - Productos
+      summary: Ajusta por conteo
+      description: Lo contado manda; la diferencia queda anotada como movimiento de
+        ajuste.
+      operationId: ajustar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionAjuste"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaExistencia"
   /api/v1/almacen/almacenes:
     get:
       tags:
       - Almacenes
       summary: "Lista los almacenes, activos e inactivos"
-      operationId: listar_5
+      operationId: listar_7
       responses:
         "200":
           description: OK
@@ -972,7 +1288,7 @@ paths:
       summary: Registra un almacén
       description: "El código lo elige el cliente: se teclea en cada movimiento de\
         \ mercadería, así que conviene que sea corto. Se guarda en mayúsculas."
-      operationId: registrar_5
+      operationId: registrar_7
       requestBody:
         content:
           application/json:
@@ -1001,6 +1317,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/Salud"
       security: []
+  /api/v1/ventas/clientes/tipos-documento:
+    get:
+      tags:
+      - Clientes
+      summary: Tipos de documento admitidos (catálogo 06 de SUNAT)
+      operationId: tiposDeDocumento
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Opcion"
   /api/v1/ventas/cajas/{id}/sesion-abierta:
     get:
       tags:
@@ -1076,7 +1407,7 @@ paths:
       tags:
       - Roles
       summary: "Lista los roles: los predefinidos y los de la cuenta"
-      operationId: listar_6
+      operationId: listar_8
       responses:
         "200":
           description: OK
@@ -1168,7 +1499,7 @@ paths:
       summary: Los cinco tipos del catálogo 01 con su estado
       description: "Vienen todos, habilitados y deshabilitados: la pantalla es un\
         \ panel de interruptores, no una lista de los activos."
-      operationId: listar_7
+      operationId: listar_9
       responses:
         "200":
           description: OK
@@ -1178,6 +1509,88 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/RespuestaTipo"
+  /api/v1/almacen/productos/{id}/movimientos:
+    get:
+      tags:
+      - Productos
+      summary: "El libro: los últimos movimientos del producto, del más reciente al\
+        \ más antiguo"
+      operationId: movimientos
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaMovimiento"
+  /api/v1/almacen/productos/{id}/locales:
+    get:
+      tags:
+      - Productos
+      summary: En qué establecimientos se ofrece y a qué precio
+      description: Un establecimiento sin fila no ofrece el producto.
+      operationId: disponibilidad
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaDisponibilidad"
+  /api/v1/almacen/productos/{id}/existencias:
+    get:
+      tags:
+      - Productos
+      summary: Cuánto hay por almacén
+      operationId: existencias
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaExistencia"
+  /api/v1/almacen/productos/catalogos:
+    get:
+      tags:
+      - Productos
+      summary: "Los catálogos de SUNAT que admite el producto: unidades (03) y afectaciones\
+        \ (07)"
+      operationId: catalogos
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaCatalogos"
 components:
   schemas:
     PeticionEdicion:
@@ -1186,9 +1599,55 @@ components:
       type: object
       properties:
         nombre:
+          maxLength: 300
+          minLength: 0
+          type: string
+        direccion:
+          maxLength: 300
+          minLength: 0
+          type: string
+        correo:
           maxLength: 200
           minLength: 0
           type: string
+        telefono:
+          maxLength: 30
+          minLength: 0
+          type: string
+    RespuestaCliente:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tipoDocumento:
+          type: string
+        tipoDocumentoNombre:
+          type: string
+        numeroDocumento:
+          type: string
+        nombre:
+          type: string
+        direccion:
+          type: string
+        correo:
+          type: string
+        telefono:
+          type: string
+        verificadoEn:
+          type: string
+          format: date-time
+        admiteFactura:
+          type: boolean
+        activo:
+          type: boolean
+    PeticionEstado:
+      required:
+      - activo
+      type: object
+      properties:
+        activo:
+          type: boolean
     RespuestaCaja:
       type: object
       properties:
@@ -1243,13 +1702,6 @@ components:
           type: object
           additionalProperties:
             type: number
-    PeticionEstado:
-      required:
-      - activa
-      type: object
-      properties:
-        activa:
-          type: boolean
     PeticionCierre:
       type: object
       properties:
@@ -1506,6 +1958,55 @@ components:
         seriesActivas:
           type: integer
           format: int64
+    RespuestaProducto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        codigo:
+          type: string
+        nombre:
+          type: string
+        descripcion:
+          type: string
+        unidad:
+          type: string
+        unidadNombre:
+          type: string
+        afectacion:
+          type: string
+        afectacionNombre:
+          type: string
+        llevaIgv:
+          type: boolean
+        precioLista:
+          type: number
+        controlaStock:
+          type: boolean
+        activo:
+          type: boolean
+    PeticionDisponibilidad:
+      required:
+      - disponible
+      type: object
+      properties:
+        disponible:
+          type: boolean
+        precio:
+          minimum: 0
+          exclusiveMinimum: false
+          type: number
+    RespuestaDisponibilidad:
+      type: object
+      properties:
+        sucursalId:
+          type: string
+          format: uuid
+        disponible:
+          type: boolean
+        precio:
+          type: number
     RespuestaAlmacen:
       type: object
       properties:
@@ -1521,6 +2022,49 @@ components:
           format: uuid
         activo:
           type: boolean
+    PeticionNuevo:
+      required:
+      - numeroDocumento
+      - tipoDocumento
+      type: object
+      properties:
+        tipoDocumento:
+          type: string
+          enum:
+          - DNI
+          - CARNET_EXTRANJERIA
+          - RUC
+          - PASAPORTE
+        numeroDocumento:
+          maxLength: 15
+          minLength: 0
+          type: string
+        nombre:
+          maxLength: 300
+          minLength: 0
+          type: string
+        direccion:
+          maxLength: 300
+          minLength: 0
+          type: string
+        correo:
+          maxLength: 200
+          minLength: 0
+          type: string
+        telefono:
+          maxLength: 30
+          minLength: 0
+          type: string
+        atestacion:
+          type: string
+    PeticionVerificacion:
+      required:
+      - atestacion
+      type: object
+      properties:
+        atestacion:
+          minLength: 1
+          type: string
     PeticionNueva:
       required:
       - codigo
@@ -1574,33 +2118,6 @@ components:
         cuentaId:
           type: string
           format: uuid
-    PeticionNuevo:
-      required:
-      - apellido
-      - email
-      - nombre
-      - rolId
-      type: object
-      properties:
-        email:
-          maxLength: 254
-          minLength: 0
-          type: string
-          format: email
-        nombre:
-          maxLength: 150
-          minLength: 0
-          type: string
-        apellido:
-          maxLength: 150
-          minLength: 0
-          type: string
-        rolId:
-          type: string
-          format: uuid
-        sucursalId:
-          type: string
-          format: uuid
     PeticionDuplicado:
       required:
       - nombre
@@ -1652,20 +2169,46 @@ components:
           type: string
         nuevoRus:
           type: boolean
-    PeticionVerificacion:
+    PeticionAjuste:
       required:
-      - atestacion
+      - almacenId
+      - cantidad
       type: object
       properties:
-        atestacion:
-          minLength: 1
+        almacenId:
           type: string
+          format: uuid
+        cantidad:
+          minimum: 0
+          exclusiveMinimum: false
+          type: number
+        motivo:
+          maxLength: 500
+          minLength: 0
+          type: string
+    RespuestaExistencia:
+      type: object
+      properties:
+        almacenId:
+          type: string
+          format: uuid
+        cantidad:
+          type: number
     Salud:
       type: object
       properties:
         estado:
           type: string
         version:
+          type: string
+    Opcion:
+      type: object
+      properties:
+        codigo:
+          type: string
+        codigoSunat:
+          type: string
+        nombre:
           type: string
     CuentaResumen:
       type: object
@@ -1817,6 +2360,43 @@ components:
           type: boolean
         motivo:
           type: string
+    RespuestaMovimiento:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        almacenId:
+          type: string
+          format: uuid
+        cantidad:
+          type: number
+        tipo:
+          type: string
+        documentoTipo:
+          type: string
+        documentoId:
+          type: string
+          format: uuid
+        motivo:
+          type: string
+        usuarioId:
+          type: string
+          format: uuid
+        creadoEn:
+          type: string
+          format: date-time
+    RespuestaCatalogos:
+      type: object
+      properties:
+        unidades:
+          type: array
+          items:
+            $ref: "#/components/schemas/Opcion"
+        afectaciones:
+          type: array
+          items:
+            $ref: "#/components/schemas/Opcion"
   parameters:
     EmpresaActiva:
       name: X-Empresa-Id

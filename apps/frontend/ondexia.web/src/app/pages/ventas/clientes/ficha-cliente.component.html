@@ -1,11 +1,58 @@
 <div>
   <app-encabezado-pagina [titulo]="titulo" />
 
-  <form [formGroup]="formulario" class="space-y-5">
+  <div class="mb-5">
+    <a routerLink="/ventas/clientes"
+      class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+        <path d="m15 6-6 6 6 6" />
+      </svg>
+      Volver a clientes
+    </a>
+  </div>
+
+  @if (cargando()) {
+  <div class="rounded-2xl border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+    <p class="text-sm text-gray-500 dark:text-gray-400">Cargando el cliente…</p>
+  </div>
+  } @else if (error()) {
+  <div class="flex items-start gap-3 rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert">
+    <p class="text-sm text-error-500">{{ error() }}</p>
+  </div>
+  } @else {
+
+  @if (cliente() && !cliente()!.activo) {
+  <div class="mb-5 flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-white/[0.03]">
+    <p class="text-sm text-gray-600 dark:text-gray-400">Este cliente está inactivo: no aparece al emitir. Sus comprobantes no cambian.</p>
+    @if (puedeEditar()) {
+    <app-boton variante="secundario" (accion)="cambiarEstado(true)">Reactivar</app-boton>
+    }
+  </div>
+  }
+
+  @if (cliente()?.tipoDocumento === 'RUC') {
+  <div class="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4"
+    [class]="cliente()!.verificadoEn ? 'border-success-500/30 bg-success-500/10' : 'border-warning-200 bg-warning-50 dark:border-warning-500/30 dark:bg-warning-500/10'">
+    <p class="text-sm" [class]="cliente()!.verificadoEn ? 'text-success-700 dark:text-success-400' : 'text-warning-700 dark:text-warning-400'">
+      @if (cliente()!.verificadoEn) {
+      RUC verificado contra el padrón de SUNAT el {{ fecha(cliente()!.verificadoEn!) }}.
+      } @else {
+      RUC sin verificar: la razón social es la que se tecleó. Conviene verificarlo antes de facturarle.
+      }
+    </p>
+    @if (puedeEditar()) {
+    <app-boton variante="secundario" [estado]="verificar.estado()" (accion)="verificar.ejecutar()">
+      {{ cliente()!.verificadoEn ? 'Volver a verificar' : 'Verificar con SUNAT' }}
+    </app-boton>
+    }
+  </div>
+  }
+
+  <form [formGroup]="formulario" (ngSubmit)="guardar.ejecutar()" novalidate class="space-y-5">
     <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] xl:p-6">
       <h3 class="mb-1 font-medium text-gray-800 dark:text-white/90">Identificación</h3>
       <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
-        Con RUC se puede emitir factura; con DNI solo procede boleta.
+        {{ esNuevo() ? 'El documento no se podrá cambiar después: identifica al cliente en cada comprobante.' : 'El documento no se cambia: ya está en los comprobantes emitidos.' }}
       </p>
 
       <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
@@ -13,8 +60,7 @@
           <label for="tipoDocumento" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             Tipo de documento <span class="text-error-500">*</span>
           </label>
-          <app-desplegable idCampo="tipoDocumento" formControlName="tipoDocumento"
-            [opciones]="opcionesTipoDocumento" alto="formulario" />
+          <app-desplegable idCampo="tipoDocumento" formControlName="tipoDocumento" [opciones]="opcionesTipo" alto="formulario" />
         </div>
 
         <div>
@@ -22,102 +68,89 @@
             Número <span class="text-error-500">*</span>
           </label>
           <div class="flex gap-2">
-            <input id="numeroDocumento" type="text" formControlName="numeroDocumento"
-              [maxlength]="esRuc ? 11 : 12"
-              class="h-11 flex-1 rounded-lg border bg-transparent px-4 text-sm tabular-nums text-gray-800 focus:outline-hidden focus:ring-3 dark:text-white/90"
+            <input id="numeroDocumento" type="text" formControlName="numeroDocumento" maxlength="15" inputmode="numeric"
+              class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm tabular-nums text-gray-800 shadow-apoyo focus:outline-hidden focus:ring-3 disabled:bg-gray-50 disabled:text-gray-500 dark:text-white/90 dark:disabled:bg-white/[0.03]"
               [class]="controles.numeroDocumento.touched && controles.numeroDocumento.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'" />
-
-            <button type="button" (click)="consultarPadron()" [disabled]="consultandoPadron"
-              class="h-11 shrink-0 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
-              Consultar
-            </button>
+            @if (esNuevo() && (esRuc || esDni)) {
+            <app-boton variante="secundario" class="shrink-0" [estado]="consultar.estado()" (accion)="consultar.ejecutar()">
+              {{ esRuc ? 'Consultar SUNAT' : 'Consultar RENIEC' }}
+            </app-boton>
+            }
           </div>
-
           @if (controles.numeroDocumento.touched && controles.numeroDocumento.invalid) {
-          <app-error-campo [control]="controles.numeroDocumento" mensaje="{{ esRuc ? 'El RUC debe tener 11 dígitos y empezar por 10, 15, 17 o 20.' : 'El DNI debe tener 8 dígitos.' }}" />
+          <app-error-campo [control]="controles.numeroDocumento" [mensaje]="mensajeDocumento" />
+          } @else if (avisoConsulta()) {
+          <p class="mt-1.5 text-xs text-warning-700 dark:text-warning-400">{{ avisoConsulta() }}</p>
+          } @else if (consultaRuc()) {
+          <p class="mt-1.5 text-xs text-success-700 dark:text-success-400">Datos del padrón de SUNAT. Al guardar, el cliente queda verificado.</p>
           } @else {
-          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-            La consulta al padrón de SUNAT completa los datos automáticamente.
-          </p>
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">{{ mensajeDocumento }}</p>
           }
         </div>
 
         <div class="sm:col-span-2">
-          <label for="razonSocial" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+          <label for="nombre" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
             {{ etiquetaNombre }} <span class="text-error-500">*</span>
           </label>
-          <input id="razonSocial" type="text" formControlName="razonSocial"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+          <input id="nombre" type="text" formControlName="nombre" maxlength="300"
+            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:outline-hidden focus:ring-3 dark:text-white/90"
+            [class]="controles.nombre.touched && controles.nombre.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'" />
+          @if (controles.nombre.touched && controles.nombre.invalid) {
+          <app-error-campo [control]="controles.nombre" mensaje="El nombre es obligatorio." />
+          } @else if (esRuc && consultaRuc()) {
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Sale del padrón: lo que se teclee aquí no se guarda mientras haya consulta.</p>
+          }
         </div>
-
-        @if (esRuc) {
-        <div class="sm:col-span-2">
-          <label for="nombreComercial" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-            Nombre comercial
-          </label>
-          <input id="nombreComercial" type="text" formControlName="nombreComercial"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
-        </div>
-        }
       </div>
     </section>
 
     <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] xl:p-6">
-      <h3 class="mb-5 font-medium text-gray-800 dark:text-white/90">Contacto y condiciones</h3>
-
+      <h3 class="mb-5 font-medium text-gray-800 dark:text-white/90">Contacto</h3>
       <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div class="sm:col-span-2">
-          <label for="direccion" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-            Dirección <span class="text-error-500">*</span>
-          </label>
-          <input id="direccion" type="text" formControlName="direccion"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+          <label for="direccion" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Dirección</label>
+          <input id="direccion" type="text" formControlName="direccion" maxlength="300"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
         </div>
-
-        <div>
-          <label for="distrito" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Distrito</label>
-          <input id="distrito" type="text" formControlName="distrito"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
-        </div>
-
-        <div>
-          <label for="tipoPrecio" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
-            Tipo de precio
-          </label>
-          <app-desplegable idCampo="tipoPrecio" formControlName="tipoPrecio"
-            [opciones]="opcionesTipoPrecio" alto="formulario" />
-          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-            Determina qué precio se aplica por defecto al emitir.
-          </p>
-        </div>
-
         <div>
           <label for="correo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Correo</label>
-          <input id="correo" type="email" formControlName="correo"
-            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 focus:outline-hidden focus:ring-3 dark:text-white/90"
+          <input id="correo" type="email" formControlName="correo" maxlength="200"
+            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:outline-hidden focus:ring-3 dark:text-white/90"
             [class]="controles.correo.touched && controles.correo.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'" />
-          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
-            A esta dirección se envía el comprobante emitido.
-          </p>
+          @if (controles.correo.touched && controles.correo.invalid) {
+          <app-error-campo [control]="controles.correo" mensaje="El correo no tiene un formato válido." />
+          } @else {
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Para enviarle sus comprobantes cuando exista el envío.</p>
+          }
         </div>
-
         <div>
           <label for="telefono" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Teléfono</label>
-          <input id="telefono" type="tel" formControlName="telefono"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+          <input id="telefono" type="tel" formControlName="telefono" maxlength="30"
+            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
         </div>
       </div>
     </section>
 
+    @if (esNuevo()) {
     <div class="flex justify-end gap-3">
-      <a routerLink="/ventas/clientes"
-        class="rounded-lg border border-gray-300 px-5 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
-        Volver
-      </a>
-      <button type="button"
-        class="rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-brand-600">
-        Guardar cliente
-      </button>
+      <app-boton variante="secundario" ruta="/ventas/clientes">Cancelar</app-boton>
+      <app-boton tipo="submit" [estado]="guardar.estado()">Registrar cliente</app-boton>
     </div>
+    } @else if (puedeEditar()) {
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      @if (cliente()?.activo) {
+      <app-boton variante="secundario" (accion)="cambiarEstado(false)">Desactivar cliente</app-boton>
+      } @else {
+      <span></span>
+      }
+      <app-acciones-guardado
+        [hayCambios]="cambios.hayCambios()"
+        [estado]="guardar.estado()"
+        [procesando]="guardar.estado() === 'cargando'"
+        (descartar)="cambios.descartarConConfirmacion()"
+      />
+    </div>
+    }
   </form>
+  }
 </div>

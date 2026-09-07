@@ -659,6 +659,31 @@ de solo inserción—, así que `RegistroDeEmpresaIT` dejó de limpiar empresas 
 un RUC por prueba. El almacén de un local que no es la matriz se llama
 `ALM-<código>`; si el cliente ya tenía uno con ese código, se respeta el suyo.
 
+### Lo que la iteración 3 dejó hecho
+
+- **Catálogo de la empresa, disponibilidad del local** (V18): `producto` con
+  unidad del catálogo 03 y afectación del 07 como enumerados del dominio,
+  `producto_local` donde la ausencia de fila es «no se vende aquí», y el libro
+  `movimiento_stock` (solo inserción) con su proyección `stock` sumada de forma
+  atómica en la base. El ajuste por conteo anota la diferencia, no la cantidad.
+  Todo en [13 §2](13-ventas-en-punto-de-venta.md).
+- **Clientes** con el catálogo 06 sin el «sin documento», RUC verificado por la
+  misma atestación del alta de empresas o admitido sin verificar y marcado, y
+  documento inmutable. [13 §3](13-ventas-en-punto-de-venta.md).
+- **Consulta de DNI** en `ondexia.consultas` por los mismos proveedores, cuota
+  y throttling que el RUC, y sin atestación (decisión en 13 §3.2). Ruta nueva en
+  la pasarela con el mismo autorizador.
+- **Pantallas** de productos (listado y ficha con tres pestañas) y clientes
+  (listado y ficha con consulta a SUNAT o RENIEC) conectadas; las pestañas de la
+  maqueta que no existen en el primer producto se retiraron.
+- `ReglaDeNegocioViolada` puede señalar un campo, como ya hacía `Conflicto`.
+
+**Diferencias con lo planeado.** Ninguna en el modelo de §4.1 y §4.3. Dos
+decisiones que el plan dejaba abiertas: el DNI se consulta sin atestación, y el
+producto exige el establecimiento en el alta (un producto que no se vende en
+ningún sitio no es un producto, es un borrador que nadie ve). El índice GIN de
+`nombre` exige `pg_trgm`, extensión de confianza que crea el dueño de la base.
+
 ## 11. Riesgos de este plan
 
 | Riesgo | Señal temprana | Qué se hace |
@@ -676,3 +701,4 @@ un RUC por prueba. El almacén de un local que no es la matriz se llama
   mismo día y el estado de `feature/auditoria-2026-09-01`.
 - **v1.1 (2026-09-07)** — Notas de cierre de las iteraciones 0, 1 y 2; el doc 13
   empieza con la caja.
+- **v1.2 (2026-09-07)** — Cierre de la iteración 3.

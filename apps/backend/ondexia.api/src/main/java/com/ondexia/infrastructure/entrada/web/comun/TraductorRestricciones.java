@@ -67,6 +67,14 @@ public final class TraductorRestricciones {
                     "codigo_duplicado",
                     "Ya existe un establecimiento con ese código en esta empresa.",
                     "codigo")),
+            Map.entry("producto_codigo_unico", new Traduccion(
+                    "codigo_duplicado",
+                    "Ya existe un producto con ese código en esta empresa.",
+                    "codigo")),
+            Map.entry("cliente_documento_unico", new Traduccion(
+                    "documento_duplicado",
+                    "Ya existe un cliente con ese documento en esta empresa.",
+                    "numeroDocumento")),
             Map.entry("caja_codigo_unico", new Traduccion(
                     "codigo_duplicado",
                     "Ya existe una caja con ese código en ese establecimiento.",

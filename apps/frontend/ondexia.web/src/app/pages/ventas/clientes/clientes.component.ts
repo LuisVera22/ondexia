@@ -1,75 +1,121 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
-import { TablaDatosComponent, AccionDeFila,
-  ColumnaTabla, OrdenTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
-import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
+import {
+  AccionDeFila,
+  ColumnaTabla,
+  OrdenTabla,
+  TablaDatosComponent,
+} from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
+import {
+  DesplegableComponent,
+  OpcionDesplegable,
+} from '../../../shared/components/comunes/desplegable/desplegable.component';
 import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
+import { ClienteApi, VentasApiService } from '../../../nucleo/ventas.api.service';
+import { mensajeDeError } from '../../../nucleo/errores';
+import { ContextoService } from '../../../shared/services/contexto.service';
 
 /**
- * Listado de clientes.
- *
- * El tipo de documento determina qué comprobante se le puede emitir: para
- * factura se exige RUC, y con DNI solo procede boleta. Por eso la columna
- * de documento es la primera dato relevante del listado.
+ * Los adquirentes identificados (doc 12 §4.3). El «cliente sin documento» de la
+ * boleta no está aquí: es la ausencia de cliente en la venta.
  */
 @Component({
   selector: 'app-clientes',
-  imports: [
-    EncabezadoPaginaComponent,
-    TablaDatosComponent,
-    FormsModule,
-    DesplegableComponent,
-    BotonComponent,
-  ],
+  imports: [EncabezadoPaginaComponent, TablaDatosComponent, FormsModule, DesplegableComponent, BotonComponent],
   templateUrl: './clientes.component.html',
 })
 export class ClientesComponent {
+  private readonly api = inject(VentasApiService);
+  private readonly contexto = inject(ContextoService);
+  private readonly router = inject(Router);
+
   readonly opcionesTipo: OpcionDesplegable[] = [
     { valor: '', etiqueta: 'Todos' },
     { valor: 'RUC', etiqueta: 'RUC' },
     { valor: 'DNI', etiqueta: 'DNI' },
+    { valor: 'OTRO', etiqueta: 'Carné o pasaporte' },
   ];
-
-  private readonly router = inject(Router);
 
   termino = '';
   tipoFiltro = '';
 
-  orden: OrdenTabla | null = { campo: 'razonSocial', direccion: 'asc' };
+  orden: OrdenTabla | null = { campo: 'nombre', direccion: 'asc' };
   pagina = 1;
   readonly tamanoPagina = 10;
-  readonly accionesDeFila: AccionDeFila[] = [
-    { id: 'ver', etiqueta: 'Ver', icono: 'ver' },
-  ];
+  readonly accionesDeFila: AccionDeFila[] = [{ id: 'ver', etiqueta: 'Ver', icono: 'ver' }];
 
-
-  columnas: ColumnaTabla[] = [
-    { campo: 'tipoDocumento', titulo: 'Tipo', ancho: 'w-24' },
+  readonly columnas: ColumnaTabla[] = [
+    { campo: 'tipoDocumento', titulo: 'Tipo', ancho: 'w-28' },
     { campo: 'numeroDocumento', titulo: 'Documento', ordenable: true, ancho: 'w-36' },
-    { campo: 'razonSocial', titulo: 'Cliente', ordenable: true, principal: true },
-    { campo: 'tipoPrecio', titulo: 'Tipo de precio', ancho: 'w-36' },
+    { campo: 'nombre', titulo: 'Cliente', ordenable: true, principal: true },
     { campo: 'correo', titulo: 'Correo' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-32',
+      formato: 'insignia',
+      tono: (registro) =>
+        registro['activo'] !== true ? 'neutro' : registro['verificado'] === true ? 'exito' : 'aviso',
+    },
   ];
 
-  private readonly todos = [
-    { id: 1, tipoDocumento: 'RUC', numeroDocumento: '20512345678', razonSocial: 'Distribuidora Andina S.A.C.', tipoPrecio: 'Mayorista', correo: 'compras@andina.com' },
-    { id: 2, tipoDocumento: 'RUC', numeroDocumento: '20587654321', razonSocial: 'Comercial El Sol E.I.R.L.', tipoPrecio: 'Distribuidor', correo: 'ventas@elsol.pe' },
-    { id: 3, tipoDocumento: 'DNI', numeroDocumento: '45678912', razonSocial: 'Rosa Quispe Mamani', tipoPrecio: 'Público', correo: '' },
-    { id: 4, tipoDocumento: 'DNI', numeroDocumento: '09876543', razonSocial: 'Carlos Mendoza Ríos', tipoPrecio: 'Público', correo: 'cmendoza@correo.com' },
-    { id: 5, tipoDocumento: 'RUC', numeroDocumento: '20456789123', razonSocial: 'Constructora Pacífico S.A.', tipoPrecio: 'Mayorista', correo: 'logistica@pacifico.com.pe' },
-  ];
+  readonly puedeRegistrar = computed(() => this.contexto.puede('ventas.cliente:registrar'));
 
-  get registros() {
-    return this.todos.filter((c) => {
-      const coincideTermino =
-        !this.termino ||
-        c.razonSocial.toLowerCase().includes(this.termino.toLowerCase()) ||
-        c.numeroDocumento.includes(this.termino);
-      const coincideTipo = !this.tipoFiltro || c.tipoDocumento === this.tipoFiltro;
-      return coincideTermino && coincideTipo;
-    });
+  private readonly todos = signal<ClienteApi[]>([]);
+  readonly cargando = signal(true);
+  readonly error = signal<string | null>(null);
+
+  constructor() {
+    void this.cargar();
+  }
+
+  private async cargar(): Promise<void> {
+    this.cargando.set(true);
+    this.error.set(null);
+    try {
+      this.todos.set(await this.api.clientes());
+    } catch (fallo: unknown) {
+      this.error.set(mensajeDeError(fallo, 'No se pudieron cargar los clientes.'));
+    } finally {
+      this.cargando.set(false);
+    }
+  }
+
+  recargar(): void {
+    void this.cargar();
+  }
+
+  get registros(): Record<string, unknown>[] {
+    const termino = this.termino.trim().toLowerCase();
+    return this.todos()
+      .filter((c) => {
+        const coincideTermino =
+          !termino || c.nombre.toLowerCase().includes(termino) || c.numeroDocumento.includes(termino);
+        const coincideTipo =
+          !this.tipoFiltro ||
+          (this.tipoFiltro === 'OTRO'
+            ? c.tipoDocumento !== 'RUC' && c.tipoDocumento !== 'DNI'
+            : c.tipoDocumento === this.tipoFiltro);
+        return coincideTermino && coincideTipo;
+      })
+      .map((c) => ({
+        id: c.id,
+        tipoDocumento: c.tipoDocumentoNombre,
+        numeroDocumento: c.numeroDocumento,
+        nombre: c.nombre,
+        correo: c.correo ?? '',
+        // Un RUC sin verificar se dice: la factura de la iteracion 4 lo volvera
+        // a comprobar, y conviene que no sorprenda entonces.
+        estado: !c.activo
+          ? 'Inactivo'
+          : c.tipoDocumento === 'RUC' && !c.verificadoEn
+            ? 'RUC sin verificar'
+            : 'Activo',
+        activo: c.activo,
+        verificado: c.tipoDocumento !== 'RUC' || c.verificadoEn !== null,
+      }));
   }
 
   get hayFiltrosActivos(): boolean {
@@ -82,11 +128,11 @@ export class ClientesComponent {
   }
 
   abrirFicha(registro: Record<string, unknown>): void {
-    this.router.navigate(['/ventas/clientes', registro['id']]);
+    void this.router.navigate(['/ventas/clientes', registro['id']]);
   }
 
   nuevo(): void {
-    this.router.navigate(['/ventas/clientes', 'nuevo']);
+    void this.router.navigate(['/ventas/clientes', 'nuevo']);
   }
 
   ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
