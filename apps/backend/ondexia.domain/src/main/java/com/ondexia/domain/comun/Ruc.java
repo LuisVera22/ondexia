@@ -53,11 +53,12 @@ public record Ruc(String valor) {
     }
 
     /**
-     * Los dos primeros dígitos indican el tipo de contribuyente. {@code 10} es
-     * persona natural con negocio, {@code 20} persona jurídica.
+     * Los dos primeros dígitos indican el tipo de contribuyente. La tabla de
+     * prefijos y lo que cada uno puede hacer vive en {@link TipoDeContribuyente};
+     * aquí solo se pregunta.
      */
-    public boolean esPersonaJuridica() {
-        return valor.startsWith("20");
+    public TipoDeContribuyente tipoDeContribuyente() {
+        return TipoDeContribuyente.de(this);
     }
 
     @Override

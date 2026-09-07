@@ -582,7 +582,7 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
 
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> registro.ejecutar(
                 new com.ondexia.application.configuracion.RegistrarEmpresa.Peticion(
-                        "da-igual", null, null)))
+                        "da-igual", null, null, false)))
                 .isInstanceOf(com.ondexia.domain.comun.error.ReglaDeNegocioViolada.class)
                 .hasMessageContaining("solo lectura");
     }
@@ -604,7 +604,7 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
 
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> registro.ejecutar(
                 new com.ondexia.application.configuracion.RegistrarEmpresa.Peticion(
-                        "da-igual", null, null)))
+                        "da-igual", null, null, false)))
                 .isInstanceOf(com.ondexia.domain.comun.error.ReglaDeNegocioViolada.class)
                 .hasMessageContaining("empresa activa");
     }

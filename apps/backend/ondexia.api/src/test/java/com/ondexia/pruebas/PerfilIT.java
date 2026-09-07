@@ -55,7 +55,7 @@ class PerfilIT extends PruebaIntegracion {
         ContextoDePrueba.comoUsuarioDe(
                 UUID.fromString(USUARIO_DEMO), CUENTA, UUID.fromString(EMPRESA_ADMINISTRADA));
         usuarios.invitar(email, nombre, apellido,
-                roles.buscarPredefinido("VENDEDOR").orElseThrow().id(), SUCURSAL_MATRIZ);
+                rolDeLaCuenta("VENDEDOR").id(), SUCURSAL_MATRIZ);
         ContextoDePrueba.limpiar();
 
         var invitado = repositorio.buscarInvitacionesPendientes(email).getFirst();

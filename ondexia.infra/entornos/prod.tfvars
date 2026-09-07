@@ -19,8 +19,14 @@ region  = "us-east-1"
 gestionar_dns = false
 dominio       = "ondexia.com"
 
-correo_alertas       = "luis26.ml143@gmail.com"
-tope_presupuesto_usd = 30
+correo_alertas = "luis26.ml143@gmail.com"
+
+# El registro por autoservicio es el producto: un negocio se da de alta solo
+# (doc 12 §6.2). La cadena critica 2 de la auditoria lo habia cerrado; vuelve
+# con sus tres capas puestas —cuota por identidad en ondexia.consultas,
+# throttling de la ruta y alarma de invocaciones— y no antes.
+autoservicio_inquilinos = true
+tope_presupuesto_usd    = 30
 
 retencion_respaldos_dias = 7
 retencion_logs_dias      = 30

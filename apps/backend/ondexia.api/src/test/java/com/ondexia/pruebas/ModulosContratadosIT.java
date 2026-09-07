@@ -144,7 +144,7 @@ class ModulosContratadosIT extends PruebaIntegracion {
         /*
          * Esta es la prueba que justifica que PermisosEfectivos tenga dos cachés.
          *
-         * Los roles del sistema —ADMINISTRADOR, CONTADOR, VENDEDOR— tienen
+         * Los roles del sistema —desde la V16, solo ADMINISTRADOR— tienen
          * cuenta_id nulo: los comparten todas las cuentas. Si el recorte se
          * guardara en la caché indexada por rol, la primera cuenta en pedirlo
          * dejaría el suyo dentro y la siguiente heredaría los módulos de otra.

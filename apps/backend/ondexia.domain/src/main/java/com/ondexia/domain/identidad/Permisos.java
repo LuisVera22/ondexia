@@ -156,4 +156,19 @@ public record Permisos(Set<String> codigos) {
     public boolean vacio() {
         return codigos.isEmpty();
     }
+
+    /**
+     * Si estos permisos incluyen todos los de {@code otros}.
+     *
+     * <p>Es la regla de no elevación del plan del primer producto (doc 12 §6.3):
+     * <strong>un rol solo puede conceder permisos que su portador tiene.</strong>
+     * Quien invita, reasigna o edita un rol no puede darle más de lo que él mismo
+     * puede; el administrador de la cuenta está fuera de la matriz y no pasa por
+     * aquí. Con dos roles por defecto la regla es corta de enunciar y de probar,
+     * que es lo que la versión anterior temía de una comparación de subconjuntos
+     * (ver el comentario de {@code Usuarios.impedirQueSeAscienda}).
+     */
+    public boolean cubre(Permisos otros) {
+        return otros == null || codigos.containsAll(otros.codigos());
+    }
 }

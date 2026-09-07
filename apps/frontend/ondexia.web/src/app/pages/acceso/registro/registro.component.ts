@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { esPersonaNatural } from '../../../nucleo/configuracion.api.service';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -105,6 +106,9 @@ export class RegistroComponent implements OnInit {
   formulario = this.constructorFormulario.nonNullable.group({
     nombreTitular: [this.sesion.usuario()?.nombre ?? '', [Validators.required]],
     apellidoTitular: ['', [Validators.required]],
+    // Solo se pregunta a una persona natural (RUC 10): el padron no informa el
+    // regimen y es lo unico que decide si la empresa puede emitir facturas.
+    nuevoRus: [false],
   });
 
   /**
@@ -116,6 +120,9 @@ export class RegistroComponent implements OnInit {
    * firmó `ondexia.consultas` y que el RUC está habido activo.
    */
   readonly consulta = signal<ConsultaDeRuc | null>(null);
+
+  /** La casilla del Nuevo RUS solo aparece con un RUC 10 comprobado. */
+  readonly preguntaNuevoRus = computed(() => esPersonaNatural(this.consulta()?.datos.ruc));
 
   /** El alta solo puede enviarse con un RUC comprobado y apto. */
   get puedeEnviar(): boolean {
@@ -170,6 +177,9 @@ export class RegistroComponent implements OnInit {
             atestacion: consulta.atestacion,
             nombreTitular: valores.nombreTitular,
             apellidoTitular: valores.apellidoTitular,
+            // Una persona juridica no puede estar en el RUS; si la casilla
+            // quedo marcada de una consulta anterior, no se envia.
+            nuevoRus: this.preguntaNuevoRus() && valores.nuevoRus,
           },
           { headers: { Authorization: `Bearer ${identidad}` } }
         )

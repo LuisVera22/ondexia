@@ -3,6 +3,7 @@ package com.ondexia.infrastructure.entrada.web.configuracion;
 import com.ondexia.application.configuracion.ActualizarEmpresa;
 import com.ondexia.application.configuracion.ConsultarEmpresa;
 import com.ondexia.domain.identidad.Empresa;
+import com.ondexia.domain.identidad.RegimenTributario;
 import com.ondexia.infrastructure.seguridad.RequierePermiso;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -59,7 +60,8 @@ public class EmpresaController {
     @PutMapping
     public RespuestaEmpresa actualizar(@Valid @RequestBody PeticionEmpresa peticion) {
         return RespuestaEmpresa.desde(actualizar.ejecutar(
-                peticion.nombreComercial(), peticion.cuentaDetracciones()));
+                peticion.nombreComercial(), peticion.cuentaDetracciones(),
+                peticion.regimenTributario()));
     }
 
     @Operation(
@@ -92,7 +94,10 @@ public class EmpresaController {
 
             @Pattern(regexp = "[0-9]*", message = "La cuenta de detracciones solo lleva digitos.")
             @Size(max = 30)
-            String cuentaDetracciones) {
+            String cuentaDetracciones,
+
+            /** {@code null} = no cambiarlo. Ver {@link RegimenTributario}. */
+            RegimenTributario regimenTributario) {
     }
 
     public record PeticionVerificacion(
@@ -128,13 +133,15 @@ public class EmpresaController {
             boolean esAgenteRetencion,
             boolean esBuenContribuyente,
             String cuentaDetracciones,
+            String regimenTributario,
+            boolean emiteFacturas,
             String modoSunat,
             boolean activa,
             java.util.List<String> editable) {
 
         /** Los únicos campos que son nuestros y no de SUNAT. */
         private static final java.util.List<String> EDITABLE =
-                java.util.List.of("nombreComercial", "cuentaDetracciones");
+                java.util.List.of("nombreComercial", "cuentaDetracciones", "regimenTributario");
 
         static RespuestaEmpresa desde(Empresa empresa) {
             var verificacion = empresa.verificacion();
@@ -155,6 +162,8 @@ public class EmpresaController {
                     verificacion != null && verificacion.esAgenteRetencion(),
                     verificacion != null && verificacion.esBuenContribuyente(),
                     empresa.cuentaDetracciones(),
+                    empresa.regimen().name(),
+                    empresa.emiteFacturas(),
                     empresa.modoSunat().name(),
                     empresa.estaActiva(),
                     EDITABLE);

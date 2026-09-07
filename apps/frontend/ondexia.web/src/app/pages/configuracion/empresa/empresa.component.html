@@ -264,6 +264,35 @@
           </p>
           }
         </div>
+
+        @if (preguntaRegimen()) {
+        <!--
+          Solo a una persona natural: es la única que puede estar en el Nuevo
+          RUS, y en ese régimen no se emiten facturas. El servidor lo hace
+          cumplir; aquí se explica por qué la factura desaparece de Comprobantes.
+        -->
+        <fieldset class="sm:col-span-2">
+          <legend class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Régimen tributario
+          </legend>
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label class="flex items-start gap-3 rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-800">
+              <input type="radio" formControlName="regimenTributario" value="OTRO" class="mt-0.5 h-4 w-4 border-gray-300 text-brand-500 focus:ring-brand-500/20" />
+              <span>
+                <span class="block font-medium text-gray-800 dark:text-white/90">General, MYPE o especial</span>
+                <span class="block text-gray-500 dark:text-gray-400">Emite boletas y facturas.</span>
+              </span>
+            </label>
+            <label class="flex items-start gap-3 rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-800">
+              <input type="radio" formControlName="regimenTributario" value="NUEVO_RUS" class="mt-0.5 h-4 w-4 border-gray-300 text-brand-500 focus:ring-brand-500/20" />
+              <span>
+                <span class="block font-medium text-gray-800 dark:text-white/90">Nuevo RUS</span>
+                <span class="block text-gray-500 dark:text-gray-400">Solo emite boletas de venta.</span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+        }
       </div>
     </section>
 

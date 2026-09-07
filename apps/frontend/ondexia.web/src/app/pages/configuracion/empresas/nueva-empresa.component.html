@@ -64,6 +64,27 @@
       </p>
 
       <app-consulta-ruc (verificado)="alVerificar($event)" />
+
+      @if (preguntaNuevoRus()) {
+      <!--
+        Solo a una persona natural. El padrón no dice el régimen, y en el Nuevo
+        RUS no se emiten facturas: si no se pregunta aquí, la primera factura la
+        rechaza SUNAT semanas después.
+      -->
+      <label class="flex items-start gap-3 rounded-lg border border-gray-200 p-4 text-sm dark:border-gray-800">
+        <input
+          type="checkbox"
+          formControlName="nuevoRus"
+          class="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/20"
+        />
+        <span>
+          <span class="block font-medium text-gray-800 dark:text-white/90">El negocio está en el Nuevo RUS</span>
+          <span class="block text-gray-500 dark:text-gray-400">
+            En ese régimen solo se emiten boletas de venta. Se puede cambiar después en los datos de la empresa.
+          </span>
+        </span>
+      </label>
+      }
     </section>
 
     <!--

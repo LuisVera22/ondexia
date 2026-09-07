@@ -3,6 +3,7 @@ package com.ondexia.pruebas;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -402,5 +403,88 @@ class RegistroIT extends PruebaIntegracion {
         assertThat(detalle)
                 .as("el mensaje de la atestación caducada lleva acentos")
                 .contains("caducó");
+    }
+
+    // ── Quien se registra y que emite (doc 12 §3.1) ────────────────────────
+
+    @Test
+    @DisplayName("Un RUC 15 no se registra: Ondexia admite personas naturales (10) y jurídicas (20)")
+    void unRuc15NoSeRegistra() throws Exception {
+        String token = "Bearer " + tokenPara("sub-sucesion");
+
+        mockMvc.perform(post(REGISTRO)
+                        .header(HttpHeaders.AUTHORIZATION, token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(cuerpoPara("15123456782", "SUCESION INDIVISA DE PRUEBA",
+                                "sub-sucesion")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("tipo_de_contribuyente_no_admitido"));
+    }
+
+    @Test
+    @DisplayName("Una persona natural en el Nuevo RUS queda sin factura desde el alta")
+    void nuevoRusDeshabilitaLaFactura() throws Exception {
+        String token = "Bearer " + tokenPara("sub-nuevo-rus");
+        String atestacion = firmar(
+                padron("10123456781", "BODEGA DE PRUEBA", EstadoContribuyente.ACTIVO,
+                        CondicionDomicilio.HABIDO),
+                PRIVADA, "sub-nuevo-rus");
+
+        mockMvc.perform(post(REGISTRO)
+                        .header(HttpHeaders.AUTHORIZATION, token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "atestacion": "%s",
+                                  "nombreTitular": "Bodeguera",
+                                  "apellidoTitular": "De Prueba",
+                                  "nuevoRus": true
+                                }""".formatted(atestacion)))
+                .andExpect(status().isCreated());
+
+        // La factura no se emite y la boleta si; la casilla no puede encenderla.
+        mockMvc.perform(get("/api/v1/configuracion/comprobantes")
+                        .header(HttpHeaders.AUTHORIZATION, token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.codigo == '01')].emite")
+                        .value(org.hamcrest.Matchers.contains(false)))
+                .andExpect(jsonPath("$[?(@.codigo == '03')].emite")
+                        .value(org.hamcrest.Matchers.contains(true)));
+
+        mockMvc.perform(put("/api/v1/configuracion/comprobantes/01")
+                        .header(HttpHeaders.AUTHORIZATION, token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"emite\": true}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("nuevo_rus_no_emite_facturas"));
+
+        mockMvc.perform(get("/api/v1/configuracion/empresa")
+                        .header(HttpHeaders.AUTHORIZATION, token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.regimenTributario").value("NUEVO_RUS"))
+                .andExpect(jsonPath("$.emiteFacturas").value(false));
+    }
+
+    @Test
+    @DisplayName("Una persona jurídica no puede declararse en el Nuevo RUS")
+    void unaJuridicaNoEstaEnElNuevoRus() throws Exception {
+        String token = "Bearer " + tokenPara("sub-juridica-rus");
+        String atestacion = firmar(
+                padron("20123456786", "JURIDICA EN RUS S.A.C.", EstadoContribuyente.ACTIVO,
+                        CondicionDomicilio.HABIDO),
+                PRIVADA, "sub-juridica-rus");
+
+        mockMvc.perform(post(REGISTRO)
+                        .header(HttpHeaders.AUTHORIZATION, token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "atestacion": "%s",
+                                  "nombreTitular": "Gerente",
+                                  "apellidoTitular": "De Prueba",
+                                  "nuevoRus": true
+                                }""".formatted(atestacion)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("nuevo_rus_solo_persona_natural"));
     }
 }

@@ -39,9 +39,17 @@ public record PropiedadesConsultas(
         String apiperuUrl,
         String apiperuParametro,
         String apiperuToken,
-        Duration tiempoDeEspera) {
+        Duration tiempoDeEspera,
+        Integer cuotaPorHora) {
 
     public PropiedadesConsultas {
+        /*
+         * Cinco consultas de RUC por identidad y hora (doc 12 §6.2). El alta
+         * consulta una vez; cinco dan margen para equivocarse de numero y no
+         * sirven para recorrer el padron. Ver CuotaPorSolicitante.
+         */
+        cuotaPorHora = cuotaPorHora == null ? 5 : cuotaPorHora;
+
         decolectaUrl = valorODefecto(decolectaUrl, "https://api.decolecta.com/v1");
         apiperuUrl = valorODefecto(apiperuUrl, "https://api.apiperu.dev");
 

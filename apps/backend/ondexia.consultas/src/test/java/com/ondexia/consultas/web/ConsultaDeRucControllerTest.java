@@ -56,6 +56,9 @@ import org.springframework.test.web.servlet.MockMvc;
     // Hace falta para que la cascada real se construya. No se llama: el bean
     // sustituto es el primario.
     "ondexia.consultas.decolecta-token=no-se-usa",
+    // Estas pruebas consultan varias veces con el mismo `sub`; la cuota se
+    // prueba aparte, en CuotaDeConsultasTest.
+    "ondexia.consultas.cuota-por-hora=1000",
 })
 @AutoConfigureMockMvc
 class ConsultaDeRucControllerTest {

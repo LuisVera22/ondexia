@@ -205,7 +205,9 @@ export class UsuariosComponent {
           id: u.asignacionId,
           nombre: u.nombre,
           email: u.email,
-          rol: u.rolNombre,
+          // El Propietario administra la cuenta ademas de su rol en la empresa;
+          // se dice en la misma columna para no anadir una (doc 12 §6.1).
+          rol: u.propietario ? `${u.rolNombre} · Propietario` : u.rolNombre,
           alcance: u.todosLosEstablecimientos
             ? 'Todos los establecimientos'
             : (u.sucursalNombre ?? 'Establecimiento desconocido'),

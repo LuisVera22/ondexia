@@ -280,3 +280,36 @@ resource "aws_cloudtrail" "principal" {
 
   tags = { Name = "${local.nombre}-auditoria" }
 }
+
+/**
+ * Consultas de RUC por encima de lo que un alta normal produce.
+ *
+ * El alta consulta una vez; con la cuota por identidad y el throttling de la
+ * ruta, trescientas invocaciones en una hora solo salen de un recorrido del
+ * padron con muchas identidades —justo lo que la cadena critica 2 describia—.
+ * Es la tercera capa del cierre (doc 12 §6.2): la cuota acota por persona, el
+ * throttling por segundo, y esta alarma avisa cuando aun asi el volumen no es
+ * el de un negocio registrandose. Los presupuestos en Decolecta y apiperu se
+ * configuran en cada proveedor, a mano (README).
+ */
+resource "aws_cloudwatch_metric_alarm" "consultas_excesivas" {
+  count = local.hay_consultas ? 1 : 0
+
+  alarm_name          = "${local.nombre}-consultas-excesivas"
+  alarm_description   = "Mas consultas de RUC en una hora de las que produce el registro de clientes"
+  namespace           = "AWS/Lambda"
+  metric_name         = "Invocations"
+  statistic           = "Sum"
+  period              = 3600
+  evaluation_periods  = 1
+  threshold           = 300
+  comparison_operator = "GreaterThanThreshold"
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    FunctionName = aws_lambda_function.consultas[0].function_name
+  }
+
+  alarm_actions = [aws_sns_topic.alertas.arn]
+  ok_actions    = [aws_sns_topic.alertas.arn]
+}

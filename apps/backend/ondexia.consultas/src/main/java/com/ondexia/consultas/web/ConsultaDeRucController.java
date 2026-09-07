@@ -49,10 +49,13 @@ public class ConsultaDeRucController {
 
     private final ConsultaDeRuc padron;
     private final PrivateKey clavePrivada;
+    private final CuotaPorSolicitante cuota;
 
-    public ConsultaDeRucController(ConsultaDeRuc padron, PrivateKey clavePrivada) {
+    public ConsultaDeRucController(ConsultaDeRuc padron, PrivateKey clavePrivada,
+            CuotaPorSolicitante cuota) {
         this.padron = padron;
         this.clavePrivada = clavePrivada;
+        this.cuota = cuota;
     }
 
     /**
@@ -71,6 +74,10 @@ public class ConsultaDeRucController {
         // Antes de gastar una consulta del proveedor: sin solicitante no hay
         // para quien emitir la atestacion (M17).
         String solicitante = Solicitante.de(autorizacion);
+
+        // Y antes tambien de gastarla: la cuota por identidad es lo que impide
+        // usar esta funcion como proxy hacia el proveedor de pago (doc 12 §6.2).
+        cuota.registrar(solicitante);
 
         DatosDeRuc datos = padron.consultar(new Ruc(ruc))
                 .orElseThrow(() -> RecursoNoEncontrado.con(

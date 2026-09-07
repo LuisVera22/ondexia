@@ -1,5 +1,6 @@
 package com.ondexia.application.comprobante;
 
+import com.ondexia.application.configuracion.ConsultarEmpresa;
 import com.ondexia.domain.auditoria.RegistroDeAuditoria;
 import com.ondexia.domain.comprobante.SerieCorrelativoRepositorio;
 import com.ondexia.domain.comprobante.TipoDocumento;
@@ -28,12 +29,15 @@ public class TiposDeComprobante {
     private final TiposDeComprobanteRepositorio tipos;
     private final SerieCorrelativoRepositorio series;
     private final RegistroDeAuditoria auditoria;
+    private final ConsultarEmpresa empresa;
 
     public TiposDeComprobante(TiposDeComprobanteRepositorio tipos,
-            SerieCorrelativoRepositorio series, RegistroDeAuditoria auditoria) {
+            SerieCorrelativoRepositorio series, RegistroDeAuditoria auditoria,
+            ConsultarEmpresa empresa) {
         this.tipos = tipos;
         this.series = series;
         this.auditoria = auditoria;
+        this.empresa = empresa;
     }
 
     /**
@@ -56,10 +60,12 @@ public class TiposDeComprobante {
                 .filter(s -> s.estaActiva())
                 .toList();
 
+        boolean emiteFacturas = empresa.ejecutar().emiteFacturas();
+
         return Arrays.stream(TipoDocumento.values())
                 .map(tipo -> new EstadoDeTipo(
                         tipo,
-                        !apagados.contains(tipo),
+                        !apagados.contains(tipo) && (tipo != TipoDocumento.FACTURA || emiteFacturas),
                         seriesVivas.stream().filter(s -> s.tipoDocumento() == tipo).count()))
                 .toList();
     }
@@ -75,6 +81,19 @@ public class TiposDeComprobante {
     @Transactional
     public EstadoDeTipo cambiarEstado(String codigoTipo, boolean emite) {
         var tipo = TipoDocumento.porCodigo(codigoTipo);
+
+        /*
+         * El regimen manda sobre la casilla (doc 12 §3.1). Una empresa en el
+         * Nuevo RUS no emite facturas por ley; habilitarlas aqui produciria un
+         * comprobante que SUNAT rechaza. La salida no es esta pantalla sino
+         * cambiar el regimen en la ficha de la empresa, y el mensaje lo dice.
+         */
+        if (emite && tipo == TipoDocumento.FACTURA && !empresa.ejecutar().emiteFacturas()) {
+            throw new ReglaDeNegocioViolada(
+                    "nuevo_rus_no_emite_facturas",
+                    "Una empresa en el Nuevo RUS no puede emitir facturas. Si el negocio "
+                            + "cambió de régimen, actualízalo en los datos de la empresa.");
+        }
 
         if (!emite) {
             long vivas = series.listar().stream()
@@ -110,6 +129,9 @@ public class TiposDeComprobante {
 
     /** Lo que consulta {@link Series} antes de dar de alta una serie. */
     public boolean emite(TipoDocumento tipo) {
+        if (tipo == TipoDocumento.FACTURA && !empresa.ejecutar().emiteFacturas()) {
+            return false;
+        }
         return tipos.emite(tipo);
     }
 

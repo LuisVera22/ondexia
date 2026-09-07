@@ -1,7 +1,10 @@
 package com.ondexia.pruebas;
 
+import com.ondexia.domain.identidad.Rol;
+import com.ondexia.domain.identidad.RolRepositorio;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 // Spring Boot 4 movio esta anotacion al modulo spring-boot-webmvc-test.
 // El paquete antiguo era org.springframework.boot.test.autoconfigure.web.servlet.
@@ -134,6 +137,28 @@ public abstract class PruebaIntegracion {
     protected static final String EMPRESA_ADMINISTRADA = "00000000-0000-4000-8000-000000000010";
     protected static final String EMPRESA_COMO_VENDEDOR = "00000000-0000-4000-8000-000000000011";
     protected static final String USUARIO_DEMO = "00000000-0000-4000-8000-000000000002";
+    protected static final UUID CUENTA_DEMO = UUID.fromString("00000000-0000-4000-8000-000000000001");
+
+    @Autowired
+    private RolRepositorio rolesDeLaBase;
+
+    /**
+     * Un rol A MEDIDA de la cuenta demo (V900): {@code VENDEDOR} o
+     * {@code ALMACENERO}.
+     *
+     * <p>Antes de la V16 eran roles del sistema y las pruebas los pedian con
+     * {@code buscarPredefinido}. Ya no existen como tales —el sistema solo trae
+     * ADMINISTRADOR— y la cuenta demo los tiene creados como los tendria un
+     * cliente cualquiera, que es ademas el caso que las pruebas de roles deben
+     * ejercitar: un rol que no puede todo y que la cuenta puede editar.
+     */
+    protected Rol rolDeLaCuenta(String codigo) {
+        return rolesDeLaBase.listarDisponibles(CUENTA_DEMO).stream()
+                .filter(rol -> CUENTA_DEMO.equals(rol.cuentaId()) && rol.codigo().equals(codigo))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException(
+                        "La cuenta demo no tiene el rol " + codigo + "; revisa la V900."));
+    }
 
     @Autowired
     protected MockMvc mockMvc;

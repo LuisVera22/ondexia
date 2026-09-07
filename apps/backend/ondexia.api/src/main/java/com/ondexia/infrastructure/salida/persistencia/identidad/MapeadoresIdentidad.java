@@ -55,7 +55,8 @@ final class MapeadoresIdentidad {
                 fila.getNombreComercial(), fila.getDomicilioFiscal(),
                 fila.getUbigeo() == null ? null : new Ubigeo(fila.getUbigeo()),
                 fila.getSecretArnCertificado(), fila.getUsuarioSol(), fila.getModoSunat(),
-                fila.isActivo(), verificacion(fila), fila.getCuentaDetracciones());
+                fila.isActivo(), verificacion(fila), fila.getCuentaDetracciones(),
+                fila.getRegimenTributario());
     }
 
     /**
@@ -94,6 +95,7 @@ final class MapeadoresIdentidad {
                     verificacion.tipoSocietario());
         }
         fila.setCuentaDetracciones(empresa.cuentaDetracciones());
+        fila.setRegimenTributario(empresa.regimen());
         return fila;
     }
 
