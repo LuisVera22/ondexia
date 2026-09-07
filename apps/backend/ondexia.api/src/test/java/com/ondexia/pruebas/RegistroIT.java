@@ -131,6 +131,25 @@ class RegistroIT extends PruebaIntegracion {
                         .header(HttpHeaders.AUTHORIZATION, token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].codigo").value("0000"));
+
+        // Y puede vender desde el primer día: la matriz nace con su almacén y su
+        // primera caja (iteración 2). Estas dos tablas están bajo RLS, así que
+        // verlas desde la API prueba además que el alta las escribió bajo la
+        // empresa correcta.
+        mockMvc.perform(get("/api/v1/almacen/almacenes")
+                        .header(HttpHeaders.AUTHORIZATION, token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].codigo").value("PRINCIPAL"))
+                .andExpect(jsonPath("$[0].sucursalId").isNotEmpty());
+
+        mockMvc.perform(get("/api/v1/ventas/cajas")
+                        .header(HttpHeaders.AUTHORIZATION, token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].codigo").value("CAJA1"))
+                .andExpect(jsonPath("$[0].activa").value(true))
+                .andExpect(jsonPath("$[0].sesionAbierta").doesNotExist());
     }
 
     /**

@@ -1,6 +1,8 @@
 package com.ondexia.application.configuracion;
 
 import com.ondexia.domain.auditoria.RegistroDeAuditoria;
+import com.ondexia.domain.comun.ContextoOperacion;
+import com.ondexia.domain.comun.OperarComoEmpresa;
 import com.ondexia.domain.comun.ProveedorDeContexto;
 import com.ondexia.domain.comun.error.AccesoDenegado;
 import com.ondexia.domain.comun.error.Conflicto;
@@ -52,11 +54,14 @@ public class RegistrarEmpresa {
     private final UsuarioEmpresaRepositorio asignaciones;
     private final ProveedorDeContexto contexto;
     private final RegistroDeAuditoria auditoria;
+    private final OperarComoEmpresa operar;
+    private final DotacionDeEstablecimiento dotacion;
 
     public RegistrarEmpresa(VerificacionDeRuc verificacion, LimitesDeCuentaRepositorio limites,
             EmpresaRepositorio empresas, SucursalRepositorio sucursales,
             UsuarioEmpresaRepositorio asignaciones, ProveedorDeContexto contexto,
-            RegistroDeAuditoria auditoria) {
+            RegistroDeAuditoria auditoria, OperarComoEmpresa operar,
+            DotacionDeEstablecimiento dotacion) {
         this.verificacion = verificacion;
         this.limites = limites;
         this.empresas = empresas;
@@ -64,6 +69,8 @@ public class RegistrarEmpresa {
         this.asignaciones = asignaciones;
         this.contexto = contexto;
         this.auditoria = auditoria;
+        this.operar = operar;
+        this.dotacion = dotacion;
     }
 
     /**
@@ -173,8 +180,8 @@ public class RegistrarEmpresa {
          * intento falla por un establecimiento que nadie recuerda haber tenido que
          * crear. Mismo motivo que en RegistrarCuenta.
          */
-        sucursales.guardar(new Sucursal(UUID.randomUUID(), empresa.id(), "0000", "Casa matriz",
-                empresa.domicilioFiscal()));
+        var matriz = sucursales.guardar(new Sucursal(UUID.randomUUID(), empresa.id(), "0000",
+                "Casa matriz", empresa.domicilioFiscal()));
 
         /*
          * Y la asignacion a quien la registro. Sin esta fila el alta parece
@@ -195,6 +202,17 @@ public class RegistrarEmpresa {
         asignaciones.guardar(new UsuarioEmpresa(UUID.randomUUID(),
                 contexto.obligatorio().usuarioId(), empresa.id(),
                 contexto.obligatorio().rolId(), null));
+
+        /*
+         * Su almacén y su primera caja. Quien registra opera sobre OTRA empresa
+         * —la activa en la cabecera— y el RLS de `almacen` y `caja` rechazaría
+         * filas de la nueva. Se cambia de empresa solo para esto, con la misma
+         * identidad y sin alcance de sucursal, y el puerto deja todo como estaba.
+         */
+        operar.ejecutar(new ContextoOperacion(actual.usuarioId(), actual.sub(), actual.cuentaId(),
+                        actual.permisosVersion(), empresa.id(), null, actual.rolId(),
+                        actual.esAdministradorCuenta(), false, actual.ip()),
+                () -> dotacion.dotar(matriz));
 
         return empresa;
     }

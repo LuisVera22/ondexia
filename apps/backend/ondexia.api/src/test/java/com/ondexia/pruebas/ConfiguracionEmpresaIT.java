@@ -219,11 +219,14 @@ class ConfiguracionEmpresaIT extends PruebaIntegracion {
     @Test
     @DisplayName("El listado trae las dos empresas del usuario, no solo la activa")
     void elListadoTraeLasEmpresasDelUsuario() throws Exception {
+        // Al menos las dos de la V900: RegistroDeEmpresaIT deja otras en la
+        // misma cuenta, y una empresa registrada no se borra (su bitácora es de
+        // solo inserción), así que no se afirma el total.
         mockMvc.perform(get(EMPRESAS)
                         .header("Authorization", autorizacionDemo())
                         .header("X-Empresa-Id", EMPRESA_ADMINISTRADA))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$.length()").value(org.hamcrest.Matchers.greaterThanOrEqualTo(2)))
                 .andExpect(jsonPath("$[?(@.ruc == '20100000009')]").exists())
                 .andExpect(jsonPath("$[?(@.ruc == '20100000017')]").exists());
     }
@@ -280,6 +283,18 @@ class ConfiguracionEmpresaIT extends PruebaIntegracion {
                 .getContentAsString(StandardCharsets.UTF_8);
 
         String id = creado.replaceAll(".*\"id\"\\s*:\\s*\"([^\"]+)\".*", "$1");
+
+        // Nace con su almacén y su primera caja: un local sin ellos no vende.
+        mockMvc.perform(get("/api/v1/almacen/almacenes")
+                        .header("Authorization", autorizacionDemo())
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.sucursalId == '" + id + "')].codigo").value("ALM-0007"));
+        mockMvc.perform(get("/api/v1/ventas/cajas")
+                        .header("Authorization", autorizacionDemo())
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.sucursalId == '" + id + "')].codigo").value("CAJA1"));
 
         mockMvc.perform(put(ESTABLECIMIENTOS + "/" + id)
                         .header("Authorization", autorizacionDemo())
