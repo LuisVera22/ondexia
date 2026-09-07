@@ -605,6 +605,36 @@ Lo que **no** se pudo verificar aquí: `terraform validate` de la configuración
 principal, porque el registro de proveedores no es alcanzable desde este
 entorno; lo corre el CI en cada push.
 
+### Lo que la iteración 1 dejó hecho
+
+- **Dos roles por defecto.** La V16 convierte `VENDEDOR`, `ALMACENERO` y
+  `CONTADOR` en roles de las cuentas que los usaban y los elimina del sistema;
+  solo queda `ADMINISTRADOR`. La cuenta demo (V900) crea los suyos como lo haría
+  un cliente. El listado de usuarios marca al Propietario.
+- **Regla de no elevación completa.** `Permisos.cubre`: quien invita, reasigna o
+  edita un rol no puede conceder permisos que no tiene; el Propietario está fuera
+  de la matriz. Pruebas en `UsuariosIT` y `RolesIT`.
+- **Tipo de contribuyente por tabla.** `TipoDeContribuyente` reemplaza a
+  `esPersonaJuridica()`: `10` y `20` se registran, `15` y `17` se rechazan con
+  mensaje, cualquier otro prefijo no existe. La puerta vive en
+  `Empresa.registrar`.
+- **Régimen tributario.** `empresa.regimen_tributario` (`NUEVO_RUS` u `OTRO`),
+  declarado en el alta solo a un RUC 10 y editable en la ficha. La factura no se
+  emite ni se puede habilitar en el Nuevo RUS; una persona jurídica no puede
+  declararlo, por código y por `CHECK`.
+- **El autorregistro vuelve** con tres capas: cuota de cinco consultas de RUC
+  por identidad y hora en `ondexia.consultas` (`CuotaPorSolicitante`, 429 con
+  `Retry-After`), throttling de la ruta que ya existía, y alarma de CloudWatch
+  a partir de trescientas invocaciones por hora. La concurrencia reservada de la
+  función queda como variable, en -1 hasta que la cuenta tenga cuota ampliada.
+
+**Diferencias con lo planeado.** La consulta de RUC sigue aceptando el token de
+acceso: Cognito no emite tokens a una cuenta sin correo confirmado
+(`auto_verified_attributes`), así que exigir el de identidad no añadía nada. El
+almacén y la caja al crear la empresa pasan a la iteración 2, donde existe la
+caja y donde hace falta un puerto para operar bajo el RLS de la empresa recién
+creada. La cuota es por instancia de Lambda, y se dice así en el código.
+
 ## 11. Riesgos de este plan
 
 | Riesgo | Señal temprana | Qué se hace |

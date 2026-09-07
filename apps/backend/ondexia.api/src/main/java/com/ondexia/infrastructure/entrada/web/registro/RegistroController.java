@@ -160,7 +160,8 @@ public class RegistroController {
                 new RegistrarCuenta.DatosDeRegistro(
                         peticion.atestacion(),
                         peticion.nombreTitular(),
-                        peticion.apellidoTitular()));
+                        peticion.apellidoTitular(),
+                        Boolean.TRUE.equals(peticion.nuevoRus())));
 
         return new RespuestaRegistro(cuentaId);
     }
@@ -190,7 +191,10 @@ public class RegistroController {
 
             @NotBlank(message = "Falta tu apellido.")
             @Size(max = 150)
-            String apellidoTitular) {
+            String apellidoTitular,
+
+            /** Opcional; ausente vale «no». Solo tiene sentido con RUC 10. */
+            Boolean nuevoRus) {
     }
 
     public record RespuestaRegistro(UUID cuentaId) {

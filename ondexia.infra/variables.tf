@@ -202,6 +202,23 @@ variable "concurrencia_reservada_api" {
   }
 }
 
+variable "concurrencia_reservada_consultas" {
+  description = <<-TEXTO
+    Tope de ejecuciones simultáneas de la función de consultas. Acota cuántas
+    copias de la cuota en memoria pueden existir a la vez (consultas.tf). Vale
+    lo mismo que para `concurrencia_reservada_api`: -1 es «sin reserva», y una
+    cuenta nueva de AWS no admite ningún valor positivo hasta ampliar la cuota.
+    El valor pensado es 2.
+  TEXTO
+  type        = number
+  default     = -1
+
+  validation {
+    condition     = var.concurrencia_reservada_consultas == -1 || var.concurrencia_reservada_consultas >= 1
+    error_message = "Usa -1 para no reservar, o un entero >= 1. El 0 apaga la funcion."
+  }
+}
+
 variable "repositorio_github" {
   description = <<-TEXTO
     Repositorio en formato `propietario/nombre`, legible.

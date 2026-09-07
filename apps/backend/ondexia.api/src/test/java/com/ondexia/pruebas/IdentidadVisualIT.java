@@ -72,7 +72,7 @@ class IdentidadVisualIT extends PruebaIntegracion {
     void losTresHuecosLleganSiempre() throws Exception {
         /*
          * Sobre EMPRESA_ADMINISTRADA y no sobre la otra: el usuario de ejemplo
-         * es VENDEDOR en la segunda, y Vendedor no tiene `configuracion.identidad`
+         * es Vendedor (rol de la cuenta) en la segunda, y no tiene `configuracion.identidad`
          * —responde 403 y la prueba fallaría por el motivo equivocado—.
          *
          * Y no se comprueba que estén vacíos, porque la suite comparte base y

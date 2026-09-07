@@ -188,6 +188,18 @@ describe('RegistroComponent · invitado o empresa nueva', () => {
      * <p>Si alguien añadiera `razonSocial` al cuerpo «para que el backend no
      * tenga que decodificar», volvería el agujero que la atestación cerró.
      */
+    it('la casilla del Nuevo RUS solo se ofrece a una persona natural', () => {
+      const componente = conFormularioListo();
+
+      componente.alVerificar(consulta);
+      expect(componente.preguntaNuevoRus())
+        .withContext('una persona juridica (RUC 20) no puede estar en el RUS')
+        .toBeFalse();
+
+      componente.alVerificar({ ...consulta, datos: { ...consulta.datos, ruc: '10123456781' } });
+      expect(componente.preguntaNuevoRus()).toBeTrue();
+    });
+
     it('lo que viaja es la atestación, no los datos de la empresa', async () => {
       const componente = conFormularioListo();
       componente.alVerificar(consulta);
@@ -204,9 +216,13 @@ describe('RegistroComponent · invitado o empresa nueva', () => {
       expect(cuerpo['atestacion']).toBe('carga.firma');
       // Sin `correo`: sale del token de identidad, no del cuerpo (tabla de
       // bajas de la auditoria 2026-09-01).
+      // `nuevoRus` es nuestro, no del padron: el regimen no lo informa SUNAT y
+      // hay que preguntarlo (doc 12 §3.1). Con un RUC 20 viaja en falso aunque
+      // la casilla no se haya mostrado.
       expect(Object.keys(cuerpo).sort())
         .withContext('nada de la empresa viaja aparte de la firma')
-        .toEqual(['apellidoTitular', 'atestacion', 'nombreTitular']);
+        .toEqual(['apellidoTitular', 'atestacion', 'nombreTitular', 'nuevoRus']);
+      expect(cuerpo['nuevoRus']).toBeFalse();
       expect(peticion.request.headers.get('Authorization'))
         .withContext('el alta va con el token de identidad, que trae el correo verificado')
         .toBe('Bearer token-de-identidad');

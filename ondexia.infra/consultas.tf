@@ -181,6 +181,19 @@ resource "aws_lambda_function" "consultas" {
   memory_size = var.memoria_consultas_mb
 
   /**
+   * Pocas instancias, cuando la cuenta lo permita.
+   *
+   * La cuota de consultas por identidad (CuotaPorSolicitante, doc 12 §6.2) se
+   * cuenta en memoria de la instancia porque esta funcion no tiene base de
+   * datos. Cada instancia es una cuota; acotar la concurrencia a dos hace que
+   * un abuso pueda como mucho duplicarla. Mientras la cuenta no tenga cuota
+   * de concurrencia ampliada (ver `concurrencia_reservada_api`), el valor es
+   * -1 y la cuota en memoria queda como lo que es: una capa por instancia,
+   * con el throttling de la ruta y la alarma de invocaciones por encima.
+   */
+  reserved_concurrent_executions = var.concurrencia_reservada_consultas
+
+  /**
    * Más corto que los 29 s de la pasarela, y a propósito.
    *
    * Dentro hay dos proveedores en cascada a 6 s cada uno. Con 20 s, si los dos

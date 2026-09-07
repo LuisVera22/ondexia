@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
@@ -10,6 +10,7 @@ import {
   ConfiguracionApiService,
   CupoDeEmpresas,
   mensajeDeError,
+  esPersonaNatural,
 } from '../../../nucleo/configuracion.api.service';
 import { AvisosService } from '../../../shared/services/avisos.service';
 import { ContextoService } from '../../../shared/services/contexto.service';
@@ -68,7 +69,11 @@ export class NuevaEmpresaComponent {
   formulario = this.constructorFormulario.nonNullable.group({
     nombreComercial: [''],
     cuentaDetracciones: ['', [Validators.pattern(/^\d*$/)]],
+    nuevoRus: [false],
   });
+
+  /** La casilla del Nuevo RUS solo aparece con un RUC 10 comprobado. */
+  readonly preguntaNuevoRus = computed(() => esPersonaNatural(this.consulta()?.datos.ruc));
 
   constructor() {
     void this.cargarCupo();
@@ -129,6 +134,7 @@ export class NuevaEmpresaComponent {
         atestacion: consulta.atestacion,
         nombreComercial: valores.nombreComercial || null,
         cuentaDetracciones: valores.cuentaDetracciones || null,
+        nuevoRus: this.preguntaNuevoRus() && valores.nuevoRus,
       });
 
       await this.contexto.cambiarEmpresa({

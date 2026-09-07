@@ -3,6 +3,7 @@ package com.ondexia.infrastructure.salida.persistencia.identidad;
 import com.ondexia.domain.consultas.CondicionDomicilio;
 import com.ondexia.domain.consultas.EstadoContribuyente;
 import com.ondexia.domain.identidad.ModoSunat;
+import com.ondexia.domain.identidad.RegimenTributario;
 import com.ondexia.infrastructure.salida.persistencia.comun.EntidadJpaBase;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -87,6 +88,10 @@ public class EmpresaJpa extends EntidadJpaBase {
     @Column(name = "cuenta_detracciones", length = 30)
     private String cuentaDetracciones;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "regimen_tributario", nullable = false, length = 20)
+    private RegimenTributario regimenTributario = RegimenTributario.porOmision();
+
     protected EmpresaJpa() {
     }
 
@@ -138,6 +143,14 @@ public class EmpresaJpa extends EntidadJpaBase {
 
     public void setCuentaDetracciones(String cuentaDetracciones) {
         this.cuentaDetracciones = cuentaDetracciones;
+    }
+
+    public RegimenTributario getRegimenTributario() {
+        return regimenTributario;
+    }
+
+    public void setRegimenTributario(RegimenTributario regimenTributario) {
+        this.regimenTributario = regimenTributario;
     }
 
     public EstadoContribuyente getEstadoContribuyente() {

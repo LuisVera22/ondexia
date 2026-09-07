@@ -103,7 +103,10 @@ public class EmpresasController {
 
             @Pattern(regexp = "[0-9]*", message = "La cuenta de detracciones solo lleva digitos.")
             @Size(max = 30)
-            String cuentaDetracciones) {
+            String cuentaDetracciones,
+
+            /** Opcional; ausente vale «no». Solo tiene sentido con RUC 10. */
+            Boolean nuevoRus) {
     }
 
     /** El cupo del plan, para que la pantalla sepa si enseniar el boton. */
@@ -133,7 +136,7 @@ public class EmpresasController {
     public RespuestaEmpresa registrar(@Valid @RequestBody PeticionAlta peticion) {
         return RespuestaEmpresa.desde(registro.ejecutar(new RegistrarEmpresa.Peticion(
                 peticion.atestacion(), peticion.nombreComercial(),
-                peticion.cuentaDetracciones())));
+                peticion.cuentaDetracciones(), Boolean.TRUE.equals(peticion.nuevoRus()))));
     }
 
     @Operation(

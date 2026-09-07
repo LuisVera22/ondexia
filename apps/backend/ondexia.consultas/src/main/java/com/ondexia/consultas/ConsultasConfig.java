@@ -72,6 +72,13 @@ public class ConsultasConfig {
     }
 
     @Bean
+    com.ondexia.consultas.web.CuotaPorSolicitante cuotaPorSolicitante(
+            PropiedadesConsultas propiedades) {
+        return new com.ondexia.consultas.web.CuotaPorSolicitante(
+                propiedades.cuotaPorHora(), java.time.Clock.systemUTC());
+    }
+
+    @Bean
     ConsultaDeRuc consultaDeRuc(PropiedadesConsultas propiedades, Claves claves) {
         List<ConsultaDeRuc> cascada = new ArrayList<>();
         List<String> nombres = new ArrayList<>();

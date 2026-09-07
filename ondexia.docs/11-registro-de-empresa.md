@@ -113,12 +113,35 @@ proveedor.
 ## 4. Bloque 2 — Derivados, que no se preguntan
 
 **Persona natural o jurídica** sale de los dos primeros dígitos del RUC y ya está
-implementado: `Ruc.esPersonaJuridica()`. No hay ningún caso en que la persona
+implementado: `Ruc.tipoDeContribuyente()`. No hay ningún caso en que la persona
 sepa esto mejor que el número, así que preguntarlo solo añade una forma de
 equivocarse.
 
 No se persiste: se deriva al leer. Un dato derivado guardado es un dato que
 puede contradecir su origen.
+
+> **Nota del 2026-09-07 (doc 12 §3.1).** Antes era `esPersonaJuridica()`: cierto
+> para `20`, falso para todo lo demás, con lo que una sucesión indivisa (`15`) se
+> trataba como persona natural. Ahora es una tabla, `TipoDeContribuyente`:
+>
+> | Prefijo | Tipo | Se registra |
+> |---|---|---|
+> | `10` | Persona natural con negocio | Sí |
+> | `20` | Persona jurídica | Sí |
+> | `15`, `17` | Otro documento de identidad (sucesiones, entidades, extranjeros) | No, con mensaje |
+> | otro | No lo emite SUNAT | Se rechaza |
+>
+> La puerta está en `Empresa.registrar`, junto a la de ACTIVO y HABIDO, por la
+> misma razón: no hay otro camino para crear una empresa.
+
+**El régimen tributario sí se pregunta, y es lo único que se pregunta.** El
+padrón no lo informa, y de los cuatro regímenes solo uno cambia algo: quien está
+en el **Nuevo RUS** no emite facturas. El alta hace una sola pregunta de sí o no
+—«¿El negocio está en el Nuevo RUS?»— y solo a una persona natural, porque una
+jurídica no puede estar en él (la base lo garantiza con un `CHECK`). Se guarda
+en `empresa.regimen_tributario` como `NUEVO_RUS` u `OTRO`, se cambia desde la
+ficha de la empresa, y la pantalla de Comprobantes no deja encender la factura
+mientras sea `NUEVO_RUS` (V16, `RegimenTributario`).
 
 ## 5. Bloque 3 — Nuestros, y editables
 

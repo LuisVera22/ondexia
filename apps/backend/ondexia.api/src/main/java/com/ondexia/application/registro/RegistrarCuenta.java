@@ -13,6 +13,7 @@ import com.ondexia.domain.identidad.Empresa;
 import com.ondexia.domain.identidad.EmpresaRepositorio;
 import com.ondexia.domain.identidad.EstadoSuscripcion;
 import com.ondexia.domain.identidad.PlanSuscripcion;
+import com.ondexia.domain.identidad.RegimenTributario;
 import com.ondexia.domain.identidad.RolRepositorio;
 import com.ondexia.domain.identidad.Sucursal;
 import com.ondexia.domain.identidad.SucursalRepositorio;
@@ -186,7 +187,15 @@ public class RegistrarCuenta {
          * societaria— con su fecha de verificacion. El constructor publico no
          * comprueba nada y dejaria una empresa sin verificar el primer dia.
          */
-        var empresa = empresas.guardar(Empresa.registrar(UUID.randomUUID(), cuenta.id(), padron));
+        /*
+         * El regimen lo declara quien se registra (doc 12 §3.1): el padron no lo
+         * informa y es lo unico que decide si la empresa puede emitir facturas.
+         * Empresa.registrar rechaza el Nuevo RUS para una persona juridica y el
+         * alta de los prefijos que Ondexia no admite.
+         */
+        var regimen = datos.nuevoRus() ? RegimenTributario.NUEVO_RUS : RegimenTributario.OTRO;
+        var empresa = empresas.guardar(
+                Empresa.registrar(UUID.randomUUID(), cuenta.id(), padron, regimen));
 
         /*
          * Casa matriz, código 0000. Se crea sola y no se pregunta.
@@ -244,10 +253,13 @@ public class RegistrarCuenta {
      *                        De ahí salen el RUC, la razón social, el domicilio y
      *                        el ubigeo: ninguno llega por el formulario, y por eso
      *                        no se pueden inventar
+     * @param nuevoRus        si el negocio está en el Nuevo RUS. Solo emite boletas;
+     *                        una persona jurídica no puede declararlo
      */
     public record DatosDeRegistro(
             String atestacion,
             String nombreTitular,
-            String apellidoTitular) {
+            String apellidoTitular,
+            boolean nuevoRus) {
     }
 }

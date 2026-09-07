@@ -49,6 +49,15 @@ export interface Empresa {
   readonly nombreComercial: string | null;
   readonly cuentaDetracciones: string | null;
 
+  /**
+   * Declarado por el contribuyente, no por SUNAT (doc 12 §3.1). `NUEVO_RUS` no
+   * emite facturas; `OTRO` agrupa general, MYPE y especial, que emiten lo mismo.
+   * Solo tiene sentido preguntarlo a una persona natural (RUC 10).
+   */
+  readonly regimenTributario: RegimenTributario;
+  /** Derivado del régimen en el servidor; la pantalla no lo calcula. */
+  readonly emiteFacturas: boolean;
+
   readonly modoSunat: string;
   readonly activa: boolean;
 
@@ -61,10 +70,19 @@ export interface Empresa {
   readonly editable: readonly string[];
 }
 
+export type RegimenTributario = 'NUEVO_RUS' | 'OTRO';
+
+/** Si el RUC es de una persona natural con negocio, la única que puede estar en el RUS. */
+export function esPersonaNatural(ruc: string | null | undefined): boolean {
+  return typeof ruc === 'string' && ruc.startsWith('10');
+}
+
 /** Lo único editable: ni razón social, ni domicilio, ni ubigeo. */
 export interface DatosEmpresa {
   readonly nombreComercial: string | null;
   readonly cuentaDetracciones: string | null;
+  /** Ausente o nulo = no tocarlo. */
+  readonly regimenTributario?: RegimenTributario | null;
 }
 
 /** Lo que hace falta para dar de alta una empresa: la firma y lo nuestro. */
@@ -72,6 +90,8 @@ export interface AltaDeEmpresa {
   readonly atestacion: string;
   readonly nombreComercial: string | null;
   readonly cuentaDetracciones: string | null;
+  /** Solo puede ser cierto con RUC 10; el servidor rechaza lo demás. */
+  readonly nuevoRus: boolean;
 }
 
 /**
@@ -163,6 +183,8 @@ export interface UsuarioApi {
   readonly sucursalId: string | null;
   readonly sucursalNombre: string | null;
   readonly todosLosEstablecimientos: boolean;
+  /** Administrador de la cuenta: no tiene rol, tiene la cuenta (doc 12 §6.1). */
+  readonly propietario: boolean;
 }
 
 export interface RolAsignable {

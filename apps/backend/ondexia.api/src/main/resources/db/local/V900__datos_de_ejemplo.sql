@@ -75,13 +75,71 @@ SELECT '00000000-0000-4000-8000-000000000030',
        NULL
 FROM rol r WHERE r.cuenta_id IS NULL AND r.codigo = 'ADMINISTRADOR';
 
+-- Dos roles A MEDIDA de la cuenta demo: Vendedor y Almacenero.
+--
+-- Desde la V16 el sistema solo trae ADMINISTRADOR (doc 12 §6.1); los demas los
+-- crea cada cuenta. La cuenta demo los tiene porque las pruebas y el desarrollo
+-- necesitan un rol que NO pueda todo, y el catalogo de permisos es el mismo
+-- patron que la V2 daba a los roles retirados, mas los eslabones de modulo y
+-- submodulo que la V6 derivo (sin ellos la funcion suelta no autoriza nada).
+INSERT INTO rol (id, cuenta_id, codigo, nombre, descripcion) VALUES
+    ('00000000-0000-4000-8000-000000000040',
+     '00000000-0000-4000-8000-000000000001',
+     'VENDEDOR', 'Vendedor',
+     'Emite comprobantes y gestiona clientes. No anula ni toca el catalogo.'),
+    ('00000000-0000-4000-8000-000000000041',
+     '00000000-0000-4000-8000-000000000001',
+     'ALMACENERO', 'Almacenero',
+     'Gestiona catalogo, existencias y movimientos. No vende ni compra.');
+
+INSERT INTO rol_permiso (rol_id, permiso_id)
+SELECT '00000000-0000-4000-8000-000000000040', p.id
+FROM permiso p
+WHERE p.nivel = 'FUNCION'
+  AND (
+        p.modulo IN ('ventas.cliente', 'ventas.cotizacion', 'ventas.nota_preventa')
+     OR (p.modulo IN ('ventas.comprobante', 'ventas.nota_credito', 'ventas.nota_debito')
+         AND p.accion IN ('consultar', 'registrar', 'emitir'))
+     OR (p.modulo IN ('almacen.producto', 'almacen.marca', 'almacen.modelo',
+                      'almacen.presentacion', 'almacen.precio', 'almacen.stock')
+         AND p.accion = 'consultar')
+  );
+
+INSERT INTO rol_permiso (rol_id, permiso_id)
+SELECT '00000000-0000-4000-8000-000000000041', p.id
+FROM permiso p
+WHERE p.nivel = 'FUNCION'
+  AND (
+        p.modulo LIKE 'almacen.%'
+     OR (p.modulo IN ('compras.orden_compra', 'compras.proveedor') AND p.accion = 'consultar')
+  )
+  AND NOT (p.modulo = 'almacen.guia_remision' AND p.accion = 'emitir');
+
+-- Los eslabones de la jerarquia (V6): submodulo y modulo de cada funcion.
+INSERT INTO rol_permiso (rol_id, permiso_id)
+SELECT DISTINCT rp.rol_id, sub.id
+FROM rol_permiso rp
+    JOIN permiso f   ON f.id = rp.permiso_id AND f.nivel = 'FUNCION'
+    JOIN permiso sub ON sub.nivel = 'SUBMODULO' AND sub.modulo = f.modulo
+WHERE rp.rol_id IN ('00000000-0000-4000-8000-000000000040',
+                    '00000000-0000-4000-8000-000000000041')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO rol_permiso (rol_id, permiso_id)
+SELECT DISTINCT rp.rol_id, m.id
+FROM rol_permiso rp
+    JOIN permiso f ON f.id = rp.permiso_id AND f.nivel = 'FUNCION'
+    JOIN permiso m ON m.nivel = 'MODULO' AND m.modulo = split_part(f.modulo, '.', 1)
+WHERE rp.rol_id IN ('00000000-0000-4000-8000-000000000040',
+                    '00000000-0000-4000-8000-000000000041')
+ON CONFLICT DO NOTHING;
+
 -- En la segunda, vendedor y acotado a una sola sucursal. Es el caso que hay que
 -- tener delante mientras se desarrolla: el mismo usuario ve cosas distintas
 -- segun la empresa activa, y en una de ellas no puede anular nada.
-INSERT INTO usuario_empresa (id, usuario_id, empresa_id, rol_id, sucursal_id)
-SELECT '00000000-0000-4000-8000-000000000031',
-       '00000000-0000-4000-8000-000000000002',
-       '00000000-0000-4000-8000-000000000011',
-       r.id,
-       '00000000-0000-4000-8000-000000000022'
-FROM rol r WHERE r.cuenta_id IS NULL AND r.codigo = 'VENDEDOR';
+INSERT INTO usuario_empresa (id, usuario_id, empresa_id, rol_id, sucursal_id) VALUES
+    ('00000000-0000-4000-8000-000000000031',
+     '00000000-0000-4000-8000-000000000002',
+     '00000000-0000-4000-8000-000000000011',
+     '00000000-0000-4000-8000-000000000040',
+     '00000000-0000-4000-8000-000000000022');

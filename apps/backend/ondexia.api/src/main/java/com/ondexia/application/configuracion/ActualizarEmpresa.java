@@ -5,6 +5,7 @@ import com.ondexia.domain.comun.ProveedorDeContexto;
 import com.ondexia.domain.consultas.DatosDeRuc;
 import com.ondexia.domain.consultas.VerificacionDeRuc;
 import com.ondexia.domain.identidad.Empresa;
+import com.ondexia.domain.identidad.RegimenTributario;
 import com.ondexia.domain.identidad.EmpresaRepositorio;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,7 +84,8 @@ public class ActualizarEmpresa {
      * @param cuentaDetracciones vacio o nulo la borra
      */
     @Transactional
-    public Empresa ejecutar(String nombreComercial, String cuentaDetracciones) {
+    public Empresa ejecutar(String nombreComercial, String cuentaDetracciones,
+            RegimenTributario regimen) {
         var empresaId = contexto.obligatorio().empresaActivaObligatoria();
         var empresa = empresasDelUsuario.exigirAcceso(empresaId);
 
@@ -94,6 +96,11 @@ public class ActualizarEmpresa {
 
         empresa.renombrarComercialmente(nombreComercial);
         empresa.anotarCuentaDetracciones(cuentaDetracciones);
+        // `null` = no tocarlo: el PUT viene de una pantalla que puede no saber
+        // del regimen (la ficha antigua) y no debe resetearlo a OTRO por omision.
+        if (regimen != null) {
+            empresa.cambiarRegimen(regimen);
+        }
 
         return guardarYRegistrar(empresaId, empresa, antes);
     }

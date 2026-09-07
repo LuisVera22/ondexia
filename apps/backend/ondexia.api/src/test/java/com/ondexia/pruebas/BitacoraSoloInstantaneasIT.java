@@ -75,7 +75,7 @@ class BitacoraSoloInstantaneasIT extends PruebaIntegracion {
                 new DatosDeRuc(new Ruc("20601030013"), "ONDEXIA S.A.C.",
                         EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO,
                         "AV. AREQUIPA 100", null, null, null, "LIMA",
-                        false, false, null, Instant.now()));
+                        false, false, null, Instant.now()), null);
 
         assertThatThrownBy(() -> auditoria.registrarCreacion("empresa", empresa.id(), empresa))
                 .isInstanceOf(IllegalArgumentException.class)

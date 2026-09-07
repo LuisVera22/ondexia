@@ -8,6 +8,7 @@ import com.ondexia.domain.comun.error.ReglaDeNegocioViolada;
 import com.ondexia.domain.consultas.DatosDeRuc;
 import com.ondexia.domain.consultas.VerificacionDeRuc;
 import com.ondexia.domain.identidad.Empresa;
+import com.ondexia.domain.identidad.RegimenTributario;
 import com.ondexia.domain.identidad.EmpresaRepositorio;
 import com.ondexia.domain.identidad.LimitesDeCuenta;
 import com.ondexia.domain.identidad.LimitesDeCuentaRepositorio;
@@ -72,7 +73,7 @@ public class RegistrarEmpresa {
      * @param cuentaDetracciones nuestra, opcional
      */
     public record Peticion(String atestacion, String nombreComercial,
-            String cuentaDetracciones) {
+            String cuentaDetracciones, boolean nuevoRus) {
     }
 
     @Transactional
@@ -148,7 +149,8 @@ public class RegistrarEmpresa {
                     "ruc");
         });
 
-        Empresa empresa = Empresa.registrar(UUID.randomUUID(), cuentaId, datos);
+        Empresa empresa = Empresa.registrar(UUID.randomUUID(), cuentaId, datos,
+                peticion.nuevoRus() ? RegimenTributario.NUEVO_RUS : RegimenTributario.OTRO);
         empresa.renombrarComercialmente(peticion.nombreComercial());
         empresa.anotarCuentaDetracciones(peticion.cuentaDetracciones());
         empresa = empresas.guardar(empresa);

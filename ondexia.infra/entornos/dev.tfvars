@@ -11,8 +11,14 @@ region  = "us-east-1"
 # Sin dominio: se sirve por los dominios predeterminados de CloudFront.
 gestionar_dns = false
 
-correo_alertas       = "luis26.ml143@gmail.com"
-tope_presupuesto_usd = 15
+correo_alertas = "luis26.ml143@gmail.com"
+
+# El registro por autoservicio es el producto: un negocio se da de alta solo
+# (doc 12 §6.2). La cadena critica 2 de la auditoria lo habia cerrado; vuelve
+# con sus tres capas puestas —cuota por identidad en ondexia.consultas,
+# throttling de la ruta y alarma de invocaciones— y no antes.
+autoservicio_inquilinos = true
+tope_presupuesto_usd    = 15
 
 # Sin respaldos largos: aquí no hay nada que perder.
 retencion_respaldos_dias = 1

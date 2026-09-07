@@ -6,6 +6,11 @@ import com.ondexia.domain.comun.error.Conflicto;
 import com.ondexia.domain.comun.error.RecursoNoEncontrado;
 import com.ondexia.domain.comun.error.ReglaDeNegocioViolada;
 import com.ondexia.domain.identidad.CuentaAdministradorRepositorio;
+import com.ondexia.domain.identidad.PermisoRepositorio;
+import com.ondexia.domain.identidad.Permisos;
+import com.ondexia.domain.identidad.CuentaAdministrador;
+import java.util.Set;
+import java.util.stream.Collectors;
 import com.ondexia.domain.identidad.MiembroEmpresa;
 import com.ondexia.domain.identidad.Rol;
 import com.ondexia.domain.identidad.RolRepositorio;
@@ -59,15 +64,17 @@ public class Usuarios {
     private final CuentaAdministradorRepositorio administradores;
     private final RegistroDeAuditoria auditoria;
     private final ProveedorDeContexto contexto;
+    private final PermisoRepositorio permisos;
 
     public Usuarios(UsuarioRepositorio usuarios, UsuarioEmpresaRepositorio asignaciones,
             RolRepositorio roles, SucursalRepositorio sucursales,
             CuentaAdministradorRepositorio administradores, RegistroDeAuditoria auditoria,
-            ProveedorDeContexto contexto) {
+            ProveedorDeContexto contexto, PermisoRepositorio permisos) {
         this.usuarios = usuarios;
         this.asignaciones = asignaciones;
         this.roles = roles;
         this.sucursales = sucursales;
+        this.permisos = permisos;
         this.administradores = administradores;
         this.auditoria = auditoria;
         this.contexto = contexto;
@@ -75,6 +82,17 @@ public class Usuarios {
 
     public List<MiembroEmpresa> listar() {
         return asignaciones.listarMiembrosDe(empresaActiva());
+    }
+
+    /**
+     * Quiénes son Propietarios de la cuenta: {@code cuenta_administrador}, con
+     * el nombre que le da el producto (doc 12 §6.1). La pantalla los marca y no
+     * les ofrece «cambiar rol»: no tienen rol, tienen la cuenta.
+     */
+    public Set<UUID> propietarios() {
+        return administradores.listarDeCuenta(cuentaActual()).stream()
+                .map(CuentaAdministrador::usuarioId)
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     /** Los roles que esta cuenta puede asignar: los predefinidos más los suyos. */
@@ -101,6 +119,7 @@ public class Usuarios {
 
         String correo = normalizarCorreo(email);
         var rol = validarRol(rolId);
+        exigirQueNoEleve(rol);
         var sucursal = validarSucursal(sucursalId);
 
         /*
@@ -142,6 +161,7 @@ public class Usuarios {
         var antes = buscarMiembro(asignacionId);
 
         var rol = validarRol(rolId);
+        exigirQueNoEleve(rol);
         asignacion.reasignar(rol.id(), validarSucursal(sucursalId));
         asignaciones.guardar(asignacion);
 
@@ -256,6 +276,33 @@ public class Usuarios {
                     "no_puedes_cambiarte_el_rol",
                     "No puedes cambiar tu propio rol ni tu alcance. Pídeselo a otro "
                             + "administrador.");
+        }
+    }
+
+    /**
+     * Un rol solo puede conceder permisos que su portador tiene (doc 12 §6.3).
+     *
+     * <p>Es la variante de M1 que quedó a medias: prohibir tocarse a sí mismo
+     * cerraba dos de las tres vías, pero quien tenía {@code usuario:registrar}
+     * podía invitar a una segunda identidad suya como Administrador. Con la regla
+     * de cobertura la vía se cierra sin depender de a quién se invita.
+     *
+     * <p>El Propietario —administrador de la cuenta— está fuera de la matriz y
+     * puede conceder cualquier rol: alguien tiene que poder nombrar al primer
+     * Administrador. Lo fija {@code UsuariosIT.nadieConcedeLoQueNoTiene}.
+     */
+    private void exigirQueNoEleve(Rol rol) {
+        var actual = contexto.obligatorio();
+        if (actual.esAdministradorCuenta()) {
+            return;
+        }
+        var propios = actual.rolId() == null ? Permisos.ninguno()
+                : permisos.permisosDelRol(actual.rolId());
+        if (!propios.cubre(permisos.permisosDelRol(rol.id()))) {
+            throw new ReglaDeNegocioViolada(
+                    "rol_excede_tus_permisos",
+                    "El rol " + rol.nombre() + " concede permisos que tú no tienes. Solo se "
+                            + "puede asignar un rol con permisos iguales o menores a los propios.");
         }
     }
 

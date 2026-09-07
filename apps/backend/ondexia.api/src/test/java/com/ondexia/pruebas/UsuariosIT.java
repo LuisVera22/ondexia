@@ -42,6 +42,20 @@ class UsuariosIT extends PruebaIntegracion {
     @Autowired
     private RolRepositorio roles;
 
+    @Autowired
+    private com.ondexia.application.configuracion.Roles rolesUso;
+
+    @Autowired
+    private com.ondexia.domain.identidad.PermisoRepositorio permisos;
+
+    private UUID permiso(String modulo, String accion) {
+        return permisos.listarCatalogo().stream()
+                .filter(p -> p.modulo().equals(modulo) && p.accion().equals(accion))
+                .map(com.ondexia.domain.identidad.Permiso::id)
+                .findFirst()
+                .orElseThrow();
+    }
+
     @AfterEach
     void limpiar() {
         ContextoDePrueba.limpiar();
@@ -53,7 +67,9 @@ class UsuariosIT extends PruebaIntegracion {
     }
 
     private UUID rol(String codigo) {
-        return roles.buscarPredefinido(codigo).orElseThrow().id();
+        return codigo.equals("ADMINISTRADOR")
+                ? roles.buscarPredefinido(codigo).orElseThrow().id()
+                : rolDeLaCuenta(codigo).id();
     }
 
     // ── Alta ────────────────────────────────────────────────────────────────
@@ -321,5 +337,73 @@ class UsuariosIT extends PruebaIntegracion {
 
         assertThatThrownBy(() -> usuarios.retirar(enLaOtra))
                 .hasMessageContaining("no está asignado a esta empresa");
+    }
+
+    // ── No elevacion (doc 12 §6.3) ─────────────────────────────────────────
+
+    /**
+     * Un rol solo concede permisos que su portador tiene.
+     *
+     * <p>Es la tercera via de M1, la que quedo abierta: quien tiene
+     * {@code usuario:registrar} invitaba a una segunda identidad suya como
+     * Administrador. Aqui una supervisora con permisos de usuarios —los del
+     * Vendedor mas gestionar usuarios— intenta invitar a alguien como
+     * Administrador y no puede; con su propio rol, si.
+     */
+    @Test
+    @DisplayName("Nadie concede un rol con permisos que él mismo no tiene")
+    void nadieConcedeLoQueNoTiene() {
+        comoDemo();
+        var supervisora = rolesUso.duplicar(rol("VENDEDOR"), "Supervisora de tienda");
+        var conUsuarios = new java.util.HashSet<>(rolesUso.permisosDe(supervisora.id()));
+        conUsuarios.add(permiso("configuracion", "acceder"));
+        conUsuarios.add(permiso("configuracion.usuario", "acceder"));
+        conUsuarios.add(permiso("configuracion.usuario", "consultar"));
+        conUsuarios.add(permiso("configuracion.usuario", "registrar"));
+        conUsuarios.add(permiso("configuracion.usuario", "editar"));
+        rolesUso.cambiarPermisos(supervisora.id(), conUsuarios);
+        var miembro = usuarios.invitar("supervisora@ejemplo.com", "Supervisora", "De Tienda",
+                supervisora.id(), null);
+
+        // Como ella: con su rol, sin ser administradora de la cuenta.
+        ContextoDePrueba.limpiar();
+        ContextoDePrueba.establecer(new ContextoOperacion(miembro.usuarioId(), "sub-supervisora",
+                CUENTA, 1L, UUID.fromString(EMPRESA_ADMINISTRADA), null, supervisora.id(),
+                false, false, "127.0.0.1"));
+
+        assertThatThrownBy(() -> usuarios.invitar("colado@ejemplo.com", "Colado", "Apellido",
+                rol("ADMINISTRADOR"), null))
+                .isInstanceOf(ReglaDeNegocioViolada.class)
+                .hasMessageContaining("permisos que tú no tienes");
+
+        // Un rol que es subconjunto del suyo si se puede conceder.
+        var vendedor = usuarios.invitar("nuevo.vendedor@ejemplo.com", "Nuevo", "Vendedor",
+                rol("VENDEDOR"), null);
+        assertThat(vendedor.rolCodigo()).isEqualTo("VENDEDOR");
+
+        // Y tampoco se puede subir a alguien por reasignacion.
+        assertThatThrownBy(() -> usuarios.reasignar(vendedor.asignacionId(),
+                rol("ADMINISTRADOR"), null))
+                .isInstanceOf(ReglaDeNegocioViolada.class)
+                .hasMessageContaining("permisos que tú no tienes");
+    }
+
+    @Test
+    @DisplayName("El Propietario concede cualquier rol, y el listado lo señala")
+    void elPropietarioConcedeCualquierRol() throws Exception {
+        comoDemo();
+        var miembro = usuarios.invitar("admin.nuevo@ejemplo.com", "Admin", "Nuevo",
+                rol("ADMINISTRADOR"), null);
+        assertThat(miembro.rolCodigo()).isEqualTo("ADMINISTRADOR");
+        ContextoDePrueba.limpiar();
+
+        mockMvc.perform(get(USUARIOS)
+                        .header("Authorization", autorizacionDemo())
+                        .header("X-Empresa-Id", EMPRESA_ADMINISTRADA))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.usuarioId == '" + USUARIO_DEMO + "')].propietario")
+                        .value(org.hamcrest.Matchers.contains(true)))
+                .andExpect(jsonPath("$[?(@.email == 'admin.nuevo@ejemplo.com')].propietario")
+                        .value(org.hamcrest.Matchers.contains(false)));
     }
 }

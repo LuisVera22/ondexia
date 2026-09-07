@@ -8,6 +8,7 @@ import com.ondexia.domain.comun.error.ReglaDeNegocioViolada;
 import com.ondexia.domain.identidad.CuentaRepositorio;
 import com.ondexia.domain.identidad.NivelPermiso;
 import com.ondexia.domain.identidad.Permiso;
+import com.ondexia.domain.identidad.Permisos;
 import com.ondexia.domain.identidad.PermisoRepositorio;
 import com.ondexia.domain.identidad.Rol;
 import com.ondexia.domain.identidad.RolRepositorio;
@@ -200,6 +201,7 @@ public class Roles {
         }
 
         var podados = podar(permisoIds, porId);
+        exigirQueNoEleve(podados, porId);
 
         roles.reemplazarPermisos(rolId, podados);
         cuentas.invalidarCachePermisos(cuentaActual());
@@ -384,6 +386,30 @@ public class Roles {
                     "no_puedes_editar_tu_rol",
                     "No puedes cambiar los permisos del rol que tú mismo tienes. "
                             + "Duplícalo, ajusta la copia y pide que te la asignen.");
+        }
+    }
+
+    /**
+     * Nadie marca en un rol una casilla que él mismo no tiene (doc 12 §6.3).
+     *
+     * <p>Sin esto, la regla de cobertura de {@code Usuarios} se rodea en dos
+     * pasos: ensanchar un rol ajeno y luego asignarlo. El Propietario queda
+     * fuera, como en el resto de la regla.
+     */
+    private void exigirQueNoEleve(Set<UUID> concedidos, Map<UUID, Permiso> porId) {
+        var actual = contexto.obligatorio();
+        if (actual.esAdministradorCuenta()) {
+            return;
+        }
+        var propios = actual.rolId() == null ? Permisos.ninguno()
+                : permisos.permisosDelRol(actual.rolId());
+        var pedidos = new Permisos(concedidos.stream()
+                .map(id -> porId.get(id).codigo())
+                .collect(Collectors.toSet()));
+        if (!propios.cubre(pedidos)) {
+            throw new ReglaDeNegocioViolada(
+                    "permisos_exceden_los_tuyos",
+                    "No puedes conceder a un rol permisos que tú no tienes.");
         }
     }
 

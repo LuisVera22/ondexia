@@ -49,7 +49,10 @@ public class UsuarioController {
     @RequierePermiso(modulo = "configuracion.usuario", accion = "consultar")
     @GetMapping
     public List<RespuestaUsuario> listar() {
-        return usuarios.listar().stream().map(RespuestaUsuario::desde).toList();
+        var propietarios = usuarios.propietarios();
+        return usuarios.listar().stream()
+                .map(m -> RespuestaUsuario.desde(m, propietarios.contains(m.usuarioId())))
+                .toList();
     }
 
     @Operation(
@@ -70,7 +73,7 @@ public class UsuarioController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public RespuestaUsuario invitar(@Valid @RequestBody PeticionNuevo peticion) {
-        return RespuestaUsuario.desde(usuarios.invitar(
+        return conCargo(usuarios.invitar(
                 peticion.email(), peticion.nombre(), peticion.apellido(), peticion.rolId(),
                 peticion.sucursalId()));
     }
@@ -82,7 +85,7 @@ public class UsuarioController {
     @PutMapping("/{asignacionId}")
     public RespuestaUsuario reasignar(
             @PathVariable UUID asignacionId, @Valid @RequestBody PeticionReasignacion peticion) {
-        return RespuestaUsuario.desde(
+        return conCargo(
                 usuarios.reasignar(asignacionId, peticion.rolId(), peticion.sucursalId()));
     }
 
@@ -95,7 +98,7 @@ public class UsuarioController {
     @PutMapping("/{asignacionId}/estado")
     public RespuestaUsuario cambiarEstado(
             @PathVariable UUID asignacionId, @Valid @RequestBody PeticionEstado peticion) {
-        return RespuestaUsuario.desde(usuarios.cambiarEstado(asignacionId, peticion.activo()));
+        return conCargo(usuarios.cambiarEstado(asignacionId, peticion.activo()));
     }
 
     @Operation(
@@ -114,6 +117,10 @@ public class UsuarioController {
      * @param sucursalId opcional: sin él, la persona alcanza todos los
      *                   establecimientos
      */
+    private RespuestaUsuario conCargo(MiembroEmpresa miembro) {
+        return RespuestaUsuario.desde(miembro, usuarios.propietarios().contains(miembro.usuarioId()));
+    }
+
     public record PeticionNuevo(
             @NotBlank(message = "El correo es obligatorio.")
             @Email(message = "El correo no tiene un formato válido.")
@@ -166,9 +173,11 @@ public class UsuarioController {
             String rolNombre,
             UUID sucursalId,
             String sucursalNombre,
-            boolean todosLosEstablecimientos) {
+            boolean todosLosEstablecimientos,
+            /** Administrador de la cuenta: no tiene rol, tiene la cuenta (doc 12 §6.1). */
+            boolean propietario) {
 
-        static RespuestaUsuario desde(MiembroEmpresa miembro) {
+        static RespuestaUsuario desde(MiembroEmpresa miembro, boolean propietario) {
             return new RespuestaUsuario(
                     miembro.asignacionId(),
                     miembro.usuarioId(),
@@ -182,7 +191,8 @@ public class UsuarioController {
                     miembro.rolNombre(),
                     miembro.sucursalId(),
                     miembro.sucursalNombre(),
-                    miembro.alcanzaTodosLosEstablecimientos());
+                    miembro.alcanzaTodosLosEstablecimientos(),
+                    propietario);
         }
     }
 

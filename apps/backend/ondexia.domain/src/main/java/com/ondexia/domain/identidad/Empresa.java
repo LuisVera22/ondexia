@@ -38,6 +38,9 @@ public class Empresa {
     /** Del Banco de la Nación. Opcional; ver doc 11 §6.1. */
     private String cuentaDetracciones;
 
+    /** Lo único del régimen que importa aquí: si emite facturas. Ver {@link RegimenTributario}. */
+    private RegimenTributario regimen = RegimenTributario.porOmision();
+
     /**
      * Alta.
      *
@@ -72,15 +75,34 @@ public class Empresa {
      *
      * @throws ReglaDeNegocioViolada si el RUC no está activo y habido
      */
-    public static Empresa registrar(UUID id, UUID cuentaId, DatosDeRuc datos) {
+    public static Empresa registrar(UUID id, UUID cuentaId, DatosDeRuc datos,
+            RegimenTributario regimen) {
         if (!datos.aptaParaRegistro()) {
             throw new ReglaDeNegocioViolada("ruc_no_apto", datos.motivoDeRechazo());
+        }
+
+        /*
+         * Quien puede registrarse lo dice el prefijo del RUC (doc 12 §3.1):
+         * personas naturales con negocio y personas juridicas. Una sucesion
+         * indivisa o una entidad con otro documento no es hoy un cliente, y
+         * admitirla seria emitir con reglas que nadie ha revisado para ella.
+         * Esta en la fabrica y no en el caso de uso por la misma razon que la
+         * aptitud del RUC: no hay otro camino para crear una empresa.
+         */
+        var tipo = datos.ruc().tipoDeContribuyente();
+        if (!tipo.puedeRegistrarse()) {
+            throw new ReglaDeNegocioViolada(
+                    "tipo_de_contribuyente_no_admitido",
+                    "El RUC " + datos.ruc() + " es de " + tipo.descripcion()
+                            + ". Ondexia admite por ahora personas naturales con negocio "
+                            + "(RUC 10) y personas jurídicas (RUC 20).");
         }
 
         Empresa empresa = new Empresa(id, cuentaId, datos.ruc(), datos.razonSocial(),
                 datos.domicilioFiscal());
         empresa.ubigeo = datos.ubigeo();
         empresa.verificacion = VerificacionSunat.de(datos);
+        empresa.cambiarRegimen(regimen);
         return empresa;
     }
 
@@ -88,7 +110,7 @@ public class Empresa {
     public Empresa(UUID id, UUID cuentaId, Ruc ruc, String razonSocial, String nombreComercial,
             String domicilioFiscal, Ubigeo ubigeo, String secretArnCertificado, String usuarioSol,
             ModoSunat modoSunat, boolean activa, VerificacionSunat verificacion,
-            String cuentaDetracciones) {
+            String cuentaDetracciones, RegimenTributario regimen) {
         this.id = id;
         this.cuentaId = cuentaId;
         this.ruc = ruc;
@@ -102,6 +124,7 @@ public class Empresa {
         this.activa = activa;
         this.verificacion = verificacion;
         this.cuentaDetracciones = cuentaDetracciones;
+        this.regimen = regimen == null ? RegimenTributario.porOmision() : regimen;
     }
 
     public UUID id() {
@@ -151,6 +174,32 @@ public class Empresa {
     /** @return {@code null} si nunca se comprobó contra SUNAT */
     public VerificacionSunat verificacion() {
         return verificacion;
+    }
+
+    public RegimenTributario regimen() {
+        return regimen;
+    }
+
+    /** Si puede emitir facturas: lo decide el régimen, no una casilla. */
+    public boolean emiteFacturas() {
+        return regimen.emiteFacturas();
+    }
+
+    /**
+     * El régimen lo declara el contribuyente y puede cambiar —quien crece sale
+     * del Nuevo RUS—. Lo que no puede es contradecir al RUC: una persona jurídica
+     * en el RUS no existe.
+     */
+    public void cambiarRegimen(RegimenTributario nuevo) {
+        var regimenNuevo = nuevo == null ? RegimenTributario.porOmision() : nuevo;
+        if (regimenNuevo == RegimenTributario.NUEVO_RUS
+                && !ruc.tipoDeContribuyente().puedeEstarEnNuevoRus()) {
+            throw new ReglaDeNegocioViolada(
+                    "nuevo_rus_solo_persona_natural",
+                    "El Nuevo RUS es solo para personas naturales. El RUC " + ruc
+                            + " es de una persona jurídica.");
+        }
+        this.regimen = regimenNuevo;
     }
 
     public String cuentaDetracciones() {

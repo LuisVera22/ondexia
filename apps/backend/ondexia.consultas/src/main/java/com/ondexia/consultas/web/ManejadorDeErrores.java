@@ -94,6 +94,20 @@ public class ManejadorDeErrores {
                 .body(new Fallo("sin_solicitante", error.getMessage(), false));
     }
 
+    /**
+     * La identidad agotó su cuota de la hora. Reintentable: dice cuándo.
+     *
+     * <p>429 y no 403: no es que no pueda, es que ya pudo suficiente por ahora.
+     * {@code Retry-After} va en segundos para que un cliente que lo respete no
+     * insista antes de tiempo.
+     */
+    @ExceptionHandler(CuotaPorSolicitante.CuotaAgotada.class)
+    public ResponseEntity<Fallo> cuotaAgotada(CuotaPorSolicitante.CuotaAgotada error) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", String.valueOf(error.segundosParaReintentar()))
+                .body(new Fallo("cuota_de_consultas_agotada", error.getMessage(), true));
+    }
+
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Fallo> formato(ConstraintViolationException error) {
         return ResponseEntity.badRequest()

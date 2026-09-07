@@ -98,7 +98,7 @@ class RolesIT extends PruebaIntegracion {
 
         // Un rol propio, copiado de Vendedor: no tiene `almacen.almacen`.
         var aMedida = roles.duplicar(
-                repositorioRoles.buscarPredefinido("VENDEDOR").orElseThrow().id(),
+                rolDeLaCuenta("VENDEDOR").id(),
                 "Vendedor con almacén");
 
         // Alguien con ese rol. Se le vincula una identidad de Cognito a mano,
@@ -158,7 +158,7 @@ class RolesIT extends PruebaIntegracion {
     @DisplayName("La copia arrastra los permisos del original y ya es editable")
     void duplicarCopiaLosPermisos() throws Exception {
         comoDemo();
-        var origen = repositorioRoles.buscarPredefinido("ALMACENERO").orElseThrow();
+        var origen = rolDeLaCuenta("ALMACENERO");
         int permisosDelOrigen = roles.permisosDe(origen.id()).size();
         ContextoDePrueba.limpiar();
 
@@ -183,13 +183,13 @@ class RolesIT extends PruebaIntegracion {
     @DisplayName("Duplicar dos veces con el mismo nombre no choca")
     void codigosQueNoChocan() {
         comoDemo();
-        var origen = repositorioRoles.buscarPredefinido("CONTADOR").orElseThrow();
+        var origen = rolDeLaCuenta("ALMACENERO");
 
-        var primero = roles.duplicar(origen.id(), "Contador junior");
-        var segundo = roles.duplicar(origen.id(), "Contador junior");
+        var primero = roles.duplicar(origen.id(), "Almacenero junior");
+        var segundo = roles.duplicar(origen.id(), "Almacenero junior");
 
-        assertThat(primero.codigo()).isEqualTo("CONTADOR_JUNIOR");
-        assertThat(segundo.codigo()).isEqualTo("CONTADOR_JUNIOR_2");
+        assertThat(primero.codigo()).isEqualTo("ALMACENERO_JUNIOR");
+        assertThat(segundo.codigo()).isEqualTo("ALMACENERO_JUNIOR_2");
     }
 
     // ── Los predefinidos son inmutables ─────────────────────────────────────
@@ -197,7 +197,8 @@ class RolesIT extends PruebaIntegracion {
     @Test
     @DisplayName("Un rol del sistema no se renombra ni se borra")
     void losPredefinidosNoSeTocan() throws Exception {
-        var vendedor = repositorioRoles.buscarPredefinido("VENDEDOR").orElseThrow();
+        // Desde la V16 el unico rol del sistema es ADMINISTRADOR (doc 12 §6.1).
+        var vendedor = repositorioRoles.buscarPredefinido("ADMINISTRADOR").orElseThrow();
 
         // 409 y no 403: no es un problema de quién eres, es que ese rol no lo
         // modifica nadie. Un 403 sugeriría que otro usuario sí podría.
@@ -205,7 +206,7 @@ class RolesIT extends PruebaIntegracion {
                         .header("Authorization", autorizacionDemo())
                         .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"nombre\":\"Vendedor mío\"}"))
+                        .content("{\"nombre\":\"Administrador mío\"}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.codigo").value("rol_del_sistema"));
 
@@ -222,7 +223,7 @@ class RolesIT extends PruebaIntegracion {
     void noSeBorraUnRolEnUso() {
         comoDemo();
         var aMedida = roles.duplicar(
-                repositorioRoles.buscarPredefinido("VENDEDOR").orElseThrow().id(),
+                rolDeLaCuenta("VENDEDOR").id(),
                 "Vendedor ocupado");
 
         usuarios.invitar("ocupa.rol@ejemplo.com", "Ocupa El Rol", "Apellido", aMedida.id(), null);
@@ -243,7 +244,7 @@ class RolesIT extends PruebaIntegracion {
     void unRolLibreSeElimina() throws Exception {
         comoDemo();
         var aMedida = roles.duplicar(
-                repositorioRoles.buscarPredefinido("CONTADOR").orElseThrow().id(),
+                rolDeLaCuenta("ALMACENERO").id(),
                 "Contador de paso");
         ContextoDePrueba.limpiar();
 
@@ -311,7 +312,7 @@ class RolesIT extends PruebaIntegracion {
          */
         comoDemo();
         var aMedida = roles.duplicar(
-                repositorioRoles.buscarPredefinido("ALMACENERO").orElseThrow().id(),
+                rolDeLaCuenta("ALMACENERO").id(),
                 "Almacenero con puerta");
 
         String sub = "sub-puerta-de-modulo";
@@ -358,7 +359,7 @@ class RolesIT extends PruebaIntegracion {
          */
         comoDemo();
         var aMedida = roles.duplicar(
-                repositorioRoles.buscarPredefinido("VENDEDOR").orElseThrow().id(),
+                rolDeLaCuenta("VENDEDOR").id(),
                 "Vendedor podado");
 
         // Solo la función, sin su submódulo ni su módulo.
@@ -382,7 +383,7 @@ class RolesIT extends PruebaIntegracion {
     void elSubmoduloTambienNecesitaPadre() {
         comoDemo();
         var aMedida = roles.duplicar(
-                repositorioRoles.buscarPredefinido("VENDEDOR").orElseThrow().id(),
+                rolDeLaCuenta("VENDEDOR").id(),
                 "Vendedor sin modulo");
 
         roles.cambiarPermisos(aMedida.id(), Set.of(
@@ -393,7 +394,7 @@ class RolesIT extends PruebaIntegracion {
     }
 
     @Test
-    @DisplayName("La migración no cambió lo que los roles predefinidos podían")
+    @DisplayName("El Vendedor de la cuenta demo tiene el alcance que tenía el del sistema")
     void losPredefinidosConservanSuAlcance() {
         /*
          * V6 concede a cada rol los eslabones de módulo y submódulo que ya tenía
@@ -403,7 +404,7 @@ class RolesIT extends PruebaIntegracion {
          * marcha.
          */
         comoDemo();
-        var vendedor = repositorioRoles.buscarPredefinido("VENDEDOR").orElseThrow();
+        var vendedor = rolDeLaCuenta("VENDEDOR");
         var suyos = permisos.permisosDelRol(vendedor.id());
 
         assertThat(suyos.puede("ventas.comprobante", "emitir"))
@@ -424,7 +425,7 @@ class RolesIT extends PruebaIntegracion {
     void permisoDesconocido() throws Exception {
         comoDemo();
         var aMedida = roles.duplicar(
-                repositorioRoles.buscarPredefinido("VENDEDOR").orElseThrow().id(),
+                rolDeLaCuenta("VENDEDOR").id(),
                 "Vendedor con permiso raro");
         ContextoDePrueba.limpiar();
 
@@ -444,7 +445,7 @@ class RolesIT extends PruebaIntegracion {
         // mientras se compone. Rechazarla obligaría a construirlo al revés.
         comoDemo();
         var aMedida = roles.duplicar(
-                repositorioRoles.buscarPredefinido("VENDEDOR").orElseThrow().id(),
+                rolDeLaCuenta("VENDEDOR").id(),
                 "Vendedor en blanco");
 
         roles.cambiarPermisos(aMedida.id(), Set.of());
@@ -471,7 +472,7 @@ class RolesIT extends PruebaIntegracion {
         comoDemo();
 
         var aMedida = roles.duplicar(
-                repositorioRoles.buscarPredefinido("VENDEDOR").orElseThrow().id(),
+                rolDeLaCuenta("VENDEDOR").id(),
                 "Rol del supervisor");
 
         // Alguien CON ese rol, y con permiso para editar roles: es el caso real
@@ -506,7 +507,7 @@ class RolesIT extends PruebaIntegracion {
         comoDemo();
 
         var ajeno = roles.duplicar(
-                repositorioRoles.buscarPredefinido("VENDEDOR").orElseThrow().id(),
+                rolDeLaCuenta("VENDEDOR").id(),
                 "Rol de otra persona");
 
         var conMas = new HashSet<>(roles.permisosDe(ajeno.id()));
@@ -515,5 +516,44 @@ class RolesIT extends PruebaIntegracion {
         roles.cambiarPermisos(ajeno.id(), conMas);
 
         assertThat(roles.permisosDe(ajeno.id())).contains(permisoDeModulo("almacen"));
+    }
+
+    /**
+     * Y la otra mitad de la regla de no elevacion (doc 12 §6.3): nadie marca en
+     * un rol ajeno una casilla que el mismo no tiene. Sin esto la regla de
+     * {@code Usuarios} se rodea en dos pasos: ensanchar un rol y asignarlo.
+     */
+    @Test
+    @DisplayName("Nadie concede a un rol permisos que él mismo no tiene")
+    void nadieConcedeLoQueNoTiene() {
+        comoDemo();
+        var supervisora = roles.duplicar(rolDeLaCuenta("VENDEDOR").id(), "Supervisora con roles");
+        var conRoles = new HashSet<>(roles.permisosDe(supervisora.id()));
+        conRoles.add(permisoDeModulo("configuracion"));
+        conRoles.add(permisoDeSubmodulo("configuracion.rol"));
+        conRoles.add(permiso("configuracion.rol", "editar"));
+        roles.cambiarPermisos(supervisora.id(), conRoles);
+        var persona = usuarios.invitar("supervisora.roles@ejemplo.com", "Supervisora", "Roles",
+                supervisora.id(), null);
+        var ajeno = roles.duplicar(rolDeLaCuenta("VENDEDOR").id(), "Rol que la supervisora edita");
+
+        ContextoDePrueba.limpiar();
+        ContextoDePrueba.establecer(new com.ondexia.domain.comun.ContextoOperacion(
+                persona.usuarioId(), "sub-supervisora-roles", CUENTA, 1L,
+                UUID.fromString(EMPRESA_ADMINISTRADA), null, supervisora.id(), false, false,
+                "127.0.0.1"));
+
+        var conAlmacen = new HashSet<>(roles.permisosDe(ajeno.id()));
+        conAlmacen.add(permisoDeModulo("almacen"));
+        conAlmacen.add(permisoDeSubmodulo("almacen.almacen"));
+        conAlmacen.add(permiso("almacen.almacen", "consultar"));
+
+        assertThatThrownBy(() -> roles.cambiarPermisos(ajeno.id(), conAlmacen))
+                .isInstanceOf(ReglaDeNegocioViolada.class)
+                .hasMessageContaining("permisos que tú no tienes");
+
+        // Quitar permisos siempre se puede: lo que queda es subconjunto de lo suyo.
+        roles.cambiarPermisos(ajeno.id(), Set.of());
+        assertThat(roles.permisosDe(ajeno.id())).isEmpty();
     }
 }

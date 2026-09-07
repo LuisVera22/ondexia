@@ -7,6 +7,8 @@ import { accionConEstado } from '../../../shared/components/comunes/boton/estado
 import {
   ConfiguracionApiService,
   Empresa,
+  RegimenTributario,
+  esPersonaNatural,
   mensajeDeError,
 } from '../../../nucleo/configuracion.api.service';
 import { ConsultasApiService, ErrorDeConsulta } from '../../../nucleo/consultas.api.service';
@@ -128,7 +130,12 @@ export class EmpresaComponent implements ConCambiosSinGuardar {
     // Sin longitud fija: el formato del Banco de la Nacion no esta publicado, y
     // un largo inventado rechazaria cuentas validas.
     cuentaDetracciones: ['', [Validators.pattern(/^\d*$/)]],
+    // Solo editable para una persona natural (RUC 10); ver `preguntaRegimen`.
+    regimenTributario: ['OTRO' as RegimenTributario],
   });
+
+  /** El régimen solo se pregunta a una persona natural: es la única que puede estar en el RUS. */
+  readonly preguntaRegimen = computed(() => esPersonaNatural(this.empresa()?.ruc));
 
   /**
    * Se declara aqui y no dentro de {@code cargar} porque se suscribe a los
@@ -193,6 +200,7 @@ export class EmpresaComponent implements ConCambiosSinGuardar {
     this.formulario.patchValue({
       nombreComercial: empresa.nombreComercial ?? '',
       cuentaDetracciones: empresa.cuentaDetracciones ?? '',
+      regimenTributario: empresa.regimenTributario,
     });
     this.aplicarModoLectura();
     this.cambios.fijarBase();
@@ -328,6 +336,9 @@ export class EmpresaComponent implements ConCambiosSinGuardar {
         await this.api.guardarEmpresa({
           nombreComercial: valores.nombreComercial || null,
           cuentaDetracciones: valores.cuentaDetracciones || null,
+          // Solo si se pregunto: a una persona juridica no se le envia nada y
+          // el servidor conserva OTRO.
+          regimenTributario: this.preguntaRegimen() ? valores.regimenTributario : null,
         })
       );
 
