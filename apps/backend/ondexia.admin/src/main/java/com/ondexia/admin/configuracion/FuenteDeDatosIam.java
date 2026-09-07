@@ -1,6 +1,7 @@
 package com.ondexia.admin.configuracion;
 
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -63,12 +64,16 @@ final class FuenteDeDatosIam implements DataSource {
     private final String anfitrion;
     private final int puerto;
     private final RdsUtilities firmador;
+    /** Ruta en disco del paquete de CA de RDS; ver {@link CertificadoRaizRds}. */
+    private final Path raizRds;
 
-    FuenteDeDatosIam(String url, String usuario, String anfitrion, int puerto, Region region) {
+    FuenteDeDatosIam(String url, String usuario, String anfitrion, int puerto, Region region,
+            Path raizRds) {
         this.url = url;
         this.usuario = usuario;
         this.anfitrion = anfitrion;
         this.puerto = puerto;
+        this.raizRds = raizRds;
         /*
          * El proveedor de credenciales es OBLIGATORIO, y omitirlo no falla al
          * construir sino al firmar el primer token:
@@ -100,13 +105,26 @@ final class FuenteDeDatosIam implements DataSource {
 
     @Override
     public Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(url, propiedadesDeConexion());
+    }
+
+    /** Lo que se le pide al controlador. Separado para poder probarlo sin base. */
+    Properties propiedadesDeConexion() {
         var propiedades = new Properties();
         propiedades.setProperty("user", usuario);
         propiedades.setProperty("password", tokenNuevo());
         propiedades.setProperty("ssl", "true");
-        propiedades.setProperty("sslmode", "require");
-
-        return DriverManager.getConnection(url, propiedades);
+        /*
+         * `verify-full` y no `require`: `require` cifra sin comprobar contra
+         * quien, y dentro de una VPC quien se pone en medio es el escenario
+         * menos improbable. El paquete de CA va en un ARCHIVO porque
+         * `sslrootcert` no lee el classpath (CertificadoRaizRds). Igual que en
+         * la API; la validacion del 2026-09-07 encontro que el panel seguia en
+         * `require`. Lo fija FuenteDeDatosIamTest.
+         */
+        propiedades.setProperty("sslmode", "verify-full");
+        propiedades.setProperty("sslrootcert", raizRds.toString());
+        return propiedades;
     }
 
     /**

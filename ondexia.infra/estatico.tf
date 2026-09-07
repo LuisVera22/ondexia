@@ -157,6 +157,12 @@ locals {
   # sintoma seria una aplicacion que carga y no hace nada.
   cognito_idp    = "https://cognito-idp.${var.region}.amazonaws.com"
   cognito_hosted = "https://${aws_cognito_user_pool_domain.inquilinos.domain}.auth.${var.region}.amazoncognito.com"
+  # El dominio alojado del pool de PERSONAL, que es distinto del de inquilinos.
+  # El SPA del panel canjea el codigo, renueva y revoca contra
+  # `${dominio}/oauth2/...`, asi que sin el en su connect-src el navegador
+  # bloquea el inicio de sesion del panel entero. La validacion de la auditoria
+  # del 2026-09-07 encontro la CSP del panel sin esta linea.
+  cognito_hosted_personal = "https://${aws_cognito_user_pool_domain.personal.domain}.auth.${var.region}.amazoncognito.com"
   /**
    * A donde deja hablar la CSP, SIN referirse a los recursos.
    *
@@ -204,12 +210,19 @@ locals {
     # clientes y el CDN de marca—, asi que no hay un valor exacto que poner. Es
     # una consola interna de dos o tres personas; el dia que se le ponga dominio,
     # esta linea se estrecha.
-    "connect-src 'self' https://*.execute-api.${var.region}.amazonaws.com ${local.cognito_idp}",
+    "connect-src 'self' https://*.execute-api.${var.region}.amazonaws.com ${local.cognito_idp} ${local.cognito_hosted_personal}",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
     "object-src 'none'",
   ])
+
+  # Ninguna de las cuatro superficies usa camara, microfono, geolocalizacion,
+  # pagos ni sensores. Negarlo de forma explicita cierra lo que un script
+  # inyectado podria pedirle al navegador, y es lo que la auditoria pedia junto
+  # a la CSP. Se anade cuando alguna pantalla lo necesite —la camara para leer
+  # codigos de barras seria el primer candidato—, y solo en esa superficie.
+  permissions_policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=()"
 
   # La landing no tiene JavaScript ni habla con nadie (doc 03 §3). Su CSP puede
   # ser la mas estricta de las cuatro, y que lo sea es ademas una prueba de que
@@ -267,6 +280,14 @@ resource "aws_cloudfront_response_headers_policy" "sitio" {
       override                   = true
     }
   }
+
+  custom_headers_config {
+    items {
+      header   = "Permissions-Policy"
+      value    = local.permissions_policy
+      override = true
+    }
+  }
 }
 
 /**
@@ -316,6 +337,11 @@ resource "aws_cloudfront_response_headers_policy" "marca" {
     items {
       header   = "Content-Disposition"
       value    = "attachment"
+      override = true
+    }
+    items {
+      header   = "Permissions-Policy"
+      value    = local.permissions_policy
       override = true
     }
   }

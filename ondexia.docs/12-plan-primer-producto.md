@@ -23,7 +23,7 @@ crédito o comunicación de baja. Nada más.
 | **SUNAT** | **Sí, desde el primer producto.** Revierte la decisión del 2026-08-11 ([07 §1.2](07-plan-backend-configuracion.md)). Boleta y factura se emiten; la nota de venta no |
 | **Iteraciones** | 8, de una a dos semanas cada una, cada una con algo que se puede enseñar |
 | **Costo de nube** | ~15 USD/mes con clientes reales; 0 USD/mes mientras se desarrolla. La emisión no añade costo fijo (§5) |
-| **Decisiones que faltan** | Diez, en §10. Tres bloquean la iteración 5; las demás no bloquean nada hasta su iteración |
+| **Decisiones** | Las diez de §10 quedaron tomadas y sustentadas el mismo día en §10.1 |
 
 ## 1. Lo que cambia respecto a lo ya decidido
 
@@ -556,6 +556,54 @@ decide».
 | 8 | Formas de pago: ¿efectivo, tarjeta, transferencia y billetera digital, como catálogo cerrado? | Sí. Una tabla llega cuando un cliente pida una quinta | Sí |
 | 9 | `VENDEDOR`, `ALMACENERO`, `CONTADOR`: ¿se eliminan de la semilla o quedan como plantillas sugeridas? | Se eliminan. Las plantillas vuelven desde la pantalla de roles si alguien las pide | Se eliminan |
 | 10 | Tono de la app: impersonal («Es necesario ingresar de nuevo») o usted («Debe ingresar de nuevo») | Impersonal: es más corto y no presupone a quién le habla | Impersonal |
+
+## 10.1 Decisiones tomadas el 2026-09-07
+
+El propietario delegó la decisión con dos condiciones: investigar fuera de los
+documentos del proyecto cuando haga falta, y dejar el sustento escrito. Esto es
+lo decidido, con la fuente que lo sostiene. Lo que sigue abierto se dice.
+
+| # | Decisión | Sustento |
+|---|---|---|
+| 1 | **Emisión propia**, con las bibliotecas `xbuilder` y `xsender` del proyecto OpenUBL (`io.github.project-openubl`, Apache 2.0) y el ensayo de cinco días como puerta de salida a un proveedor | La homologación dejó de existir con la RS 287-2017/SUNAT: el emisor desde sus propios sistemas ya no rinde un examen, solo prueba contra la beta. Las bibliotecas existen, están en Maven Central y su última publicación es de junio de 2024 ([xhandler-java](https://github.com/project-openubl/xhandler-java)); que lleven más de un año sin publicar es el riesgo que el ensayo mide, y por eso hay puerta de salida |
+| 2 | **Boleta enviada individualmente**, no solo por resumen diario | SUNAT admite ambas vías: individual hasta cinco días calendario desde la emisión, o resumen diario hasta siete ([Boleta de Venta Electrónica, cpe.sunat.gob.pe](https://cpe.sunat.gob.pe/tipos_de_comprobantes/boleta)). Individual da CDR inmediato y evita el ticket y el planificador hasta la iteración 6, donde el resumen entra de todas formas para anular boletas |
+| 3 | **Emisor fuera de la VPC con bus por S3** | Es el mismo patrón que `ondexia.consultas` ya usa para salir a internet sin NAT (DT-19), y el endpoint de puerta de enlace de S3 es gratuito. La NAT queda como alternativa escrita en §5.1 para el día que un OSE exija IP fija |
+| 4 | **El alta admite RUC `10` y `20`; `15` y `17` se rechazan con mensaje; `25` no existe** | Los prefijos vigentes son `10` (persona natural), `15` y `17` (otros documentos de identidad: sucesiones, entidades, extranjeros) y `20` (persona jurídica) ([registrounicotributario.com](https://www.registrounicotributario.com/tipos-de-ruc-10-15-17-y-20-guia-completa-y-clara/), [Bsale](https://www.bsale.com.pe/article/ruc-10-vs-ruc-20-que-puede-emitir-cada-uno)). El `25` del encargo se toma como errata del `20` o del `15`. La lista de prefijos admitidos es una tabla en el dominio, no una condición: si aparece un caso `15` real, es una fila |
+| 5 | **Catálogo por empresa con disponibilidad por local** | §3.5. Sin fuente externa: es diseño, no normativa |
+| 6 | **Nota de venta sin cliente y sin tope**, con leyenda y canje | No es comprobante de pago, así que el Reglamento de Comprobantes de Pago no la alcanza. El riesgo que sí existe es que se use para no declarar; la leyenda y el canje son la respuesta del producto, y lo demás es responsabilidad del contribuyente |
+| 7 | **Existencias desde el primer producto**, venta bajo cero permitida y avisada | §3.5. Sin fuente externa |
+| 8 | **Formas de pago como catálogo cerrado** | §3.4. Sin fuente externa |
+| 9 | **`VENDEDOR`, `ALMACENERO` y `CONTADOR` salen de la semilla** | §6.1. Sin fuente externa |
+| 10 | **Tono impersonal** | §7.2. Sin fuente externa |
+
+Dos reglas fiscales del plan quedaron confirmadas por el camino: el tope de
+**S/ 700** a partir del cual la boleta debe identificar al adquirente sigue
+vigente en 2026 (Reglamento de Comprobantes de Pago, art. 8, 3.10;
+[tramitesperu.com](https://tramitesperu.com/sunat/boleta-venta-electronica/)), y
+**el Nuevo RUS solo emite boletas y tickets**, nunca facturas
+([orientacion.sunat.gob.pe](https://orientacion.sunat.gob.pe/3405-que-negocios-y-personas-no-entregan-facturas-pero-si-boletas-de-venta-o-tickets)).
+
+### Lo que la iteración 0 dejó hecho
+
+- **`verify-full` de verdad.** El paquete de CA de RDS entra al repositorio
+  (`apps/backend/certificados/`, con excepción en el `.gitignore`), lo empaquetan
+  la API y el panel desde ese único sitio, y `CertificadoRaizRds` lo copia a
+  disco porque `sslrootcert` no lee el classpath. La API, el panel y las
+  migraciones verifican el certificado del servidor. Pruebas:
+  `CertificadoRaizRdsTest` y `FuenteDeDatosIamTest` en los dos módulos.
+- **La CSP del panel admite el dominio alojado de Cognito del personal**, y las
+  cuatro políticas de cabeceras llevan `Permissions-Policy`.
+- **El bucket de estado deniega por prefijo**: cada entorno toca solo el suyo,
+  por nombre de rol, más una lista de administradores humanos y el usuario raíz.
+  El argumento de «no se puede porque los roles no existen» era válido para una
+  política por referencia y no para una por nombre.
+- **Las pruebas de integración corren sin Docker** contra un PostgreSQL externo
+  (`ONDEXIA_PRUEBAS_BD_URL` y compañía), y de paso quedó a la vista que la V8
+  depende del orden de creación de roles del clúster (ver `ServidorDePruebas`).
+
+Lo que **no** se pudo verificar aquí: `terraform validate` de la configuración
+principal, porque el registro de proveedores no es alcanzable desde este
+entorno; lo corre el CI en cada push.
 
 ## 11. Riesgos de este plan
 

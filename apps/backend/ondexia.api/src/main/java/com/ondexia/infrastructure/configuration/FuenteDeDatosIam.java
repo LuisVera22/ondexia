@@ -1,6 +1,7 @@
 package com.ondexia.infrastructure.configuration;
 
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -46,30 +47,21 @@ import software.amazon.awssdk.services.rds.RdsUtilities;
  */
 final class FuenteDeDatosIam implements DataSource {
 
-    /**
-     * El paquete de CA de RDS, dentro del artefacto.
-     *
-     * <p>El controlador de PostgreSQL admite un recurso del classpath con este
-     * prefijo, así que no hace falta escribir nada en disco — en Lambda solo
-     * {@code /tmp} es escribible.
-     *
-     * <p>El archivo se descarga de
-     * {@code https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem}
-     * y se actualiza cuando AWS rota sus autoridades, que avisa con meses.
-     */
-    private static final String RAIZ_RDS = "classpath:certificados/rds-global-bundle.pem";
-
     private final String url;
     private final String usuario;
     private final String anfitrion;
     private final int puerto;
     private final RdsUtilities firmador;
+    /** Ruta en disco del paquete de CA de RDS; ver {@link CertificadoRaizRds}. */
+    private final Path raizRds;
 
-    FuenteDeDatosIam(String url, String usuario, String anfitrion, int puerto, Region region) {
+    FuenteDeDatosIam(String url, String usuario, String anfitrion, int puerto, Region region,
+            Path raizRds) {
         this.url = url;
         this.usuario = usuario;
         this.anfitrion = anfitrion;
         this.puerto = puerto;
+        this.raizRds = raizRds;
         /*
          * El proveedor de credenciales es OBLIGATORIO, y omitirlo no falla al
          * construir sino al firmar el primer token:
@@ -101,6 +93,11 @@ final class FuenteDeDatosIam implements DataSource {
 
     @Override
     public Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(url, propiedadesDeConexion());
+    }
+
+    /** Lo que se le pide al controlador. Separado para poder probarlo sin base. */
+    Properties propiedadesDeConexion() {
         var propiedades = new Properties();
         propiedades.setProperty("user", usuario);
         propiedades.setProperty("password", tokenNuevo());
@@ -119,17 +116,20 @@ final class FuenteDeDatosIam implements DataSource {
          * con el anfitrion al que se llama, que es lo que cierra el redireccion
          * a otra instancia.
          *
-         * Necesita el paquete de CA de RDS en el almacen de confianza. Va en el
-         * artefacto y se apunta con `sslrootcert`; sin el, el fallo es
-         * «PKIX path building failed» al abrir la primera conexion — ruidoso y
-         * en el arranque, que es donde se quiere.
+         * Necesita el paquete de CA de RDS en un ARCHIVO: `sslrootcert` no lee
+         * el classpath (CertificadoRaizRds explica el porque y el error que
+         * hubo). Sin el, el fallo es «Could not open SSL root certificate file»
+         * al abrir la primera conexion — ruidoso y en el arranque, que es donde
+         * se quiere.
          *
-         * Tabla de bajas de la auditoria 2026-09-01.
+         * Tabla de bajas de la auditoria 2026-09-01; corregido tras la
+         * validacion del 2026-09-07. Lo fija FuenteDeDatosIamTest
+         * («la conexion exige verify-full con el paquete de RDS») y
+         * CertificadoRaizRdsTest.
          */
         propiedades.setProperty("sslmode", "verify-full");
-        propiedades.setProperty("sslrootcert", RAIZ_RDS);
-
-        return DriverManager.getConnection(url, propiedades);
+        propiedades.setProperty("sslrootcert", raizRds.toString());
+        return propiedades;
     }
 
     /**

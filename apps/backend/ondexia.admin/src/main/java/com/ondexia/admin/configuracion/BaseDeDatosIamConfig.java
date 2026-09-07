@@ -36,7 +36,8 @@ class BaseDeDatosIamConfig {
 
         var hikari = new HikariDataSource();
         hikari.setDataSource(new FuenteDeDatosIam(
-                url, usuario, anfitrion, puerto, Region.of(System.getenv("AWS_REGION"))));
+                url, usuario, anfitrion, puerto, Region.of(System.getenv("AWS_REGION")),
+                CertificadoRaizRds.ruta()));
         return hikari;
     }
 }

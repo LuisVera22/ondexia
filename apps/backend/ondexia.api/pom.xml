@@ -273,6 +273,24 @@
 
   <build>
     <!--
+      El paquete de CA de RDS vive UNA vez en apps/backend/certificados y lo
+      empaquetan la API y el panel desde ahi (CertificadoRaizRds). Declarar
+      <resources> sustituye la lista por omision, asi que src/main/resources se
+      vuelve a nombrar; si no, el artefacto saldria sin application.yml.
+    -->
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+      <resource>
+        <directory>${project.basedir}/../certificados</directory>
+        <targetPath>certificados</targetPath>
+        <includes>
+          <include>rds-global-bundle.pem</include>
+        </includes>
+      </resource>
+    </resources>
+    <!--
       Nombre fijo del artefacto: la infraestructura lo referencia por ruta
       (ondexia.infra/entornos/dev.tfvars). Con el nombre por omision, cada
       cambio de version obligaria a editar las tfvars.

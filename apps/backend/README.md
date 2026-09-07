@@ -73,6 +73,37 @@ cd apps/backend && ./mvnw verify
 >
 > Para el trabajo del día a día, `./mvnw test` no lo ejecuta. Y para saltarlo explícitamente, `-Ddependency-check.skip=true`.
 
+### Sin Docker
+
+Las pruebas de integración levantan PostgreSQL con Testcontainers. Donde no hay
+Docker —un agente de CI remoto, un contenedor sin acceso al socket— se les puede
+dar un servidor ya levantado, con un usuario que pueda crear roles y bases:
+
+```bash
+export ONDEXIA_PRUEBAS_BD_URL=jdbc:postgresql://localhost:5432/postgres
+export ONDEXIA_PRUEBAS_BD_USUARIO=postgres
+export ONDEXIA_PRUEBAS_BD_CONTRASENA=postgres
+cd apps/backend && ./mvnw test
+```
+
+Las pruebas crean y destruyen sus bases (`ondexia`, `ondexia_panel_pruebas`) y
+los roles de clúster de las migraciones en cada ejecución, así que el servidor
+no guarda nada entre una y otra. Por lo mismo, **la API y el panel no pueden
+correr sus pruebas a la vez** contra el mismo servidor externo; Maven las corre
+en secuencia y eso basta. Lo que se prueba no cambia: el rol de aplicación sigue
+sin `SUPERUSER` ni `BYPASSRLS` (`ServidorDePruebas` explica el porqué).
+
+### El certificado de RDS
+
+`apps/backend/certificados/rds-global-bundle.pem` es el paquete público de
+autoridades certificadoras de RDS, y la API, el panel y las migraciones lo usan
+para conectarse con `sslmode=verify-full`: cifrar sin verificar contra quién
+protege de quien escucha, no de quien se pone en medio. Es el único `.pem` que
+el `.gitignore` deja entrar, porque no es un secreto. Se descarga de
+`https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem` y se
+reemplaza cuando AWS rota una raíz; `CertificadoRaizRdsTest` comprueba que sigue
+ahí y que se puede leer.
+
 Acotar a un módulo exige `-am`, o Maven no construye sus dependencias:
 
 ```bash
