@@ -50,12 +50,17 @@ public class ManejadorMigraciones implements RequestHandler<Map<String, Object>,
     @Override
     public String handleRequest(Map<String, Object> evento, Context contexto) {
         /*
-         * `sslmode=require` en la URL, no como opcion: RDS EXIGE conexion
-         * cifrada para autenticar por IAM, y sin esto el fallo es un «PAM
-         * authentication failed» que no menciona TLS.
+         * TLS en la URL, no como opcion: RDS EXIGE conexion cifrada para
+         * autenticar por IAM, y sin esto el fallo es un «PAM authentication
+         * failed» que no menciona TLS.
+         *
+         * `verify-full` con el paquete de CA de RDS, como la API y el panel:
+         * las migraciones corren como el rol con mas privilegio de todos, asi
+         * que es la conexion que menos deberia aceptar un certificado ajeno.
          */
-        String url = "jdbc:postgresql://%s:%s/%s?ssl=true&sslmode=require".formatted(
-                variable("BD_HOST"), variable("BD_PUERTO"), variable("BD_NOMBRE"));
+        String url = "jdbc:postgresql://%s:%s/%s?ssl=true&sslmode=verify-full&sslrootcert=%s"
+                .formatted(variable("BD_HOST"), variable("BD_PUERTO"), variable("BD_NOMBRE"),
+                        com.ondexia.infrastructure.configuration.CertificadoRaizRds.ruta());
 
         /*
          * Siembra de datos de ejemplo, solo fuera de produccion.

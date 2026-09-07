@@ -67,13 +67,27 @@ class FuenteDeDatosIamTest {
         System.clearProperty("aws.secretAccessKey");
     }
 
+    private static final java.nio.file.Path RAIZ = java.nio.file.Path.of("/tmp/raiz-de-prueba.pem");
+
     private FuenteDeDatosIam fuente() {
         return new FuenteDeDatosIam(
                 "jdbc:postgresql://" + ANFITRION + ":5432/ondexia",
                 USUARIO,
                 ANFITRION,
                 5432,
-                Region.US_EAST_1);
+                Region.US_EAST_1,
+                RAIZ);
+    }
+
+    @Test
+    @DisplayName("la conexión exige verify-full con el paquete de RDS en un archivo")
+    void laConexionExigeVerifyFull() {
+        var propiedades = fuente().propiedadesDeConexion();
+
+        assertThat(propiedades.getProperty("sslmode")).isEqualTo("verify-full");
+        assertThat(propiedades.getProperty("sslrootcert"))
+                .isEqualTo(RAIZ.toString())
+                .doesNotStartWith("classpath:");
     }
 
     @Test

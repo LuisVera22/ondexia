@@ -14,8 +14,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.postgresql.PostgreSQLContainer;
-import org.testcontainers.utility.DockerImageName;
 
 /**
  * Base de las pruebas de integracion.
@@ -29,12 +27,13 @@ import org.testcontainers.utility.DockerImageName;
  * piezas que hay que probar — probar las demas contra otro motor solo da una
  * confianza que no corresponde a nada.
  *
- * <h2>Un solo contenedor para toda la suite</h2>
+ * <h2>Un solo servidor para toda la suite</h2>
  *
- * El contenedor se arranca en un bloque estatico y no se para. Arrancar uno por
- * clase de prueba multiplica el tiempo de la suite por el numero de clases; el
- * proceso de Maven termina y Ryuk, el vigilante de Testcontainers, se encarga de
- * retirarlo.
+ * Se arranca en un bloque estatico y no se para. Arrancar uno por clase de
+ * prueba multiplica el tiempo de la suite por el numero de clases; el proceso
+ * de Maven termina y Ryuk, el vigilante de Testcontainers, se encarga de
+ * retirarlo. De donde sale —contenedor o servidor externo— lo decide
+ * {@link ServidorDePruebas}.
  *
  * <h2>Perfil local</h2>
  *
@@ -50,23 +49,13 @@ import org.testcontainers.utility.DockerImageName;
 @ActiveProfiles("local")
 public abstract class PruebaIntegracion {
 
-    // Debe coincidir con compose.yaml y con la version de RDS en ondexia.infra.
-    //
-    // La clase de Testcontainers 2.0 ya no es generica: el <?> con
-    // autorreferencia que llevaba la 1.x desaparecio al reorganizar los modulos.
-    // Los ejemplos que circulan siguen escribiendo PostgreSQLContainer<?>.
     private static final String ROL_APLICACION = "ondexia";
 
-    // Las credenciales del contenedor son las del SUPERUSUARIO BOOTSTRAP, y no
+    // Las credenciales del servidor son las del SUPERUSUARIO BOOTSTRAP, y no
     // las usa ninguna prueba. Ver crearRolDeAplicacion().
-    private static final PostgreSQLContainer POSTGRES =
-            new PostgreSQLContainer(DockerImageName.parse("postgres:17-alpine"))
-                    .withDatabaseName("postgres")
-                    .withUsername("postgres")
-                    .withPassword("postgres");
+    private static final ServidorDePruebas SERVIDOR = ServidorDePruebas.arrancar();
 
     static {
-        POSTGRES.start();
         crearRolDeAplicacion();
     }
 
@@ -98,8 +87,12 @@ public abstract class PruebaIntegracion {
      */
     private static void crearRolDeAplicacion() {
         try (java.sql.Connection conexion = java.sql.DriverManager.getConnection(
-                POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+                SERVIDOR.urlBootstrap(), SERVIDOR.usuario(), SERVIDOR.contrasena());
                 java.sql.Statement sentencia = conexion.createStatement()) {
+            // En un contenedor recien creado no hay nada que borrar. En un
+            // servidor externo queda lo de la ejecucion anterior, y las
+            // pruebas parten siempre de un servidor limpio.
+            ServidorDePruebas.borrarRestosDeEjecucionesAnteriores(sentencia);
             /*
              * CREATEROLE, porque las migraciones crean roles.
              *
@@ -121,16 +114,16 @@ public abstract class PruebaIntegracion {
                     "CREATE DATABASE " + ROL_APLICACION + " OWNER " + ROL_APLICACION);
         } catch (java.sql.SQLException e) {
             throw new IllegalStateException(
-                    "No se pudo preparar el rol de aplicacion en el contenedor de pruebas", e);
+                    "No se pudo preparar el rol de aplicacion en el servidor de pruebas", e);
         }
     }
 
     @DynamicPropertySource
     static void configurarBaseDatos(DynamicPropertyRegistry registro) {
-        // Se compone la URL a mano en vez de usar getJdbcUrl(): esa apunta a la
-        // base del contenedor (postgres), no a la de la aplicacion.
+        // Se compone la URL a mano en vez de usar la del servidor: esa apunta a
+        // la base de mantenimiento (postgres), no a la de la aplicacion.
         registro.add("spring.datasource.url", () -> "jdbc:postgresql://"
-                + POSTGRES.getHost() + ":" + POSTGRES.getFirstMappedPort() + "/" + ROL_APLICACION);
+                + SERVIDOR.anfitrion() + ":" + SERVIDOR.puerto() + "/" + ROL_APLICACION);
         registro.add("spring.datasource.username", () -> ROL_APLICACION);
         registro.add("spring.datasource.password", () -> ROL_APLICACION);
     }

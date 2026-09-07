@@ -18,8 +18,17 @@ página «v1 — primera versión».
 ```bash
 cd bootstrap
 terraform init
-terraform apply
+terraform apply -var='principales_con_acceso_total=["arn:aws:iam::TU_ID_DE_CUENTA:user/TU_USUARIO"]'
 ```
+
+La variable lista a las personas que pueden leer y escribir el estado de
+**todos** los entornos. Sin ella, cada prefijo del bucket (`ondexia/dev/`,
+`ondexia/prod/`) solo lo tocan los roles de despliegue y de plan de ese entorno
+y el usuario raíz de la cuenta: es lo que impide que el rol de solo lectura de
+`dev`, que corre en un entorno de GitHub sin revisor, baje el estado de `prod`
+con la contraseña maestra dentro. Si vas a ejecutar `terraform plan` o `apply`
+desde tu máquina, tu identidad tiene que estar en la lista; los roles del CI no,
+que ya entran por nombre.
 
 Después, desde esta carpeta, apuntar el backend al bucket que imprimió:
 

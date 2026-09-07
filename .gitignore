@@ -4,6 +4,12 @@
 *.p12
 *.jks
 *.pem
+# Excepción: el paquete PÚBLICO de autoridades certificadoras de RDS. No es un
+# secreto —lo publica AWS para todo el mundo— y la API lo necesita dentro del
+# artefacto para verificar la identidad de la base (verify-full). Sin esta
+# línea el archivo se queda en el disco de quien lo descargó y la nube arranca
+# sin él: es exactamente lo que pasó y detectó la validación del 2026-09-07.
+!apps/backend/certificados/rds-global-bundle.pem
 *.key
 *.crt
 .env

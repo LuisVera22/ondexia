@@ -1286,10 +1286,6 @@ components:
           maxLength: 150
           minLength: 0
           type: string
-        correo:
-          maxLength: 254
-          minLength: 0
-          type: string
     RespuestaRegistro:
       type: object
       properties:
