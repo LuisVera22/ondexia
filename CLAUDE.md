@@ -132,6 +132,7 @@ roja: es a propósito, para que alguien decida si era lo que se quería.
 | Qué | Dónde |
 |---|---|
 | Decisiones técnicas y su porqué | `ondexia.docs/DTE-ONX-001_sistema_gestion_comercial.md` |
+| Qué se construye primero y en qué orden | `ondexia.docs/12-plan-primer-producto.md` |
 | Estructura del repositorio y CI/CD | `ondexia.docs/03-estructura-repositorio.md` |
 | Arquitectura del backend | `ondexia.docs/08-arquitectura-backend.md` |
 | Panel interno | `ondexia.docs/09-panel-administrativo.md` |
