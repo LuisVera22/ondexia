@@ -8,8 +8,9 @@ está marcado como pendiente y no se describe como si existiera.
 | Parte | Iteración | Estado |
 |---|---|---|
 | §1 Caja y sesiones de caja | 2 | Hecho |
-| §2 Productos disponibles por local y existencias | 3 | Pendiente |
-| §3 Nota de venta y canje | 4 | Pendiente |
+| §2 Productos, disponibilidad por local y existencias | 3 | Hecho |
+| §3 Clientes | 3 | Hecho |
+| §4 Nota de venta y canje | 4 | Pendiente |
 
 ## 1. Caja y sesiones de caja
 
@@ -116,14 +117,142 @@ cierra una.
 - Series por caja no se contemplan: la serie la decide el establecimiento (doc
   12 §3.4).
 
-## 2. Productos disponibles por local y existencias
+## 2. Productos, disponibilidad por local y existencias
 
-Pendiente: iteración 3.
+### 2.1 El catálogo es de la empresa; el local decide si lo vende y a qué precio
 
-## 3. Nota de venta y canje
+Es la interpretación de «los productos se manejan por local» que fija el doc
+12 §3.5, y la V18 la escribe en tres tablas:
+
+| Tabla | Qué guarda | Regla |
+|---|---|---|
+| `producto` | Código, nombre, descripción, unidad (catálogo 03), afectación al IGV (catálogo 07), precio de lista, si controla existencias | Código único por empresa. La unidad y la afectación son atributos del bien y no pueden discrepar entre dos comprobantes del mismo RUC |
+| `producto_local` | Por establecimiento: si se vende y el precio propio (nulo: el de lista) | **Sin fila, no se vende ahí.** Un producto nuevo nace disponible solo en el local donde se creó; los demás se activan en la ficha |
+| `movimiento_stock` y `stock` | El libro (cada entrada y salida, con signo) y su proyección por almacén | El libro es de solo inserción por disparador; la proyección se mueve en la misma sentencia que el movimiento |
+
+Los catálogos de SUNAT son enumerados del dominio, no tablas: `UnidadDeMedida`
+trae las veintidós unidades que un mostrador usa (NIU, ZZ para servicios, KGM,
+BG, MTR…) y `AfectacionIgv` las tres onerosas (10, 20, 30). Las variantes
+gratuitas del catálogo 07 son de la operación —el mismo bien se vende gravado y
+se regala— y se resolverán en la línea del documento, no en el producto. La API
+publica ambos en `GET /api/v1/almacen/productos/catalogos` para que la pantalla
+no tenga una segunda copia.
+
+### 2.2 Existencias: el libro explica la proyección
+
+`Existencias.ajustar` no fija una cantidad: registra la **diferencia** entre lo
+contado y lo que había como un movimiento `AJUSTE`, y la proyección se mueve con
+él. Contar lo mismo que había no anota nada. Así el libro siempre explica el
+número que se ve, que es lo que el DTE pedía de `movimiento_stock` desde el
+primer día.
+
+La suma es atómica en la base: `INSERT … ON CONFLICT DO UPDATE SET cantidad =
+stock.cantidad + EXCLUDED.cantidad` (`ExistenciasAdaptador`). Dos ventas del
+mismo producto a la vez no pueden leer la misma existencia y escribir cada una la
+suya; con entidades sería leer, sumar y guardar, que es justo la carrera. La
+venta de la iteración 4 descargará por este mismo puerto con tipo `VENTA`.
+
+Un producto que no controla existencias (un servicio) no admite ajustes: no hay
+nada que contar.
+
+| Regla | Prueba |
+|---|---|
+| Código único por empresa; unidad y afectación del catálogo | `ProductosIT.validaciones`, `ProductoTest.catalogos` |
+| Nace disponible solo en el local de alta; los demás se fijan con precio propio; un local de otra empresa no vale | `ProductosIT.disponibilidadPorLocal` |
+| El ajuste anota la diferencia, la proyección la sigue, el libro no se borra | `ProductosIT.ajusteDeExistencias` |
+| Un servicio no tiene existencias | `ProductosIT.servicioSinExistencias` |
+| Búsqueda por código o nombre sin mayúsculas (pg_trgm) | `ProductosIT.busqueda` |
+| Aislamiento entre empresas | `ProductosIT.aislamiento` |
+
+### 2.3 API y pantalla
+
+Bajo `/api/v1/almacen/productos`, con los permisos `almacen.producto` (ficha y
+disponibilidad) y `almacen.stock` (existencias: `consultar`, `ajustar`), que ya
+existían en la V2.
+
+| Método y ruta | Permiso | Qué hace |
+|---|---|---|
+| `GET /?q=` | producto:consultar | Todo el catálogo, o hasta 50 por código o nombre |
+| `GET /catalogos` | producto:consultar | Unidades y afectaciones admitidas |
+| `POST /` | producto:registrar | Alta; `sucursalId` obligatorio: el local donde nace disponible |
+| `PUT /{id}`, `PUT /{id}/estado` | producto:editar, desactivar | Ficha y estado. El código no cambia; nunca se borra |
+| `GET /{id}/locales`, `PUT /{id}/locales/{sucursalId}` | producto:consultar, editar | Disponibilidad y precio por establecimiento |
+| `GET /{id}/existencias`, `GET /{id}/movimientos` | stock:consultar | La proyección y el libro |
+| `POST /{id}/existencias/ajustes` | stock:ajustar | Conteo: `almacenId`, `cantidad`, `motivo` |
+
+La pantalla `Almacén → Productos` trae el catálogo entero y filtra en el
+navegador: son cientos de filas, no miles, y el filtro instantáneo vale más que
+una petición por tecla; la búsqueda del servidor queda para el punto de venta.
+La ficha tiene tres pestañas —datos generales, disponibilidad por local,
+existencias con sus movimientos y el ajuste por conteo—. Las de presentaciones,
+precios por tipo y kardex valorizado de la maqueta se retiraron: no existen en
+el primer producto y una pestaña que promete algo que no se guarda enseña a no
+confiar en la ficha.
+
+## 3. Clientes
+
+### 3.1 Documento del adquirente
+
+`cliente` guarda al adquirente identificado con el catálogo 06 de SUNAT:
+`TipoDocumentoIdentidad` admite DNI (1), carné de extranjería (4), RUC (6) y
+pasaporte (7). Falta a propósito el «0 · sin documento»: el cliente sin
+documento de una boleta o una nota de venta **no es una fila**, es la ausencia
+de `cliente_id` en la venta (doc 12 §4.3).
+
+Cada tipo valida su número al entrar —el DNI son ocho dígitos, el RUC lleva
+dígito verificador (doc 12 §3.2)— y el error señala al campo: para eso
+`ReglaDeNegocioViolada` gana en esta iteración un `campo` opcional, con el mismo
+motivo que `Conflicto` ya lo tenía. El documento no cambia después del alta:
+identifica al cliente en sus comprobantes; si se tecleó mal, se crea otro. La
+unicidad es por `(empresa, tipo, número)` y la garantiza la base.
+
+### 3.2 RUC verificado por el padrón; DNI sin firma
+
+Un cliente con RUC puede llegar con la **atestación** de `GET /consultas/ruc`,
+la misma firma que verifica el alta de empresas (doc 11). Entonces la razón
+social y el domicilio salen de la firma, no del formulario, y `verificado_en`
+queda con la fecha. Sin atestación también se admite —el servicio de consulta
+puede no estar y el mostrador no puede esperar—, sin `verificado_en`, y la
+pantalla lo dice: la factura de la iteración 4 lo volverá a comprobar. Una
+atestación de otro RUC se rechaza.
+
+Para el DNI se añade `GET /consultas/dni/{dni}` a `ondexia.consultas`, por los
+mismos proveedores y credenciales que el RUC (Decolecta `GET /reniec/dni`,
+ApiPeru `POST /dni`), con la misma cuota por identidad y el mismo throttling en
+la pasarela. **Sin atestación**, y es una decisión: SUNAT no valida el nombre del
+adquirente de una boleta, solo el número, y el número lo teclea quien vende. La
+consulta es una comodidad para no teclear el nombre, y una comodidad no
+necesita firma. Si el plan del proveedor no incluye RENIEC, responde 401 o 403
+y la cascada pasa al siguiente; si ninguno la tiene, la pantalla avisa y deja
+teclear el nombre.
+
+| Regla | Prueba |
+|---|---|
+| DNI de ocho dígitos, RUC con dígito verificador, error en el campo | `ClienteTest`, `ClientesIT.rucInvalido` |
+| Con atestación, razón social y domicilio del padrón y `verificadoEn` | `ClientesIT.clienteConRucVerificado` |
+| La atestación de otro RUC no vale | `ClientesIT.atestacionDeOtroRuc` |
+| Sin atestación se admite y se verifica después | `ClientesIT.rucSinVerificarYLuegoVerificado` |
+| Documento único por empresa | `ClientesIT.clienteConDni` |
+| La consulta de DNI devuelve el nombre en el orden de la boleta, sin firma; 404 si no existe; 401 sin solicitante | `ConsultaDeDniControllerTest` |
+
+### 3.3 API y pantalla
+
+Bajo `/api/v1/ventas/clientes` con el permiso `ventas.cliente` (V2): listado y
+búsqueda (`?q=`, por nombre o documento), catálogo 06 en `/tipos-documento`,
+alta con atestación opcional, edición de nombre y contacto,
+`POST /{id}/verificacion` para aplicar una atestación nueva, y estado.
+
+La ficha consulta SUNAT o RENIEC según el tipo, rellena lo que el servicio sabe y
+guarda la atestación solo si la consulta fue de ese mismo número: cambiar el
+número después de consultar la descarta, porque era de otro RUC
+(`FichaClienteComponent`, con su prueba). El listado marca «RUC sin verificar»
+para que no sorprenda al facturar.
+
+## 4. Nota de venta y canje
 
 Pendiente: iteración 4.
 
 ## Registro de cambios
 
 - **v1 (2026-09-07)** — §1, con la iteración 2.
+- **v1.1 (2026-09-07)** — §2 y §3, con la iteración 3.

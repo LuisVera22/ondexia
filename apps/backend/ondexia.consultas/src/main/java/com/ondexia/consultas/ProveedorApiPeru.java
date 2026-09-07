@@ -2,7 +2,9 @@ package com.ondexia.consultas;
 
 import tools.jackson.databind.JsonNode;
 import com.ondexia.domain.comun.Ruc;
+import com.ondexia.domain.consultas.ConsultaDeDni;
 import com.ondexia.domain.consultas.ConsultaDeRuc;
+import com.ondexia.domain.consultas.DatosDeDni;
 import com.ondexia.domain.consultas.DatosDeRuc;
 import java.time.Instant;
 import java.util.Optional;
@@ -22,7 +24,7 @@ import java.util.Optional;
  * llega incompleta a propósito, con {@code faltaUbigeo()} en cierto. Completarlo
  * es asunto de quien orquesta; aquí se dice la verdad sobre lo que llegó.
  */
-class ProveedorApiPeru implements ConsultaDeRuc {
+class ProveedorApiPeru implements ConsultaDeRuc, ConsultaDeDni {
 
     private final ClienteDelPadron cliente;
     private final String base;
@@ -38,6 +40,19 @@ class ProveedorApiPeru implements ConsultaDeRuc {
         // Jackson, asi que no hay nada que escapar ni comillas que contar.
         return cliente.post(base + "/ruc", java.util.Map.of("ruc", ruc.valor()))
                 .map(json -> traducir(ruc, json.path("data")));
+    }
+
+    /** RENIEC: {@code POST /dni} con el mismo token que el RUC. */
+    @Override
+    public Optional<DatosDeDni> consultar(String dni) {
+        return cliente.post(base + "/dni", java.util.Map.of("dni", dni))
+                .map(json -> json.path("data"))
+                .map(datos -> new DatosDeDni(
+                        dni,
+                        Campos.texto(datos, "nombres"),
+                        Campos.texto(datos, "apellido_paterno"),
+                        Campos.texto(datos, "apellido_materno"),
+                        Instant.now()));
     }
 
     private static DatosDeRuc traducir(Ruc ruc, JsonNode datos) {

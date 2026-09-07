@@ -333,6 +333,18 @@ resource "aws_apigatewayv2_route" "consulta_ruc" {
   authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
 }
 
+# El DNI, por la misma función y con el mismo autorizador (doc 12 §8, iteración
+# 3). Misma cuota por identidad dentro de la función y mismo throttling en la
+# pasarela (api.tf): es el mismo proveedor de pago detrás.
+resource "aws_apigatewayv2_route" "consulta_dni" {
+  count              = local.hay_consultas ? 1 : 0
+  api_id             = aws_apigatewayv2_api.principal.id
+  route_key          = "GET /consultas/dni/{dni}"
+  target             = "integrations/${aws_apigatewayv2_integration.consultas[0].id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
+}
+
 /**
  * El alias es lo que se invoca. Nunca $LATEST.
  *

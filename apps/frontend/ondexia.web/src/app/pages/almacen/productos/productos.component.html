@@ -1,12 +1,13 @@
 <div>
-  <app-encabezado-pagina titulo="Productos" />
+  <app-encabezado-pagina
+    titulo="Productos"
+    descripcion="El catálogo es de la empresa: código, unidad, afectación al IGV y precio de lista. En qué local se vende, a qué precio y cuánto hay se decide en cada ficha."
+  />
 
   <div class="mb-5 flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03] lg:flex-row lg:items-end lg:justify-between">
     <div class="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-3">
-      <div class="sm:col-span-1">
-        <label for="busqueda" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">
-          Buscar
-        </label>
+      <div class="sm:col-span-2">
+        <label for="busqueda" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Buscar</label>
         <div class="relative">
           <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
@@ -24,11 +25,6 @@
       </div>
 
       <div>
-        <label for="marca" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Marca</label>
-        <app-desplegable idCampo="marca" [opciones]="opcionesMarca" [(ngModel)]="marcaFiltro" />
-      </div>
-
-      <div>
         <label for="estado" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Estado</label>
         <app-desplegable idCampo="estado" [opciones]="opcionesEstado" [(ngModel)]="estadoFiltro" />
       </div>
@@ -41,21 +37,25 @@
         Limpiar
       </button>
       }
+      @if (puedeRegistrar()) {
       <app-boton icono="mas" class="shrink-0" (accion)="nuevo()">Nuevo producto</app-boton>
+      }
     </div>
   </div>
 
-  <!--
-    Sin el buscador de la tabla: esta pantalla ya trae su panel de filtros
-    arriba, con búsqueda por texto y desplegables. Dos campos de búsqueda uno
-    encima de otro obligan a averiguar cuál manda.
-  -->
+  @if (error()) {
+  <div class="flex items-start gap-3 rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert">
+    <p class="text-sm text-error-500">{{ error() }}</p>
+  </div>
+  } @else {
   <app-tabla-datos
     nombrePlural="productos"
     nombreSingular="producto"
     [acciones]="accionesDeFila"
     campoDescripcion="nombre"
     (accionElegida)="ejecutarAccion($event)"
+    [cargando]="cargando()"
+    (actualizar)="recargar()"
     [columnas]="columnas"
     [registros]="registros"
     [orden]="orden"
@@ -64,12 +64,13 @@
     [totalRegistros]="registros.length"
     [vacioPorFiltros]="hayFiltrosActivos"
     [buscable]="false"
-    vacioTitulo="Aún no hay productos registrados"
-    vacioDescripcion="Los productos son la base de cotizaciones, comprobantes y control de existencias."
-    vacioAccion="Nuevo producto"
+    vacioTitulo="Aún no hay productos"
+    vacioDescripcion="Sin productos no hay nada que vender. El primero se ofrece en el establecimiento en el que trabajas."
+    [vacioAccion]="puedeRegistrar() ? 'Nuevo producto' : ''"
     (ordenarPor)="orden = $event"
     (cambiarPagina)="pagina = $event"
     (filaClic)="abrirFicha($event)"
     (accionVacio)="nuevo()"
-   />
+  />
+  }
 </div>

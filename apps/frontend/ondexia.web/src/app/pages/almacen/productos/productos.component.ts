@@ -1,108 +1,137 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
-import { TablaDatosComponent, AccionDeFila,
-  ColumnaTabla, OrdenTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
-import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
+import {
+  AccionDeFila,
+  ColumnaTabla,
+  OrdenTabla,
+  TablaDatosComponent,
+} from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
+import {
+  DesplegableComponent,
+  OpcionDesplegable,
+} from '../../../shared/components/comunes/desplegable/desplegable.component';
 import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
+import { AlmacenApiService, ProductoApi } from '../../../nucleo/almacen.api.service';
+import { mensajeDeError } from '../../../nucleo/errores';
+import { ContextoService } from '../../../shared/services/contexto.service';
 
 /**
- * Listado de productos.
+ * El catálogo de la empresa (doc 12 §3.5).
  *
- * Es el catálogo del que dependen ventas, compras y existencias, así que
- * incorpora filtros desde el inicio: sobre unos cientos de productos, una
- * tabla sin filtros deja de ser usable.
+ * <p>Se trae entero y se filtra aquí: un catálogo de mostrador son cientos de
+ * filas, no miles, y el filtro instantáneo vale más que una petición por tecla.
+ * El servidor tiene búsqueda propia ({@code ?q=}) para el punto de venta, que
+ * es donde el catálogo se consulta a cada línea.
+ *
+ * <p>Sin marca ni stock en la tabla: la marca no está en el primer producto y
+ * las existencias son por almacén, así que un número suelto en la fila diría
+ * poco. Se ven en la ficha.
  */
 @Component({
   selector: 'app-productos',
-  imports: [
-    EncabezadoPaginaComponent,
-    TablaDatosComponent,
-    FormsModule,
-    DesplegableComponent,
-    BotonComponent,
-  ],
+  imports: [EncabezadoPaginaComponent, TablaDatosComponent, FormsModule, DesplegableComponent, BotonComponent],
   templateUrl: './productos.component.html',
 })
 export class ProductosComponent {
+  private readonly api = inject(AlmacenApiService);
+  private readonly contexto = inject(ContextoService);
   private readonly router = inject(Router);
 
   termino = '';
-  marcaFiltro = '';
   estadoFiltro = '';
 
   orden: OrdenTabla | null = { campo: 'nombre', direccion: 'asc' };
   pagina = 1;
   readonly tamanoPagina = 10;
 
-  marcas = ['Pacasmayo', 'Aceros Arequipa', 'Sider Perú', 'Sin marca'];
-
-  get opcionesMarca(): OpcionDesplegable[] {
-    return [
-      { valor: '', etiqueta: 'Todas' },
-      ...this.marcas.map((m) => ({ valor: m, etiqueta: m })),
-    ];
-  }
-
   readonly opcionesEstado: OpcionDesplegable[] = [
     { valor: '', etiqueta: 'Todos' },
-    { valor: 'Activo', etiqueta: 'Activo' },
-    { valor: 'Descontinuado', etiqueta: 'Descontinuado' },
-  ];
-  readonly accionesDeFila: AccionDeFila[] = [
-    { id: 'ver', etiqueta: 'Ver', icono: 'ver' },
+    { valor: 'activo', etiqueta: 'Activos' },
+    { valor: 'inactivo', etiqueta: 'Inactivos' },
   ];
 
+  readonly accionesDeFila: AccionDeFila[] = [{ id: 'ver', etiqueta: 'Ver', icono: 'ver' }];
 
-  columnas: ColumnaTabla[] = [
-    { campo: 'codigo', titulo: 'Código', ordenable: true, ancho: 'w-32' },
+  readonly columnas: ColumnaTabla[] = [
+    { campo: 'codigo', titulo: 'Código', ordenable: true, ancho: 'w-36' },
     { campo: 'nombre', titulo: 'Producto', ordenable: true, principal: true },
-    { campo: 'marca', titulo: 'Marca', ordenable: true, ancho: 'w-40' },
-    { campo: 'unidad', titulo: 'Unidad', ancho: 'w-24' },
-    { campo: 'stock', titulo: 'Stock', formato: 'cantidad', ordenable: true, ancho: 'w-28' },
-    { campo: 'precio', titulo: 'Precio', formato: 'importe', ordenable: true, ancho: 'w-32' },
+    { campo: 'unidad', titulo: 'Unidad', ancho: 'w-32' },
+    { campo: 'igv', titulo: 'IGV', ancho: 'w-28' },
+    { campo: 'precioLista', titulo: 'Precio de lista', formato: 'importe', ordenable: true, ancho: 'w-36' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-28',
+      formato: 'insignia',
+      tono: (registro) => (registro['activo'] === true ? 'exito' : 'neutro'),
+    },
   ];
 
-  private readonly todos = [
-    { id: 1, codigo: 'CEM-001', nombre: 'Cemento Portland Tipo I 42.5 kg', marca: 'Pacasmayo', unidad: 'BOL', stock: 428, precio: 32.5, estado: 'Activo' },
-    { id: 2, codigo: 'CEM-005', nombre: 'Cemento Portland Tipo V 42.5 kg', marca: 'Pacasmayo', unidad: 'BOL', stock: 96, precio: 38.9, estado: 'Activo' },
-    { id: 3, codigo: 'FIE-012', nombre: 'Fierro corrugado 1/2" x 9 m', marca: 'Aceros Arequipa', unidad: 'UND', stock: 1204, precio: 48.0, estado: 'Activo' },
-    { id: 4, codigo: 'FIE-038', nombre: 'Fierro corrugado 3/8" x 9 m', marca: 'Aceros Arequipa', unidad: 'UND', stock: 8, precio: 27.5, estado: 'Activo' },
-    { id: 5, codigo: 'LAD-018', nombre: 'Ladrillo King Kong 18 huecos', marca: 'Sin marca', unidad: 'UND', stock: 15600, precio: 1.2, estado: 'Activo' },
-    { id: 6, codigo: 'ALA-016', nombre: 'Alambre negro nº 16', marca: 'Aceros Arequipa', unidad: 'KG', stock: 0, precio: 6.8, estado: 'Activo' },
-    { id: 7, codigo: 'CLA-025', nombre: 'Clavo 2 1/2" con cabeza', marca: 'Sider Perú', unidad: 'KG', stock: 240, precio: 5.9, estado: 'Activo' },
-    { id: 8, codigo: 'ARE-001', nombre: 'Arena gruesa', marca: 'Sin marca', unidad: 'M3', stock: 62, precio: 45.0, estado: 'Descontinuado' },
-  ];
+  readonly puedeRegistrar = computed(() => this.contexto.puede('almacen.producto:registrar'));
 
-  get registros() {
-    return this.todos.filter((p) => {
-      const coincideTermino =
-        !this.termino ||
-        p.nombre.toLowerCase().includes(this.termino.toLowerCase()) ||
-        p.codigo.toLowerCase().includes(this.termino.toLowerCase());
-      const coincideMarca = !this.marcaFiltro || p.marca === this.marcaFiltro;
-      const coincideEstado = !this.estadoFiltro || p.estado === this.estadoFiltro;
-      return coincideTermino && coincideMarca && coincideEstado;
-    });
+  private readonly todos = signal<ProductoApi[]>([]);
+  readonly cargando = signal(true);
+  readonly error = signal<string | null>(null);
+
+  constructor() {
+    void this.cargar();
+  }
+
+  private async cargar(): Promise<void> {
+    this.cargando.set(true);
+    this.error.set(null);
+    try {
+      this.todos.set(await this.api.productos());
+    } catch (fallo: unknown) {
+      this.error.set(mensajeDeError(fallo, 'No se pudo cargar el catálogo.'));
+    } finally {
+      this.cargando.set(false);
+    }
+  }
+
+  recargar(): void {
+    void this.cargar();
+  }
+
+  get registros(): Record<string, unknown>[] {
+    const termino = this.termino.trim().toLowerCase();
+    return this.todos()
+      .filter((p) => {
+        const coincideTermino =
+          !termino || p.nombre.toLowerCase().includes(termino) || p.codigo.toLowerCase().includes(termino);
+        const coincideEstado =
+          !this.estadoFiltro || (this.estadoFiltro === 'activo' ? p.activo : !p.activo);
+        return coincideTermino && coincideEstado;
+      })
+      .map((p) => ({
+        id: p.id,
+        codigo: p.codigo,
+        nombre: p.nombre,
+        unidad: p.unidadNombre,
+        igv: p.afectacionNombre,
+        precioLista: p.precioLista,
+        estado: p.activo ? 'Activo' : 'Inactivo',
+        activo: p.activo,
+      }));
   }
 
   get hayFiltrosActivos(): boolean {
-    return Boolean(this.termino || this.marcaFiltro || this.estadoFiltro);
+    return Boolean(this.termino || this.estadoFiltro);
   }
 
   limpiarFiltros(): void {
     this.termino = '';
-    this.marcaFiltro = '';
     this.estadoFiltro = '';
   }
 
   abrirFicha(registro: Record<string, unknown>): void {
-    this.router.navigate(['/almacen/productos', registro['id']]);
+    void this.router.navigate(['/almacen/productos', registro['id']]);
   }
 
   nuevo(): void {
-    this.router.navigate(['/almacen/productos', 'nuevo']);
+    void this.router.navigate(['/almacen/productos', 'nuevo']);
   }
 
   ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {

@@ -65,6 +65,17 @@ export interface ConsultaDeRuc {
 }
 
 /** Lo que le pasa a quien consulta, en términos que la pantalla puede usar. */
+/** Lo que RENIEC dice de un DNI. Sin atestación: el nombre no decide nada fiscal. */
+export interface DatosDeDni {
+  readonly dni: string;
+  readonly nombres: string | null;
+  readonly apellidoPaterno: string | null;
+  readonly apellidoMaterno: string | null;
+  /** «Apellidos Nombres», como lo imprime la boleta. */
+  readonly nombreCompleto: string;
+  readonly consultadoEn: string;
+}
+
 export interface FalloDeConsulta {
   readonly mensaje: string;
   /**
@@ -108,10 +119,22 @@ export class ConsultasApiService {
     }
   }
 
-  private traducir(fallo: unknown): FalloDeConsulta {
+  async consultarDni(dni: string): Promise<DatosDeDni> {
+    try {
+      return await firstValueFrom(
+        this.http.get<DatosDeDni>(
+          `${this.configuracion.consultas}/consultas/dni/${encodeURIComponent(dni)}`
+        )
+      );
+    } catch (fallo: unknown) {
+      throw new ErrorDeConsulta(this.traducir(fallo, 'DNI'));
+    }
+  }
+
+  private traducir(fallo: unknown, documento: 'RUC' | 'DNI' = 'RUC'): FalloDeConsulta {
     if (!(fallo instanceof HttpErrorResponse)) {
       return {
-        mensaje: 'No se pudo consultar el RUC.',
+        mensaje: `No se pudo consultar el ${documento}.`,
         reintentable: true,
         noEncontrado: false,
       };
@@ -126,7 +149,7 @@ export class ConsultasApiService {
     // buscar el problema en el sitio equivocado.
     if (fallo.status === 0) {
       return {
-        mensaje: 'No se pudo contactar con el servicio de consulta de RUC.',
+        mensaje: `No se pudo contactar con el servicio de consulta de ${documento}.`,
         reintentable: true,
         noEncontrado: false,
       };
@@ -138,7 +161,7 @@ export class ConsultasApiService {
     const esNuestra = typeof cuerpo?.codigo === 'string';
 
     return {
-      mensaje: (esNuestra && cuerpo?.mensaje) || 'No se pudo consultar el RUC.',
+      mensaje: (esNuestra && cuerpo?.mensaje) || `No se pudo consultar el ${documento}.`,
       reintentable: (esNuestra && cuerpo?.reintentable) || false,
       noEncontrado: fallo.status === 404,
     };

@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { CONFIGURACION } from './configuracion';
@@ -50,6 +50,38 @@ export interface CajaApi {
   readonly sesionAbierta: SesionCajaApi | null;
 }
 
+/** Catálogo 06 de SUNAT, sin el «sin documento»: ese no es una fila. */
+export type TipoDocumentoCliente = 'DNI' | 'CARNET_EXTRANJERIA' | 'RUC' | 'PASAPORTE';
+
+export interface TipoDocumentoApi {
+  readonly codigo: TipoDocumentoCliente;
+  readonly codigoSunat: string;
+  readonly nombre: string;
+}
+
+export interface ClienteApi {
+  readonly id: string;
+  readonly tipoDocumento: TipoDocumentoCliente;
+  readonly tipoDocumentoNombre: string;
+  /** No cambia después del alta: ya está impreso en sus comprobantes. */
+  readonly numeroDocumento: string;
+  readonly nombre: string;
+  readonly direccion: string | null;
+  readonly correo: string | null;
+  readonly telefono: string | null;
+  /** Cuándo se comprobó el RUC contra el padrón. null: nunca, o no es RUC. */
+  readonly verificadoEn: string | null;
+  readonly admiteFactura: boolean;
+  readonly activo: boolean;
+}
+
+export interface DatosCliente {
+  readonly nombre: string;
+  readonly direccion: string | null;
+  readonly correo: string | null;
+  readonly telefono: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class VentasApiService {
   private readonly http = inject(HttpClient);
@@ -91,5 +123,49 @@ export class VentasApiService {
 
   historialDeCaja(id: string): Promise<SesionCajaApi[]> {
     return firstValueFrom(this.http.get<SesionCajaApi[]>(`${this.base}/cajas/${id}/sesiones`));
+  }
+
+  // ── Clientes ───────────────────────────────────────────────────────────
+
+  /** Sin texto, todos; con texto, por nombre o documento, hasta 50. */
+  clientes(texto?: string): Promise<ClienteApi[]> {
+    const params = texto ? new HttpParams().set('q', texto) : undefined;
+    return firstValueFrom(this.http.get<ClienteApi[]>(`${this.base}/clientes`, { params }));
+  }
+
+  tiposDeDocumento(): Promise<TipoDocumentoApi[]> {
+    return firstValueFrom(this.http.get<TipoDocumentoApi[]>(`${this.base}/clientes/tipos-documento`));
+  }
+
+  cliente(id: string): Promise<ClienteApi> {
+    return firstValueFrom(this.http.get<ClienteApi>(`${this.base}/clientes/${id}`));
+  }
+
+  /**
+   * @param atestacion solo con RUC: lo que devolvió la consulta al padrón. La
+   *                   razón social y el domicilio salen de ahí.
+   */
+  crearCliente(
+    datos: DatosCliente & {
+      tipoDocumento: TipoDocumentoCliente;
+      numeroDocumento: string;
+      atestacion: string | null;
+    }
+  ): Promise<ClienteApi> {
+    return firstValueFrom(this.http.post<ClienteApi>(`${this.base}/clientes`, datos));
+  }
+
+  actualizarCliente(id: string, datos: DatosCliente): Promise<ClienteApi> {
+    return firstValueFrom(this.http.put<ClienteApi>(`${this.base}/clientes/${id}`, datos));
+  }
+
+  verificarCliente(id: string, atestacion: string): Promise<ClienteApi> {
+    return firstValueFrom(
+      this.http.post<ClienteApi>(`${this.base}/clientes/${id}/verificacion`, { atestacion })
+    );
+  }
+
+  cambiarEstadoCliente(id: string, activo: boolean): Promise<ClienteApi> {
+    return firstValueFrom(this.http.put<ClienteApi>(`${this.base}/clientes/${id}/estado`, { activo }));
   }
 }

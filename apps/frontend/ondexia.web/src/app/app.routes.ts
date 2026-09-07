@@ -124,7 +124,7 @@ export const routes: Routes = [
 
       // ── Almacén ──────────────────────────────────────────────────────────
       { path: 'almacen/productos', component: ProductosComponent, title: `Productos | ${TITULO}` },
-      { path: 'almacen/productos/:id', component: FichaProductoComponent, title: `Ficha de producto | ${TITULO}` },
+      { path: 'almacen/productos/:id', component: FichaProductoComponent, title: `Ficha de producto | ${TITULO}`, canDeactivate: [salidaConCambios] },
       { path: 'almacen/presentaciones', component: PresentacionesComponent, title: `Presentaciones | ${TITULO}` },
       { path: 'almacen/por-agotarse', component: PorAgotarseComponent, title: `Productos por agotarse | ${TITULO}` },
       { path: 'almacen/guias-remision', component: GuiasRemisionComponent, title: `Guías de remisión | ${TITULO}` },
@@ -157,7 +157,7 @@ export const routes: Routes = [
       // ── Ventas ───────────────────────────────────────────────────────────
       { path: 'ventas/cajas', component: CajasComponent, title: `Cajas | ${TITULO}` },
       { path: 'ventas/clientes', component: ClientesComponent, title: `Clientes | ${TITULO}` },
-      { path: 'ventas/clientes/:id', component: FichaClienteComponent, title: `Ficha de cliente | ${TITULO}` },
+      { path: 'ventas/clientes/:id', component: FichaClienteComponent, title: `Ficha de cliente | ${TITULO}`, canDeactivate: [salidaConCambios] },
       { path: 'ventas/cotizaciones', component: CotizacionesComponent, title: `Cotizaciones | ${TITULO}` },
       { path: 'ventas/cotizaciones/nueva', component: NuevaCotizacionComponent, title: `Nueva cotización | ${TITULO}` },
       { path: 'ventas/facturas', component: FacturasComponent, title: `Facturas | ${TITULO}` },

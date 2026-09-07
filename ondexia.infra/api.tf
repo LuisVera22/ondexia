@@ -738,10 +738,13 @@ resource "aws_apigatewayv2_stage" "principal" {
    * un `route_settings` sobre una ruta inexistente hace fallar el apply.
    */
   dynamic "route_settings" {
-    for_each = local.hay_consultas ? [1] : []
+    for_each = local.hay_consultas ? [
+      aws_apigatewayv2_route.consulta_ruc[0].route_key,
+      aws_apigatewayv2_route.consulta_dni[0].route_key,
+    ] : []
 
     content {
-      route_key              = aws_apigatewayv2_route.consulta_ruc[0].route_key
+      route_key              = route_settings.value
       throttling_burst_limit = 10
       throttling_rate_limit  = 2
     }

@@ -1,16 +1,28 @@
 package com.ondexia.domain.comun.error;
 
 /**
- * Se intentó algo que las reglas del negocio no permiten.
+ * La petición pedía algo que las reglas del negocio no permiten.
  *
- * <p>Por ejemplo: un RUC con el verificador equivocado, pasar una empresa a
- * producción sin certificado, anular un comprobante que SUNAT ya rechazó.
- *
- * <p>La capa web la traduce a 400. Es la excepción que más se va a usar.
+ * <p>Puede llevar el nombre del campo de la petición al que pertenece, por el
+ * mismo motivo que {@link Conflicto}: «el DNI son ocho dígitos» tiene que
+ * aparecer debajo del cuadro del documento, no en un aviso de la esquina. La
+ * mayoría de las reglas no señalan a ningún campo y no lo llevan.
  */
 public class ReglaDeNegocioViolada extends ErrorDeDominio {
 
+    private final String campo;
+
     public ReglaDeNegocioViolada(String codigo, String mensaje) {
+        this(codigo, mensaje, null);
+    }
+
+    public ReglaDeNegocioViolada(String codigo, String mensaje, String campo) {
         super(codigo, mensaje);
+        this.campo = campo;
+    }
+
+    /** @return el campo de la petición al que pertenece, o {@code null} */
+    public String getCampo() {
+        return campo;
     }
 }

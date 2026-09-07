@@ -93,9 +93,13 @@ public class ManejadorGlobalErrores extends ResponseEntityExceptionHandler {
          * cuadro del codigo en vez de en un aviso de la esquina, donde no dice
          * cual de los cuatro campos hay que corregir.
          */
-        if (error instanceof Conflicto conflicto && conflicto.getCampo() != null) {
-            problema.setProperty("campos",
-                    Map.of(conflicto.getCampo(), error.getMessage()));
+        String campo = switch (error) {
+            case Conflicto conflicto -> conflicto.getCampo();
+            case ReglaDeNegocioViolada regla -> regla.getCampo();
+            default -> null;
+        };
+        if (campo != null) {
+            problema.setProperty("campos", Map.of(campo, error.getMessage()));
         }
 
         return problema;
