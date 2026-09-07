@@ -71,7 +71,10 @@ class ContextoIT extends PruebaIntegracion {
                 .andExpect(jsonPath("$.usuario.id").value(USUARIO_DEMO))
                 .andExpect(jsonPath("$.cuenta.esAdministrador").value(true))
                 .andExpect(jsonPath("$.empresaActiva").doesNotExist())
-                .andExpect(jsonPath("$.empresas.length()").value(2))
+                // Al menos las dos de la V900: RegistroDeEmpresaIT deja mas en la
+                // misma cuenta y no se pueden borrar (bitacora de solo insercion).
+                .andExpect(jsonPath("$.empresas.length()").value(
+                        org.hamcrest.Matchers.greaterThanOrEqualTo(2)))
                 .andExpect(jsonPath("$.permisos.length()").value(0));
     }
 

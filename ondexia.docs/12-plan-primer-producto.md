@@ -635,6 +635,30 @@ almacén y la caja al crear la empresa pasan a la iteración 2, donde existe la
 caja y donde hace falta un puerto para operar bajo el RLS de la empresa recién
 creada. La cuota es por instancia de Lambda, y se dice así en el código.
 
+### Lo que la iteración 2 dejó hecho
+
+- **Cajas y sesiones de caja** (V17): `caja` por establecimiento con código
+  único por local; `sesion_caja` con monto inicial, declarado y calculado por
+  forma de pago, una sola abierta por caja (índice parcial) y cerrada inmutable
+  (disparador). Dominio `Caja`, `SesionCaja`, `FormaDePago`; casos de uso
+  `Cajas` y `SesionesDeCaja`; API en `/api/v1/ventas/cajas`; submódulo de
+  permisos `ventas.caja` con seis funciones. Todo en
+  [13 §1](13-ventas-en-punto-de-venta.md).
+- **Lo que nace con el establecimiento.** `DotacionDeEstablecimiento` crea el
+  almacén y la primera caja en los tres caminos: registro de cuenta, alta de
+  empresa y pantalla de establecimientos. Para los dos primeros hizo falta el
+  puerto `OperarComoEmpresa`, que cambia la empresa del aislamiento durante una
+  acción y la restaura.
+- **Pantalla de cajas** con apertura, cierre con arqueo y diferencia, y la caja
+  abierta en la barra superior. El Vendedor de la cuenta demo puede consultar,
+  abrir y cerrar; no crear.
+
+**Diferencias con lo planeado.** Ninguna en el modelo. Una en las pruebas: una
+empresa registrada no se puede borrar —su alta deja bitácora, y la bitácora es
+de solo inserción—, así que `RegistroDeEmpresaIT` dejó de limpiar empresas y usa
+un RUC por prueba. El almacén de un local que no es la matriz se llama
+`ALM-<código>`; si el cliente ya tenía uno con ese código, se respeta el suyo.
+
 ## 11. Riesgos de este plan
 
 | Riesgo | Señal temprana | Qué se hace |
@@ -650,3 +674,5 @@ creada. La cuota es por instancia de Lambda, y se dice así en el código.
 
 - **v1 (2026-09-07)** — Propuesta inicial sobre las decisiones del propietario del
   mismo día y el estado de `feature/auditoria-2026-09-01`.
+- **v1.1 (2026-09-07)** — Notas de cierre de las iteraciones 0, 1 y 2; el doc 13
+  empieza con la caja.

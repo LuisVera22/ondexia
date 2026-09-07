@@ -14,7 +14,8 @@ import { ContextoService } from '../../services/contexto.service';
  */
 describe('MenuLateralComponent · lo que se ve segun los permisos', () => {
   /**
-   * Los submódulos reales, copiados de V6__permisos_jerarquicos.sql.
+   * Los submódulos reales, copiados de V6__permisos_jerarquicos.sql y de las
+   * migraciones que añadieron alguno después (V7 identidad, V17 caja).
    *
    * <p>Sí, es una segunda copia de la misma verdad. Está aquí a propósito: una
    * prueba que repite el dato de forma independiente es lo que convierte un
@@ -30,7 +31,7 @@ describe('MenuLateralComponent · lo que se ve segun los permisos', () => {
     'compras.orden_servicio', 'compras.nota_compra', 'compras.factura_compra',
     'compras.liquidacion',
     'ventas.cliente', 'ventas.cotizacion', 'ventas.nota_preventa', 'ventas.comprobante',
-    'ventas.nota_credito', 'ventas.nota_debito', 'ventas.resumen_diario',
+    'ventas.nota_credito', 'ventas.nota_debito', 'ventas.resumen_diario', 'ventas.caja',
     'configuracion.empresa', 'configuracion.sucursal', 'configuracion.usuario',
     'configuracion.rol', 'configuracion.serie', 'configuracion.comprobante',
     'configuracion.auditoria', 'configuracion.identidad',

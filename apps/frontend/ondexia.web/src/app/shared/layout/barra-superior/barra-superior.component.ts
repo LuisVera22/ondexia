@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { MenuLateralService } from '../../services/menu-lateral.service';
 import { TemaService } from '../../services/tema.service';
 import { ContextoService } from '../../services/contexto.service';
+import { CajaActivaService } from '../../../nucleo/caja-activa.service';
 import { SesionService } from '../../../nucleo/sesion.service';
 import {
   OpcionContexto,
@@ -46,6 +47,9 @@ export class BarraSuperiorComponent {
   readonly menu = inject(MenuLateralService);
   readonly tema = inject(TemaService);
   readonly contexto = inject(ContextoService);
+
+  /** La caja con sesión abierta en el establecimiento activo, para saber dónde se cobra. */
+  readonly caja = inject(CajaActivaService);
 
   readonly sesion = inject(SesionService);
 

@@ -32,12 +32,14 @@ public class Establecimientos {
     private final SucursalRepositorio sucursales;
     private final RegistroDeAuditoria auditoria;
     private final ProveedorDeContexto contexto;
+    private final DotacionDeEstablecimiento dotacion;
 
     public Establecimientos(SucursalRepositorio sucursales, RegistroDeAuditoria auditoria,
-            ProveedorDeContexto contexto) {
+            ProveedorDeContexto contexto, DotacionDeEstablecimiento dotacion) {
         this.sucursales = sucursales;
         this.auditoria = auditoria;
         this.contexto = contexto;
+        this.dotacion = dotacion;
     }
 
     public List<Sucursal> listar() {
@@ -77,6 +79,8 @@ public class Establecimientos {
 
         var guardada = sucursales.guardar(sucursal);
         auditoria.registrarCreacion("sucursal", guardada.id(), Instantanea.de(guardada));
+        // Un local sin almacén ni caja no puede vender: nacen con él.
+        dotacion.dotar(guardada);
         return guardada;
     }
 

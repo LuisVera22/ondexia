@@ -31,10 +31,11 @@ import { ErrorCampoComponent } from '../../../shared/components/comunes/error-ca
  * y asignar responsables exige el módulo de usuarios (Entrega 4). Lo mismo
  * <em>Productos</em>, que necesita el inventario.
  *
- * <p>Y el texto decía que «cada establecimiento tiene su almacén principal
- * creado automáticamente». No ocurre: el alta crea la casa matriz como
- * establecimiento, no como almacén. Prometerlo aquí haría que un cliente diera
- * por hecho que puede vender sin crear ninguno.
+ * <p>El texto decía que «cada establecimiento tiene su almacén principal
+ * creado automáticamente». Durante meses no ocurrió; desde la iteración 2 del
+ * doc 12 sí: {@code DotacionDeEstablecimiento} crea el almacén y la primera
+ * caja con cada local, y {@code RegistroIT} lo comprueba. Esta pantalla sigue
+ * sin prometerlo en su texto porque el cliente puede haber desactivado el suyo.
  */
 @Component({
   selector: 'app-almacenes',

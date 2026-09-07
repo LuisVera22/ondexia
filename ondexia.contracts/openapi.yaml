@@ -41,11 +41,96 @@ tags:
   description: Roles de la cuenta y su matriz de permisos
 - name: Usuarios
   description: "Quién entra en la empresa, con qué rol y hasta dónde"
+- name: Cajas
+  description: Puntos de cobro por establecimiento y sus turnos
 - name: Comprobantes
   description: Tipos de comprobante que emite la empresa
 - name: Series
   description: Series de comprobante y su correlativo
 paths:
+  /api/v1/ventas/cajas/{id}:
+    put:
+      tags:
+      - Cajas
+      summary: Cambia el nombre de la caja
+      operationId: renombrar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionEdicion"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaCaja"
+  /api/v1/ventas/cajas/{id}/estado:
+    put:
+      tags:
+      - Cajas
+      summary: Activa o desactiva una caja
+      description: "No se desactiva con una sesión abierta. Nunca se borra: sus sesiones\
+        \ la referencian."
+      operationId: cambiarEstado
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionEstado"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaCaja"
+  /api/v1/ventas/cajas/sesiones/{sesionId}/cierre:
+    put:
+      tags:
+      - Cajas
+      summary: Cierra la sesión con el arqueo
+      description: "Lo declarado por forma de pago; lo que no se declare vale cero.\
+        \ La diferencia contra lo calculado se guarda, no se corrige. Una sesión cerrada\
+        \ no se modifica."
+      operationId: cerrar
+      parameters:
+      - name: sesionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionCierre"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaSesion"
   /api/v1/perfil:
     get:
       tags:
@@ -132,7 +217,7 @@ paths:
       summary: Activa o desactiva a la persona
       description: "Afecta a toda la cuenta, no solo a esta empresa: es la única forma\
         \ de revocar el acceso antes de que caduque su token."
-      operationId: cambiarEstado
+      operationId: cambiarEstado_1
       parameters:
       - name: asignacionId
         in: path
@@ -161,7 +246,7 @@ paths:
       description: "Lo único editable. Desactivar no borra ni reinicia: el último\
         \ número queda como estaba, de modo que reactivarla continúa donde se quedó\
         ."
-      operationId: cambiarEstado_1
+      operationId: cambiarEstado_2
       parameters:
       - name: id
         in: path
@@ -187,7 +272,7 @@ paths:
       tags:
       - Roles
       summary: Renombra un rol propio
-      operationId: renombrar
+      operationId: renombrar_1
       parameters:
       - name: rolId
         in: path
@@ -368,7 +453,7 @@ paths:
         \ emitidos: borrarlo dejaria documentos apuntando a nada. Desactivarlo lo\
         \ saca de los desplegables y conserva su codigo, sus series y su numeracion,\
         \ de modo que reactivarlo lo devuelve tal como estaba."
-      operationId: cambiarEstado_2
+      operationId: cambiarEstado_3
       parameters:
       - name: id
         in: path
@@ -432,7 +517,7 @@ paths:
       summary: Habilita o deshabilita un tipo
       description: "No se puede deshabilitar un tipo con series activas: la pantalla\
         \ diría una cosa y el sistema haría otra. Responde 400 con `tipo_con_series_activas`."
-      operationId: cambiarEstado_3
+      operationId: cambiarEstado_4
       parameters:
       - name: codigo
         in: path
@@ -486,7 +571,7 @@ paths:
       - Almacenes
       summary: Activa o desactiva un almacen
       description: "Nunca borra: aparece en cada movimiento de stock que lo toco."
-      operationId: cambiarEstado_4
+      operationId: cambiarEstado_5
       parameters:
       - name: id
         in: path
@@ -507,6 +592,90 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaAlmacen"
+  /api/v1/ventas/cajas:
+    get:
+      tags:
+      - Cajas
+      summary: "Lista las cajas que el usuario alcanza, con su sesión abierta si la\
+        \ hay"
+      operationId: listar
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaCaja"
+    post:
+      tags:
+      - Cajas
+      summary: Registra una caja en un establecimiento
+      description: El código es único por establecimiento y no cambia después.
+      operationId: registrar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionNueva"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaCaja"
+  /api/v1/ventas/cajas/{id}/sesiones:
+    get:
+      tags:
+      - Cajas
+      summary: "Historial de sesiones de la caja, de la más reciente a la más antigua"
+      operationId: historial
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaSesion"
+    post:
+      tags:
+      - Cajas
+      summary: Abre la caja
+      description: Con el monto inicial del cajón. Responde 400 si ya hay una sesión
+        abierta.
+      operationId: abrir
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionApertura"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaSesion"
   /api/v1/registro:
     post:
       tags:
@@ -519,7 +688,7 @@ paths:
         \ devuelve GET /consultas/ruc/{ruc}, así que no hay alta posible con un RUC\
         \ que no esté ACTIVO y HABIDO en SUNAT. Responde 400 si la atestación no es\
         \ válida o caducó, y 409 si el RUC ya está registrado."
-      operationId: registrar
+      operationId: registrar_1
       requestBody:
         content:
           application/json:
@@ -555,7 +724,7 @@ paths:
       tags:
       - Usuarios
       summary: "Lista los usuarios de la empresa, activos e inactivos"
-      operationId: listar
+      operationId: listar_1
       responses:
         "200":
           description: OK
@@ -591,7 +760,7 @@ paths:
       tags:
       - Series
       summary: "Lista las series, activas e inactivas"
-      operationId: listar_1
+      operationId: listar_2
       responses:
         "200":
           description: OK
@@ -609,7 +778,7 @@ paths:
         \ B para boleta, T para guía. El `numeroInicial` es para quien migra desde\
         \ otro sistema y no puede volver a numerar desde el 1; se fija aquí y no se\
         \ vuelve a tocar."
-      operationId: registrar_1
+      operationId: registrar_2
       requestBody:
         content:
           application/json:
@@ -685,7 +854,7 @@ paths:
       tags:
       - Establecimientos
       summary: "Lista los establecimientos, activos e inactivos"
-      operationId: listar_2
+      operationId: listar_3
       responses:
         "200":
           description: OK
@@ -701,7 +870,7 @@ paths:
       summary: Registra un establecimiento
       description: El código son los cuatro dígitos que asigna SUNAT y aparecen en
         la ficha RUC; no se genera aquí. La casa matriz es 0000.
-      operationId: registrar_2
+      operationId: registrar_3
       requestBody:
         content:
           application/json:
@@ -723,7 +892,7 @@ paths:
       description: "Las de la cuenta a las que tiene asignación, que son las mismas\
         \ que ofrece el selector de contexto. No las de la cuenta entera: dos usuarios\
         \ de la misma cuenta pueden alcanzar empresas distintas."
-      operationId: listar_3
+      operationId: listar_4
       responses:
         "200":
           description: OK
@@ -745,7 +914,7 @@ paths:
         \                  cuenta, y 400 si la atestacion caduco, si no es valida,\
         \ si el RUC no esta                     habido activo, o si el plan no admite\
         \ otra empresa."
-      operationId: registrar_3
+      operationId: registrar_4
       requestBody:
         content:
           application/json:
@@ -787,7 +956,7 @@ paths:
       tags:
       - Almacenes
       summary: "Lista los almacenes, activos e inactivos"
-      operationId: listar_4
+      operationId: listar_5
       responses:
         "200":
           description: OK
@@ -803,7 +972,7 @@ paths:
       summary: Registra un almacén
       description: "El código lo elige el cliente: se teclea en cada movimiento de\
         \ mercadería, así que conviene que sea corto. Se guarda en mayúsculas."
-      operationId: registrar_4
+      operationId: registrar_5
       requestBody:
         content:
           application/json:
@@ -832,6 +1001,26 @@ paths:
               schema:
                 $ref: "#/components/schemas/Salud"
       security: []
+  /api/v1/ventas/cajas/{id}/sesion-abierta:
+    get:
+      tags:
+      - Cajas
+      summary: "La sesión abierta de la caja, o 204 si está cerrada"
+      operationId: sesionAbierta
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaSesion"
   /api/v1/contexto:
     get:
       tags:
@@ -887,7 +1076,7 @@ paths:
       tags:
       - Roles
       summary: "Lista los roles: los predefinidos y los de la cuenta"
-      operationId: listar_5
+      operationId: listar_6
       responses:
         "200":
           description: OK
@@ -979,7 +1168,7 @@ paths:
       summary: Los cinco tipos del catálogo 01 con su estado
       description: "Vienen todos, habilitados y deshabilitados: la pantalla es un\
         \ panel de interruptores, no una lista de los activos."
-      operationId: listar_6
+      operationId: listar_7
       responses:
         "200":
           description: OK
@@ -991,6 +1180,83 @@ paths:
                   $ref: "#/components/schemas/RespuestaTipo"
 components:
   schemas:
+    PeticionEdicion:
+      required:
+      - nombre
+      type: object
+      properties:
+        nombre:
+          maxLength: 200
+          minLength: 0
+          type: string
+    RespuestaCaja:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sucursalId:
+          type: string
+          format: uuid
+        codigo:
+          type: string
+        nombre:
+          type: string
+        activa:
+          type: boolean
+        sesionAbierta:
+          $ref: "#/components/schemas/RespuestaSesion"
+    RespuestaSesion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        cajaId:
+          type: string
+          format: uuid
+        estado:
+          type: string
+        abiertaPor:
+          type: string
+          format: uuid
+        abiertaEn:
+          type: string
+          format: date-time
+        montoInicial:
+          type: number
+        cerradaPor:
+          type: string
+          format: uuid
+        cerradaEn:
+          type: string
+          format: date-time
+        declarado:
+          type: object
+          additionalProperties:
+            type: number
+        calculado:
+          type: object
+          additionalProperties:
+            type: number
+        diferencia:
+          type: object
+          additionalProperties:
+            type: number
+    PeticionEstado:
+      required:
+      - activa
+      type: object
+      properties:
+        activa:
+          type: boolean
+    PeticionCierre:
+      type: object
+      properties:
+        declarado:
+          type: object
+          additionalProperties:
+            type: number
     PeticionPerfil:
       required:
       - apellido
@@ -1061,13 +1327,6 @@ components:
         todosLosEstablecimientos:
           type: boolean
         propietario:
-          type: boolean
-    PeticionEstado:
-      required:
-      - activo
-      type: object
-      properties:
-        activo:
           type: boolean
     RespuestaSerie:
       type: object
@@ -1154,23 +1413,6 @@ components:
         maximoBytes:
           type: integer
           format: int64
-    PeticionEdicion:
-      required:
-      - direccion
-      - nombre
-      type: object
-      properties:
-        nombre:
-          maxLength: 200
-          minLength: 0
-          type: string
-        direccion:
-          maxLength: 400
-          minLength: 0
-          type: string
-        ubigeo:
-          pattern: "^$|^\\d{6}$"
-          type: string
     RespuestaEstablecimiento:
       type: object
       properties:
@@ -1279,6 +1521,33 @@ components:
           format: uuid
         activo:
           type: boolean
+    PeticionNueva:
+      required:
+      - codigo
+      - nombre
+      - sucursalId
+      type: object
+      properties:
+        codigo:
+          minLength: 1
+          pattern: "[A-Za-z0-9-]{1,20}"
+          type: string
+        nombre:
+          maxLength: 200
+          minLength: 0
+          type: string
+        sucursalId:
+          type: string
+          format: uuid
+    PeticionApertura:
+      required:
+      - montoInicial
+      type: object
+      properties:
+        montoInicial:
+          minimum: 0
+          exclusiveMinimum: false
+          type: number
     PeticionRegistro:
       required:
       - apellidoTitular
@@ -1332,28 +1601,6 @@ components:
         sucursalId:
           type: string
           format: uuid
-    PeticionNueva:
-      required:
-      - serie
-      - sucursalId
-      - tipoDocumento
-      type: object
-      properties:
-        sucursalId:
-          type: string
-          format: uuid
-        tipoDocumento:
-          minLength: 1
-          pattern: "0[13789]"
-          type: string
-        serie:
-          minLength: 1
-          pattern: "[A-Za-z][A-Za-z0-9]{3}"
-          type: string
-        numeroInicial:
-          minimum: 0
-          type: integer
-          format: int64
     PeticionDuplicado:
       required:
       - nombre

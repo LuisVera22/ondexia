@@ -31,6 +31,7 @@ import { TiposPrecioComponent } from './pages/almacen/tipos-precio/tipos-precio.
 import { PresentacionesComponent } from './pages/almacen/presentaciones/presentaciones.component';
 import { ProductosComponent } from './pages/almacen/productos/productos.component';
 import { FichaProductoComponent } from './pages/almacen/ficha-producto/ficha-producto.component';
+import { CajasComponent } from './pages/ventas/cajas/cajas.component';
 import { ClientesComponent } from './pages/ventas/clientes/clientes.component';
 import { FichaClienteComponent } from './pages/ventas/clientes/ficha-cliente.component';
 import { ProveedoresComponent } from './pages/compras/proveedores/proveedores.component';
@@ -154,6 +155,7 @@ export const routes: Routes = [
       { path: 'compras/proveedores/:id', component: FichaProveedorComponent, title: `Ficha de proveedor | ${TITULO}` },
 
       // ── Ventas ───────────────────────────────────────────────────────────
+      { path: 'ventas/cajas', component: CajasComponent, title: `Cajas | ${TITULO}` },
       { path: 'ventas/clientes', component: ClientesComponent, title: `Clientes | ${TITULO}` },
       { path: 'ventas/clientes/:id', component: FichaClienteComponent, title: `Ficha de cliente | ${TITULO}` },
       { path: 'ventas/cotizaciones', component: CotizacionesComponent, title: `Cotizaciones | ${TITULO}` },

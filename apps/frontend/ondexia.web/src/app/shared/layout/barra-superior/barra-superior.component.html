@@ -63,6 +63,8 @@
       quedan menos de 200.
     -->
     <div class="ml-auto hidden items-center gap-2 md:flex lg:gap-3">
+      <!-- La caja abierta, si la hay: quien vende tiene que saber dónde cobra -->
+      <ng-container [ngTemplateOutlet]="cajaAbierta" />
       <!-- Contexto de trabajo: determina la serie del comprobante y el almacén -->
       <ng-container [ngTemplateOutlet]="selectorContexto" />
       <ng-container [ngTemplateOutlet]="botonTema" />
@@ -139,6 +141,20 @@
   unos meses uno de los dos tendría una entrada, un atajo de teclado o un
   atributo que el otro no.
 -->
+<ng-template #cajaAbierta>
+  @if (caja.enUso(); as abierta) {
+  <a
+    routerLink="/ventas/cajas"
+    class="hidden h-10 shrink-0 items-center gap-2 rounded-lg border border-success-500/30 bg-success-500/10 px-3 text-menudo font-medium text-success-700 transition hover:bg-success-500/15 lg:flex dark:text-success-400"
+    [attr.aria-label]="'Caja abierta: ' + abierta.nombre"
+  >
+    <span class="size-2 rounded-full bg-success-500" aria-hidden="true"></span>
+    <span class="max-w-40 truncate">{{ abierta.nombre }}</span>
+    <span class="text-success-600/80 dark:text-success-400/80">abierta</span>
+  </a>
+  }
+</ng-template>
+
 <ng-template #selectorContexto>
   <app-selector-contexto
     class="min-w-0"

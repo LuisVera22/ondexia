@@ -1,5 +1,8 @@
 package com.ondexia.application.registro;
 
+import com.ondexia.application.configuracion.DotacionDeEstablecimiento;
+import com.ondexia.domain.comun.ContextoOperacion;
+import com.ondexia.domain.comun.OperarComoEmpresa;
 import com.ondexia.domain.comun.Ruc;
 import com.ondexia.domain.comun.Ubigeo;
 import com.ondexia.domain.comun.error.Conflicto;
@@ -68,12 +71,14 @@ public class RegistrarCuenta {
     private final SucursalRepositorio sucursales;
     private final UsuarioEmpresaRepositorio asignaciones;
     private final RolRepositorio roles;
+    private final OperarComoEmpresa operar;
+    private final DotacionDeEstablecimiento dotacion;
 
     public RegistrarCuenta(CuentaRepositorio cuentas, UsuarioRepositorio usuarios,
             CuentaAdministradorRepositorio administradores, EmpresaRepositorio empresas,
             VerificacionDeRuc verificacion,
             SucursalRepositorio sucursales, UsuarioEmpresaRepositorio asignaciones,
-            RolRepositorio roles) {
+            RolRepositorio roles, OperarComoEmpresa operar, DotacionDeEstablecimiento dotacion) {
         this.cuentas = cuentas;
         this.usuarios = usuarios;
         this.administradores = administradores;
@@ -82,6 +87,8 @@ public class RegistrarCuenta {
         this.sucursales = sucursales;
         this.asignaciones = asignaciones;
         this.roles = roles;
+        this.operar = operar;
+        this.dotacion = dotacion;
     }
 
     /**
@@ -236,9 +243,25 @@ public class RegistrarCuenta {
         asignaciones.guardar(new UsuarioEmpresa(
                 UUID.randomUUID(), usuario.id(), empresa.id(), administrador.id(), null));
 
-        // No se escribe en la bitácora. La tabla `auditoria` tiene RLS por
-        // empresa y aquí todavía no hay contexto que fijar: la fila se
-        // rechazaría. El alta queda registrada por los propios `creado_en`.
+        /*
+         * El almacén y la primera caja de la casa matriz, bajo el aislamiento de
+         * la empresa que se acaba de crear.
+         *
+         * Hasta aquí no hay contexto: este caso de uso corre fuera del
+         * interceptor porque fabrica la fila de la que el contexto se resuelve.
+         * Pero `almacen` y `caja` están bajo RLS y sin `ondexia.empresa_id` la
+         * base rechaza la inserción. Se opera, solo para esto, como el usuario
+         * recién creado sobre su empresa —es exactamente quien es— y el puerto
+         * restaura el estado anterior al salir.
+         */
+        operar.ejecutar(new ContextoOperacion(usuario.id(), cognitoSub, cuenta.id(), 1L,
+                        empresa.id(), null, administrador.id(), true, false, null),
+                () -> dotacion.dotar(matriz));
+
+        // El alta en sí no se anota en la bitácora: la fila de la empresa no
+        // tiene todavía quién la observe. La dotación sí queda anotada, porque
+        // ocurre ya bajo el contexto de la empresa. Lo demás lo dicen los
+        // propios `creado_en`.
         return cuenta.id();
     }
 

@@ -14,6 +14,7 @@ import com.ondexia.domain.consultas.EstadoContribuyente;
 import com.ondexia.infrastructure.seguridad.ContextoDePrueba;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -59,8 +60,35 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
 
     private static final String EMPRESAS = "/api/v1/configuracion/empresas";
 
-    /** RUC libre, con dígito verificador correcto. */
-    private static final String RUC_NUEVO = "20601030013";
+    /**
+     * Un RUC libre por prueba, con dígito verificador correcto.
+     *
+     * <p>Distinto en cada prueba porque una empresa registrada no se puede
+     * borrar: su alta deja filas en la bitácora —el almacén y la caja que nacen
+     * con ella— y la bitácora es de solo inserción, por disparador. Es lo mismo
+     * que pasa en producción, y las pruebas lo respetan en vez de rodearlo.
+     */
+    private String rucNuevo;
+
+    private static final java.util.concurrent.atomic.AtomicInteger CORRELATIVO =
+            new java.util.concurrent.atomic.AtomicInteger(
+                    (int) (System.currentTimeMillis() % 9_000_000L));
+
+    private static String rucLibre() {
+        String cuerpo = "206" + "%07d".formatted(CORRELATIVO.incrementAndGet() % 10_000_000);
+        int[] pesos = {5, 4, 3, 2, 7, 6, 5, 4, 3, 2};
+        int suma = 0;
+        for (int i = 0; i < pesos.length; i++) {
+            suma += (cuerpo.charAt(i) - '0') * pesos[i];
+        }
+        int resto = 11 - (suma % 11);
+        return cuerpo + (resto % 10);
+    }
+
+    @org.junit.jupiter.api.BeforeEach
+    void otroRuc() {
+        rucNuevo = rucLibre();
+    }
 
     /** El de la primera empresa de los datos de ejemplo. */
     private static final String RUC_YA_REGISTRADO = "20100000009";
@@ -71,6 +99,12 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
     @Autowired
     private com.ondexia.application.configuracion.RegistrarEmpresa registro;
 
+    @Autowired
+    private com.ondexia.application.almacen.Almacenes almacenes;
+
+    @Autowired
+    private com.ondexia.application.ventas.Cajas cajas;
+
     @AfterEach
     void limpiar() {
         ContextoDePrueba.limpiar();
@@ -78,15 +112,8 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
         jdbc.sql("update cuenta set limite_empresas = null where id = ?::uuid")
                 .param(CUENTA_DEMO)
                 .update();
-        jdbc.sql("delete from usuario_empresa where empresa_id in "
-                        + "(select id from empresa where ruc = ?)")
-                .param(RUC_NUEVO)
-                .update();
-        jdbc.sql("delete from sucursal where empresa_id in "
-                        + "(select id from empresa where ruc = ?)")
-                .param(RUC_NUEVO)
-                .update();
-        jdbc.sql("delete from empresa where ruc = ?").param(RUC_NUEVO).update();
+        // Las empresas registradas se quedan: ver rucNuevo. Las pruebas del cupo
+        // cuentan las que hay en vez de suponer cuántas son.
 
         /*
          * Y se devuelve la empresa de ejemplo a su estado original.
@@ -117,11 +144,21 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
 
     private static final String CUENTA_DEMO = "00000000-0000-4000-8000-000000000001";
 
-    /** Sube el cupo para poder probar el camino que sí funciona. */
-    private void ampliarCupo() {
-        jdbc.sql("update cuenta set limite_empresas = 5 where id = ?::uuid")
+    /** Cuántas empresas tiene la cuenta demo ahora, activas o no (V9). */
+    private int empresasUsadas() {
+        return jdbc.sql("select count(*) from empresa where cuenta_id = ?::uuid")
                 .param(CUENTA_DEMO)
+                .query(Integer.class)
+                .single();
+    }
+
+    /** Sube el cupo para poder probar el camino que sí funciona; devuelve el nuevo. */
+    private int ampliarCupo() {
+        int limite = empresasUsadas() + 3;
+        jdbc.sql("update cuenta set limite_empresas = ? where id = ?::uuid")
+                .params(limite, CUENTA_DEMO)
                 .update();
+        return limite;
     }
 
     private static DatosDeRuc datos(String ruc, EstadoContribuyente estado,
@@ -172,7 +209,7 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
     void firmaAjenaNoVale() throws Exception {
         ampliarCupo();
         String falsa = atestacion(
-                datos(RUC_NUEVO, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
+                datos(rucNuevo, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
                 PRIVADA_AJENA);
 
         mockMvc.perform(post(EMPRESAS)
@@ -190,7 +227,7 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
     void atestacionDeOtroNoVale() throws Exception {
         ampliarCupo();
         String prestada = atestacion(
-                datos(RUC_NUEVO, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
+                datos(rucNuevo, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
                 PRIVADA, "sub-de-otra-persona");
 
         mockMvc.perform(post(EMPRESAS)
@@ -207,7 +244,7 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
     void atestacionCaducadaNoVale() throws Exception {
         ampliarCupo();
         String vieja = Atestacion.emitir(
-                datos(RUC_NUEVO, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
+                datos(rucNuevo, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
                 Instant.now().minus(Duration.ofMinutes(1)),
                 Atestacion.clavePrivada(PRIVADA), SUB_DEMO);
 
@@ -243,7 +280,7 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
     void noHabidoNoEntra() throws Exception {
         ampliarCupo();
         String firmada = atestacion(
-                datos(RUC_NUEVO, EstadoContribuyente.ACTIVO, CondicionDomicilio.NO_HABIDO),
+                datos(rucNuevo, EstadoContribuyente.ACTIVO, CondicionDomicilio.NO_HABIDO),
                 PRIVADA);
 
         mockMvc.perform(post(EMPRESAS)
@@ -262,7 +299,7 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
     void bajaNoEntra() throws Exception {
         ampliarCupo();
         String firmada = atestacion(
-                datos(RUC_NUEVO, EstadoContribuyente.BAJA_DEFINITIVA, CondicionDomicilio.HABIDO),
+                datos(rucNuevo, EstadoContribuyente.BAJA_DEFINITIVA, CondicionDomicilio.HABIDO),
                 PRIVADA);
 
         mockMvc.perform(post(EMPRESAS)
@@ -285,7 +322,7 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
     @DisplayName("Con el cupo del plan lleno, no se registra")
     void cupoLlenoNoEntra() throws Exception {
         String firmada = atestacion(
-                datos(RUC_NUEVO, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
+                datos(rucNuevo, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
                 PRIVADA);
 
         mockMvc.perform(post(EMPRESAS)
@@ -336,7 +373,7 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
     void seRegistra() throws Exception {
         ampliarCupo();
         String firmada = atestacion(
-                datos(RUC_NUEVO, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
+                datos(rucNuevo, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
                 PRIVADA);
 
         mockMvc.perform(post(EMPRESAS)
@@ -345,7 +382,7 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(cuerpo(firmada)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.ruc").value(RUC_NUEVO))
+                .andExpect(jsonPath("$.ruc").value(rucNuevo))
                 .andExpect(jsonPath("$.razonSocial").value("NUEVA EMPRESA S.A.C."))
                 .andExpect(jsonPath("$.nombreComercial").value("La Nueva"))
                 .andExpect(jsonPath("$.domicilioFiscal").value("AV. AREQUIPA 100"))
@@ -365,7 +402,7 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
     void seGuardaLaVerificacion() throws Exception {
         ampliarCupo();
         alta(cuerpo(atestacion(
-                datos(RUC_NUEVO, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
+                datos(rucNuevo, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
                 PRIVADA)));
 
         var fila = jdbc.sql("""
@@ -373,7 +410,7 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
                                distrito, tipo_societario
                           from empresa where ruc = ?
                         """)
-                .param(RUC_NUEVO)
+                .param(rucNuevo)
                 .query()
                 .singleRow();
 
@@ -400,14 +437,14 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
     void nacePreparadaParaOperar() throws Exception {
         ampliarCupo();
         alta(cuerpo(atestacion(
-                datos(RUC_NUEVO, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
+                datos(rucNuevo, EstadoContribuyente.ACTIVO, CondicionDomicilio.HABIDO),
                 PRIVADA)));
 
         Long matriz = jdbc.sql("""
                         select count(*) from sucursal s join empresa e on e.id = s.empresa_id
                          where e.ruc = ? and s.codigo = '0000'
                         """)
-                .param(RUC_NUEVO)
+                .param(rucNuevo)
                 .query(Long.class)
                 .single();
         org.assertj.core.api.Assertions.assertThat(matriz).isEqualTo(1L);
@@ -417,12 +454,34 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
                           join empresa e on e.id = ue.empresa_id
                          where e.ruc = ? and ue.usuario_id = ?::uuid
                         """)
-                .params(RUC_NUEVO, USUARIO_DEMO)
+                .params(rucNuevo, USUARIO_DEMO)
                 .query(Long.class)
                 .single();
         org.assertj.core.api.Assertions.assertThat(asignacion)
                 .withFailMessage("sin asignación, quien la crea no la ve en el selector")
                 .isEqualTo(1L);
+
+        /*
+         * Y con su almacén y su primera caja (iteración 2). Se consultan a través
+         * de los casos de uso y bajo el contexto de la empresa nueva: las dos
+         * tablas están bajo RLS, y un `select` a secas no vería nada aunque las
+         * filas estuvieran.
+         */
+        UUID nueva = jdbc.sql("select id from empresa where ruc = ?")
+                .param(rucNuevo)
+                .query(UUID.class)
+                .single();
+        ContextoDePrueba.comoUsuarioDe(UUID.fromString(USUARIO_DEMO),
+                UUID.fromString(CUENTA_DEMO), nueva);
+
+        org.assertj.core.api.Assertions.assertThat(almacenes.listar())
+                .withFailMessage("sin almacén no se pueden registrar existencias")
+                .extracting(a -> a.codigo())
+                .containsExactly("PRINCIPAL");
+        org.assertj.core.api.Assertions.assertThat(cajas.listar())
+                .withFailMessage("sin caja no se puede vender")
+                .extracting(c -> c.codigo())
+                .containsExactly("CAJA1");
     }
 
     // ── El cupo, para la pantalla ─────────────────────────────────────────
@@ -435,7 +494,7 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
                         .header("X-Empresa-Id", EMPRESA_ADMINISTRADA))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.maxEmpresas").value(2))
-                .andExpect(jsonPath("$.empresasUsadas").value(2))
+                .andExpect(jsonPath("$.empresasUsadas").value(empresasUsadas()))
                 .andExpect(jsonPath("$.cabeOtra").value(false))
                 .andExpect(jsonPath("$.motivo").value(
                         org.hamcrest.Matchers.containsString("ampliar el plan")));
@@ -450,13 +509,13 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
     @Test
     @DisplayName("El límite negociado con la cuenta gana al del plan")
     void loPactadoGanaAlPlan() throws Exception {
-        ampliarCupo();
+        int limite = ampliarCupo();
 
         mockMvc.perform(get(EMPRESAS + "/cupo")
                         .header("Authorization", autorizacionDemo())
                         .header("X-Empresa-Id", EMPRESA_ADMINISTRADA))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.maxEmpresas").value(5))
+                .andExpect(jsonPath("$.maxEmpresas").value(limite))
                 .andExpect(jsonPath("$.cabeOtra").value(true))
                 .andExpect(jsonPath("$.motivo").isEmpty());
     }
@@ -519,7 +578,7 @@ class RegistroDeEmpresaIT extends PruebaIntegracion {
     @Test
     @DisplayName("Una atestacion de otro RUC no se aplica a la empresa activa")
     void noSeAplicaLaVerificacionDeOtroRuc() throws Exception {
-        String deOtro = atestacion(datosDe(RUC_NUEVO, "EMPRESA AJENA S.A."), PRIVADA);
+        String deOtro = atestacion(datosDe(rucNuevo, "EMPRESA AJENA S.A."), PRIVADA);
 
         verificar(deOtro)
                 .andExpect(status().isBadRequest())

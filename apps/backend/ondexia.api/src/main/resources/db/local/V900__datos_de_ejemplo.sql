@@ -62,6 +62,31 @@ INSERT INTO sucursal (id, empresa_id, codigo, nombre, direccion, ubigeo, activo)
      '00000000-0000-4000-8000-000000000011',
      '0000', 'Principal', 'Jr. Union 100, Lima', '150101', true);
 
+-- La primera caja de cada establecimiento, como la deja el alta desde la
+-- iteracion 2 (DotacionDeEstablecimiento). Los datos de ejemplo se insertan
+-- sin pasar por el caso de uso, asi que se ponen a mano.
+--
+-- `caja` esta bajo Row Level Security FORZADO, que alcanza tambien al dueno de
+-- la tabla que ejecuta esta migracion: sin fijar la empresa, la insercion se
+-- rechaza. Se fija por empresa, local a la transaccion de Flyway, y se limpia
+-- al final para que nada de lo que venga despues herede una empresa.
+SELECT set_config('ondexia.empresa_id', '00000000-0000-4000-8000-000000000010', true);
+INSERT INTO caja (id, empresa_id, sucursal_id, codigo, nombre) VALUES
+    ('00000000-0000-4000-8000-000000000050',
+     '00000000-0000-4000-8000-000000000010',
+     '00000000-0000-4000-8000-000000000020', 'CAJA1', 'Caja 1'),
+    ('00000000-0000-4000-8000-000000000051',
+     '00000000-0000-4000-8000-000000000010',
+     '00000000-0000-4000-8000-000000000021', 'CAJA1', 'Caja 1');
+
+SELECT set_config('ondexia.empresa_id', '00000000-0000-4000-8000-000000000011', true);
+INSERT INTO caja (id, empresa_id, sucursal_id, codigo, nombre) VALUES
+    ('00000000-0000-4000-8000-000000000052',
+     '00000000-0000-4000-8000-000000000011',
+     '00000000-0000-4000-8000-000000000022', 'CAJA1', 'Caja 1');
+
+SELECT set_config('ondexia.empresa_id', '', true);
+
 -- Administrador en la primera empresa, con acceso a todas sus sucursales.
 --
 -- Ser administrador de la CUENTA no da acceso a las empresas: concede quien
@@ -100,6 +125,8 @@ WHERE p.nivel = 'FUNCION'
         p.modulo IN ('ventas.cliente', 'ventas.cotizacion', 'ventas.nota_preventa')
      OR (p.modulo IN ('ventas.comprobante', 'ventas.nota_credito', 'ventas.nota_debito')
          AND p.accion IN ('consultar', 'registrar', 'emitir'))
+     -- Abre y cierra su caja; no crea cajas ni las desactiva.
+     OR (p.modulo = 'ventas.caja' AND p.accion IN ('consultar', 'abrir', 'cerrar'))
      OR (p.modulo IN ('almacen.producto', 'almacen.marca', 'almacen.modelo',
                       'almacen.presentacion', 'almacen.precio', 'almacen.stock')
          AND p.accion = 'consultar')
