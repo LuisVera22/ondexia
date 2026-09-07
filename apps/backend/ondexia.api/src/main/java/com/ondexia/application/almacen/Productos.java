@@ -1,6 +1,9 @@
 package com.ondexia.application.almacen;
 
 import com.ondexia.domain.almacen.AfectacionIgv;
+import com.ondexia.domain.almacen.AlmacenRepositorio;
+import com.ondexia.domain.almacen.Existencia;
+import com.ondexia.domain.almacen.ExistenciasRepositorio;
 import com.ondexia.domain.almacen.DisponibilidadEnLocal;
 import com.ondexia.domain.almacen.DisponibilidadRepositorio;
 import com.ondexia.domain.almacen.Producto;
@@ -34,17 +37,72 @@ public class Productos {
     private final ProductoRepositorio productos;
     private final DisponibilidadRepositorio disponibilidad;
     private final SucursalRepositorio sucursales;
+    private final AlmacenRepositorio almacenes;
+    private final ExistenciasRepositorio existencias;
     private final RegistroDeAuditoria auditoria;
     private final ProveedorDeContexto contexto;
 
     public Productos(ProductoRepositorio productos, DisponibilidadRepositorio disponibilidad,
-            SucursalRepositorio sucursales, RegistroDeAuditoria auditoria,
+            SucursalRepositorio sucursales, AlmacenRepositorio almacenes,
+            ExistenciasRepositorio existencias, RegistroDeAuditoria auditoria,
             ProveedorDeContexto contexto) {
         this.productos = productos;
         this.disponibilidad = disponibilidad;
         this.sucursales = sucursales;
+        this.almacenes = almacenes;
+        this.existencias = existencias;
         this.auditoria = auditoria;
         this.contexto = contexto;
+    }
+
+    /**
+     * Lo que el punto de venta necesita de un producto en un local: el producto,
+     * el precio que rige ahí y cuánto hay en el almacén del local.
+     *
+     * @param existencia {@code null} si el producto no controla existencias o el
+     *                   local no tiene almacén
+     */
+    public record ProductoDisponible(Producto producto, BigDecimal precio, BigDecimal existencia) {
+    }
+
+    /** Un producto activo y disponible en el establecimiento, con su precio efectivo. */
+    public java.util.Optional<ProductoDisponible> disponibleEn(UUID productoId, UUID sucursalId) {
+        return productos.buscarPorId(productoId)
+                .filter(Producto::estaActivo)
+                .flatMap(producto -> disponibilidad.buscar(productoId, sucursalId)
+                        .filter(DisponibilidadEnLocal::estaDisponible)
+                        .map(local -> new ProductoDisponible(producto,
+                                local.precioEfectivo(producto.precioLista()),
+                                existenciaEn(producto, sucursalId))));
+    }
+
+    /**
+     * El catálogo del local para el mostrador: activos, disponibles ahí, por
+     * código o nombre. Hasta {@value #MAXIMO_BUSQUEDA}: es un autocompletado.
+     */
+    public List<ProductoDisponible> disponiblesEn(UUID sucursalId, String texto) {
+        var enElLocal = disponibilidad.listarDisponiblesEn(sucursalId).stream()
+                .collect(java.util.stream.Collectors.toMap(DisponibilidadEnLocal::productoId, d -> d));
+        return buscar(texto).stream()
+                .filter(Producto::estaActivo)
+                .filter(p -> enElLocal.containsKey(p.id()))
+                .limit(MAXIMO_BUSQUEDA)
+                .map(p -> new ProductoDisponible(p,
+                        enElLocal.get(p.id()).precioEfectivo(p.precioLista()),
+                        existenciaEn(p, sucursalId)))
+                .toList();
+    }
+
+    private BigDecimal existenciaEn(Producto producto, UUID sucursalId) {
+        if (!producto.controlaStock()) {
+            return null;
+        }
+        return almacenes.listar().stream()
+                .filter(a -> a.estaActivo() && sucursalId.equals(a.sucursalId()))
+                .findFirst()
+                .map(almacen -> existencias.buscar(almacen.id(), producto.id())
+                        .map(Existencia::cantidad).orElse(BigDecimal.ZERO))
+                .orElse(null);
     }
 
     public record Datos(String nombre, String descripcion, UnidadDeMedida unidad,

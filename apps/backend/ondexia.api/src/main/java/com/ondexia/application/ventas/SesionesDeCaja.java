@@ -117,4 +117,9 @@ public class SesionesDeCaja {
                     sesion.montoInicial(), sesion.declarado(), sesion.calculado());
         }
     }
+
+    /** La caja de una sesión, comprobando que el usuario la alcanza. */
+    public Caja cajaDe(SesionCaja sesion) {
+        return cajas.exigir(sesion.cajaId());
+    }
 }

@@ -1,0 +1,190 @@
+<div>
+  <app-encabezado-pagina
+    titulo="Punto de venta"
+    descripcion="Toda venta ocurre dentro de una sesión de caja. La nota de venta es un documento interno; la boleta y la factura quedan registradas y pendientes de enviarse a SUNAT."
+  />
+
+  @if (!caja()) {
+  <div class="rounded-2xl border border-warning-200 bg-warning-50 p-6 dark:border-warning-500/30 dark:bg-warning-500/10">
+    <p class="font-medium text-warning-700 dark:text-warning-400">No hay una caja abierta en este establecimiento.</p>
+    <p class="mt-1 text-sm text-warning-700/80 dark:text-warning-400/80">
+      Sin sesión de caja no hay a quién atribuir el efectivo. Abre una caja y vuelve.
+    </p>
+    <div class="mt-4">
+      <app-boton ruta="/ventas/cajas">Ir a cajas</app-boton>
+    </div>
+  </div>
+  } @else {
+  <div class="grid grid-cols-1 gap-5 xl:grid-cols-3">
+    <!-- Productos -->
+    <section class="space-y-4 xl:col-span-2">
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <app-buscador-entidad
+          etiqueta="Producto"
+          marcador="Nombre o código, y Enter para agregar"
+          [opciones]="opcionesProducto()"
+          [cargando]="buscandoProducto()"
+          (buscar)="buscarProducto($event)"
+          (seleccionar)="agregarProducto($event)"
+        />
+        <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+          Solo lo que se vende en {{ caja()!.nombre }}. El precio es el del local; con IGV.
+        </p>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+        @if (lineas().length === 0) {
+        <p class="p-8 text-center text-sm text-gray-500 dark:text-gray-400">Aún no hay líneas. Busca un producto arriba.</p>
+        } @else {
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 text-left text-xs uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
+              <th class="px-4 py-3 font-medium">Producto</th>
+              <th class="px-2 py-3 text-right font-medium">Cantidad</th>
+              <th class="px-2 py-3 text-right font-medium">Precio</th>
+              <th class="px-2 py-3 text-right font-medium">Descuento</th>
+              <th class="px-2 py-3 text-right font-medium">Total</th>
+              <th class="px-2 py-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (linea of lineas(); track linea.productoId) {
+            <tr class="border-b border-gray-100 dark:border-gray-800/60">
+              <td class="px-4 py-2.5">
+                <span class="block text-gray-800 dark:text-white/90">{{ linea.descripcion }}</span>
+                <span class="block text-xs text-gray-500 dark:text-gray-400">
+                  {{ linea.codigo }} · {{ linea.unidad }}
+                  @if (sinExistencias(linea)) {
+                  · <span class="text-warning-700 dark:text-warning-400">quedan {{ cantidad(linea.existencia!) }}</span>
+                  }
+                </span>
+              </td>
+              <td class="px-2 py-2.5 text-right">
+                <input type="number" min="0.000001" step="any" [ngModel]="linea.cantidad" (ngModelChange)="cambiarCantidad(linea, $event)"
+                  [attr.aria-label]="'Cantidad de ' + linea.descripcion"
+                  class="h-9 w-24 rounded-lg border border-gray-300 bg-transparent px-2 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+              </td>
+              <td class="px-2 py-2.5 text-right tabular-nums text-gray-700 dark:text-gray-300">{{ importe(linea.precio) }}</td>
+              <td class="px-2 py-2.5 text-right">
+                <input type="number" min="0" step="0.01" [ngModel]="linea.descuento" (ngModelChange)="cambiarDescuento(linea, $event)"
+                  [attr.aria-label]="'Descuento de ' + linea.descripcion"
+                  class="h-9 w-24 rounded-lg border border-gray-300 bg-transparent px-2 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+              </td>
+              <td class="px-2 py-2.5 text-right tabular-nums font-medium text-gray-800 dark:text-white/90">{{ importe(totalLinea(linea)) }}</td>
+              <td class="px-2 py-2.5 text-right">
+                <button type="button" (click)="quitarLinea(linea)" class="text-xs font-medium text-gray-500 hover:text-error-500" [attr.aria-label]="'Quitar ' + linea.descripcion">Quitar</button>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+        }
+      </div>
+    </section>
+
+    <!-- Documento, cliente y cobro -->
+    <aside class="space-y-4">
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
+          Caja <span class="font-medium text-gray-700 dark:text-gray-300">{{ caja()!.codigo }} · {{ caja()!.nombre }}</span>, abierta.
+        </p>
+        <label for="tipo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Documento</label>
+        <app-desplegable idCampo="tipo" [opciones]="opcionesTipo()" [ngModel]="tipo()" (ngModelChange)="cambiarTipo($event)" alto="formulario" />
+        @if (tipo() === 'NV') {
+        <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Documento interno, no válido como comprobante de pago. No se declara a SUNAT.</p>
+        } @else {
+        <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Queda pendiente de envío a SUNAT.</p>
+        }
+
+        @if (series().length > 1) {
+        <label for="serie" class="mb-1.5 mt-4 block text-sm font-medium text-gray-700 dark:text-gray-400">Serie</label>
+        <app-desplegable idCampo="serie" [opciones]="opcionesSerie()" [ngModel]="serieId()" (ngModelChange)="serieId.set($event)" alto="formulario" />
+        } @else if (series().length === 1) {
+        <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">Siguiente: <span class="font-medium tabular-nums text-gray-700 dark:text-gray-300">{{ series()[0].siguienteNumero }}</span></p>
+        } @else {
+        <p class="mt-3 text-xs text-warning-700 dark:text-warning-400">Este establecimiento no tiene una serie activa para este documento. Créala en Configuración › Series.</p>
+        }
+      </div>
+
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        @if (cliente(); as elegido) {
+        <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ elegido.nombre }}</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">{{ elegido.tipoDocumentoNombre }} {{ elegido.numeroDocumento }}</p>
+        <button type="button" (click)="quitarCliente()" class="mt-2 text-xs font-medium text-brand-500 hover:text-brand-600">Cambiar de cliente</button>
+        } @else {
+        <app-buscador-entidad
+          [etiqueta]="tipo() === 'FACTURA' ? 'Cliente (RUC obligatorio)' : 'Cliente (opcional)'"
+          marcador="Nombre o documento"
+          [opciones]="opcionesCliente()"
+          (buscar)="buscarCliente($event)"
+          (seleccionar)="elegirCliente($event)"
+        />
+        <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+          @if (tipo() === 'BOLETA') {
+          Sin cliente hasta S/ {{ TOPE_BOLETA_SIN_DOCUMENTO }}; por encima hay que identificarlo.
+          } @else if (tipo() === 'NV') {
+          Sin cliente vale.
+          } @else {
+          Solo un cliente con RUC.
+          }
+        </p>
+        }
+      </div>
+
+      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="mb-3 flex items-baseline justify-between">
+          <span class="text-sm text-gray-500 dark:text-gray-400">Total</span>
+          <span class="text-2xl font-semibold tabular-nums text-gray-800 dark:text-white/90">{{ importe(total()) }}</span>
+        </div>
+        <p class="mb-4 text-xs text-gray-500 dark:text-gray-400">Incluye IGV {{ importe(igvEstimado()) }}.</p>
+
+        <p class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-400">Cobro</p>
+        <div class="space-y-2">
+          @for (pago of pagos(); track $index) {
+          <div class="grid grid-cols-[1fr_auto] gap-2">
+            <div class="grid grid-cols-2 gap-2">
+              <select [ngModel]="pago.forma" (ngModelChange)="cambiarFormaDePago(pago, $event)" aria-label="Forma de pago"
+                class="h-10 rounded-lg border border-gray-300 bg-transparent px-2 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden dark:border-gray-700 dark:text-white/90">
+                @for (forma of formasDePago; track forma.codigo) {
+                <option [value]="forma.codigo">{{ forma.nombre }}</option>
+                }
+              </select>
+              <input type="number" min="0" step="0.01" placeholder="0.00" [ngModel]="pago.monto" (ngModelChange)="cambiarMonto(pago, $event)" aria-label="Monto"
+                class="h-10 rounded-lg border border-gray-300 bg-transparent px-2 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden dark:border-gray-700 dark:text-white/90" />
+            </div>
+            <button type="button" (click)="completarPago(pago)" class="text-xs font-medium text-brand-500 hover:text-brand-600" title="Poner lo que falta">Resto</button>
+            @if (pago.forma !== 'EFECTIVO') {
+            <input type="text" maxlength="100" placeholder="Referencia (operación, últimos dígitos)" [ngModel]="pago.referencia" (ngModelChange)="cambiarReferencia(pago, $event)" aria-label="Referencia del pago"
+              class="col-span-2 h-9 rounded-lg border border-gray-300 bg-transparent px-2 text-xs text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden dark:border-gray-700 dark:text-white/90" />
+            }
+            @if (pagos().length > 1) {
+            <button type="button" (click)="quitarPago(pago)" class="col-span-2 text-left text-xs text-gray-500 hover:text-error-500">Quitar este pago</button>
+            }
+          </div>
+          }
+        </div>
+        <button type="button" (click)="agregarPago()" class="mt-2 text-xs font-medium text-brand-500 hover:text-brand-600">Agregar otra forma de pago</button>
+
+        <div class="mt-4 flex items-baseline justify-between text-sm">
+          <span class="text-gray-500 dark:text-gray-400">{{ porCobrar() >= 0 ? 'Por cobrar' : 'De más' }}</span>
+          <span class="tabular-nums font-medium" [class]="porCobrar() === 0 ? 'text-success-700 dark:text-success-400' : 'text-gray-800 dark:text-white/90'">{{ importe(porCobrar() < 0 ? -porCobrar() : porCobrar()) }}</span>
+        </div>
+
+        <label for="observaciones" class="mb-1.5 mt-4 block text-sm font-medium text-gray-700 dark:text-gray-400">Observaciones</label>
+        <input id="observaciones" type="text" maxlength="500" [ngModel]="observaciones()" (ngModelChange)="observaciones.set($event)"
+          class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+
+        @if (impedimento(); as motivo) {
+        <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">{{ motivo }}</p>
+        }
+        <div class="mt-4 flex gap-2">
+          <app-boton variante="secundario" [deshabilitado]="lineas().length === 0" (accion)="limpiar()">Vaciar</app-boton>
+          <app-boton class="flex-1" [estado]="emitir.estado()" [deshabilitado]="impedimento() !== null" (accion)="emitir.ejecutar()">
+            {{ tipo() === 'NV' ? 'Emitir nota de venta' : tipo() === 'BOLETA' ? 'Registrar boleta' : 'Registrar factura' }}
+          </app-boton>
+        </div>
+      </div>
+    </aside>
+  </div>
+  }
+</div>

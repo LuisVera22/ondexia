@@ -32,6 +32,9 @@ import { PresentacionesComponent } from './pages/almacen/presentaciones/presenta
 import { ProductosComponent } from './pages/almacen/productos/productos.component';
 import { FichaProductoComponent } from './pages/almacen/ficha-producto/ficha-producto.component';
 import { CajasComponent } from './pages/ventas/cajas/cajas.component';
+import { PuntoDeVentaComponent } from './pages/ventas/punto-de-venta/punto-de-venta.component';
+import { ListaDocumentosComponent } from './pages/ventas/documentos/lista-documentos.component';
+import { DetalleDocumentoComponent } from './pages/ventas/documentos/detalle-documento.component';
 import { ClientesComponent } from './pages/ventas/clientes/clientes.component';
 import { FichaClienteComponent } from './pages/ventas/clientes/ficha-cliente.component';
 import { ProveedoresComponent } from './pages/compras/proveedores/proveedores.component';
@@ -40,10 +43,6 @@ import { CotizacionesComponent } from './pages/ventas/cotizaciones/cotizaciones.
 import { NuevaCotizacionComponent } from './pages/ventas/cotizaciones/nueva-cotizacion.component';
 import { PreventasComponent } from './pages/ventas/preventas/preventas.component';
 import { NuevaPreventaComponent } from './pages/ventas/preventas/nueva-preventa.component';
-import { FacturasComponent } from './pages/ventas/facturas/facturas.component';
-import { EmitirFacturaComponent } from './pages/ventas/facturas/emitir-factura.component';
-import { BoletasComponent } from './pages/ventas/boletas/boletas.component';
-import { EmitirBoletaComponent } from './pages/ventas/boletas/emitir-boleta.component';
 import { NotasCreditoComponent } from './pages/ventas/notas-credito/notas-credito.component';
 import { EmitirNotaCreditoComponent } from './pages/ventas/notas-credito/emitir-nota-credito.component';
 import { DetalleComprobanteComponent } from './pages/ventas/comprobantes/detalle-comprobante.component';
@@ -156,14 +155,19 @@ export const routes: Routes = [
 
       // ── Ventas ───────────────────────────────────────────────────────────
       { path: 'ventas/cajas', component: CajasComponent, title: `Cajas | ${TITULO}` },
+      { path: 'ventas/punto-de-venta', component: PuntoDeVentaComponent, title: `Punto de venta | ${TITULO}` },
+      { path: 'ventas/notas-venta', component: ListaDocumentosComponent, data: { tipo: 'NV' }, title: `Notas de venta | ${TITULO}` },
+      { path: 'ventas/documentos/:tipo/:id', component: DetalleDocumentoComponent, title: `Documento | ${TITULO}` },
       { path: 'ventas/clientes', component: ClientesComponent, title: `Clientes | ${TITULO}` },
       { path: 'ventas/clientes/:id', component: FichaClienteComponent, title: `Ficha de cliente | ${TITULO}`, canDeactivate: [salidaConCambios] },
       { path: 'ventas/cotizaciones', component: CotizacionesComponent, title: `Cotizaciones | ${TITULO}` },
       { path: 'ventas/cotizaciones/nueva', component: NuevaCotizacionComponent, title: `Nueva cotización | ${TITULO}` },
-      { path: 'ventas/facturas', component: FacturasComponent, title: `Facturas | ${TITULO}` },
-      { path: 'ventas/facturas/nueva', component: EmitirFacturaComponent, title: `Emitir factura | ${TITULO}` },
-      { path: 'ventas/boletas', component: BoletasComponent, title: `Boletas | ${TITULO}` },
-      { path: 'ventas/boletas/nueva', component: EmitirBoletaComponent, title: `Emitir boleta | ${TITULO}` },
+      // Facturas y boletas salen del punto de venta; las maquetas de emisión
+      // (EmitirFacturaComponent, EmitirBoletaComponent) quedan sin ruta.
+      { path: 'ventas/facturas', component: ListaDocumentosComponent, data: { tipo: 'FACTURA' }, title: `Facturas | ${TITULO}` },
+      { path: 'ventas/facturas/nueva', redirectTo: 'ventas/punto-de-venta' },
+      { path: 'ventas/boletas', component: ListaDocumentosComponent, data: { tipo: 'BOLETA' }, title: `Boletas | ${TITULO}` },
+      { path: 'ventas/boletas/nueva', redirectTo: 'ventas/punto-de-venta' },
       { path: 'ventas/notas-credito', component: NotasCreditoComponent, title: `Notas de crédito | ${TITULO}` },
       { path: 'ventas/notas-credito/nueva', component: EmitirNotaCreditoComponent, title: `Emitir nota de crédito | ${TITULO}` },
       { path: 'ventas/preventas', component: PreventasComponent, title: `Notas de preventa | ${TITULO}` },

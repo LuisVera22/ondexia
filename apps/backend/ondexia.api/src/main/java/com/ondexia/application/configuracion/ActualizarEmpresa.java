@@ -86,6 +86,13 @@ public class ActualizarEmpresa {
     @Transactional
     public Empresa ejecutar(String nombreComercial, String cuentaDetracciones,
             RegimenTributario regimen) {
+        return ejecutar(nombreComercial, cuentaDetracciones, regimen, null);
+    }
+
+    /** @param permiteVentaSinStock {@code null} = no tocarlo, como el régimen. */
+    @Transactional
+    public Empresa ejecutar(String nombreComercial, String cuentaDetracciones,
+            RegimenTributario regimen, Boolean permiteVentaSinStock) {
         var empresaId = contexto.obligatorio().empresaActivaObligatoria();
         var empresa = empresasDelUsuario.exigirAcceso(empresaId);
 
@@ -100,6 +107,9 @@ public class ActualizarEmpresa {
         // del regimen (la ficha antigua) y no debe resetearlo a OTRO por omision.
         if (regimen != null) {
             empresa.cambiarRegimen(regimen);
+        }
+        if (permiteVentaSinStock != null) {
+            empresa.fijarVentaSinStock(permiteVentaSinStock);
         }
 
         return guardarYRegistrar(empresaId, empresa, antes);

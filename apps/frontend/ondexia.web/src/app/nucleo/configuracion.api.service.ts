@@ -57,6 +57,8 @@ export interface Empresa {
   readonly regimenTributario: RegimenTributario;
   /** Derivado del régimen en el servidor; la pantalla no lo calcula. */
   readonly emiteFacturas: boolean;
+  /** Si el mostrador vende con existencias insuficientes (con aviso) o se rechaza. */
+  readonly permiteVentaSinStock: boolean;
 
   readonly modoSunat: string;
   readonly activa: boolean;
@@ -83,6 +85,8 @@ export interface DatosEmpresa {
   readonly cuentaDetracciones: string | null;
   /** Ausente o nulo = no tocarlo. */
   readonly regimenTributario?: RegimenTributario | null;
+  /** Ausente o nulo = no tocarlo. */
+  readonly permiteVentaSinStock?: boolean | null;
 }
 
 /** Lo que hace falta para dar de alta una empresa: la firma y lo nuestro. */
@@ -141,7 +145,7 @@ export interface DatosAlmacen {
 // ── Series ─────────────────────────────────────────────────────────────────
 
 export interface TipoDocumento {
-  /** Código del catálogo 01 de SUNAT: '01', '03', '07', '08', '09'. */
+  /** Código del catálogo 01 de SUNAT: '01', '03', '07', '08', '09'; o 'NV', la nota de venta interna. */
   readonly codigo: string;
   readonly nombre: string;
 }

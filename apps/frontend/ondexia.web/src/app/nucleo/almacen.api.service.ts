@@ -45,6 +45,22 @@ export interface DatosProducto {
   readonly controlaStock: boolean;
 }
 
+/** Lo que el mostrador necesita de un producto en el local. */
+export interface ProductoDisponibleApi {
+  readonly id: string;
+  readonly codigo: string;
+  readonly nombre: string;
+  readonly unidad: string;
+  readonly unidadNombre: string;
+  readonly afectacion: string;
+  readonly llevaIgv: boolean;
+  /** El que rige en el local: el propio o el de lista. Con IGV. */
+  readonly precio: number;
+  readonly controlaStock: boolean;
+  /** null: no controla existencias, o el local no tiene almacén. */
+  readonly existencia: number | null;
+}
+
 export interface DisponibilidadApi {
   readonly sucursalId: string;
   readonly disponible: boolean;
@@ -82,6 +98,15 @@ export class AlmacenApiService {
   productos(texto?: string): Promise<ProductoApi[]> {
     const params = texto ? new HttpParams().set('q', texto) : undefined;
     return firstValueFrom(this.http.get<ProductoApi[]>(this.base, { params }));
+  }
+
+  /** Activos y disponibles en el establecimiento, por código o nombre, hasta 50. */
+  disponibles(sucursalId: string, texto?: string): Promise<ProductoDisponibleApi[]> {
+    let params = new HttpParams().set('sucursalId', sucursalId);
+    if (texto) {
+      params = params.set('q', texto);
+    }
+    return firstValueFrom(this.http.get<ProductoDisponibleApi[]>(`${this.base}/disponibles`, { params }));
   }
 
   catalogos(): Promise<CatalogosProducto> {

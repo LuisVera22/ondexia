@@ -36,7 +36,15 @@ public enum TipoDocumento {
     NOTA_DEBITO("08", "Nota de débito", 'F', 'B'),
 
     /** Guía de remisión remitente. Traslado de mercadería. */
-    GUIA_REMISION("09", "Guía de remisión", 'T');
+    GUIA_REMISION("09", "Guía de remisión", 'T'),
+
+    /**
+     * Documento interno, fuera del catálogo 01: no es comprobante de pago y no
+     * se declara a SUNAT (doc 12 §3.3). Tiene serie y correlativo propios por
+     * establecimiento para que el mostrador lo numere como a los demás, y su
+     * letra N lo distingue a simple vista de una boleta.
+     */
+    NOTA_VENTA("NV", "Nota de venta", 'N');
 
     private final String codigo;
     private final String nombre;
@@ -57,13 +65,19 @@ public enum TipoDocumento {
         return nombre;
     }
 
+    /** Si es un comprobante de pago del catálogo 01, que se declara a SUNAT. */
+    public boolean esFiscal() {
+        return this != NOTA_VENTA;
+    }
+
     public static TipoDocumento porCodigo(String codigo) {
         return Arrays.stream(values())
                 .filter(tipo -> tipo.codigo.equals(codigo))
                 .findFirst()
                 .orElseThrow(() -> new ReglaDeNegocioViolada(
                         "tipo_documento_invalido",
-                        "El tipo de documento '" + codigo + "' no está en el catálogo 01 de SUNAT."));
+                        "El tipo de documento '" + codigo
+                                + "' no está en el catálogo 01 de SUNAT ni es la nota de venta."));
     }
 
     /**

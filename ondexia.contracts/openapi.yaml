@@ -35,6 +35,8 @@ tags:
   description: "Quién entra en la empresa, con qué rol y hasta dónde"
 - name: Cajas
   description: Puntos de cobro por establecimiento y sus turnos
+- name: Ventas
+  description: "Punto de venta: notas de venta, boletas y facturas"
 - name: Comprobantes
   description: Tipos de comprobante que emite la empresa
 - name: Series
@@ -771,6 +773,87 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaAlmacen"
+  /api/v1/ventas/notas-de-venta:
+    get:
+      tags:
+      - Ventas
+      summary: Las últimas notas de venta
+      operationId: notasDeVenta
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaResumen"
+    post:
+      tags:
+      - Ventas
+      summary: Emite una nota de venta
+      description: "Documento interno: no se declara a SUNAT."
+      operationId: emitirNotaDeVenta
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionVenta"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaEmision"
+  /api/v1/ventas/comprobantes:
+    get:
+      tags:
+      - Ventas
+      summary: "Los últimos comprobantes; con `tipo`, solo de ese tipo"
+      operationId: comprobantes
+      parameters:
+      - name: tipo
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - FACTURA
+          - BOLETA
+          - NOTA_CREDITO
+          - NOTA_DEBITO
+          - GUIA_REMISION
+          - NOTA_VENTA
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaResumen"
+    post:
+      tags:
+      - Ventas
+      summary: Registra una boleta o una factura
+      description: "Queda PENDIENTE de envío a SUNAT. `tipo`: BOLETA o FACTURA."
+      operationId: emitirComprobante
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionComprobante"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaEmision"
   /api/v1/ventas/clientes:
     get:
       tags:
@@ -1317,6 +1400,81 @@ paths:
               schema:
                 $ref: "#/components/schemas/Salud"
       security: []
+  /api/v1/ventas/series:
+    get:
+      tags:
+      - Ventas
+      summary: "Las series activas de un tipo en un establecimiento, para elegir al\
+        \ emitir"
+      operationId: series
+      parameters:
+      - name: tipo
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - FACTURA
+          - BOLETA
+          - NOTA_CREDITO
+          - NOTA_DEBITO
+          - GUIA_REMISION
+          - NOTA_VENTA
+      - name: sucursalId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaSerie"
+  /api/v1/ventas/notas-de-venta/{id}:
+    get:
+      tags:
+      - Ventas
+      summary: "Una nota de venta, con sus líneas y pagos"
+      operationId: notaDeVenta
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaDocumento"
+  /api/v1/ventas/comprobantes/{id}:
+    get:
+      tags:
+      - Ventas
+      summary: "Un comprobante, con sus líneas y pagos"
+      operationId: comprobante
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaDocumento"
   /api/v1/ventas/clientes/tipos-documento:
     get:
       tags:
@@ -1577,6 +1735,35 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/RespuestaExistencia"
+  /api/v1/almacen/productos/disponibles:
+    get:
+      tags:
+      - Productos
+      summary: El catálogo del establecimiento para el mostrador
+      description: "Activos y disponibles en el local, con el precio que rige ahí\
+        \ y lo que hay en su almacén. Hasta 50."
+      operationId: disponibles
+      parameters:
+      - name: sucursalId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: q
+        in: query
+        required: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaDisponible"
   /api/v1/almacen/productos/catalogos:
     get:
       tags:
@@ -1898,6 +2085,8 @@ components:
           enum:
           - NUEVO_RUS
           - OTRO
+        permiteVentaSinStock:
+          type: boolean
     RespuestaEmpresa:
       type: object
       properties:
@@ -1937,6 +2126,8 @@ components:
         regimenTributario:
           type: string
         emiteFacturas:
+          type: boolean
+        permiteVentaSinStock:
           type: boolean
         modoSunat:
           type: string
@@ -2022,6 +2213,205 @@ components:
           format: uuid
         activo:
           type: boolean
+    LineaPedida:
+      required:
+      - cantidad
+      - productoId
+      type: object
+      properties:
+        productoId:
+          type: string
+          format: uuid
+        cantidad:
+          minimum: 0
+          exclusiveMinimum: true
+          type: number
+        descuento:
+          minimum: 0
+          exclusiveMinimum: false
+          type: number
+    PagoPedido:
+      required:
+      - forma
+      - monto
+      type: object
+      properties:
+        forma:
+          type: string
+          enum:
+          - EFECTIVO
+          - TARJETA
+          - TRANSFERENCIA
+          - BILLETERA_DIGITAL
+        monto:
+          minimum: 0
+          exclusiveMinimum: true
+          type: number
+        referencia:
+          maxLength: 100
+          minLength: 0
+          type: string
+    PeticionVenta:
+      required:
+      - cajaId
+      - lineas
+      - pagos
+      type: object
+      properties:
+        cajaId:
+          type: string
+          format: uuid
+        serieId:
+          type: string
+          format: uuid
+        clienteId:
+          type: string
+          format: uuid
+        lineas:
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/LineaPedida"
+        pagos:
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/PagoPedido"
+        observaciones:
+          maxLength: 500
+          minLength: 0
+          type: string
+    RespuestaDocumento:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tipo:
+          type: string
+        tipoNombre:
+          type: string
+        fiscal:
+          type: boolean
+        serie:
+          type: string
+        numero:
+          type: integer
+          format: int64
+        numeroCompleto:
+          type: string
+        estado:
+          type: string
+        sucursalId:
+          type: string
+          format: uuid
+        sesionCajaId:
+          type: string
+          format: uuid
+        cliente:
+          $ref: "#/components/schemas/RespuestaCliente"
+        fechaEmision:
+          type: string
+          format: date
+        emitidoEn:
+          type: string
+          format: date-time
+        emitidoPor:
+          type: string
+          format: uuid
+        moneda:
+          type: string
+        totalGravado:
+          type: number
+        totalExonerado:
+          type: number
+        totalInafecto:
+          type: number
+        totalDescuento:
+          type: number
+        totalIgv:
+          type: number
+        total:
+          type: number
+        observaciones:
+          type: string
+        documentoOrigenId:
+          type: string
+          format: uuid
+        lineas:
+          type: array
+          items:
+            $ref: "#/components/schemas/RespuestaLinea"
+        pagos:
+          type: array
+          items:
+            $ref: "#/components/schemas/RespuestaPago"
+    RespuestaEmision:
+      type: object
+      properties:
+        documento:
+          $ref: "#/components/schemas/RespuestaDocumento"
+        avisos:
+          type: array
+          items:
+            type: string
+    RespuestaLinea:
+      type: object
+      properties:
+        orden:
+          type: integer
+          format: int32
+        productoId:
+          type: string
+          format: uuid
+        codigo:
+          type: string
+        descripcion:
+          type: string
+        unidad:
+          type: string
+        cantidad:
+          type: number
+        precioUnitario:
+          type: number
+        valorUnitario:
+          type: number
+        descuento:
+          type: number
+        afectacion:
+          type: string
+        valorVenta:
+          type: number
+        igv:
+          type: number
+        total:
+          type: number
+    RespuestaPago:
+      type: object
+      properties:
+        forma:
+          type: string
+        monto:
+          type: number
+        referencia:
+          type: string
+    PeticionComprobante:
+      required:
+      - tipo
+      - venta
+      type: object
+      properties:
+        tipo:
+          type: string
+          enum:
+          - FACTURA
+          - BOLETA
+          - NOTA_CREDITO
+          - NOTA_DEBITO
+          - GUIA_REMISION
+          - NOTA_VENTA
+        venta:
+          $ref: "#/components/schemas/PeticionVenta"
     PeticionNuevo:
       required:
       - numeroDocumento
@@ -2201,6 +2591,32 @@ components:
           type: string
         version:
           type: string
+    RespuestaResumen:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tipo:
+          type: string
+        tipoNombre:
+          type: string
+        numeroCompleto:
+          type: string
+        estado:
+          type: string
+        fechaEmision:
+          type: string
+          format: date
+        emitidoEn:
+          type: string
+          format: date-time
+        cliente:
+          type: string
+        clienteDocumento:
+          type: string
+        total:
+          type: number
     Opcion:
       type: object
       properties:
@@ -2386,6 +2802,30 @@ components:
         creadoEn:
           type: string
           format: date-time
+    RespuestaDisponible:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        codigo:
+          type: string
+        nombre:
+          type: string
+        unidad:
+          type: string
+        unidadNombre:
+          type: string
+        afectacion:
+          type: string
+        llevaIgv:
+          type: boolean
+        precio:
+          type: number
+        controlaStock:
+          type: boolean
+        existencia:
+          type: number
     RespuestaCatalogos:
       type: object
       properties:

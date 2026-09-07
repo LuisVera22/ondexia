@@ -82,6 +82,120 @@ export interface DatosCliente {
   readonly telefono: string | null;
 }
 
+// ── Documentos de venta ─────────────────────────────────────────────────
+
+/** '01' factura, '03' boleta, 'NV' nota de venta (interna, no se declara). */
+export type TipoDocumentoVenta = '01' | '03' | 'NV';
+export type TipoComprobanteEmitible = 'BOLETA' | 'FACTURA';
+export type EstadoDocumentoVenta = 'EMITIDO' | 'PENDIENTE' | 'CANJEADO' | 'ANULADO';
+
+export interface LineaPedida {
+  readonly productoId: string;
+  readonly cantidad: number;
+  readonly descuento?: number | null;
+}
+
+export interface PagoPedido {
+  readonly forma: FormaDePago;
+  readonly monto: number;
+  readonly referencia?: string | null;
+}
+
+export interface PeticionVenta {
+  readonly cajaId: string;
+  readonly serieId?: string | null;
+  readonly clienteId?: string | null;
+  readonly lineas: LineaPedida[];
+  readonly pagos: PagoPedido[];
+  readonly observaciones?: string | null;
+}
+
+export interface LineaDocumentoApi {
+  readonly orden: number;
+  readonly productoId: string;
+  readonly codigo: string;
+  readonly descripcion: string;
+  readonly unidad: string;
+  readonly cantidad: number;
+  /** Con IGV. */
+  readonly precioUnitario: number;
+  /** Sin IGV. */
+  readonly valorUnitario: number;
+  readonly descuento: number;
+  readonly afectacion: string;
+  readonly valorVenta: number;
+  readonly igv: number;
+  readonly total: number;
+}
+
+export interface PagoDocumentoApi {
+  readonly forma: FormaDePago;
+  readonly monto: number;
+  readonly referencia: string | null;
+}
+
+export interface ClienteDocumentoApi {
+  readonly id: string;
+  readonly tipoDocumento: TipoDocumentoCliente;
+  readonly numeroDocumento: string;
+  readonly nombre: string;
+  readonly direccion: string | null;
+}
+
+export interface DocumentoVentaApi {
+  readonly id: string;
+  readonly tipo: TipoDocumentoVenta;
+  readonly tipoNombre: string;
+  readonly fiscal: boolean;
+  readonly serie: string;
+  readonly numero: number;
+  readonly numeroCompleto: string;
+  readonly estado: EstadoDocumentoVenta;
+  readonly sucursalId: string;
+  readonly sesionCajaId: string;
+  /** null: adquirente sin documento. */
+  readonly cliente: ClienteDocumentoApi | null;
+  readonly fechaEmision: string;
+  readonly emitidoEn: string;
+  readonly emitidoPor: string;
+  readonly moneda: string;
+  readonly totalGravado: number;
+  readonly totalExonerado: number;
+  readonly totalInafecto: number;
+  readonly totalDescuento: number;
+  readonly totalIgv: number;
+  readonly total: number;
+  readonly observaciones: string | null;
+  readonly documentoOrigenId: string | null;
+  readonly lineas: LineaDocumentoApi[];
+  readonly pagos: PagoDocumentoApi[];
+}
+
+export interface ResumenDocumentoApi {
+  readonly id: string;
+  readonly tipo: TipoDocumentoVenta;
+  readonly tipoNombre: string;
+  readonly numeroCompleto: string;
+  readonly estado: EstadoDocumentoVenta;
+  readonly fechaEmision: string;
+  readonly emitidoEn: string;
+  readonly cliente: string | null;
+  readonly clienteDocumento: string | null;
+  readonly total: number;
+}
+
+export interface EmisionApi {
+  readonly documento: DocumentoVentaApi;
+  /** Lo que conviene decir sin impedir: existencias que quedaron en negativo. */
+  readonly avisos: string[];
+}
+
+export interface SerieDisponibleApi {
+  readonly id: string;
+  readonly serie: string;
+  readonly siguienteNumero: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class VentasApiService {
   private readonly http = inject(HttpClient);
@@ -167,5 +281,36 @@ export class VentasApiService {
 
   cambiarEstadoCliente(id: string, activo: boolean): Promise<ClienteApi> {
     return firstValueFrom(this.http.put<ClienteApi>(`${this.base}/clientes/${id}/estado`, { activo }));
+  }
+
+  // ── Documentos de venta ────────────────────────────────────────────────
+
+  emitirNotaDeVenta(venta: PeticionVenta): Promise<EmisionApi> {
+    return firstValueFrom(this.http.post<EmisionApi>(`${this.base}/notas-de-venta`, venta));
+  }
+
+  /** Boleta o factura. Queda PENDIENTE de envío a SUNAT. */
+  emitirComprobante(tipo: TipoComprobanteEmitible, venta: PeticionVenta): Promise<EmisionApi> {
+    return firstValueFrom(this.http.post<EmisionApi>(`${this.base}/comprobantes`, { tipo, venta }));
+  }
+
+  notasDeVenta(): Promise<ResumenDocumentoApi[]> {
+    return firstValueFrom(this.http.get<ResumenDocumentoApi[]>(`${this.base}/notas-de-venta`));
+  }
+
+  comprobantes(tipo?: TipoComprobanteEmitible): Promise<ResumenDocumentoApi[]> {
+    const params = tipo ? new HttpParams().set('tipo', tipo) : undefined;
+    return firstValueFrom(this.http.get<ResumenDocumentoApi[]>(`${this.base}/comprobantes`, { params }));
+  }
+
+  /** Por la puerta que corresponde al tipo: los permisos son distintos. */
+  documento(id: string, tipo: TipoDocumentoVenta): Promise<DocumentoVentaApi> {
+    const ruta = tipo === 'NV' ? 'notas-de-venta' : 'comprobantes';
+    return firstValueFrom(this.http.get<DocumentoVentaApi>(`${this.base}/${ruta}/${id}`));
+  }
+
+  seriesDisponibles(tipo: 'NOTA_VENTA' | TipoComprobanteEmitible, sucursalId: string): Promise<SerieDisponibleApi[]> {
+    const params = new HttpParams().set('tipo', tipo).set('sucursalId', sucursalId);
+    return firstValueFrom(this.http.get<SerieDisponibleApi[]>(`${this.base}/series`, { params }));
   }
 }

@@ -102,8 +102,8 @@ public class SerieController {
             UUID sucursalId,
 
             @NotBlank(message = "El tipo de documento es obligatorio.")
-            @Pattern(regexp = "0[13789]",
-                    message = "Tipo de documento fuera del catálogo 01 de SUNAT.")
+            @Pattern(regexp = "0[13789]|NV",
+                    message = "Tipo de documento fuera del catálogo 01 de SUNAT (o NV, nota de venta).")
             String tipoDocumento,
 
             @NotBlank(message = "La serie es obligatoria.")

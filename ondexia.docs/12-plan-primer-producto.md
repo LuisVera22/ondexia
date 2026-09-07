@@ -689,6 +689,30 @@ producto exige el establecimiento en el alta (un producto que no se vende en
 ningún sitio no es un producto, es un borrador que nadie ve). El índice GIN de
 `nombre` exige `pg_trgm`, extensión de confianza que crea el dueño de la base.
 
+### Lo que la iteración 4 dejó hecho
+
+- **El punto de venta emite** (V19): `documento_venta` con líneas, pagos y
+  totales, inmutable salvo el estado por disparador; correlativo bajo bloqueo en
+  la misma transacción; descarga del almacén del local con aviso o rechazo según
+  `empresa.permite_venta_sin_stock`; el arqueo suma los pagos de la sesión.
+  Nota de venta `EMITIDO`; boleta y factura `PENDIENTE` sin enviar. Todo en
+  [13 §4](13-ventas-en-punto-de-venta.md).
+- **Las tres reglas de §3.2 con su prueba**: `unaBoletaDe701SolesSinDniNoSeEmite`
+  y `unaFacturaSinRucNoSeEmite` en `DocumentoVentaTest`, y la leyenda de la nota
+  de venta en pantalla y en papel.
+- **Pantallas**: punto de venta, listados de notas de venta, boletas y facturas,
+  y el detalle imprimible en ticket de 80 mm o A4 desde el navegador. La ficha
+  de la empresa gana la casilla de venta sin existencias.
+
+**Diferencias con lo planeado.** La aritmética parte del total con IGV y no del
+valor sin IGV (13 §4.3): es lo que hace que el cliente pague exactamente
+cantidad por precio. El descuento se expresa con IGV, como el precio. El
+`documento_venta` lleva `emitido_por` y `emitido_en` además de la fecha, que §4.3
+no listaba; y la nota de venta tiene submódulo de permisos propio
+(`ventas.nota_venta`) porque un cajero puede emitirla sin poder registrar
+comprobantes. **Con esto el producto ya se puede usar en una tienda que no
+facture**, que era el hito de la semana 6.
+
 ## 11. Riesgos de este plan
 
 | Riesgo | Señal temprana | Qué se hace |
@@ -707,3 +731,4 @@ ningún sitio no es un producto, es un borrador que nadie ve). El índice GIN de
 - **v1.1 (2026-09-07)** — Notas de cierre de las iteraciones 0, 1 y 2; el doc 13
   empieza con la caja.
 - **v1.2 (2026-09-07)** — Cierre de la iteración 3.
+- **v1.3 (2026-09-07)** — Cierre de la iteración 4.

@@ -42,6 +42,13 @@ public class Empresa {
     private RegimenTributario regimen = RegimenTributario.porOmision();
 
     /**
+     * Si el mostrador puede vender con existencias insuficientes (doc 12 §3.5).
+     * Por omisión sí, con aviso: un mostrador no se detiene por un conteo
+     * desfasado. Un almacén formal lo apaga y entonces la venta se rechaza.
+     */
+    private boolean permiteVentaSinStock = true;
+
+    /**
      * Alta.
      *
      * <p>El RUC llega como {@link Ruc}, no como cadena: quien construye una
@@ -125,6 +132,25 @@ public class Empresa {
         this.verificacion = verificacion;
         this.cuentaDetracciones = cuentaDetracciones;
         this.regimen = regimen == null ? RegimenTributario.porOmision() : regimen;
+    }
+
+    /** Reconstrucción completa, con la política de venta sin existencias. */
+    public Empresa(UUID id, UUID cuentaId, Ruc ruc, String razonSocial, String nombreComercial,
+            String domicilioFiscal, Ubigeo ubigeo, String secretArnCertificado, String usuarioSol,
+            ModoSunat modoSunat, boolean activa, VerificacionSunat verificacion,
+            String cuentaDetracciones, RegimenTributario regimen, boolean permiteVentaSinStock) {
+        this(id, cuentaId, ruc, razonSocial, nombreComercial, domicilioFiscal, ubigeo,
+                secretArnCertificado, usuarioSol, modoSunat, activa, verificacion,
+                cuentaDetracciones, regimen);
+        this.permiteVentaSinStock = permiteVentaSinStock;
+    }
+
+    public boolean permiteVentaSinStock() {
+        return permiteVentaSinStock;
+    }
+
+    public void fijarVentaSinStock(boolean permitir) {
+        this.permiteVentaSinStock = permitir;
     }
 
     public UUID id() {
