@@ -269,14 +269,40 @@ jobs:
       # sobre ellos y el nombre del objeto en S3 sale de ahí. Un artefacto que
       # cambiara al viajar produciría un plan distinto del que se revisó.
       - name: Empaquetar los artefactos
+        # LA LISTA TIENE QUE CUBRIR TODOS LOS `artefacto_*` DE LAS TFVARS.
+        #
+        # Un modulo nuevo se compila solo —`mvnw verify` recorre el reactor
+        # entero— pero si no se nombra aqui, su jar no viaja al job siguiente.
+        # Paso con el Emisor: `artefacto_facturacion` entro con la emision ante
+        # SUNAT y esta lista se quedo como estaba, asi que el despliegue moria
+        # en `planificar` con «filemd5 failed: no such file or directory»,
+        # cuatro minutos despues y en otro job.
+        #
+        # Por eso se comprueba ANTES de empaquetar: el fallo pasa a ocurrir
+        # donde esta la causa, y dice cual falta.
         run: |
           if [ "${{ inputs.solo_landing }}" = "true" ]; then
             tar -czf artefactos.tgz apps/frontend/ondexia.landing/dist
           else
+            JARS="
+              apps/backend/ondexia.api/target/ondexia-api.jar
+              apps/backend/ondexia.admin/target/ondexia-admin.jar
+              apps/backend/ondexia.consultas/target/ondexia-consultas.jar
+              apps/backend/ondexia.facturacion/target/ondexia-facturacion.jar
+            "
+
+            FALTAN=""
+            for JAR in $JARS; do
+              [ -f "$JAR" ] || FALTAN="${FALTAN} ${JAR}"
+            done
+
+            if [ -n "$FALTAN" ]; then
+              echo "::error title=Artefacto sin construir::Falta:${FALTAN}. O la compilacion no lo produjo, o la lista de este paso se quedo corta al anadir un modulo."
+              exit 1
+            fi
+
             tar -czf artefactos.tgz \
-              apps/backend/ondexia.api/target/ondexia-api.jar \
-              apps/backend/ondexia.admin/target/ondexia-admin.jar \
-              apps/backend/ondexia.consultas/target/ondexia-consultas.jar \
+              $JARS \
               apps/frontend/ondexia.web/dist \
               apps/frontend/ondexia.admin/dist \
               apps/frontend/ondexia.landing/dist
