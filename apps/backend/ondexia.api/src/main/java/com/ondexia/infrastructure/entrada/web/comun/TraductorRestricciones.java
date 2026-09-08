@@ -82,9 +82,8 @@ public final class TraductorRestricciones {
                     "codigo_duplicado",
                     "Ya existe una caja con ese código en ese establecimiento.",
                     "codigo")),
-            Map.entry("usuario_email_por_cuenta", new Traduccion(
-                    "email_duplicado", "Ya hay un usuario con ese correo en esta cuenta.",
-                    "email")),
+            Map.entry("usuario_email_unico", new Traduccion(
+                    "email_duplicado", "Ese correo ya está registrado.", "email")),
             Map.entry("usuario_cognito_sub_key", new Traduccion(
                     "identidad_duplicada",
                     "Esa identidad ya está vinculada a otro usuario.")),
@@ -92,8 +91,9 @@ public final class TraductorRestricciones {
                     "asignacion_duplicada",
                     "Ese usuario ya está asignado a esta empresa con ese alcance.")),
             Map.entry("cuenta_administrador_unico", new Traduccion(
-                    "administrador_duplicado",
-                    "Ese usuario ya es administrador de la cuenta.")),
+                    "propietario_duplicado",
+                    "Esta suscripción ya tiene Propietario. Para cambiarlo hay que "
+                            + "transferir la propiedad, no añadir otro.")),
             Map.entry("rol_codigo_por_cuenta", new Traduccion(
                     "codigo_duplicado", "Ya existe un rol con ese código en esta cuenta.",
                     "codigo")),

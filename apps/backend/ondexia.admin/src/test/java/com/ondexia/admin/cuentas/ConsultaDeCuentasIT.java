@@ -62,10 +62,23 @@ class ConsultaDeCuentasIT extends PruebaDelPanel {
                 on conflict (id) do update set activo = true
                 """, titular.toString(), cuenta.toString(), correo, correo);
 
+        /*
+         * El conflicto se infiere por `cuenta_id` a secas, no por el par con
+         * `usuario_id`.
+         *
+         * La V24 dejo un solo Propietario por suscripcion y sustituyo el UNIQUE
+         * del par por uno de `cuenta_id`. ON CONFLICT necesita un indice que
+         * case EXACTAMENTE con las columnas que se nombran, asi que nombrar el
+         * par ya no compila en el servidor: PostgreSQL responde «no unique or
+         * exclusion constraint matching the ON CONFLICT specification».
+         *
+         * `do nothing` sigue siendo lo que se quiere: si la cuenta ya tiene
+         * Propietario, esta siembra no lo cambia.
+         */
         jdbc.update("""
                 insert into cuenta_administrador (id, cuenta_id, usuario_id)
                 values (cast(? as uuid), cast(? as uuid), cast(? as uuid))
-                on conflict (cuenta_id, usuario_id) do nothing
+                on conflict (cuenta_id) do nothing
                 """, titular.toString(), cuenta.toString(), titular.toString());
     }
 
