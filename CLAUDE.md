@@ -137,5 +137,6 @@ roja: es a propósito, para que alguien decida si era lo que se quería.
 | Arquitectura del backend | `ondexia.docs/08-arquitectura-backend.md` |
 | Panel interno | `ondexia.docs/09-panel-administrativo.md` |
 | Caja, nota de venta y existencias | `ondexia.docs/13-ventas-en-punto-de-venta.md` |
+| Emisión electrónica ante SUNAT | `ondexia.docs/14-emision-electronica.md` |
 | Infraestructura, y lo que hay que hacer a mano | `ondexia.infra/README.md` |
 | Auditorías y sus skills | `../ondexia.auditoria/` (fuera del repo) |

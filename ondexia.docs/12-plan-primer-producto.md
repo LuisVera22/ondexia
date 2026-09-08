@@ -727,6 +727,45 @@ facture**, que era el hito de la semana 6.
 | Las cincuenta maquetas tientan a conectarlas «ya que están» | Un componente con `DATOS_EJEMPLO` vuelve a las rutas | La prueba de §9 lo detecta |
 | Persona sola, doce semanas, y un cliente que espera | Dos iteraciones seguidas sin nada que enseñar | Se recorta la iteración, no el criterio: antes se saca una versión sin factura que una factura sin pruebas |
 
+## Lo que la iteración 5 dejó hecho
+
+Boleta y factura salen hacia SUNAT. Lo que hay, con su porqué, está en el
+[documento 14](14-emision-electronica.md); aquí solo lo que cierra la iteración.
+
+**El bus por S3 (§5.1, opción B) construido tal cual.** `ondexia.facturacion`
+existe como cuarto desplegable, fuera de la VPC, disparado por los objetos que
+la API deja en `pendientes/`. La API no ve SUNAT y el Emisor no ve la base: la
+frontera son dos objetos, `OrdenDeEmision` y `ResultadoDeEmision`, en el
+dominio.
+
+**La orden sale al confirmar la venta, no antes.** Si saliera dentro de la
+transacción y esta se deshiciera, el Emisor firmaría un comprobante cuyo número
+volvió al correlativo, y la siguiente venta lo reutilizaría. Doc 14 §2.1.
+
+**La máquina de estados con lo que cada transición prohíbe.** Un aceptado no se
+reenvía; un resultado tardío no pisa lo que pasó después; en cola no se
+reintenta hasta pasados diez minutos. Doc 14 §3, y `ComprobanteElectronicoTest`
+la recorre entera.
+
+**El certificado en el bucket, no en Secrets Manager (§5.3).** El navegador lo
+sube con URL prefirmadas; la API puede escribirlo y confirmar por listado que
+llegó, y no puede leerlo. Es la regla de `CLAUDE.md` sobre la firma convertida en
+política de IAM, y el doc 14 §4.1 dice explícitamente que esa frontera no la
+ejercita ninguna prueba de este repositorio, porque no hay forma de comprobar
+IAM sin AWS.
+
+**Sin certificado no se emite, y se comprueba antes del correlativo.** Un número
+gastado en una venta que no se registra es un hueco que justificar ante SUNAT.
+La nota de venta sigue saliendo.
+
+**El ensayo de cinco días contra la beta sigue pendiente de ejecutarse.** Desde
+el entorno donde se construyó esto no hay salida a `e-beta.sunat.gob.pe`. Lo que
+sí está verificado —XML, firma válida, sobre SOAP, lectura de las tres
+respuestas de SUNAT, la orden completa de principio a fin— y lo que falta están
+en la tabla del doc 14 §1, con el procedimiento del ensayo en §6. La decisión 1
+sigue siendo revisable hasta entonces, y la puerta de salida al proveedor PSE no
+toca nada fuera de `ondexia.facturacion`.
+
 ## Registro de cambios
 
 - **v1 (2026-09-07)** — Propuesta inicial sobre las decisiones del propietario del
@@ -735,3 +774,5 @@ facture**, que era el hito de la semana 6.
   empieza con la caja.
 - **v1.2 (2026-09-07)** — Cierre de la iteración 3.
 - **v1.3 (2026-09-07)** — Cierre de la iteración 4.
+- **v1.4 (2026-09-08)** — Cierre de la iteración 5 y documento 14. El almacén del
+  local pasa a ser el activo más antiguo (§4.1).

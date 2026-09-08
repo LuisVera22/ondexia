@@ -51,6 +51,20 @@ INSERT INTO empresa (id, cuenta_id, ruc, razon_social, nombre_comercial,
      '20100000017', 'DISTRIBUIDORA DEMO E.I.R.L.', 'Demo Distribucion',
      'Jr. Union 100, Lima', '150101', 'BETA', true);
 
+-- La primera empresa tiene la emision electronica configurada: usuario SOL de
+-- la beta de SUNAT (MODDATOS) y un certificado dado por cargado y verificado.
+-- Sin esto, el punto de venta rechazaria boletas y facturas con
+-- emision_no_configurada (doc 14 §4) y las pruebas del mostrador no tendrian
+-- nada que emitir. El .pfx en si no existe: en local el bus es en memoria y
+-- nadie lo abre.
+UPDATE empresa
+   SET usuario_sol = 'MODDATOS',
+       certificado_cargado_en = now(),
+       certificado_verificado_en = now(),
+       certificado_sujeto = 'CN=COMERCIAL DEMO S.A.C. (certificado de ejemplo)',
+       certificado_vence_en = date '2030-12-31'
+ WHERE id = '00000000-0000-4000-8000-000000000010';
+
 INSERT INTO sucursal (id, empresa_id, codigo, nombre, direccion, ubigeo, activo) VALUES
     ('00000000-0000-4000-8000-000000000020',
      '00000000-0000-4000-8000-000000000010',

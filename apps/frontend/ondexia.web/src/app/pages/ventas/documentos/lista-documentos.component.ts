@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { AccionDeFila, ColumnaTabla, TablaDatosComponent } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
 import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
-import { ResumenDocumentoApi, TipoDocumentoVenta, VentasApiService } from '../../../nucleo/ventas.api.service';
+import { ESTADOS_SUNAT, ResumenDocumentoApi, TipoDocumentoVenta, VentasApiService } from '../../../nucleo/ventas.api.service';
 import { mensajeDeError } from '../../../nucleo/errores';
 import { ContextoService } from '../../../shared/services/contexto.service';
 
@@ -60,7 +60,21 @@ export class ListaDocumentosComponent {
       titulo: 'Estado',
       ancho: 'w-40',
       formato: 'insignia',
-      tono: (r) => (r['codigoEstado'] === 'EMITIDO' ? 'exito' : r['codigoEstado'] === 'PENDIENTE' ? 'aviso' : 'neutro'),
+      tono: (r) => {
+        switch (r['codigoEstado']) {
+          case 'EMITIDO':
+          case 'ACEPTADO':
+            return 'exito';
+          case 'PENDIENTE':
+          case 'EN_COLA':
+            return 'aviso';
+          case 'RECHAZADO':
+          case 'ERROR_ENVIO':
+            return 'error';
+          default:
+            return 'neutro';
+        }
+      },
     },
   ];
   readonly accionesDeFila: AccionDeFila[] = [{ id: 'ver', etiqueta: 'Ver', icono: 'ver' }];
@@ -88,8 +102,12 @@ export class ListaDocumentosComponent {
           fecha: new Date(d.emitidoEn).toLocaleString('es-PE', { dateStyle: 'short', timeStyle: 'short' }),
           cliente: d.cliente ? `${d.cliente} · ${d.clienteDocumento}` : 'Cliente varios',
           total: d.total,
-          estado: d.estado === 'EMITIDO' ? 'Emitido' : d.estado === 'PENDIENTE' ? 'Pendiente de SUNAT' : d.estado === 'CANJEADO' ? 'Canjeado' : 'Anulado',
-          codigoEstado: d.estado,
+          // En una boleta o factura el estado que cuenta es el de SUNAT: un
+          // rechazo se tiene que ver desde el listado, no al abrir cada una.
+          estado: d.estadoSunat && d.estado === 'PENDIENTE'
+            ? ESTADOS_SUNAT[d.estadoSunat]
+            : d.estado === 'EMITIDO' ? 'Emitido' : d.estado === 'PENDIENTE' ? 'Pendiente de SUNAT' : d.estado === 'CANJEADO' ? 'Canjeado' : 'Anulado',
+          codigoEstado: d.estadoSunat && d.estado === 'PENDIENTE' ? d.estadoSunat : d.estado,
         }))
       );
     } catch (fallo: unknown) {

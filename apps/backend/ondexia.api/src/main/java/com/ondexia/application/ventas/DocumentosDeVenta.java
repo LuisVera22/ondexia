@@ -5,6 +5,7 @@ import com.ondexia.application.almacen.Productos;
 import com.ondexia.application.comprobante.AsignadorDeCorrelativo;
 import com.ondexia.application.comprobante.TiposDeComprobante;
 import com.ondexia.application.configuracion.ConsultarEmpresa;
+import com.ondexia.application.emision.EmisionElectronica;
 import com.ondexia.domain.almacen.Almacen;
 import com.ondexia.domain.almacen.AlmacenRepositorio;
 import com.ondexia.domain.almacen.Existencia;
@@ -49,8 +50,9 @@ import org.springframework.transaction.annotation.Transactional;
  * La pantalla manda producto y cantidad, y un descuento por línea si lo hay; un
  * precio tecleado en el navegador sería un precio que nadie controla.
  *
- * <p>Boleta y factura quedan en {@code PENDIENTE} sin enviarse: el envío a SUNAT
- * es de la iteración 5. La nota de venta nace {@code EMITIDO} y no se envía.
+ * <p>Boleta y factura nacen {@code PENDIENTE} y salen hacia SUNAT en cuanto la
+ * transacción confirma ({@link EmisionElectronica}); pasan a {@code EMITIDO}
+ * cuando SUNAT las acepta. La nota de venta nace {@code EMITIDO} y no se envía.
  */
 @Service
 public class DocumentosDeVenta {
@@ -70,6 +72,7 @@ public class DocumentosDeVenta {
     private final ConsultarEmpresa empresa;
     private final RegistroDeAuditoria auditoria;
     private final ProveedorDeContexto contexto;
+    private final EmisionElectronica emision;
     private final Clock reloj;
 
     public DocumentosDeVenta(DocumentoVentaRepositorio documentos, SesionesDeCaja sesiones,
@@ -77,7 +80,7 @@ public class DocumentosDeVenta {
             ClienteRepositorio clientes, SerieCorrelativoRepositorio series,
             AsignadorDeCorrelativo correlativos, TiposDeComprobante tipos,
             ConsultarEmpresa empresa, RegistroDeAuditoria auditoria, ProveedorDeContexto contexto,
-            Clock reloj) {
+            EmisionElectronica emision, Clock reloj) {
         this.documentos = documentos;
         this.sesiones = sesiones;
         this.productos = productos;
@@ -90,6 +93,7 @@ public class DocumentosDeVenta {
         this.empresa = empresa;
         this.auditoria = auditoria;
         this.contexto = contexto;
+        this.emision = emision;
         this.reloj = reloj;
     }
 
@@ -149,6 +153,10 @@ public class DocumentosDeVenta {
 
         var avisos = descargarExistencias(documento, sucursalId, laEmpresa);
         var guardado = documentos.guardar(documento);
+        if (guardado.esFiscal()) {
+            // La orden sale al confirmar esta misma transacción, no antes.
+            emision.encolar(guardado, laEmpresa);
+        }
         auditoria.registrarCreacion("documento_venta", guardado.id(), Instantanea.de(guardado));
         return new Emision(guardado, avisos);
     }
@@ -186,6 +194,10 @@ public class DocumentosDeVenta {
                     "La empresa tiene desactivada la emisión de " + tipo.nombre().toLowerCase()
                             + ". Habilítala en Configuración › Comprobantes.");
         }
+        // Antes de consumir un correlativo: sin certificado ni clave SOL la
+        // boleta no puede salir, y un número gastado en una venta que no se
+        // registra es un hueco que justificar.
+        emision.exigirConfigurada(laEmpresa);
     }
 
     private SerieCorrelativo elegirSerie(TipoDocumento tipo, UUID sucursalId, UUID serieId) {

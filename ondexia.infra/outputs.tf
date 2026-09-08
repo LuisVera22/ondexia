@@ -45,6 +45,7 @@ output "buckets" {
     landing = aws_s3_bucket.sitio["landing"].id
     panel   = aws_s3_bucket.sitio["panel"].id
     marca   = aws_s3_bucket.marca.id
+    emision = aws_s3_bucket.emision.id
   }
 }
 

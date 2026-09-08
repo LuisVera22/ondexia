@@ -41,6 +41,7 @@
     <module>ondexia.api</module>
     <module>ondexia.admin</module>
     <module>ondexia.consultas</module>
+    <module>ondexia.facturacion</module>
   </modules>
 
   <properties>
