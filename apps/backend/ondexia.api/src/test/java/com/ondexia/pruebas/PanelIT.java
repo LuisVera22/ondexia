@@ -31,6 +31,7 @@ class PanelIT extends PruebaIntegracion {
 
     private static final String MATRIZ = "00000000-0000-4000-8000-000000000020";
     private static final String CEMENTO = "00000000-0000-4000-8000-000000000060";
+    private static final String ALMACEN_MATRIZ = "00000000-0000-4000-8000-000000000090";
     private static final String SERIE_NV = "00000000-0000-4000-8000-0000000000a0";
 
     private static final AtomicInteger CORRELATIVO_CAJAS = new AtomicInteger(700);
@@ -42,6 +43,24 @@ class PanelIT extends PruebaIntegracion {
         return peticion.header("Authorization", autorizacionDemo())
                 .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
                 .contentType(MediaType.APPLICATION_JSON);
+    }
+
+    /**
+     * Deja esa cantidad exacta en el almacén de la matriz.
+     *
+     * <p>Hace falta desde la V23, que dejó de permitir vender sin existencias
+     * por omisión. Esta prueba mira la cifra del panel y no el almacén, así que
+     * cuenta de sobra y sigue a lo suyo — pero tiene que contar: sin esto pasaba
+     * solo cuando otra clase había repuesto cemento antes, que es como se
+     * escapó a la máquina de desarrollo y se cayó en el CI, con la base recién
+     * creada.
+     */
+    private void contar(String producto, String cantidad) throws Exception {
+        mockMvc.perform(comoAdministrador(
+                        post("/api/v1/almacen/productos/" + producto + "/existencias/ajustes"))
+                        .content("{\"almacenId\": \"%s\", \"cantidad\": %s, \"motivo\": \"Conteo de prueba\"}"
+                                .formatted(ALMACEN_MATRIZ, cantidad)))
+                .andExpect(status().isOk());
     }
 
     private JsonNode panel() throws Exception {
@@ -115,6 +134,7 @@ class PanelIT extends PruebaIntegracion {
     @DisplayName("Una nota de venta de 65 soles sube las ventas del dia en 65 soles")
     void laVentaSubeLaCifra() throws Exception {
         String caja = cajaAbierta();
+        contar(CEMENTO, "10");
         var antes = panel().path("ventas");
         int documentosAntes = antes.path("documentos").asInt();
         var importeAntes = antes.path("importe").decimalValue();
