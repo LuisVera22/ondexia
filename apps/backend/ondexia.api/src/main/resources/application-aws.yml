@@ -130,6 +130,10 @@ ondexia:
   marca:
     bucket: ${BUCKET_MARCA}
     cdn: ${CDN_MARCA}
+  # El bus con el Emisor (doc 14 §2). La pone Terraform (facturacion.tf); sin
+  # ella la aplicacion no arranca, que es preferible a arrancar sin poder emitir.
+  emision:
+    bucket: ${BUCKET_EMISION}
 
 # El arranque en frio se paga una vez por instancia; con SnapStart, casi nunca.
 # Pero el log de arranque de Spring se escribe en cada restauracion y CloudWatch

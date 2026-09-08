@@ -453,6 +453,9 @@ resource "aws_lambda_function" "api" {
       COGNITO_JWKS = data.http.jwks_inquilinos.response_body
       BUCKET_MARCA = aws_s3_bucket.marca.id
       CDN_MARCA    = var.gestionar_dns ? "https://cdn.${var.dominio}" : "https://${aws_cloudfront_distribution.marca.domain_name}"
+      # El bus con el Emisor (facturacion.tf). Lo que la API puede hacer en el
+      # esta en aws_iam_role_policy.api_emision, alli mismo.
+      BUCKET_EMISION = aws_s3_bucket.emision.id
     }
   }
 

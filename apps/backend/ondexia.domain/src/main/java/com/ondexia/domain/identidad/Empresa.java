@@ -4,6 +4,8 @@ import com.ondexia.domain.comun.Ruc;
 import com.ondexia.domain.comun.Ubigeo;
 import com.ondexia.domain.comun.error.ReglaDeNegocioViolada;
 import com.ondexia.domain.consultas.DatosDeRuc;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -27,7 +29,11 @@ public class Empresa {
     private String nombreComercial;
     private String domicilioFiscal;
     private Ubigeo ubigeo;
-    private String secretArnCertificado;
+    /**
+     * Lo que se sabe del certificado digital; {@code null} si nunca se cargó.
+     * El archivo y su contraseña no están aquí: ver {@link CertificadoDigital}.
+     */
+    private CertificadoDigital certificado;
     private String usuarioSol;
     private ModoSunat modoSunat;
     private boolean activa;
@@ -115,7 +121,7 @@ public class Empresa {
 
     /** Reconstrucción desde persistencia. Solo lo usa el mapeador. */
     public Empresa(UUID id, UUID cuentaId, Ruc ruc, String razonSocial, String nombreComercial,
-            String domicilioFiscal, Ubigeo ubigeo, String secretArnCertificado, String usuarioSol,
+            String domicilioFiscal, Ubigeo ubigeo, CertificadoDigital certificado, String usuarioSol,
             ModoSunat modoSunat, boolean activa, VerificacionSunat verificacion,
             String cuentaDetracciones, RegimenTributario regimen) {
         this.id = id;
@@ -125,7 +131,7 @@ public class Empresa {
         this.nombreComercial = nombreComercial;
         this.domicilioFiscal = domicilioFiscal;
         this.ubigeo = ubigeo;
-        this.secretArnCertificado = secretArnCertificado;
+        this.certificado = certificado;
         this.usuarioSol = usuarioSol;
         this.modoSunat = modoSunat;
         this.activa = activa;
@@ -136,11 +142,11 @@ public class Empresa {
 
     /** Reconstrucción completa, con la política de venta sin existencias. */
     public Empresa(UUID id, UUID cuentaId, Ruc ruc, String razonSocial, String nombreComercial,
-            String domicilioFiscal, Ubigeo ubigeo, String secretArnCertificado, String usuarioSol,
+            String domicilioFiscal, Ubigeo ubigeo, CertificadoDigital certificado, String usuarioSol,
             ModoSunat modoSunat, boolean activa, VerificacionSunat verificacion,
             String cuentaDetracciones, RegimenTributario regimen, boolean permiteVentaSinStock) {
         this(id, cuentaId, ruc, razonSocial, nombreComercial, domicilioFiscal, ubigeo,
-                secretArnCertificado, usuarioSol, modoSunat, activa, verificacion,
+                certificado, usuarioSol, modoSunat, activa, verificacion,
                 cuentaDetracciones, regimen);
         this.permiteVentaSinStock = permiteVentaSinStock;
     }
@@ -181,8 +187,9 @@ public class Empresa {
         return ubigeo;
     }
 
-    public String secretArnCertificado() {
-        return secretArnCertificado;
+    /** @return {@code null} si nunca se cargó un certificado */
+    public CertificadoDigital certificado() {
+        return certificado;
     }
 
     public String usuarioSol() {
@@ -304,30 +311,76 @@ public class Empresa {
     }
 
     /**
-     * Referencia al secreto, jamás el certificado.
+     * Anota que el certificado y las credenciales quedaron en el bucket del bus.
      *
-     * <p>Un {@code .pfx} guardado aquí aparecería en cada respaldo, en cada
-     * volcado de desarrollo y en cada consulta de soporte. El certificado vive
-     * en Secrets Manager (DTE §8.2).
+     * <p>Aquí no llega ni el {@code .pfx} ni su contraseña ni la clave SOL: el
+     * navegador los sube directo a S3 con URL prefirmadas, y este agregado solo
+     * sabe que ocurrió (doc 14 §4). Un certificado guardado en la base
+     * aparecería en cada respaldo, en cada volcado de desarrollo y en cada
+     * consulta de soporte. El DTE §8.2 decía Secrets Manager; el doc 12 §5.3
+     * explica por qué es el bucket.
+     *
+     * <p>Cargar de nuevo reinicia la verificación: el archivo nuevo puede no
+     * abrir con la contraseña nueva, y lo que se sabía era del anterior.
      */
-    public void configurarCredencialesSunat(String secretArnCertificado, String usuarioSol) {
-        this.secretArnCertificado = secretArnCertificado;
-        this.usuarioSol = usuarioSol;
+    public void cargarCertificado(String usuarioSol, Instant ahora) {
+        this.usuarioSol = exigirTexto(usuarioSol, "usuario_sol", "El usuario SOL");
+        this.certificado = CertificadoDigital.cargado(ahora);
+    }
+
+    /** Lo que el Emisor dijo al abrir el certificado con su contraseña. */
+    public void anotarVerificacionDeCertificado(Instant ahora, String sujeto, LocalDate venceEn) {
+        exigirCertificadoCargado();
+        this.certificado = certificado.verificado(ahora, sujeto, venceEn);
+    }
+
+    public void anotarFalloDeCertificado(Instant ahora, String motivo) {
+        exigirCertificadoCargado();
+        this.certificado = certificado.fallido(ahora, motivo);
+    }
+
+    /**
+     * Si tiene lo necesario para que una boleta o factura salga hacia SUNAT:
+     * certificado cargado y usuario SOL. No exige que el certificado ya se haya
+     * verificado: si no abre, la emisión falla con ese motivo y se ve.
+     */
+    public boolean puedeEmitirElectronicamente() {
+        return certificado != null && certificado.cargadoEn() != null
+                && usuarioSol != null && !usuarioSol.isBlank();
     }
 
     /**
      * Pasa a emitir contra el entorno de producción de SUNAT.
      *
-     * <p>Sin certificado no se permite: dejarlo pasar produciría un rechazo en
-     * la primera emisión real, que es el peor momento para descubrirlo.
+     * <p>Solo con un certificado que el Emisor abrió y que no ha caducado:
+     * dejarlo pasar produciría un rechazo en la primera emisión real, que es el
+     * peor momento para descubrirlo. En la beta se admite cualquier cosa, que
+     * para eso está.
      */
-    public void habilitarProduccion() {
-        if (secretArnCertificado == null || secretArnCertificado.isBlank()) {
+    public void habilitarProduccion(LocalDate hoy) {
+        if (certificado == null || !certificado.vigente(hoy)) {
             throw new ReglaDeNegocioViolada(
-                    "sin_certificado",
-                    "La empresa " + ruc + " no tiene certificado digital configurado.");
+                    "sin_certificado_vigente",
+                    "La empresa " + ruc + " no tiene un certificado digital verificado y vigente. "
+                            + "Cárgalo y espera a que se verifique antes de pasar a producción.");
+        }
+        if (usuarioSol == null || usuarioSol.isBlank()) {
+            throw new ReglaDeNegocioViolada(
+                    "sin_usuario_sol", "La empresa " + ruc + " no tiene usuario SOL configurado.");
         }
         this.modoSunat = ModoSunat.PRODUCCION;
+    }
+
+    /** Vuelve a la beta. Siempre se puede: lo que se emita desde ahora no vale ante SUNAT. */
+    public void volverABeta() {
+        this.modoSunat = ModoSunat.BETA;
+    }
+
+    private void exigirCertificadoCargado() {
+        if (certificado == null) {
+            throw new ReglaDeNegocioViolada(
+                    "sin_certificado", "La empresa " + ruc + " no tiene certificado digital cargado.");
+        }
     }
 
     public void desactivar() {

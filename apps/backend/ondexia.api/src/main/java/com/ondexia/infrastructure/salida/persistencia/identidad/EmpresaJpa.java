@@ -2,6 +2,7 @@ package com.ondexia.infrastructure.salida.persistencia.identidad;
 
 import com.ondexia.domain.consultas.CondicionDomicilio;
 import com.ondexia.domain.consultas.EstadoContribuyente;
+import com.ondexia.domain.identidad.CertificadoDigital;
 import com.ondexia.domain.identidad.ModoSunat;
 import com.ondexia.domain.identidad.RegimenTributario;
 import com.ondexia.infrastructure.salida.persistencia.comun.EntidadJpaBase;
@@ -11,6 +12,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 /** Fila de {@code empresa}. */
@@ -36,12 +38,28 @@ public class EmpresaJpa extends EntidadJpaBase {
     @Column(name = "ubigeo", length = 6)
     private String ubigeo;
 
-    /** Referencia al secreto, jamás el certificado (DTE §8.2). */
-    @Column(name = "secret_arn_certificado", length = 512)
-    private String secretArnCertificado;
-
     @Column(name = "usuario_sol", length = 100)
     private String usuarioSol;
+
+    // ── Lo que se sabe del certificado digital (V20) ──────────────────────
+    //
+    // Ni el archivo ni su contraseña: viven en el bucket del bus (doc 14 §4).
+    // Sin fecha de carga, lo demás es nulo; lo impone empresa_certificado_coherente.
+
+    @Column(name = "certificado_cargado_en")
+    private Instant certificadoCargadoEn;
+
+    @Column(name = "certificado_verificado_en")
+    private Instant certificadoVerificadoEn;
+
+    @Column(name = "certificado_sujeto", length = 300)
+    private String certificadoSujeto;
+
+    @Column(name = "certificado_vence_en")
+    private LocalDate certificadoVenceEn;
+
+    @Column(name = "certificado_error")
+    private String certificadoError;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "modo_sunat", nullable = false, length = 20)
@@ -108,25 +126,39 @@ public class EmpresaJpa extends EntidadJpaBase {
 
     public EmpresaJpa(UUID id, UUID cuentaId, String ruc, String razonSocial,
             String nombreComercial, String domicilioFiscal, String ubigeo,
-            String secretArnCertificado, String usuarioSol, ModoSunat modoSunat, boolean activo) {
+            String usuarioSol, ModoSunat modoSunat, boolean activo) {
         this.id = id;
         this.cuentaId = cuentaId;
         this.ruc = ruc;
-        actualizarDesde(razonSocial, nombreComercial, domicilioFiscal, ubigeo,
-                secretArnCertificado, usuarioSol, modoSunat, activo);
+        actualizarDesde(razonSocial, nombreComercial, domicilioFiscal, ubigeo, usuarioSol,
+                modoSunat, activo);
     }
 
     public final void actualizarDesde(String razonSocial, String nombreComercial,
-            String domicilioFiscal, String ubigeo, String secretArnCertificado, String usuarioSol,
-            ModoSunat modoSunat, boolean activo) {
+            String domicilioFiscal, String ubigeo, String usuarioSol, ModoSunat modoSunat,
+            boolean activo) {
         this.razonSocial = razonSocial;
         this.nombreComercial = nombreComercial;
         this.domicilioFiscal = domicilioFiscal;
         this.ubigeo = ubigeo;
-        this.secretArnCertificado = secretArnCertificado;
         this.usuarioSol = usuarioSol;
         this.modoSunat = modoSunat;
         this.activo = activo;
+    }
+
+    /** Lo que se sabe del certificado, entero: los cinco campos van juntos. */
+    public void certificado(CertificadoDigital certificado) {
+        this.certificadoCargadoEn = certificado == null ? null : certificado.cargadoEn();
+        this.certificadoVerificadoEn = certificado == null ? null : certificado.verificadoEn();
+        this.certificadoSujeto = certificado == null ? null : certificado.sujeto();
+        this.certificadoVenceEn = certificado == null ? null : certificado.venceEn();
+        this.certificadoError = certificado == null ? null : certificado.error();
+    }
+
+    /** @return {@code null} si nunca se cargó uno */
+    public CertificadoDigital getCertificado() {
+        return certificadoCargadoEn == null ? null : new CertificadoDigital(certificadoCargadoEn,
+                certificadoVerificadoEn, certificadoSujeto, certificadoVenceEn, certificadoError);
     }
 
     /**
@@ -226,10 +258,6 @@ public class EmpresaJpa extends EntidadJpaBase {
 
     public String getUbigeo() {
         return ubigeo;
-    }
-
-    public String getSecretArnCertificado() {
-        return secretArnCertificado;
     }
 
     public String getUsuarioSol() {

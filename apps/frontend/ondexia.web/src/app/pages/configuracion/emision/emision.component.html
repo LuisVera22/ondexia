@@ -1,0 +1,121 @@
+<div>
+  <app-encabezado-pagina
+    titulo="Emisión electrónica"
+    descripcion="El certificado digital con el que se firman las boletas y facturas, la clave SOL con la que se envían a SUNAT, y contra qué entorno. Sin esto el punto de venta solo emite notas de venta."
+  />
+
+  @if (cargando()) {
+  <div class="rounded-2xl border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+    <p class="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>
+  </div>
+  } @else if (error()) {
+  <div class="rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert"><p class="text-sm text-error-500">{{ error() }}</p></div>
+  } @else if (emision(); as e) {
+
+  <!-- Entorno -->
+  <section class="mb-5 rounded-2xl border p-5"
+    [class]="e.modoSunat === 'PRODUCCION' ? 'border-success-500/40 bg-success-500/5' : 'border-warning-500/40 bg-warning-500/5'">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <p class="text-sm font-semibold text-gray-800 dark:text-white/90">
+          @if (e.modoSunat === 'PRODUCCION') { Emitiendo en producción } @else { Emitiendo en la beta de SUNAT }
+        </p>
+        <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">
+          @if (e.modoSunat === 'PRODUCCION') {
+          Cada boleta y factura que se emite tiene valor tributario.
+          } @else {
+          Lo que se emite aquí no vale ante SUNAT: sirve para probar. Para pasar a producción hace falta un certificado verificado y vigente.
+          }
+        </p>
+      </div>
+      @if (puedeEditar()) {
+      <div class="flex shrink-0 items-center gap-2">
+        @if (e.modoSunat === 'PRODUCCION') {
+        <app-boton variante="secundario" [estado]="volverABeta.estado()" (accion)="volverABeta.ejecutar()">Volver a la beta</app-boton>
+        } @else if (confirmandoProduccion()) {
+        <span class="text-xs text-gray-700 dark:text-gray-300">¿Seguro? Desde ahora todo cuenta.</span>
+        <app-boton variante="secundario" (accion)="cancelarProduccion()">Cancelar</app-boton>
+        <app-boton [estado]="irAProduccion.estado()" (accion)="irAProduccion.ejecutar()">Confirmar producción</app-boton>
+        } @else {
+        <app-boton [deshabilitado]="!certificadoVigente()" (accion)="pedirProduccion()">Pasar a producción</app-boton>
+        }
+      </div>
+      }
+    </div>
+  </section>
+
+  <!-- Certificado y clave SOL -->
+  <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <h2 class="text-sm font-semibold text-gray-800 dark:text-white/90">Certificado digital y clave SOL</h2>
+        @if (!e.certificadoCargadoEn) {
+        <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          Todavía no hay certificado. Lo emite una entidad certificadora a nombre de la empresa, en un archivo .pfx con contraseña; la clave SOL es la del portal de SUNAT.
+        </p>
+        } @else {
+        <dl class="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+          <dt class="text-gray-500 dark:text-gray-400">Cargado</dt><dd class="text-gray-800 dark:text-white/90">{{ fecha(e.certificadoCargadoEn) }}</dd>
+          <dt class="text-gray-500 dark:text-gray-400">Usuario SOL</dt><dd class="font-mono text-gray-800 dark:text-white/90">{{ e.usuarioSol }}</dd>
+          <dt class="text-gray-500 dark:text-gray-400">Estado</dt>
+          <dd>
+            @if (verificando()) {
+            <span class="inline-flex items-center gap-2 text-warning-600"><span class="h-2 w-2 animate-pulse rounded-full bg-warning-500"></span>Verificando con el Emisor…</span>
+            } @else if (e.certificadoError) {
+            <span class="text-error-500">No abre: {{ e.certificadoError }}</span>
+            } @else if (certificadoVigente()) {
+            <span class="text-success-600">Verificado y vigente</span>
+            } @else {
+            <span class="text-error-500">Verificado, pero caducado</span>
+            }
+          </dd>
+          @if (e.certificadoSujeto) {
+          <dt class="text-gray-500 dark:text-gray-400">Titular</dt><dd class="break-all font-mono text-xs text-gray-800 dark:text-white/90">{{ e.certificadoSujeto }}</dd>
+          }
+          @if (e.certificadoVenceEn) {
+          <dt class="text-gray-500 dark:text-gray-400">Vence</dt><dd class="text-gray-800 dark:text-white/90">{{ fechaCorta(e.certificadoVenceEn) }}</dd>
+          }
+        </dl>
+        }
+      </div>
+      @if (puedeEditar() && !mostrarFormulario()) {
+      <app-boton class="shrink-0" [variante]="e.certificadoCargadoEn ? 'secundario' : 'primario'" (accion)="abrirFormulario()">
+        {{ e.certificadoCargadoEn ? 'Reemplazar certificado' : 'Cargar certificado' }}
+      </app-boton>
+      }
+    </div>
+
+    @if (mostrarFormulario()) {
+    <form class="mt-5 grid gap-4 border-t border-gray-100 pt-5 dark:border-gray-800 sm:grid-cols-2" (ngSubmit)="cargarCertificado.ejecutar()">
+      <div class="sm:col-span-2">
+        <label for="certificado" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Archivo del certificado (.pfx o .p12)</label>
+        <input #entradaArchivo id="certificado" type="file" accept=".pfx,.p12,application/x-pkcs12" (change)="alElegirArchivo($event)"
+          class="block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-gray-700 dark:text-gray-300 dark:file:bg-white/[0.06] dark:file:text-gray-300" />
+      </div>
+      <div>
+        <label for="claveCertificado" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Contraseña del certificado</label>
+        <input id="claveCertificado" type="password" name="claveCertificado" [(ngModel)]="claveCertificado" autocomplete="off"
+          class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+      </div>
+      <div>
+        <label for="usuarioSol" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Usuario SOL</label>
+        <input id="usuarioSol" type="text" name="usuarioSol" [(ngModel)]="usuarioSol" autocomplete="off" maxlength="100" placeholder="MODDATOS en la beta"
+          class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 font-mono text-sm uppercase text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+      </div>
+      <div>
+        <label for="claveSol" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Clave SOL</label>
+        <input id="claveSol" type="password" name="claveSol" [(ngModel)]="claveSol" autocomplete="off"
+          class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+      </div>
+      <p class="text-xs text-gray-500 dark:text-gray-400 sm:col-span-2">
+        El archivo y las contraseñas suben directo al almacén cifrado; Ondexia no los guarda en su base ni los muestra después. Reemplazar el certificado reinicia la verificación.
+      </p>
+      <div class="flex justify-end gap-2 sm:col-span-2">
+        <app-boton variante="secundario" (accion)="cancelarFormulario()">Cancelar</app-boton>
+        <app-boton tipo="submit" [estado]="cargarCertificado.estado()">Cargar</app-boton>
+      </div>
+    </form>
+    }
+  </section>
+  }
+</div>

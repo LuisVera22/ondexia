@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: ondexia-facturacion
+
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: ${FACTURACION_PUERTO:8082}
+  error:
+    whitelabel:
+      enabled: false
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+# Sin actuator, por lo mismo que en ondexia.consultas: 'heapdump' entregaria la
+# memoria del proceso, y por ella pasan certificados y claves SOL de clientes.
+
+ondexia:
+  emision:
+    # El bucket del bus. Vacio en local: el bus es un directorio.
+    bucket: ${BUCKET_EMISION:}
+    directorio-local: ${EMISION_DIRECTORIO_LOCAL:./bus-local}
+    # A donde se envia segun el modo de la empresa (doc 14 §5). La beta acepta
+    # cualquier RUC con el usuario MODDATOS / MODDATOS; lo que se emite ahi no
+    # tiene valor tributario.
+    url-beta: ${EMISION_SUNAT_BETA:https://e-beta.sunat.gob.pe/ol-ti-itcpfegem-beta/billService}
+    url-produccion: ${EMISION_SUNAT_PRODUCCION:https://e-factura.sunat.gob.pe/ol-ti-itcpfegem/billService}
+    # Por envio. Aqui no hay pasarela cortando a los 29 s: la funcion la invoca
+    # S3 y puede esperar a que SUNAT conteste.
+    tiempo-de-espera: ${EMISION_TIEMPO_ESPERA:40s}
+
+logging:
+  level:
+    com.ondexia: INFO

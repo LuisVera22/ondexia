@@ -191,6 +191,20 @@ public class DocumentoVenta {
         return texto == null || texto.isBlank() ? null : texto.trim();
     }
 
+    /**
+     * SUNAT aceptó el comprobante: deja de estar pendiente. Solo desde
+     * {@code PENDIENTE}; una nota de venta nunca pasa por aquí.
+     */
+    public void aceptarPorSunat() {
+        if (estado != EstadoDocumento.PENDIENTE) {
+            throw new ReglaDeNegocioViolada(
+                    "documento_no_pendiente",
+                    "El documento " + numeroCompleto() + " está " + estado.name().toLowerCase()
+                            + " y no puede pasar a emitido.");
+        }
+        this.estado = EstadoDocumento.EMITIDO;
+    }
+
     public String numeroCompleto() {
         return serie + "-" + String.format("%08d", numero);
     }

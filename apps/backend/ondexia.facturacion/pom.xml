@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  El Emisor: convierte una orden en XML UBL 2.1, lo firma y lo envia a SUNAT
+  (doc 14). Es el unico modulo que puede firmar, y por eso es un desplegable
+  aparte de ondexia.api (CLAUDE.md: «nada de firma XML en ondexia.api»).
+
+  ══════════════════════════════════════════════════════════════════════════
+  FUERA DE LA VPC, SIN BASE DE DATOS, CON EL BUS POR S3.
+  ══════════════════════════════════════════════════════════════════════════
+
+  Igual que ondexia.consultas, esta funcion vive fuera de la VPC porque tiene
+  que salir a internet —a SUNAT— y darle salida a la API cuesta 32 USD/mes de
+  NAT (DTE §4.8). Lo que pierde por estar fuera es la base de datos, y no le
+  hace falta: recibe una orden con todo lo que el XML necesita, ya calculado, y
+  devuelve un resultado. La API y el Emisor se hablan por un bucket
+  (doc 12 §5.1, opcion B).
+
+  Misma estructura que ondexia.consultas y por la misma razon: una sola forma de
+  montar un modulo. El mismo artefacto arranca con `spring-boot:run` en local
+  —con un bus en disco y una ruta HTTP para el ensayo contra la beta— y como
+  Lambda en AWS, disparada por los objetos de `pendientes/`.
+
+  ══════════════════════════════════════════════════════════════════════════
+  XBUILDER SI, XSENDER NO.
+  ══════════════════════════════════════════════════════════════════════════
+
+  xbuilder (OpenUBL, Apache 2.0) genera y firma el UBL de SUNAT: son las
+  plantillas Qute de cada comprobante y un XMLSigner sobre el javax.xml.crypto
+  del JDK. Su hermano xsender hace el envio SOAP, pero arrastra Apache Camel y
+  CXF: decenas de megabytes y segundos de arranque para una sola operacion
+  (sendBill). El envio se escribe aqui con el HttpClient del JDK: un sobre SOAP
+  1.1 con UsernameToken y un zip en base64 (ClienteSunat). Ver doc 12 §10.1 y
+  doc 14 §5.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.ondexia</groupId>
+    <artifactId>ondexia-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>ondexia-facturacion</artifactId>
+  <name>Ondexia — emisor electronico</name>
+
+  <properties>
+    <xbuilder.version>5.1.1</xbuilder.version>
+  </properties>
+
+  <dependencies>
+    <!--
+      El dominio, por OrdenDeEmision y ResultadoDeEmision: el mismo objeto que
+      la API escribe en el bus es el que aqui se lee. Es la razon original de
+      que el dominio sea un modulo aparte (ver su pom).
+    -->
+    <dependency>
+      <groupId>com.ondexia</groupId>
+      <artifactId>ondexia-domain</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <!--
+      Generacion y firma del UBL 2.1 de SUNAT.
+
+      xbuilder declara jackson-databind 2.14.2, con CVE conocidos, y sus modelos
+      llevan anotaciones de Jackson 2 (@JsonDeserialize), asi que excluirlo no
+      es opcion: javac avisa en cada uso y aqui los avisos son errores. Lo que
+      manda es el BOM de Spring Boot 4, que ademas de Jackson 3 gestiona la
+      linea 2.x al dia: la version que acaba en el artefacto es esa, no la que
+      xbuilder pide. El analisis de dependencias del verify es quien lo vigila.
+
+      swagger-annotations se queda por el mismo motivo: @Schema en los modelos.
+    -->
+    <dependency>
+      <groupId>io.github.project-openubl</groupId>
+      <artifactId>xbuilder</artifactId>
+      <version>${xbuilder.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-lambda-java-core</artifactId>
+      <version>${lambda-core.version}</version>
+    </dependency>
+
+    <!--
+      S3, para el bus. Mismo criterio que la API: cliente del JDK, sin Netty ni
+      Apache. Aqui hay cuatro o cinco llamadas por orden y ninguna concurrente.
+    -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>netty-nio-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>apache-client</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>url-connection-client</artifactId>
+    </dependency>
+
+    <!--
+      CRaC, por SnapStart. Aqui SI hay algo que vigilar tras el restore: el
+      certificado de cada empresa se lee POR ORDEN y no al arrancar, asi que no
+      queda en la instantanea; y la firma RSA-SHA256 con PKCS#1 v1.5 es
+      determinista, sin nonce que pueda repetirse. Ver DTE §4.2.
+    -->
+    <dependency>
+      <groupId>org.crac</groupId>
+      <artifactId>crac</artifactId>
+      <version>${crac.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webmvc-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <!-- Nombre fijo: la infraestructura lo referencia por ruta (dev.tfvars). -->
+    <finalName>ondexia-facturacion</finalName>
+
+    <plugins>
+      <!-- Solo el reempaquetado, igual que en ondexia.consultas: `run` sigue funcionando. -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>repackage</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <configuration>
+          <createDependencyReducedPom>false</createDependencyReducedPom>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <excludes>
+                  <!-- El servidor de Tomcat fuera del artefacto, como en los otros modulos. -->
+                  <exclude>org.apache.tomcat.embed:tomcat-embed-core</exclude>
+                  <exclude>org.apache.tomcat.embed:tomcat-embed-websocket</exclude>
+                </excludes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>module-info.class</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

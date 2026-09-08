@@ -25,6 +25,51 @@
   <div class="rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert"><p class="text-sm text-error-500">{{ error() }}</p></div>
   } @else if (documento(); as d) {
 
+  @if (d.fiscal && sunat(); as s) {
+  <!-- Lo que SUNAT dijo (doc 14 §3). No se imprime: la hoja lleva su propia leyenda. -->
+  <section class="no-imprimir mx-auto mb-5 rounded-2xl border p-4" [class]="formato() === 'ticket' ? 'max-w-md' : 'max-w-3xl'"
+    [class.border-success-500/40]="s.estado === 'ACEPTADO'" [class.bg-success-500/5]="s.estado === 'ACEPTADO'"
+    [class.border-warning-500/40]="s.estado === 'EN_COLA'" [class.bg-warning-500/5]="s.estado === 'EN_COLA'"
+    [class.border-error-500/40]="s.estado === 'RECHAZADO' || s.estado === 'ERROR_ENVIO'" [class.bg-error-500/5]="s.estado === 'RECHAZADO' || s.estado === 'ERROR_ENVIO'"
+    [class.border-gray-200]="s.estado === 'ANULADO'">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div class="min-w-0">
+        <p class="text-sm font-semibold text-gray-800 dark:text-white/90">
+          @if (s.estado === 'EN_COLA') {<span class="mr-2 inline-block h-2 w-2 animate-pulse rounded-full bg-warning-500"></span>}
+          {{ textoSunat() }}
+          @if (s.intentos > 1) {<span class="ml-1 text-xs font-normal text-gray-500">· intento {{ s.intentos }}</span>}
+        </p>
+        @if (s.codigo && s.estado !== 'EN_COLA') {
+        <p class="mt-1 text-sm text-gray-700 dark:text-gray-300"><span class="font-mono text-xs text-gray-500">{{ s.codigo }}</span> {{ s.descripcion }}</p>
+        }
+        @if (s.observaciones.length > 0) {
+        <ul class="mt-1 list-disc pl-5 text-xs text-gray-600 dark:text-gray-400">
+          @for (o of s.observaciones; track $index) {<li>{{ o }}</li>}
+        </ul>
+        }
+        @if (s.estado === 'RECHAZADO') {
+        <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">Para SUNAT este comprobante no existe: corrige lo que indica el código y vuelve a enviarlo con el mismo número.</p>
+        }
+        @if (s.respondidoEn) {<p class="mt-1 text-xs text-gray-500">Respondido {{ fecha(s.respondidoEn) }}</p>}
+      </div>
+      <div class="flex shrink-0 flex-wrap gap-2">
+        @if (s.estado === 'EN_COLA') {
+        <app-boton variante="secundario" [estado]="actualizarSunat.estado()" (accion)="actualizarSunat.ejecutar()">Actualizar</app-boton>
+        }
+        @if (puedeReintentar()) {
+        <app-boton [estado]="reintentar.estado()" (accion)="reintentar.ejecutar()">Volver a enviar</app-boton>
+        }
+        @if (s.xmlDisponible) {
+        <app-boton variante="secundario" [estado]="descargarXml.estado()" (accion)="descargarXml.ejecutar()">XML</app-boton>
+        }
+        @if (s.cdrDisponible) {
+        <app-boton variante="secundario" [estado]="descargarCdr.estado()" (accion)="descargarCdr.ejecutar()">CDR</app-boton>
+        }
+      </div>
+    </div>
+  </section>
+  }
+
   <!-- La hoja: lo que se imprime. -->
   <article class="hoja mx-auto rounded-xl border border-gray-200 bg-white p-6 text-gray-900 shadow-apoyo print:text-black"
     [class]="formato() === 'ticket' ? 'hoja--ticket' : 'max-w-3xl'">
@@ -106,6 +151,9 @@
     <footer class="mt-4 text-center text-[10px] text-gray-600">
       @if (d.tipo === 'NV') {
       Este documento no otorga derecho a crédito fiscal ni sustenta gasto o costo. Puede canjearse por boleta o factura.
+      } @else if (sunat()?.estado === 'ACEPTADO') {
+      Representación impresa del comprobante electrónico. Aceptado por SUNAT.
+      @if (sunat()?.resumenFirma) {<span class="block break-all font-mono">Resumen: {{ sunat()?.resumenFirma }}</span>}
       } @else {
       Representación impresa del comprobante electrónico. Pendiente de aceptación por SUNAT.
       }

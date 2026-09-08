@@ -592,6 +592,70 @@ export class ConfiguracionApiService {
       this.http.put<TipoComprobanteApi>(`${this.base}/comprobantes/${codigo}`, { emite })
     );
   }
+
+  // ── Emisión electrónica (doc 14 §4) ───────────────────────────────────────
+  //
+  // Mismo patrón que los logos, con una diferencia que importa: lo que se sube
+  // es el certificado digital de la empresa y su contraseña. Van directo al
+  // bucket con URL prefirmadas y la API nunca los ve; después solo se confirma
+  // que llegaron. El Emisor los abre y dice qué hay dentro; ese resultado
+  // aparece en `emision()` cuando esté.
+
+  emision(): Promise<EmisionElectronica> {
+    return firstValueFrom(this.http.get<EmisionElectronica>(`${this.base}/empresa/emision`));
+  }
+
+  autorizarCargaDeCertificado(): Promise<AutorizacionDeCargaDeCertificado> {
+    return firstValueFrom(
+      this.http.post<AutorizacionDeCargaDeCertificado>(`${this.base}/empresa/emision/carga`, {})
+    );
+  }
+
+  /**
+   * Sube un contenido con el tipo que se declaró al autorizar. Un `.pfx` llega
+   * del navegador sin tipo o con uno cualquiera, y el tipo va dentro de la
+   * firma de la URL: por eso se manda explícito y no el del archivo.
+   */
+  subirContenido(url: string, contenido: Blob, tipoContenido: string): Promise<unknown> {
+    return firstValueFrom(this.http.put(url, contenido, { headers: { 'Content-Type': tipoContenido } }));
+  }
+
+  confirmarCargaDeCertificado(usuarioSol: string): Promise<EmisionElectronica> {
+    return firstValueFrom(
+      this.http.put<EmisionElectronica>(`${this.base}/empresa/emision/carga`, { usuarioSol })
+    );
+  }
+
+  cambiarModoSunat(modo: ModoSunat): Promise<EmisionElectronica> {
+    return firstValueFrom(
+      this.http.put<EmisionElectronica>(`${this.base}/empresa/emision/modo`, { modo })
+    );
+  }
+}
+
+export type ModoSunat = 'BETA' | 'PRODUCCION';
+
+/** Cómo está la emisión electrónica de la empresa activa. */
+export interface EmisionElectronica {
+  readonly modoSunat: ModoSunat;
+  readonly usuarioSol: string | null;
+  /** Si una boleta o factura saldría hacia SUNAT ahora. */
+  readonly puedeEmitir: boolean;
+  readonly certificadoCargadoEn: string | null;
+  /** Nulo mientras el Emisor no haya abierto el archivo. */
+  readonly certificadoVerificadoEn: string | null;
+  readonly certificadoSujeto: string | null;
+  readonly certificadoVenceEn: string | null;
+  /** Por qué no abrió, si fue el caso. */
+  readonly certificadoError: string | null;
+}
+
+export interface AutorizacionDeCargaDeCertificado {
+  readonly urlCertificado: string;
+  readonly urlCredenciales: string;
+  readonly claveCertificado: string;
+  readonly claveCredenciales: string;
+  readonly validezSegundos: number;
 }
 
 /**

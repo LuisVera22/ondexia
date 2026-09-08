@@ -39,12 +39,16 @@ tags:
   description: "Punto de venta: notas de venta, boletas y facturas"
 - name: Comprobantes
   description: Tipos de comprobante que emite la empresa
+- name: Emisión electrónica
+  description: "Certificado digital, clave SOL y entorno de SUNAT"
 - name: Series
   description: Series de comprobante y su correlativo
 - name: Clientes
   description: "Adquirentes identificados: a quién se le emite"
 - name: Registro
   description: "Alta de cuenta, empresa y primer administrador"
+- name: Envío a SUNAT
+  description: "Estado del comprobante ante SUNAT, XML firmado y CDR"
 - name: Perfil
   description: Los datos que cada persona edita de sí misma
 - name: Identidad visual
@@ -587,6 +591,64 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaEmpresa"
+  /api/v1/configuracion/empresa/emision/modo:
+    put:
+      tags:
+      - Emisión electrónica
+      summary: Cambia entre la beta y producción de SUNAT
+      description: "Producción exige un certificado verificado y vigente. Lo que se\
+        \ emita en producción tiene valor tributario; lo de la beta, no."
+      operationId: cambiarModo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionModo"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaEmision"
+  /api/v1/configuracion/empresa/emision/carga:
+    put:
+      tags:
+      - Emisión electrónica
+      summary: Confirma la carga y encola la verificación del certificado
+      description: Comprueba que los dos objetos existen en el bucket; responde 400
+        si falta alguno. El Emisor abrirá el certificado y el resultado aparece en
+        GET.
+      operationId: confirmarCarga
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionConfirmacion"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaEmision"
+    post:
+      tags:
+      - Emisión electrónica
+      summary: URL prefirmadas para subir el certificado y las credenciales
+      description: "Dos URL de PUT, válidas cinco minutos: una para el .pfx (application/x-pkcs12)\
+        \ y otra para un JSON {\"claveCertificado\": ..., \"claveSol\": ...} (application/json).\
+        \ El navegador sube los dos y después llama a PUT /carga."
+      operationId: autorizarCarga
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaAutorizacion"
   /api/v1/configuracion/comprobantes/{codigo}:
     put:
       tags:
@@ -839,7 +901,9 @@ paths:
       tags:
       - Ventas
       summary: Registra una boleta o una factura
-      description: "Queda PENDIENTE de envío a SUNAT. `tipo`: BOLETA o FACTURA."
+      description: "Queda PENDIENTE y sale hacia SUNAT al confirmar. `tipo`: BOLETA\
+        \ o FACTURA. Responde 400 con `emision_no_configurada` si la empresa no cargó\
+        \ certificado y clave SOL. El estado ante SUNAT se consulta en /comprobantes/{id}/sunat."
       operationId: emitirComprobante
       requestBody:
         content:
@@ -854,6 +918,29 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaEmision"
+  /api/v1/ventas/comprobantes/{documentoId}/sunat/reintento:
+    post:
+      tags:
+      - Envío a SUNAT
+      summary: Vuelve a enviar un comprobante rechazado o con error de envío
+      description: "Con el mismo número: para SUNAT un comprobante rechazado no existe.\
+        \ Un comprobante en cola solo se reintenta pasados diez minutos sin respuesta;\
+        \ uno aceptado, nunca."
+      operationId: reintentar
+      parameters:
+      - name: documentoId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaSunat"
   /api/v1/ventas/clientes:
     get:
       tags:
@@ -1475,6 +1562,68 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaDocumento"
+  /api/v1/ventas/comprobantes/{documentoId}/sunat:
+    get:
+      tags:
+      - Envío a SUNAT
+      summary: Estado del comprobante ante SUNAT
+      description: "Si sigue en cola, mira si el Emisor ya dejó resultado y lo aplica.\
+        \ La pantalla lo consulta cada pocos segundos mientras espera."
+      operationId: estado
+      parameters:
+      - name: documentoId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaSunat"
+  /api/v1/ventas/comprobantes/{documentoId}/sunat/xml:
+    get:
+      tags:
+      - Envío a SUNAT
+      summary: URL temporal del XML firmado
+      operationId: xml
+      parameters:
+      - name: documentoId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaDescarga"
+  /api/v1/ventas/comprobantes/{documentoId}/sunat/cdr:
+    get:
+      tags:
+      - Envío a SUNAT
+      summary: URL temporal del CDR que devolvió SUNAT
+      operationId: cdr
+      parameters:
+      - name: documentoId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaDescarga"
   /api/v1/ventas/clientes/tipos-documento:
     get:
       tags:
@@ -1650,6 +1799,21 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaCupo"
+  /api/v1/configuracion/empresa/emision:
+    get:
+      tags:
+      - Emisión electrónica
+      summary: Cómo está la emisión electrónica de la empresa
+      description: Aplica el resultado de la verificación del certificado si el Emisor
+        ya respondió.
+      operationId: estado_1
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaEmision"
   /api/v1/configuracion/comprobantes:
     get:
       tags:
@@ -2137,6 +2301,38 @@ components:
           type: array
           items:
             type: string
+    PeticionModo:
+      required:
+      - modo
+      type: object
+      properties:
+        modo:
+          type: string
+          enum:
+          - BETA
+          - PRODUCCION
+    RespuestaEmision:
+      type: object
+      properties:
+        modoSunat:
+          type: string
+        usuarioSol:
+          type: string
+        puedeEmitir:
+          type: boolean
+        certificadoCargadoEn:
+          type: string
+          format: date-time
+        certificadoVerificadoEn:
+          type: string
+          format: date-time
+        certificadoSujeto:
+          type: string
+        certificadoVenceEn:
+          type: string
+          format: date
+        certificadoError:
+          type: string
     RespuestaTipo:
       type: object
       properties:
@@ -2346,15 +2542,6 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RespuestaPago"
-    RespuestaEmision:
-      type: object
-      properties:
-        documento:
-          $ref: "#/components/schemas/RespuestaDocumento"
-        avisos:
-          type: array
-          items:
-            type: string
     RespuestaLinea:
       type: object
       properties:
@@ -2412,6 +2599,42 @@ components:
           - NOTA_VENTA
         venta:
           $ref: "#/components/schemas/PeticionVenta"
+    RespuestaSunat:
+      type: object
+      properties:
+        comprobanteId:
+          type: string
+          format: uuid
+        documentoId:
+          type: string
+          format: uuid
+        estado:
+          type: string
+        intentos:
+          type: integer
+          format: int32
+        encoladoEn:
+          type: string
+          format: date-time
+        respondidoEn:
+          type: string
+          format: date-time
+        codigo:
+          type: string
+        descripcion:
+          type: string
+        observaciones:
+          type: array
+          items:
+            type: string
+        xmlDisponible:
+          type: boolean
+        cdrDisponible:
+          type: boolean
+        resumenFirma:
+          type: string
+        admiteReintento:
+          type: boolean
     PeticionNuevo:
       required:
       - numeroDocumento
@@ -2605,6 +2828,8 @@ components:
           type: string
         estado:
           type: string
+        estadoSunat:
+          type: string
         fechaEmision:
           type: string
           format: date
@@ -2617,6 +2842,11 @@ components:
           type: string
         total:
           type: number
+    RespuestaDescarga:
+      type: object
+      properties:
+        url:
+          type: string
     Opcion:
       type: object
       properties:

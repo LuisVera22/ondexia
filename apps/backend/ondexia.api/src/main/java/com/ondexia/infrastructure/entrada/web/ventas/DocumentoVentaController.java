@@ -1,6 +1,8 @@
 package com.ondexia.infrastructure.entrada.web.ventas;
 
+import com.ondexia.application.emision.EmisionElectronica;
 import com.ondexia.application.ventas.DocumentosDeVenta;
+import com.ondexia.domain.comprobante.EstadoSunat;
 import com.ondexia.domain.comprobante.SerieCorrelativo;
 import com.ondexia.domain.comprobante.TipoDocumento;
 import com.ondexia.domain.ventas.DocumentoVenta;
@@ -44,9 +46,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class DocumentoVentaController {
 
     private final DocumentosDeVenta documentos;
+    private final EmisionElectronica emision;
 
-    public DocumentoVentaController(DocumentosDeVenta documentos) {
+    public DocumentoVentaController(DocumentosDeVenta documentos, EmisionElectronica emision) {
         this.documentos = documentos;
+        this.emision = emision;
     }
 
     // ── Notas de venta ──────────────────────────────────────────────────────
@@ -63,7 +67,8 @@ public class DocumentoVentaController {
     @RequierePermiso(modulo = "ventas.nota_venta", accion = "consultar")
     @GetMapping("/notas-de-venta")
     public List<RespuestaResumen> notasDeVenta() {
-        return documentos.recientes(TipoDocumento.NOTA_VENTA).stream().map(RespuestaResumen::desde).toList();
+        return documentos.recientes(TipoDocumento.NOTA_VENTA).stream()
+                .map(d -> RespuestaResumen.desde(d, null)).toList();
     }
 
     @Operation(summary = "Una nota de venta, con sus líneas y pagos")
@@ -77,7 +82,10 @@ public class DocumentoVentaController {
 
     @Operation(
             summary = "Registra una boleta o una factura",
-            description = "Queda PENDIENTE de envío a SUNAT. `tipo`: BOLETA o FACTURA.")
+            description = """
+                    Queda PENDIENTE y sale hacia SUNAT al confirmar. `tipo`: BOLETA o FACTURA. \
+                    Responde 400 con `emision_no_configurada` si la empresa no cargó certificado \
+                    y clave SOL. El estado ante SUNAT se consulta en /comprobantes/{id}/sunat.""")
     @RequierePermiso(modulo = "ventas.comprobante", accion = "emitir")
     @PostMapping("/comprobantes")
     @ResponseStatus(HttpStatus.CREATED)
@@ -92,7 +100,8 @@ public class DocumentoVentaController {
         var lista = tipo == null
                 ? documentos.recientes(null).stream().filter(DocumentoVenta::esFiscal).toList()
                 : documentos.recientes(tipo);
-        return lista.stream().map(RespuestaResumen::desde).toList();
+        var estados = emision.estadosDe(lista.stream().map(DocumentoVenta::id).toList());
+        return lista.stream().map(d -> RespuestaResumen.desde(d, estados.get(d.id()))).toList();
     }
 
     @Operation(summary = "Un comprobante, con sus líneas y pagos")
@@ -213,14 +222,16 @@ public class DocumentoVentaController {
         }
     }
 
+    /** @param estadoSunat nulo en una nota de venta: no se declara */
     public record RespuestaResumen(UUID id, String tipo, String tipoNombre, String numeroCompleto,
-            String estado, LocalDate fechaEmision, Instant emitidoEn, String cliente,
-            String clienteDocumento, BigDecimal total) {
+            String estado, String estadoSunat, LocalDate fechaEmision, Instant emitidoEn,
+            String cliente, String clienteDocumento, BigDecimal total) {
 
-        static RespuestaResumen desde(DocumentoVenta d) {
+        static RespuestaResumen desde(DocumentoVenta d, EstadoSunat sunat) {
             var c = d.cliente();
             return new RespuestaResumen(d.id(), d.tipo().codigo(), d.tipo().nombre(),
-                    d.numeroCompleto(), d.estado().name(), d.fechaEmision(), d.emitidoEn(),
+                    d.numeroCompleto(), d.estado().name(), sunat == null ? null : sunat.name(),
+                    d.fechaEmision(), d.emitidoEn(),
                     c == null ? null : c.nombre(), c == null ? null : c.numeroDocumento(), d.total());
         }
     }

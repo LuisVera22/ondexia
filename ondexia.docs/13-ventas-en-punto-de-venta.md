@@ -343,6 +343,15 @@ sin ruta: se emite desde el punto de venta.
   `CANJEADO`; anulación por nota de crédito, baja o resumen.
 - Series por caja no se contemplan (doc 12 §3.4).
 
+## 4.4 Lo que pasa después con una boleta o una factura
+
+Nace `PENDIENTE` y sale hacia SUNAT en cuanto la transacción confirma; pasa a
+`EMITIDO` cuando SUNAT la acepta. Todo eso —el bus, la máquina de estados, el
+certificado— está en el [documento 14](14-emision-electronica.md). Lo que el
+mostrador nota: sin certificado y clave SOL configurados, boleta y factura se
+rechazan con `emision_no_configurada` **antes de gastar correlativo**, y la nota
+de venta sigue emitiéndose.
+
 ## 5. Canje y anulación
 
 Pendiente: iteración 6.
@@ -352,3 +361,4 @@ Pendiente: iteración 6.
 - **v1 (2026-09-07)** — §1, con la iteración 2.
 - **v1.1 (2026-09-07)** — §2 y §3, con la iteración 3.
 - **v1.2 (2026-09-07)** — §4, con la iteración 4.
+- **v1.3 (2026-09-08)** — §4.4 y la regla del almacén del local, con la iteración 5.

@@ -308,6 +308,40 @@ VER=$(aws lambda get-alias --function-name ondexia-dev-consultas --name activo -
 aws lambda get-function-configuration --function-name ondexia-dev-consultas --qualifier "$VER" --query State
 ```
 
+## Las credenciales de la emisión electrónica
+
+No las crea Terraform ni las escribe nadie a mano: **las sube el navegador** con
+URL prefirmadas desde Configuración › Emisión electrónica (doc 14 §4). Aquí solo
+lo que hay que saber al operar.
+
+El bucket es `ondexia-<entorno>-emision-<sufijo>`, cifrado, sin acceso público y
+con versionado. Dentro, por RUC:
+
+| Objeto | Qué es | Quién lo lee |
+|---|---|---|
+| `certificados/<ruc>.pfx` | El certificado digital del cliente | **Solo el rol del Emisor** |
+| `credenciales/<ruc>.json` | `{"claveCertificado": …, "claveSol": …}` | **Solo el rol del Emisor** |
+
+El rol de la API puede escribir esos dos prefijos y listarlos, y **no puede
+leerlos**. Sin el archivo y su contraseña no se puede firmar, que es lo que
+mantiene la separacion que `CLAUDE.md` exige. Se comprueba en el plan:
+
+```bash
+terraform plan | grep -A30 'aws_iam_role_policy.api_emision'
+```
+
+Ninguna declaracion sobre `certificados/*` ni `credenciales/*` debe llevar
+`s3:GetObject`. Si algun dia aparece, el hallazgo A2 vuelve a estar abierto.
+
+**El certificado lo paga el cliente** a una entidad certificadora; Ondexia no lo
+revende (doc 12 §5.2). Para la beta de SUNAT sirve uno autofirmado y el usuario
+SOL es `MODDATOS`.
+
+Lo que puede fallar y como se ve: si la contrasena no corresponde al archivo, el
+Emisor lo dice en la propia pantalla de configuracion —«No abre: la contrasena no
+corresponde al certificado»— porque al confirmar la carga se encola una
+verificacion. No hace falta emitir para descubrirlo.
+
 ## Deuda conocida
 
 **La contraseña de la base queda en el estado de Terraform.** Es inherente a

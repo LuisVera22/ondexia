@@ -171,12 +171,45 @@ export interface DocumentoVentaApi {
   readonly pagos: PagoDocumentoApi[];
 }
 
+/** Dónde está una boleta o factura ante SUNAT (doc 14 §3). */
+export type EstadoSunat = 'EN_COLA' | 'ACEPTADO' | 'RECHAZADO' | 'ERROR_ENVIO' | 'ANULADO';
+
+export const ESTADOS_SUNAT: Readonly<Record<EstadoSunat, string>> = {
+  EN_COLA: 'Enviando a SUNAT',
+  ACEPTADO: 'Aceptado por SUNAT',
+  RECHAZADO: 'Rechazado por SUNAT',
+  ERROR_ENVIO: 'Error de envío',
+  ANULADO: 'Anulado',
+};
+
+/** Lo que dijo SUNAT de un comprobante, tal como lo guarda la API. */
+export interface EstadoSunatApi {
+  readonly comprobanteId: string;
+  readonly documentoId: string;
+  readonly estado: EstadoSunat;
+  readonly intentos: number;
+  readonly encoladoEn: string | null;
+  readonly respondidoEn: string | null;
+  /** El código de SUNAT (0, 2335, 0100…) o uno del Emisor en un fallo local. */
+  readonly codigo: string | null;
+  readonly descripcion: string | null;
+  /** Observaciones del CDR (códigos 4000+): aceptado con reparos. */
+  readonly observaciones: readonly string[];
+  readonly xmlDisponible: boolean;
+  readonly cdrDisponible: boolean;
+  /** El DigestValue de la firma, que va impreso y en el QR. */
+  readonly resumenFirma: string | null;
+  readonly admiteReintento: boolean;
+}
+
 export interface ResumenDocumentoApi {
   readonly id: string;
   readonly tipo: TipoDocumentoVenta;
   readonly tipoNombre: string;
   readonly numeroCompleto: string;
   readonly estado: EstadoDocumentoVenta;
+  /** Nulo en una nota de venta: no se declara. */
+  readonly estadoSunat: EstadoSunat | null;
   readonly fechaEmision: string;
   readonly emitidoEn: string;
   readonly cliente: string | null;
@@ -312,5 +345,32 @@ export class VentasApiService {
   seriesDisponibles(tipo: 'NOTA_VENTA' | TipoComprobanteEmitible, sucursalId: string): Promise<SerieDisponibleApi[]> {
     const params = new HttpParams().set('tipo', tipo).set('sucursalId', sucursalId);
     return firstValueFrom(this.http.get<SerieDisponibleApi[]>(`${this.base}/series`, { params }));
+  }
+
+  // ── Emisión electrónica (doc 14) ──────────────────────────────────────────
+  //
+  // Cuelga del documento: la pantalla tiene su id y no tiene por qué conocer
+  // el del comprobante electrónico. Mientras está EN_COLA, cada consulta mira
+  // si el Emisor ya respondió, así que la pantalla la repite cada pocos
+  // segundos en lugar de esperar un aviso.
+
+  estadoSunat(documentoId: string): Promise<EstadoSunatApi> {
+    return firstValueFrom(this.http.get<EstadoSunatApi>(`${this.base}/comprobantes/${documentoId}/sunat`));
+  }
+
+  /** Con el mismo número: para SUNAT un comprobante rechazado no existe. */
+  reintentarEnvio(documentoId: string): Promise<EstadoSunatApi> {
+    return firstValueFrom(this.http.post<EstadoSunatApi>(`${this.base}/comprobantes/${documentoId}/sunat/reintento`, {}));
+  }
+
+  /** URL temporal del XML firmado. Se abre en el navegador; la API no sirve el archivo. */
+  async urlDelXml(documentoId: string): Promise<string> {
+    const r = await firstValueFrom(this.http.get<{ url: string }>(`${this.base}/comprobantes/${documentoId}/sunat/xml`));
+    return r.url;
+  }
+
+  async urlDelCdr(documentoId: string): Promise<string> {
+    const r = await firstValueFrom(this.http.get<{ url: string }>(`${this.base}/comprobantes/${documentoId}/sunat/cdr`));
+    return r.url;
   }
 }

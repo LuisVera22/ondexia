@@ -100,6 +100,11 @@ artefacto_panel = "../apps/backend/ondexia.admin/target/ondexia-admin.jar"
 # (acabarian en el estado, que vive en S3); ver el README de ondexia.infra.
 artefacto_consultas = "../apps/backend/ondexia.consultas/target/ondexia-consultas.jar"
 
+# El Emisor (doc 14). Fuera de la VPC como consultas, disparado por los objetos
+# de pendientes/ en el bucket de emision. Sin esta linea el bucket existe y las
+# boletas quedan en cola; con ella, salen hacia la beta de SUNAT.
+artefacto_facturacion = "../apps/backend/ondexia.facturacion/target/ondexia-facturacion.jar"
+
 # El relevo de apiperu.dev, encendido: hay clave en su capa gratuita y la
 # cascada con un solo eslabon deja el alta de empresas dependiendo de que un
 # tercero este en pie. Exige que exista /ondexia/dev/consultas/apiperu.

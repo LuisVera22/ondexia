@@ -23,6 +23,7 @@ import { UsuariosComponent } from './pages/configuracion/usuarios/usuarios.compo
 import { FichaUsuarioComponent } from './pages/configuracion/usuarios/ficha-usuario.component';
 import { RolesComponent } from './pages/configuracion/roles/roles.component';
 import { ComprobantesComponent } from './pages/configuracion/comprobantes/comprobantes.component';
+import { EmisionComponent } from './pages/configuracion/emision/emision.component';
 import { SuscripcionComponent } from './pages/configuracion/suscripcion/suscripcion.component';
 import { UnidadesComponent } from './pages/almacen/unidades/unidades.component';
 import { MarcasComponent } from './pages/almacen/marcas/marcas.component';
@@ -195,6 +196,7 @@ export const routes: Routes = [
       { path: 'configuracion/usuarios/:id', component: FichaUsuarioComponent, title: `Acceso de usuario | ${TITULO}`, canDeactivate: [salidaConCambios] },
       { path: 'configuracion/roles', component: RolesComponent, title: `Roles y permisos | ${TITULO}` },
       { path: 'configuracion/comprobantes', component: ComprobantesComponent, title: `Configuración de comprobantes | ${TITULO}` },
+      { path: 'configuracion/emision', component: EmisionComponent, title: `Emisión electrónica | ${TITULO}` },
       { path: 'configuracion/suscripcion', component: SuscripcionComponent, title: `Suscripción y consumo | ${TITULO}` },
 
       // ── Estados del sistema ──────────────────────────────────────────────

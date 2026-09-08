@@ -54,7 +54,7 @@ final class MapeadoresIdentidad {
                 fila.getId(), fila.getCuentaId(), new Ruc(fila.getRuc()), fila.getRazonSocial(),
                 fila.getNombreComercial(), fila.getDomicilioFiscal(),
                 fila.getUbigeo() == null ? null : new Ubigeo(fila.getUbigeo()),
-                fila.getSecretArnCertificado(), fila.getUsuarioSol(), fila.getModoSunat(),
+                fila.getCertificado(), fila.getUsuarioSol(), fila.getModoSunat(),
                 fila.isActivo(), verificacion(fila), fila.getCuentaDetracciones(),
                 fila.getRegimenTributario(), fila.isPermiteVentaSinStock());
     }
@@ -83,8 +83,8 @@ final class MapeadoresIdentidad {
                 empresa.id(), empresa.cuentaId(), empresa.ruc().valor(), empresa.razonSocial(),
                 empresa.nombreComercial(), empresa.domicilioFiscal(),
                 empresa.ubigeo() == null ? null : empresa.ubigeo().valor(),
-                empresa.secretArnCertificado(), empresa.usuarioSol(), empresa.modoSunat(),
-                empresa.estaActiva());
+                empresa.usuarioSol(), empresa.modoSunat(), empresa.estaActiva());
+        fila.certificado(empresa.certificado());
 
         VerificacionSunat verificacion = empresa.verificacion();
         if (verificacion != null) {

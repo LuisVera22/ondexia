@@ -317,6 +317,27 @@ variable "memoria_consultas_mb" {
   }
 }
 
+variable "artefacto_facturacion" {
+  description = <<-TEXTO
+    Ruta al jar de ondexia.facturacion, el Emisor. Vacio: no se despliega la
+    funcion, pero el bucket del bus se crea igual —la API lo necesita para
+    arrancar— y las boletas y facturas quedan en cola hasta que exista.
+  TEXTO
+  type        = string
+  default     = ""
+}
+
+variable "memoria_facturacion_mb" {
+  description = "Memoria del Emisor. Firma XML: mas CPU que la consulta de RUC."
+  type        = number
+  default     = 1024
+
+  validation {
+    condition     = var.memoria_facturacion_mb >= 512 && var.memoria_facturacion_mb <= 2048
+    error_message = "Entre 512 y 2048 MB."
+  }
+}
+
 variable "usar_apiperu" {
   description = "Incluir apiperu.dev como relevo en la cascada de consulta del RUC"
   type        = bool

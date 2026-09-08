@@ -153,6 +153,9 @@ export class MenuLateralComponent {
             { nombre: 'Usuarios', ruta: '/configuracion/usuarios', permiso: 'configuracion.usuario' },
             { nombre: 'Roles y permisos', ruta: '/configuracion/roles', permiso: 'configuracion.rol' },
             { nombre: 'Comprobantes', ruta: '/configuracion/comprobantes', permiso: 'configuracion.comprobante' },
+            // Certificado, clave SOL y entorno de SUNAT (doc 14 §4). Es de la
+            // empresa, y por eso va con su permiso.
+            { nombre: 'Emisión electrónica', ruta: '/configuracion/emision', permiso: 'configuracion.empresa' },
             // Sin submódulo: la suscripcion es de la CUENTA y la gobierna su
             // administrador, no un permiso de empresa.
             { nombre: 'Suscripción', ruta: '/configuracion/suscripcion' },
