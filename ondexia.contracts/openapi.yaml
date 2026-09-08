@@ -33,6 +33,8 @@ tags:
   description: Anexos de la empresa ante SUNAT
 - name: Usuarios
   description: "Quién entra en la empresa, con qué rol y hasta dónde"
+- name: Comunicaciones de baja
+  description: Facturas que se comunican a SUNAT como no emitidas
 - name: Cajas
   description: Puntos de cobro por establecimiento y sus turnos
 - name: Ventas
@@ -938,6 +940,65 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaDocumento"
+  /api/v1/ventas/comunicaciones-de-baja:
+    get:
+      tags:
+      - Comunicaciones de baja
+      summary: Las últimas comunicaciones de baja
+      description: Antes de responder pregunta por los tickets que lleven esperando.
+      operationId: recientes_1
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaComunicacion"
+    post:
+      tags:
+      - Comunicaciones de baja
+      summary: Comunica a SUNAT que unas facturas no debieron existir
+      description: Todas del mismo día y dentro del plazo (hasta el 7.º día del mes
+        siguiente al de emisión). SUNAT devuelve un ticket y el veredicto llega después;
+        los comprobantes pasan a ANULADO cuando lo acepta.
+      operationId: crear
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionBaja"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaComunicacion"
+  /api/v1/ventas/comunicaciones-de-baja/{id}/reintento:
+    post:
+      tags:
+      - Comunicaciones de baja
+      summary: Vuelve a enviar una comunicación rechazada o con error
+      description: "Con un correlativo nuevo del día. Una que ya tiene ticket no se\
+        \ reenvía: lo que falta es consultarlo."
+      operationId: reintentar
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaComunicacion"
   /api/v1/ventas/comprobantes:
     get:
       tags:
@@ -995,7 +1056,7 @@ paths:
       description: "Con el mismo número: para SUNAT un comprobante rechazado no existe.\
         \ Un comprobante en cola solo se reintenta pasados diez minutos sin respuesta;\
         \ uno aceptado, nunca."
-      operationId: reintentar
+      operationId: reintentar_1
       parameters:
       - name: documentoId
         in: path
@@ -1732,6 +1793,66 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/RespuestaResumen"
+  /api/v1/ventas/comunicaciones-de-baja/{id}:
+    get:
+      tags:
+      - Comunicaciones de baja
+      summary: "Una comunicación de baja, con sus comprobantes"
+      operationId: una
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaComunicacion"
+  /api/v1/ventas/comunicaciones-de-baja/{id}/xml:
+    get:
+      tags:
+      - Comunicaciones de baja
+      summary: URL temporal del XML firmado
+      operationId: xml
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaDescarga"
+  /api/v1/ventas/comunicaciones-de-baja/{id}/cdr:
+    get:
+      tags:
+      - Comunicaciones de baja
+      summary: URL temporal del CDR que devolvió SUNAT
+      operationId: cdr
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaDescarga"
   /api/v1/ventas/comprobantes/{id}:
     get:
       tags:
@@ -1779,7 +1900,7 @@ paths:
       tags:
       - Envío a SUNAT
       summary: URL temporal del XML firmado
-      operationId: xml
+      operationId: xml_1
       parameters:
       - name: documentoId
         in: path
@@ -1799,7 +1920,7 @@ paths:
       tags:
       - Envío a SUNAT
       summary: URL temporal del CDR que devolvió SUNAT
-      operationId: cdr
+      operationId: cdr_1
       parameters:
       - name: documentoId
         in: path
@@ -2907,6 +3028,85 @@ components:
           maxLength: 500
           minLength: 0
           type: string
+    ComprobantePedido:
+      required:
+      - documentoId
+      - motivo
+      type: object
+      properties:
+        documentoId:
+          type: string
+          format: uuid
+        motivo:
+          maxLength: 300
+          minLength: 0
+          type: string
+    PeticionBaja:
+      required:
+      - comprobantes
+      type: object
+      properties:
+        comprobantes:
+          minItems: 1
+          type: array
+          items:
+            $ref: "#/components/schemas/ComprobantePedido"
+    RespuestaComprobante:
+      type: object
+      properties:
+        documentoId:
+          type: string
+          format: uuid
+        tipo:
+          type: string
+        numeroCompleto:
+          type: string
+        motivo:
+          type: string
+    RespuestaComunicacion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        identificador:
+          type: string
+        fechaComprobantes:
+          type: string
+          format: date
+        fechaGeneracion:
+          type: string
+          format: date
+        estado:
+          type: string
+        intentos:
+          type: integer
+          format: int32
+        ticket:
+          type: string
+        codigo:
+          type: string
+        descripcion:
+          type: string
+        encoladaEn:
+          type: string
+          format: date-time
+        respondidaEn:
+          type: string
+          format: date-time
+        xmlDisponible:
+          type: boolean
+        cdrDisponible:
+          type: boolean
+        admiteReintento:
+          type: boolean
+        diasDePlazo:
+          type: integer
+          format: int64
+        comprobantes:
+          type: array
+          items:
+            $ref: "#/components/schemas/RespuestaComprobante"
     PeticionComprobante:
       required:
       - tipo

@@ -19,7 +19,18 @@ import java.util.List;
 public record RespuestaSunat(Tipo tipo, String codigo, String descripcion, List<String> notas,
         byte[] cdr) {
 
-    public enum Tipo { CDR, FALLO, SIN_RESPUESTA }
+    public enum Tipo {
+        /** SUNAT procesó el comprobante y devolvió su constancia. */
+        CDR,
+        /** SUNAT recibió un envío asíncrono y devolvió un ticket, que va en {@code codigo}. */
+        TICKET,
+        /** El ticket existe pero SUNAT todavía no terminó (código 98). */
+        EN_PROCESO,
+        /** SUNAT no lo procesó y dice por qué en el {@code faultcode}. */
+        FALLO,
+        /** Ni CDR ni fallo legible: red, HTTP inesperado, HTML de mantenimiento. */
+        SIN_RESPUESTA
+    }
 
     public RespuestaSunat {
         notas = notas == null ? List.of() : List.copyOf(notas);
@@ -32,6 +43,11 @@ public record RespuestaSunat(Tipo tipo, String codigo, String descripcion, List<
     /** Aceptado: CDR con código 0. Todo lo demás no lo es. */
     public boolean aceptado() {
         return tipo == Tipo.CDR && "0".equals(codigo);
+    }
+
+    /** El envío asíncrono llegó y SUNAT dio un ticket, o todavía lo está procesando. */
+    public boolean sigueEnCurso() {
+        return tipo == Tipo.TICKET || tipo == Tipo.EN_PROCESO;
     }
 
     /**

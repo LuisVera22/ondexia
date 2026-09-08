@@ -263,8 +263,8 @@ public class EmisionElectronica {
                         ? new OrdenDeEmision.Referencia(d.origen().tipo().codigo(),
                                 d.origen().serie(), d.origen().numero())
                         : null);
-        return new OrdenDeEmision(comprobante.id(), OrdenDeEmision.Operacion.EMITIR, e.id(),
-                e.modoSunat(), emisor, documento, reloj.instant());
+        return OrdenDeEmision.paraEmitir(comprobante.id(), e.id(), e.modoSunat(), emisor,
+                documento, reloj.instant());
     }
 
     private static OrdenDeEmision.Linea aLinea(LineaDeVenta l) {

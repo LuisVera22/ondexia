@@ -11,6 +11,10 @@ package com.ondexia.domain.comprobante;
  * <ul>
  *   <li>{@code EN_COLA}: la orden está en el bus o a punto de entrar. El Emisor
  *       todavía no respondió.</li>
+ *   <li>{@code EN_PROCESO}: solo en los envíos asíncronos —la comunicación de
+ *       baja—. SUNAT recibió el archivo y devolvió un ticket; la respuesta
+ *       llega al consultarlo. Un comprobante nunca pasa por aquí: su envío es
+ *       síncrono y trae el CDR en la misma llamada.</li>
  *   <li>{@code ACEPTADO}: SUNAT devolvió un CDR con código 0. Puede traer
  *       observaciones (códigos 4000+), que no lo invalidan.</li>
  *   <li>{@code RECHAZADO}: CDR o fallo SOAP con código 2000–3999. Para SUNAT el
@@ -24,6 +28,7 @@ package com.ondexia.domain.comprobante;
  */
 public enum EstadoSunat {
     EN_COLA,
+    EN_PROCESO,
     ACEPTADO,
     RECHAZADO,
     ERROR_ENVIO,
@@ -32,6 +37,11 @@ public enum EstadoSunat {
     /** Si desde aquí tiene sentido volver a enviar. */
     public boolean admiteReintento() {
         return this == RECHAZADO || this == ERROR_ENVIO;
+    }
+
+    /** Si sigue en camino: nadie ha dicho todavía qué pasó. */
+    public boolean estaEnCurso() {
+        return this == EN_COLA || this == EN_PROCESO;
     }
 
     /** Si ya no cambiará por sí solo: SUNAT dijo la última palabra. */

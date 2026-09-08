@@ -32,6 +32,7 @@ describe('MenuLateralComponent · lo que se ve segun los permisos', () => {
     'compras.liquidacion',
     'ventas.cliente', 'ventas.cotizacion', 'ventas.nota_preventa', 'ventas.comprobante',
     'ventas.nota_credito', 'ventas.nota_debito', 'ventas.resumen_diario', 'ventas.caja',
+    'ventas.comunicacion_baja',
     'ventas.nota_venta',
     'configuracion.empresa', 'configuracion.sucursal', 'configuracion.usuario',
     'configuracion.rol', 'configuracion.serie', 'configuracion.comprobante',

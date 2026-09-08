@@ -194,10 +194,12 @@ export interface MotivoNotaCredito {
 }
 
 /** Dónde está una boleta o factura ante SUNAT (doc 14 §3). */
-export type EstadoSunat = 'EN_COLA' | 'ACEPTADO' | 'RECHAZADO' | 'ERROR_ENVIO' | 'ANULADO';
+export type EstadoSunat = 'EN_COLA' | 'EN_PROCESO' | 'ACEPTADO' | 'RECHAZADO' | 'ERROR_ENVIO' | 'ANULADO';
 
 export const ESTADOS_SUNAT: Readonly<Record<EstadoSunat, string>> = {
   EN_COLA: 'Enviando a SUNAT',
+  // Solo en los envíos asíncronos: SUNAT dio un ticket y falta su veredicto.
+  EN_PROCESO: 'SUNAT lo está procesando',
   ACEPTADO: 'Aceptado por SUNAT',
   RECHAZADO: 'Rechazado por SUNAT',
   ERROR_ENVIO: 'Error de envío',
@@ -460,6 +462,32 @@ export class VentasApiService {
       this.http.get<SerieDisponibleApi[]>(`${this.base}/notas-de-venta/${notaDeVentaId}/series-canje`, { params })
     );
   }
+
+  // ── Comunicación de baja (doc 13 §6) ──────────────────────────────────────
+  //
+  // El envío es asíncrono: SUNAT devuelve un ticket y el veredicto llega
+  // después. El servidor sincroniza al listar y al abrir una, así que la
+  // pantalla no tiene que orquestar nada: vuelve a pedir y ya.
+
+  comunicacionesDeBaja(): Promise<ComunicacionDeBajaApi[]> {
+    return firstValueFrom(this.http.get<ComunicacionDeBajaApi[]>(`${this.base}/comunicaciones-de-baja`));
+  }
+
+  comunicacionDeBaja(id: string): Promise<ComunicacionDeBajaApi> {
+    return firstValueFrom(this.http.get<ComunicacionDeBajaApi>(`${this.base}/comunicaciones-de-baja/${id}`));
+  }
+
+  darDeBaja(comprobantes: ComprobanteADarDeBaja[]): Promise<ComunicacionDeBajaApi> {
+    return firstValueFrom(
+      this.http.post<ComunicacionDeBajaApi>(`${this.base}/comunicaciones-de-baja`, { comprobantes })
+    );
+  }
+
+  reintentarBaja(id: string): Promise<ComunicacionDeBajaApi> {
+    return firstValueFrom(
+      this.http.post<ComunicacionDeBajaApi>(`${this.base}/comunicaciones-de-baja/${id}/reintento`, {})
+    );
+  }
 }
 
 /** Cómo se devolvió el dinero. Vacío: no se devolvió nada ahora. */
@@ -499,4 +527,43 @@ export interface PeticionCanje {
   readonly serieId?: string | null;
   readonly clienteId?: string | null;
   readonly observaciones?: string | null;
+}
+
+/** Un comprobante que se comunica a SUNAT como no emitido. */
+export interface ComprobanteADarDeBaja {
+  readonly documentoId: string;
+  readonly motivo: string;
+}
+
+export interface ComprobanteDeBajaApi {
+  readonly documentoId: string;
+  readonly tipo: TipoDocumentoVenta;
+  readonly numeroCompleto: string;
+  readonly motivo: string;
+}
+
+/**
+ * Una comunicación de baja. Su estado es el de SUNAT, con un valor que un
+ * comprobante nunca tiene: `EN_PROCESO` significa que SUNAT dio un ticket y
+ * todavía no hay veredicto.
+ */
+export interface ComunicacionDeBajaApi {
+  readonly id: string;
+  /** `RA-20260909-1`, como SUNAT la identifica. */
+  readonly identificador: string;
+  readonly fechaComprobantes: string;
+  readonly fechaGeneracion: string;
+  readonly estado: EstadoSunat;
+  readonly intentos: number;
+  readonly ticket: string | null;
+  readonly codigo: string | null;
+  readonly descripcion: string | null;
+  readonly encoladaEn: string | null;
+  readonly respondidaEn: string | null;
+  readonly xmlDisponible: boolean;
+  readonly cdrDisponible: boolean;
+  readonly admiteReintento: boolean;
+  /** Los que quedan para comunicar la baja; negativo si el plazo venció. */
+  readonly diasDePlazo: number;
+  readonly comprobantes: ComprobanteDeBajaApi[];
 }

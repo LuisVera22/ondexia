@@ -54,6 +54,15 @@ public final class ClavesDelBus {
         return DOCUMENTOS + ruc + "/R-" + nombreDeArchivo + ".zip";
     }
 
+    /**
+     * El CDR de un envío asíncrono. Va por ticket y no por nombre de
+     * comprobante porque una comunicación de baja cubre varios: el ticket es lo
+     * único que la identifica ante SUNAT.
+     */
+    public static String cdrDeTicket(String ruc, String ticket) {
+        return DOCUMENTOS + ruc + "/R-ticket-" + ticket + ".zip";
+    }
+
     public static String certificado(String ruc) {
         return CERTIFICADOS + ruc + ".pfx";
     }

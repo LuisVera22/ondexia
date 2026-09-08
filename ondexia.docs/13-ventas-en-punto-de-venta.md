@@ -452,9 +452,101 @@ cambiaría, semanas más tarde, el calculado de una sesión ya cerrada, y una
 diferencia que alguien justificó en su día pasaría a no cuadrar sin que nadie
 tocara nada. El arqueo cuenta lo que se movió, no lo que sigue vigente.
 
+## 6. La comunicación de baja
+
+La nota de crédito corrige una operación que ocurrió. La comunicación de baja
+dice otra cosa: que el comprobante **no debió existir** —se emitió por error,
+al cliente equivocado, duplicado—. Por eso no lleva importes, no mueve
+existencias y no devuelve dinero: solo la lista de comprobantes y el motivo de
+cada uno.
+
+| | Nota de crédito | Comunicación de baja |
+|---|---|---|
+| Qué afirma | La operación se corrigió o se deshizo | El comprobante no debió emitirse |
+| Sirve para | Boletas y facturas | **Solo facturas** y sus notas |
+| Plazo | Sin plazo especial | Hasta el 7.º día del mes siguiente al de emisión |
+| Mueve dinero y existencias | Sí, según el motivo | No |
+| Respuesta de SUNAT | En la misma llamada, con el CDR | **Un ticket**, y el veredicto después |
+
+Una boleta no se da de baja por esta vía: se anula con nota de crédito. Y una
+nota de venta no se declara, así que no hay nada que comunicar.
+
+### 6.1 El envío es asíncrono, y de ahí sale casi todo
+
+```
+  EN_COLA ──enviada──▶ EN_PROCESO(ticket) ──consulta──▶ ACEPTADO
+     ▲                      │                       └─▶ RECHAZADO ─┐
+     │                      └──sin respuesta──▶ ERROR_ENVIO ────────┤
+     └────────────────── reintentar ◀────────────────────────────────┘
+```
+
+`EN_PROCESO` es un estado que un comprobante nunca tiene: su envío es síncrono
+y vuelve con la constancia. Aquí hacen falta **dos** viajes al Emisor por
+comunicación —`ENVIAR_BAJA` y, más tarde, `CONSULTAR_TICKET`—, y los dos van por
+el mismo bus.
+
+Tres reglas que salen de eso:
+
+- **Con ticket no se reenvía.** Lo que falta es consultarlo; mandar otro archivo
+  con el mismo número sería un duplicado ante SUNAT.
+- **La consulta viaja con un identificador propio**, derivado del de la
+  comunicación y del número de intento, para que su respuesta no pise la del
+  envío: son dos resultados distintos en el mismo bus.
+- **No se pregunta por un ticket recién dado.** SUNAT suele tenerlo listo en
+  menos de un minuto; preguntar cada pocos segundos solo gastaría invocaciones
+  del Emisor sin adelantar nada.
+
+`98` no es un error: significa «todavía lo estoy procesando». `0` y `99` traen
+la constancia dentro —el segundo con el motivo del rechazo— y en los dos casos
+vale lo que diga esa constancia.
+
+**Los comprobantes pasan a `ANULADO` cuando SUNAT acepta la comunicación**, con
+el mismo criterio que la nota de crédito: si la rechaza, la baja no ocurrió.
+
+### 6.2 Quién consulta el ticket, hoy
+
+La API sincroniza **al leer**: al abrir el listado de comunicaciones y al abrir
+una, mira si el Emisor dejó respuesta y, si el ticket lleva esperando lo
+suficiente, encola la consulta. La persona que envía una baja se queda en la
+pantalla y ve el resultado en el mismo minuto.
+
+Lo que falta es el **planificador**: una tarea programada que haga eso mismo
+cuando nadie mira, para que una baja enviada y abandonada no se quede en
+`EN_PROCESO` hasta que alguien entre. Su diseño está claro —EventBridge cada
+pocos minutos, una función sobre el artefacto de la API que recorra las
+empresas activas y llame a la misma sincronización, cada una bajo
+`OperarComoEmpresa` para no debilitar el aislamiento— y no está construido por
+una razón concreta: **no hay forma de ejercitarlo desde este repositorio**. Es
+infraestructura que solo corre en AWS, y desplegarla sin poder probarla añade
+una superficie de fallo sobre un camino que ya funciona al consultar. Entra con
+el ensayo contra la beta, cuando haya un entorno donde comprobar las dos cosas a
+la vez.
+
+### 6.3 El resumen diario, y por qué no está
+
+El plan lo pedía en esta iteración para anular boletas. No está, y conviene
+decir por qué con precisión:
+
+- **La nota de crédito ya anula una boleta**, que es el caso de todos los días.
+- El resumen diario cumple dos papeles —informar boletas y anularlas— y aquí las
+  boletas se envían **individualmente**, con CDR inmediato (doc 12 §10.1,
+  decisión 2). Cuál de los dos mecanismos admite SUNAT para anular una boleta
+  que ya se informó individualmente es exactamente el tipo de detalle que **el
+  ensayo contra la beta tiene que confirmar**, y ese ensayo sigue pendiente
+  ([doc 14 §1](14-emision-electronica.md)).
+- Construir una segunda integración con SUNAT sobre una primera todavía sin
+  verificar multiplica el riesgo: si el XML base resultara estar mal, habría dos
+  documentos que rehacer en vez de uno.
+
+Lo que sí quedó construido es el mecanismo que el resumen necesita —el envío
+asíncrono con ticket, §6.1—, así que añadirlo es escribir su XML y su regla de
+plazo, no una arquitectura.
+
 ## Registro de cambios
 
 - **v1 (2026-09-07)** — §1, con la iteración 2.
 - **v1.1 (2026-09-07)** — §2 y §3, con la iteración 3.
 - **v1.2 (2026-09-07)** — §4, con la iteración 4.
 - **v1.3 (2026-09-08)** — §4.4 y la regla del almacén del local, con la iteración 5.
+- **v1.4 (2026-09-08)** — §5 (canje y nota de crédito) y §6 (comunicación de
+  baja), con la iteración 6.

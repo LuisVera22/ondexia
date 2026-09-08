@@ -7,6 +7,7 @@ import com.ondexia.domain.comprobante.ResultadoDeEmision;
 import com.ondexia.domain.identidad.ModoSunat;
 import com.ondexia.facturacion.bus.AlmacenDelBus;
 import com.ondexia.facturacion.sunat.ClienteSunat;
+import com.ondexia.facturacion.sunat.ConstructorDeBaja;
 import com.ondexia.facturacion.sunat.ConstructorDeComprobante;
 import com.ondexia.facturacion.sunat.Empaquetador;
 import com.ondexia.facturacion.sunat.FirmadorDeComprobante;
@@ -39,6 +40,7 @@ public class ProcesadorDeOrdenes {
     private final AlmacenDelBus bus;
     private final ClienteSunat sunat;
     private final ConstructorDeComprobante constructor;
+    private final ConstructorDeBaja constructorDeBaja = new ConstructorDeBaja();
     private final FirmadorDeComprobante firmador;
     private final PropiedadesEmision propiedades;
     private final ObjectMapper json;
@@ -70,7 +72,12 @@ public class ProcesadorDeOrdenes {
     public ResultadoDeEmision procesar(OrdenDeEmision orden) {
         ResultadoDeEmision resultado;
         try {
-            resultado = orden.esEmision() ? emitir(orden) : verificar(orden);
+            resultado = switch (orden.operacion()) {
+                case EMITIR -> emitir(orden);
+                case ENVIAR_BAJA -> enviarBaja(orden);
+                case CONSULTAR_TICKET -> consultarTicket(orden);
+                case VERIFICAR_CREDENCIALES -> verificar(orden);
+            };
         } catch (RuntimeException inesperado) {
             LOG.error("La orden {} falló antes de producir resultado: {}", orden.id(),
                     inesperado.toString());
@@ -119,6 +126,85 @@ public class ProcesadorDeOrdenes {
         return new ResultadoDeEmision(orden.id(), orden.empresaId(), orden.operacion(), estado,
                 respuesta.codigo(), respuesta.descripcion(), respuesta.notas(), claveXml, claveCdr,
                 firmado.resumen(), null, null, reloj.instant());
+    }
+
+    /**
+     * La comunicación de baja (doc 13 §6). Se construye y se firma igual que un
+     * comprobante; lo que cambia es que SUNAT no contesta con la constancia,
+     * sino con un ticket. El estado {@code EN_PROCESO} es la señal de que hay
+     * que volver a preguntar, y el ticket viaja en {@code codigo}.
+     */
+    private ResultadoDeEmision enviarBaja(OrdenDeEmision orden) {
+        String ruc = orden.emisor().ruc();
+        Optional<Credenciales> credenciales = credencialesDe(ruc);
+        if (credenciales.isEmpty()) {
+            return fallo(orden, "SIN_CREDENCIALES",
+                    "No hay certificado o credenciales cargados para el RUC " + ruc + ".", null, null);
+        }
+        CertificateDetails certificado;
+        try {
+            certificado = abrirCertificado(ruc, credenciales.get());
+        } catch (FirmadorDeComprobante.CertificadoNoAbre e) {
+            return fallo(orden, "CERTIFICADO_NO_ABRE", e.getMessage(), null, null);
+        }
+
+        String nombre = orden.baja().nombreDeArchivo(ruc);
+        FirmadorDeComprobante.Firmado firmado =
+                firmador.firmar(constructorDeBaja.construir(orden), certificado);
+        String claveXml = ClavesDelBus.DOCUMENTOS + ruc + "/" + nombre + ".xml";
+        bus.escribir(claveXml, firmado.xml(), "application/xml");
+
+        byte[] zip = Empaquetador.comprimir(nombre + ".xml", firmado.xml());
+        RespuestaSunat respuesta = sunat.enviarResumen(urlPara(orden.modo()), ruc,
+                orden.emisor().usuarioSol(), credenciales.get().claveSol(), nombre + ".zip", zip);
+
+        if (respuesta.tipo() == RespuestaSunat.Tipo.TICKET) {
+            return new ResultadoDeEmision(orden.id(), orden.empresaId(), orden.operacion(),
+                    EstadoSunat.EN_PROCESO, respuesta.codigo(), respuesta.descripcion(),
+                    List.of(), claveXml, null, firmado.resumen(), null, null, reloj.instant());
+        }
+        EstadoSunat estado = respuesta.rechazado() ? EstadoSunat.RECHAZADO : EstadoSunat.ERROR_ENVIO;
+        return new ResultadoDeEmision(orden.id(), orden.empresaId(), orden.operacion(), estado,
+                respuesta.codigo(), respuesta.descripcion(), respuesta.notas(), claveXml, null,
+                firmado.resumen(), null, null, reloj.instant());
+    }
+
+    /**
+     * Preguntar por un ticket. No firma nada ni construye XML: solo llama y
+     * traduce. Si SUNAT sigue procesando ({@code 98}), el resultado lo dice y
+     * quien consulte volverá más tarde.
+     */
+    private ResultadoDeEmision consultarTicket(OrdenDeEmision orden) {
+        String ruc = orden.emisor().ruc();
+        Optional<Credenciales> credenciales = credencialesDe(ruc);
+        if (credenciales.isEmpty()) {
+            return fallo(orden, "SIN_CREDENCIALES",
+                    "No hay credenciales cargadas para el RUC " + ruc + ".", null, null);
+        }
+        String ticket = orden.consulta() == null ? null : orden.consulta().ticket();
+        if (ticket == null || ticket.isBlank()) {
+            return fallo(orden, "SIN_TICKET", "La orden de consulta no trae ticket.", null, null);
+        }
+
+        RespuestaSunat respuesta = sunat.consultarTicket(urlPara(orden.modo()), ruc,
+                orden.emisor().usuarioSol(), credenciales.get().claveSol(), ticket);
+
+        if (respuesta.tipo() == RespuestaSunat.Tipo.EN_PROCESO) {
+            return new ResultadoDeEmision(orden.id(), orden.empresaId(), orden.operacion(),
+                    EstadoSunat.EN_PROCESO, ticket, respuesta.descripcion(), List.of(), null, null,
+                    null, null, null, reloj.instant());
+        }
+        String claveCdr = null;
+        if (respuesta.cdr() != null) {
+            claveCdr = ClavesDelBus.cdrDeTicket(ruc, ticket);
+            bus.escribir(claveCdr, respuesta.cdr(), "application/zip");
+        }
+        EstadoSunat estado = respuesta.aceptado() ? EstadoSunat.ACEPTADO
+                : respuesta.rechazado() ? EstadoSunat.RECHAZADO
+                : EstadoSunat.ERROR_ENVIO;
+        return new ResultadoDeEmision(orden.id(), orden.empresaId(), orden.operacion(), estado,
+                respuesta.codigo(), respuesta.descripcion(), respuesta.notas(), null, claveCdr,
+                null, null, null, reloj.instant());
     }
 
     private ResultadoDeEmision verificar(OrdenDeEmision orden) {

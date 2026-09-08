@@ -46,12 +46,74 @@ public class LectorDeRespuestaSunat {
                     List.of(), null);
         }
         Element respuesta = primero(soap, "*", "applicationResponse");
-        if (respuesta == null) {
-            return RespuestaSunat.sinRespuesta("HTTP_" + estadoHttp,
-                    "SUNAT respondió " + estadoHttp + " sin CDR ni fallo.");
+        if (respuesta != null) {
+            return leerCdr(Base64.getMimeDecoder().decode(texto(respuesta).trim()));
         }
-        byte[] zip = Base64.getMimeDecoder().decode(texto(respuesta).trim());
-        return leerCdr(zip);
+        Element estadoDelTicket = primero(soap, "*", "status");
+        if (estadoDelTicket != null) {
+            return leerEstadoDeTicket(estadoDelTicket);
+        }
+        return RespuestaSunat.sinRespuesta("HTTP_" + estadoHttp,
+                "SUNAT respondió " + estadoHttp + " sin CDR ni fallo.");
+    }
+
+    /**
+     * La respuesta de {@code sendSummary}: un ticket, no una constancia
+     * (doc 13 §6). El ticket viaja en {@code codigo} porque es lo que hay que
+     * guardar para preguntar después.
+     */
+    public RespuestaSunat leerTicket(int estadoHttp, byte[] cuerpo) {
+        Document soap;
+        try {
+            soap = analizar(cuerpo);
+        } catch (Exception noEsXml) {
+            return RespuestaSunat.sinRespuesta("HTTP_" + estadoHttp,
+                    "SUNAT respondió " + estadoHttp + " con un cuerpo que no es SOAP.");
+        }
+        Element fault = primero(soap, "*", "Fault");
+        if (fault != null) {
+            return new RespuestaSunat(RespuestaSunat.Tipo.FALLO,
+                    codigoDe(texto(primero(fault, "*", "faultcode"))),
+                    textoODefecto(primero(fault, "*", "faultstring"),
+                            "SUNAT devolvió un fallo sin descripción."),
+                    List.of(), null);
+        }
+        Element ticket = primero(soap, "*", "ticket");
+        if (ticket == null || texto(ticket) == null || texto(ticket).isBlank()) {
+            return RespuestaSunat.sinRespuesta("SIN_TICKET",
+                    "SUNAT aceptó el envío pero no devolvió ticket.");
+        }
+        return new RespuestaSunat(RespuestaSunat.Tipo.TICKET, texto(ticket).trim(),
+                "SUNAT recibió el envío y devolvió un ticket.", List.of(), null);
+    }
+
+    /**
+     * Lo que dice {@code getStatus}.
+     *
+     * <p>{@code 98} es «todavía lo estoy procesando» y no es un error: hay que
+     * volver a preguntar. {@code 0} y {@code 99} traen el CDR dentro —el
+     * segundo con el motivo del rechazo—, así que en los dos casos lo que vale
+     * es lo que diga esa constancia.
+     */
+    private RespuestaSunat leerEstadoDeTicket(Element estado) {
+        String codigo = textoODefecto(primero(estado, "*", "statusCode"), "");
+        String mensaje = textoODefecto(primero(estado, "*", "statusMessage"), "");
+        if ("98".equals(codigo.trim())) {
+            return new RespuestaSunat(RespuestaSunat.Tipo.EN_PROCESO, "98",
+                    mensaje.isBlank() ? "SUNAT todavía está procesando el envío." : mensaje,
+                    List.of(), null);
+        }
+        Element contenido = primero(estado, "*", "content");
+        if (contenido != null && texto(contenido) != null && !texto(contenido).isBlank()) {
+            return leerCdr(Base64.getMimeDecoder().decode(texto(contenido).trim()));
+        }
+        return RespuestaSunat.sinRespuesta(codigo.isBlank() ? "SIN_ESTADO" : codigo.trim(),
+                mensaje.isBlank() ? "SUNAT respondió al ticket sin constancia." : mensaje);
+    }
+
+    private static String textoODefecto(Element elemento, String defecto) {
+        String valor = texto(elemento);
+        return valor == null ? defecto : valor;
     }
 
     /** El CDR: un {@code ApplicationResponse} con el código, la descripción y las notas. */

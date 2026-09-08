@@ -121,6 +121,7 @@ export class MenuLateralComponent {
             { nombre: 'Notas de venta', ruta: '/ventas/notas-venta', permiso: 'ventas.nota_venta' },
             // Se emiten desde la ficha del comprobante; aquí solo se listan.
             { nombre: 'Notas de crédito', ruta: '/ventas/notas-credito', permiso: 'ventas.nota_credito' },
+            { nombre: 'Comunicaciones de baja', ruta: '/ventas/comunicaciones-baja', permiso: 'ventas.comunicacion_baja' },
             { nombre: 'Clientes', ruta: '/ventas/clientes', permiso: 'ventas.cliente' },
             { nombre: 'Cotizaciones', ruta: '/ventas/cotizaciones', permiso: 'ventas.cotizacion' },
             // Facturas y boletas son el mismo submódulo: `ventas.comprobante`.

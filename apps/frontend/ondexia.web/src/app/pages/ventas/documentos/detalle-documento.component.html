@@ -16,6 +16,9 @@
         @if (sePuedeAnular()) {
         <app-boton variante="peligro" (accion)="pedirAnulacion()">Anular</app-boton>
         }
+        @if (sePuedeDarDeBaja()) {
+        <app-boton variante="secundario" (accion)="pedirBaja()">Dar de baja</app-boton>
+        }
         @if (sePuedeCanjear()) {
         <app-boton (accion)="pedirCanje()">Canjear</app-boton>
         }
@@ -293,5 +296,32 @@
   <div acciones class="flex justify-end gap-2">
     <app-boton variante="secundario" (accion)="cerrarModal()">Cancelar</app-boton>
     <app-boton [estado]="canjear.estado()" (accion)="canjear.ejecutar()">Canjear</app-boton>
+  </div>
+</app-modal>
+
+<!-- Dar de baja: el comprobante no debió existir (doc 13 §6). -->
+<app-modal
+  [abierto]="modal() === 'baja'"
+  titulo="Comunicar la baja a SUNAT"
+  [subtitulo]="'Dice que ' + (documento()?.numeroCompleto || '') + ' no debió emitirse. No devuelve dinero ni repone mercadería: para eso está la nota de crédito.'"
+  rol="alertdialog"
+  [procesando]="darDeBaja.estado() === 'cargando'"
+  (cerrar)="cerrarModal()"
+>
+  <div class="grid gap-4">
+    <p class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-300">
+      SUNAT no responde en el momento: devuelve un ticket y el veredicto llega después. El comprobante queda anulado cuando lo acepte.
+    </p>
+    <div>
+      <label for="motivoBaja" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Por qué no debió existir</label>
+      <input id="motivoBaja" type="text" name="motivoBaja" [(ngModel)]="observacionesDeLaNota" maxlength="300"
+        placeholder="Emitida al cliente equivocado, duplicada…"
+        class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+    </div>
+  </div>
+
+  <div acciones class="flex justify-end gap-2">
+    <app-boton variante="secundario" (accion)="cerrarModal()">Cancelar</app-boton>
+    <app-boton variante="peligro" [estado]="darDeBaja.estado()" (accion)="darDeBaja.ejecutar()">Comunicar la baja</app-boton>
   </div>
 </app-modal>
