@@ -1,27 +1,39 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Route } from '@angular/router';
 
 import { GrupoMenu, MenuLateralComponent } from './menu-lateral.component';
 import { ContextoService } from '../../services/contexto.service';
+import { routes } from '../../../app.routes';
 
 /**
- * Que el menú esconda lo que la cuenta no tiene, y que los códigos existan.
+ * Que el menú esconda lo que la cuenta no tiene, que los códigos existan, y
+ * que ninguna entrada lleve a una pantalla que no está.
  *
- * <p>La segunda mitad es la que importa: un código mal escrito no revienta
+ * <p>La segunda parte es la que importa: un código mal escrito no revienta
  * nada. {@code puede()} devuelve false para siempre y la entrada desaparece
  * para todo el mundo, incluido quien sí la tiene contratada. Nadie ve un error;
  * se ve un cliente escribiendo que «se le perdió» una pantalla.
+ *
+ * <p>La tercera es de la iteración 7. Al recortar el menú al primer producto se
+ * retiraron veintitantas entradas cuyas rutas se fueron a
+ * {@code pages/_maquetas/}: sin esta prueba, dejar una entrada apuntando a una
+ * ruta retirada se descubre pulsándola.
  */
 describe('MenuLateralComponent · lo que se ve segun los permisos', () => {
   /**
    * Los submódulos reales, copiados de V6__permisos_jerarquicos.sql y de las
-   * migraciones que añadieron alguno después (V7 identidad, V17 caja).
+   * migraciones que añadieron alguno después (V7 identidad, V17 caja, V19 nota
+   * de venta, V21 nota de crédito, V22 comunicación de baja).
    *
    * <p>Sí, es una segunda copia de la misma verdad. Está aquí a propósito: una
    * prueba que repite el dato de forma independiente es lo que convierte un
    * error de transcripción en un build rojo. Si algún día se añade un submódulo
    * a la migración, esta lista hay que actualizarla — y eso es un recordatorio,
    * no una desincronización silenciosa.
+   *
+   * <p>Se conserva entera, con los submódulos de Compras y de los catálogos de
+   * almacén que el menú ya no ofrece: la tabla `permiso` sigue teniéndolos y sus
+   * pantallas vuelven con su iteración.
    */
   const SUBMODULOS = new Set([
     'almacen.producto', 'almacen.marca', 'almacen.modelo', 'almacen.presentacion',
@@ -51,6 +63,14 @@ describe('MenuLateralComponent · lo que se ve segun los permisos', () => {
     );
   }
 
+  /** Toda ruta declarada, con el prefijo del padre, y sin los parámetros. */
+  function rutasDeclaradas(declaradas: Route[], prefijo = ''): string[] {
+    return declaradas.flatMap((ruta) => {
+      const camino = [prefijo, ruta.path ?? ''].filter(Boolean).join('/');
+      return [`/${camino}`, ...rutasDeclaradas(ruta.children ?? [], camino)];
+    });
+  }
+
   beforeEach(() => {
     permisos = [];
 
@@ -74,10 +94,41 @@ describe('MenuLateralComponent · lo que se ve segun los permisos', () => {
       )
     );
 
-    expect(declarados.length).toBeGreaterThan(20);
+    expect(declarados.length).toBeGreaterThan(10);
     declarados.forEach((codigo) =>
       expect(SUBMODULOS.has(codigo!)).withContext(`«${codigo}» no es un submodulo real`).toBeTrue()
     );
+  });
+
+  it('ninguna entrada lleva a una ruta que no existe', () => {
+    const existentes = new Set(rutasDeclaradas(routes));
+    const enlazadas = componente.todosParaPruebas.flatMap((grupo) =>
+      grupo.entradas.flatMap((entrada) => [
+        ...(entrada.ruta ? [entrada.ruta] : []),
+        ...(entrada.submenu ?? []).map((sub) => sub.ruta),
+      ])
+    );
+
+    expect(enlazadas.length).toBeGreaterThan(10);
+    enlazadas.forEach((ruta) =>
+      expect(existentes.has(ruta))
+        .withContext(`«${ruta}» no corresponde a ninguna ruta declarada`)
+        .toBeTrue()
+    );
+  });
+
+  it('cada entrada del primer producto declara su submodulo', () => {
+    // Tras el recorte de la iteración 7 no queda ninguna entrada sin anotar.
+    // El valor ausente sigue significando «siempre visible» —esconder una
+    // pantalla porque a alguien se le olvidó anotarla es el error que nadie
+    // detecta— pero hoy ninguna se apoya en ese comportamiento.
+    const sinAnotar = componente.todosParaPruebas.flatMap((grupo) =>
+      grupo.entradas.flatMap((entrada) =>
+        (entrada.submenu ?? []).filter((sub) => !sub.permiso).map((sub) => sub.nombre)
+      )
+    );
+
+    expect(sinAnotar).toEqual([]);
   });
 
   it('sin ningun permiso solo queda lo que no exige modulo', () => {
@@ -89,29 +140,21 @@ describe('MenuLateralComponent · lo que se ve segun los permisos', () => {
   });
 
   it('un modulo contratado trae sus submodulos contratados, y solo esos', () => {
-    permisos = ['almacen:acceder', 'almacen.producto:acceder', 'almacen.marca:acceder'];
+    permisos = ['ventas:acceder', 'ventas.caja:acceder', 'ventas.cliente:acceder'];
 
     const visibles = nombres(componente.grupos());
 
-    expect(visibles).toContain('Almacén');
-    expect(visibles).toContain('Productos');
-    expect(visibles).toContain('Marcas');
-    expect(visibles).not.toContain('Kardex');
-    expect(visibles).not.toContain('Guías de remisión');
-  });
-
-  it('las entradas sin submodulo propio se muestran con el modulo', () => {
-    // «Unidades» no tiene fila en `permiso`. Esconderla por no estar anotada
-    // borraria una pantalla sin que nadie se entere.
-    permisos = ['almacen:acceder'];
-
-    expect(nombres(componente.grupos())).toContain('Unidades');
+    expect(visibles).toContain('Ventas');
+    expect(visibles).toContain('Cajas');
+    expect(visibles).toContain('Clientes');
+    expect(visibles).not.toContain('Facturas');
+    expect(visibles).not.toContain('Comunicaciones de baja');
   });
 
   it('un modulo cuyos submodulos estan todos apagados desaparece', () => {
     // Un desplegable que no despliega nada se lee como que algo se rompio.
-    permisos = ['compras:acceder'];
+    permisos = ['almacen:acceder'];
 
-    expect(nombres(componente.grupos())).not.toContain('Compras');
+    expect(nombres(componente.grupos())).not.toContain('Almacén');
   });
 });

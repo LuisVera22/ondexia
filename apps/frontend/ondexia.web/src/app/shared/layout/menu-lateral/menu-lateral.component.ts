@@ -57,9 +57,8 @@ export interface GrupoMenu {
  * nueve entradas y otro de dos se abran igual de bien sin que nadie calcule
  * píxeles, y que añadir una entrada no requiera tocar nada más.
  *
- * Solo un submenú permanece abierto a la vez: con cuatro módulos de hasta diez
- * submódulos, permitir varios abiertos obliga a desplazarse para encontrar lo
- * que se busca.
+ * Solo un submenú permanece abierto a la vez: permitir varios abiertos obliga
+ * a desplazarse para encontrar lo que se busca.
  */
 @Component({
   selector: 'app-menu-lateral',
@@ -74,43 +73,26 @@ export class MenuLateralComponent {
   /** Nombre del grupo desplegado, o `null` si están todos cerrados. */
   readonly abierto = signal<string | null>(null);
 
+  /*
+   * Tres entradas, y ninguna que no funcione.
+   *
+   * El menú listaba Compras entera, ocho catálogos de almacén, cotizaciones,
+   * preventas, formas de pago y resumen diario: treinta y tantas entradas, de
+   * las cuales las que respondían con datos reales eran una docena. Un menú
+   * con entradas que llevan a una maqueta no es un adelanto de lo que vendrá,
+   * es una promesa que el cliente descubre incumplida después de configurar
+   * algo. Las maquetas siguen en el repositorio bajo `pages/_maquetas/` y
+   * vuelven con su iteración (doc 12 §7.3).
+   *
+   * Almacén no tiene entrada de existencias porque no hay listado de
+   * existencias: son por almacén y se ven y se ajustan en la ficha del
+   * producto, que es donde el dato tiene contexto.
+   */
   private readonly TODOS: GrupoMenu[] = [
     {
       titulo: 'Operación',
       entradas: [
         { icono: 'panel', nombre: 'Panel', ruta: '/' },
-        {
-          icono: 'almacen',
-          nombre: 'Almacén',
-          submenu: [
-            { nombre: 'Productos', ruta: '/almacen/productos', permiso: 'almacen.producto' },
-            { nombre: 'Presentaciones', ruta: '/almacen/presentaciones', permiso: 'almacen.presentacion' },
-            // Sin submódulo propio en la tabla `permiso`: es una vista de
-            // existencias, pero mapearla a almacen.stock seria suponerlo.
-            { nombre: 'Productos por agotarse', ruta: '/almacen/por-agotarse' },
-            { nombre: 'Guías de remisión', ruta: '/almacen/guias-remision', permiso: 'almacen.guia_remision' },
-            { nombre: 'Guías de ingreso', ruta: '/almacen/guias-ingreso', permiso: 'almacen.guia_ingreso' },
-            { nombre: 'Tipos de precio', ruta: '/almacen/tipos-precio', permiso: 'almacen.tipo_precio' },
-            { nombre: 'Marcas', ruta: '/almacen/marcas', permiso: 'almacen.marca' },
-            { nombre: 'Modelos', ruta: '/almacen/modelos', permiso: 'almacen.modelo' },
-            // Sin submódulo propio.
-            { nombre: 'Unidades', ruta: '/almacen/unidades' },
-            { nombre: 'Almacenes', ruta: '/almacen/almacenes', permiso: 'almacen.almacen' },
-          ],
-        },
-        {
-          icono: 'compras',
-          nombre: 'Compras',
-          submenu: [
-            { nombre: 'Facturas', ruta: '/compras/facturas', permiso: 'compras.factura_compra' },
-            { nombre: 'Notas de pedido', ruta: '/compras/notas-pedido', permiso: 'compras.nota_pedido' },
-            { nombre: 'Liquidación de compra', ruta: '/compras/liquidaciones', permiso: 'compras.liquidacion' },
-            { nombre: 'Notas de compra', ruta: '/compras/notas-compra', permiso: 'compras.nota_compra' },
-            { nombre: 'Órdenes de compra', ruta: '/compras/ordenes-compra', permiso: 'compras.orden_compra' },
-            { nombre: 'Órdenes de servicio', ruta: '/compras/ordenes-servicio', permiso: 'compras.orden_servicio' },
-            { nombre: 'Proveedores', ruta: '/compras/proveedores', permiso: 'compras.proveedor' },
-          ],
-        },
         {
           icono: 'ventas',
           nombre: 'Ventas',
@@ -119,23 +101,23 @@ export class MenuLateralComponent {
             { nombre: 'Cajas', ruta: '/ventas/cajas', permiso: 'ventas.caja' },
             { nombre: 'Punto de venta', ruta: '/ventas/punto-de-venta', permiso: 'ventas.nota_venta' },
             { nombre: 'Notas de venta', ruta: '/ventas/notas-venta', permiso: 'ventas.nota_venta' },
+            // Boletas y facturas son el mismo submódulo, `ventas.comprobante`:
+            // la tabla no las separa, y separarlas aquí sugeriría que se pueden
+            // contratar por separado, que no es cierto.
+            { nombre: 'Boletas de venta', ruta: '/ventas/boletas', permiso: 'ventas.comprobante' },
+            { nombre: 'Facturas', ruta: '/ventas/facturas', permiso: 'ventas.comprobante' },
             // Se emiten desde la ficha del comprobante; aquí solo se listan.
             { nombre: 'Notas de crédito', ruta: '/ventas/notas-credito', permiso: 'ventas.nota_credito' },
             { nombre: 'Comunicaciones de baja', ruta: '/ventas/comunicaciones-baja', permiso: 'ventas.comunicacion_baja' },
             { nombre: 'Clientes', ruta: '/ventas/clientes', permiso: 'ventas.cliente' },
-            { nombre: 'Cotizaciones', ruta: '/ventas/cotizaciones', permiso: 'ventas.cotizacion' },
-            // Facturas y boletas son el mismo submódulo: `ventas.comprobante`.
-            // La tabla no las separa, y separarlas aqui sugeriria que se pueden
-            // contratar por separado, que no es cierto.
-            { nombre: 'Facturas', ruta: '/ventas/facturas', permiso: 'ventas.comprobante' },
-            { nombre: 'Boletas', ruta: '/ventas/boletas', permiso: 'ventas.comprobante' },
-            { nombre: 'Notas de crédito', ruta: '/ventas/notas-credito', permiso: 'ventas.nota_credito' },
-            { nombre: 'Notas de preventa', ruta: '/ventas/preventas', permiso: 'ventas.nota_preventa' },
-            // Sin submódulo propio.
-            { nombre: 'Comunicación de baja', ruta: '/ventas/comunicacion-baja' },
-            { nombre: 'Resumen diario', ruta: '/ventas/resumen-diario', permiso: 'ventas.resumen_diario' },
-            // Sin submódulo propio.
-            { nombre: 'Formas de pago', ruta: '/ventas/formas-pago' },
+          ],
+        },
+        {
+          icono: 'almacen',
+          nombre: 'Almacén',
+          submenu: [
+            { nombre: 'Productos', ruta: '/almacen/productos', permiso: 'almacen.producto' },
+            { nombre: 'Almacenes', ruta: '/almacen/almacenes', permiso: 'almacen.almacen' },
           ],
         },
       ],
@@ -159,9 +141,6 @@ export class MenuLateralComponent {
             // Certificado, clave SOL y entorno de SUNAT (doc 14 §4). Es de la
             // empresa, y por eso va con su permiso.
             { nombre: 'Emisión electrónica', ruta: '/configuracion/emision', permiso: 'configuracion.empresa' },
-            // Sin submódulo: la suscripcion es de la CUENTA y la gobierna su
-            // administrador, no un permiso de empresa.
-            { nombre: 'Suscripción', ruta: '/configuracion/suscripcion' },
           ],
         },
       ],
