@@ -13,13 +13,13 @@
 import Logo from './Logo.astro';
 
 const enlaces = [
-  { texto: 'Qué hace', destino: '#chamba' },
+  { texto: 'Qué hace', destino: '#funciones' },
   { texto: 'Precios', destino: '#precios' },
   { texto: 'Estado', destino: '#estado' },
 ];
 ---
 
-<header class="sticky top-0 z-40 border-b-2 border-gray-900 bg-white/95 backdrop-blur">
+<header class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur">
   <nav
     class="mx-auto flex h-[72px] max-w-[1240px] items-center justify-between px-5 md:px-10"
     aria-label="Principal"
@@ -37,19 +37,19 @@ const enlaces = [
         enlaces.map((enlace) => (
           <a
             href={enlace.destino}
-            class="enlace-cartel rounded-md py-1 text-[15px] font-medium text-gray-900"
+            class="enlace-subrayado rounded-base py-1 text-[15px] font-medium text-gray-700"
           >
             {enlace.texto}
           </a>
         ))
       }
-      <a href="#acceso" class="btn-oscuro h-11 px-5 text-[15px]">Quiero mi acceso</a>
+      <a href="#acceso" class="btn-primario h-11 px-5 text-[15px]">Solicitar acceso</a>
     </div>
 
     {/* Móvil */}
     <details class="group md:hidden [&[open]_.abrir]:hidden [&:not([open])_.cerrar]:hidden">
       <summary
-        class="pop flex size-11 list-none items-center justify-center rounded-[10px] border-2 border-gray-900 shadow-[var(--sombra-dura)] [&::-webkit-details-marker]:hidden"
+        class="flex size-11 list-none items-center justify-center rounded-base border border-gray-300 [&::-webkit-details-marker]:hidden"
         aria-label="Abrir el menú"
       >
         <svg
@@ -59,7 +59,7 @@ const enlaces = [
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2.4"
+          stroke-width="1.8"
           stroke-linecap="round"
           aria-hidden="true"
         >
@@ -72,7 +72,7 @@ const enlaces = [
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
-          stroke-width="2.4"
+          stroke-width="1.8"
           stroke-linecap="round"
           aria-hidden="true"
         >
@@ -85,19 +85,19 @@ const enlaces = [
         enlace conserva los 44 px de alto pulsable y el ancho entero.
       */}
       <div
-        class="absolute inset-x-0 top-[72px] flex flex-col gap-1 border-b-2 border-gray-900 bg-white px-5 pb-5 pt-2"
+        class="absolute inset-x-0 top-[72px] flex flex-col gap-1 border-b border-gray-200 bg-white px-5 pb-5 pt-2"
       >
         {
           enlaces.map((enlace) => (
             <a
               href={enlace.destino}
-              class="flex min-h-11 items-center rounded-md text-base font-medium text-gray-900"
+              class="flex min-h-11 items-center rounded-base text-base font-medium text-gray-700"
             >
               {enlace.texto}
             </a>
           ))
         }
-        <a href="#acceso" class="btn-oscuro mt-2 w-full">Quiero mi acceso</a>
+        <a href="#acceso" class="btn-primario mt-2 w-full">Solicitar acceso</a>
       </div>
     </details>
   </nav>

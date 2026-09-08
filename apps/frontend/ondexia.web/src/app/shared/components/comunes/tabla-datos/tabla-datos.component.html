@@ -178,7 +178,7 @@
           [checked]="estaSeleccionado(registro)"
           (change)="alternarSeleccion(registro)"
           aria-label="Seleccionar registro"
-          class="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800"
+          class="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded-base border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800"
         />
         }
 
@@ -251,7 +251,7 @@
               [checked]="todosSeleccionados"
               (change)="alternarSeleccionTodos()"
               aria-label="Seleccionar todos los registros de la página"
-              class="h-4 w-4 cursor-pointer rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800"
+              class="h-4 w-4 cursor-pointer rounded-base border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800"
             />
           </th>
           } @for (columna of columnas; track columna.campo) {
@@ -316,7 +316,7 @@
               [checked]="estaSeleccionado(registro)"
               (change)="alternarSeleccion(registro)"
               aria-label="Seleccionar registro"
-              class="h-4 w-4 cursor-pointer rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800"
+              class="h-4 w-4 cursor-pointer rounded-base border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800"
             />
           </td>
           } @for (columna of columnas; track columna.campo) {

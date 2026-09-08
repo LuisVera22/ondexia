@@ -5,15 +5,16 @@
  * Decir en la propia landing que el producto está a medias parece mala idea, y
  * es al revés: la alternativa es prometer hoy una prueba que todavía no existe,
  * y en un producto tributario esa clase de promesa se paga con el primer
- * cliente que la descubre. Además explica por qué la llamada dice «quiero mi
- * acceso» y no «empieza tu prueba».
+ * cliente que la descubre. Además explica por qué la llamada dice «solicitar
+ * acceso» y no «empezar la prueba».
  *
- * Cuando C1 llegue a producción: cambiar `situacion` a 'listo', y la llamada
- * a la acción de toda la página a la prueba de 30 días.
+ * Cuando el ensayo contra el entorno de pruebas de SUNAT devuelva un CDR
+ * aceptado (doc 14 §6), C1 pasa a 'listo' y la llamada a la acción de toda la
+ * página pasa a la prueba de 30 días.
  */
 const cortes = [
-  { id: 'C1', titulo: 'Emitir una boleta', situacion: 'construccion' },
-  { id: 'C2', titulo: 'Ventas completas', situacion: 'siguiente' },
+  { id: 'C1', titulo: 'Emitir una boleta', situacion: 'ensayo' },
+  { id: 'C2', titulo: 'Ventas completas', situacion: 'construccion' },
   { id: 'C3', titulo: 'Catálogo', situacion: 'planificado' },
   { id: 'C4', titulo: 'Compras', situacion: 'planificado' },
   { id: 'C5', titulo: 'Guías de remisión', situacion: 'planificado' },
@@ -21,6 +22,14 @@ const cortes = [
 
 // Punto de color MÁS palabra, también aquí (doc 10 §3).
 const situaciones = {
+  /*
+   * «En ensayo» y no «listo»: el sistema emite, firma y envía, y las pruebas lo
+   * verifican de punta a punta contra una SUNAT fingida. Lo que falta es el
+   * envío real al entorno de pruebas de SUNAT (doc 14 §1). Decir «listo» antes
+   * de ese CDR sería exactamente la promesa que esta sección existe para no
+   * hacer.
+   */
+  ensayo: { texto: 'En ensayo', punto: 'bg-success-500', color: 'text-success-500' },
   construccion: { texto: 'En construcción', punto: 'bg-warning-500', color: 'text-warning-300' },
   siguiente: { texto: 'Sigue', punto: 'bg-gray-500', color: 'text-gray-400' },
   planificado: { texto: 'Planificado', punto: 'bg-gray-500', color: 'text-gray-400' },
@@ -33,14 +42,14 @@ const situaciones = {
       class="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-10"
     >
       <h2 class="revelar flex flex-col gap-3 font-normal">
-        <span class="rotulo text-fluor">Estado del producto y hoja de ruta</span>
-        <span class="cartel text-[34px] text-white sm:text-[44px] lg:text-[52px]">
-          Vamos por partes.
+        <span class="rotulo text-brand-200">Estado del producto y hoja de ruta</span>
+        <span class="titular text-[34px] text-white sm:text-[44px] lg:text-[52px]">
+Un corte cada vez.
         </span>
       </h2>
       <p class="max-w-[340px] text-[15px] leading-6 text-gray-400 md:text-right">
-        Publicamos cada corte cuando funciona de punta a punta, no cuando está la
-        mitad de todo.
+        Cada corte se publica cuando funciona de punta a punta, no cuando está a
+        medias todo a la vez.
       </p>
     </div>
 
@@ -51,11 +60,11 @@ const situaciones = {
           const marca = situaciones[corte.situacion];
           return (
             <li
-              class={`corte revelar flex items-center gap-4 rounded-2xl border-2 p-5 lg:flex-col lg:items-start lg:gap-2 ${activo ? 'border-fluor bg-brand-900' : 'border-gray-700'}`}
+              class={`revelar flex items-center gap-4 rounded-base border p-5 lg:flex-col lg:items-start lg:gap-2 ${activo ? 'border-brand-300 bg-brand-900' : 'border-gray-700'}`}
               style={`--retardo: ${indice + 1}`}
             >
               <p
-                class={`cartel w-11 shrink-0 text-[26px] lg:w-auto lg:text-[30px] ${activo ? 'text-fluor' : 'text-gray-500'}`}
+                class={`titular w-11 shrink-0 text-[26px] lg:w-auto lg:text-[30px] ${activo ? 'text-brand-200' : 'text-gray-500'}`}
               >
                 {corte.id}
               </p>

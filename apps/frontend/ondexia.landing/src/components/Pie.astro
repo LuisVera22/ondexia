@@ -23,7 +23,7 @@ const columnas: { titulo: string; enlaces: Enlace[] }[] = [
   {
     titulo: 'Producto',
     enlaces: [
-      { texto: 'Qué hace', destino: '#chamba' },
+      { texto: 'Qué hace', destino: '#funciones' },
       { texto: 'Precios', destino: '#precios' },
       { texto: 'Estado', destino: '#estado' },
     ],
@@ -97,7 +97,7 @@ const columnas: { titulo: string; enlaces: Enlace[] }[] = [
                   ) : (
                     <a
                       href={enlace.destino}
-                      class="enlace-cartel flex min-h-11 items-center self-start rounded-md text-dato text-gray-600"
+                      class="enlace-subrayado flex min-h-11 items-center self-start rounded-base text-dato text-gray-600"
                     >
                       {enlace.texto}
                     </a>
@@ -111,7 +111,7 @@ const columnas: { titulo: string; enlaces: Enlace[] }[] = [
     </nav>
   </div>
 
-  <div class="mx-auto mt-7 max-w-[1240px] border-t-2 border-gray-200 px-5 pt-4 md:px-10">
+  <div class="mx-auto mt-7 max-w-[1240px] border-t border-gray-200 px-5 pt-4 md:px-10">
     <p class="text-[13px] leading-5 text-gray-500">
       © {new Date().getFullYear()} Ondexia. Todos los derechos reservados.
     </p>

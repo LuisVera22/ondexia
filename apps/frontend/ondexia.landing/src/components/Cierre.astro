@@ -22,7 +22,7 @@ const correo = 'hola@ondexia.com';
 
 <section
   id="acceso"
-  class="scroll-mt-20 border-b-2 border-gray-900 bg-fluor py-16 md:py-[84px]"
+  class="scroll-mt-20 border-b border-gray-900 bg-brand-500 py-16 md:py-[84px]"
 >
   <div
     class="mx-auto flex max-w-[1240px] flex-col items-start justify-between gap-10 px-5 md:px-10 lg:flex-row lg:items-center lg:gap-[60px]"
@@ -30,10 +30,10 @@ const correo = 'hola@ondexia.com';
     <div class="revelar flex flex-col gap-4">
       <h2 class="flex flex-col gap-3.5 font-normal">
         <span class="rotulo text-brand-900">
-          Prueba gratis de 30 días contra la beta de SUNAT
+Prueba de 30 días contra el entorno de pruebas de SUNAT
         </span>
-        <span class="cartel text-[52px] text-brand-950 sm:text-[68px] lg:text-[82px]">
-          Entra a la<br />lista corta.
+        <span class="titular text-[52px] text-brand-950 sm:text-[68px] lg:text-[82px]">
+Acceso por lista de espera.
         </span>
       </h2>
       <p class="max-w-[430px] text-[17px] font-medium leading-7 text-brand-900 md:text-lg">
@@ -59,7 +59,7 @@ const correo = 'hola@ondexia.com';
               <input id="sitio_web" type="text" name="sitio_web" tabindex="-1" autocomplete="off" />
             </div>
             <label for="correo" class="sr-only">
-              Tu correo de empresa
+              Correo de la empresa
             </label>
             <input
               id="correo"
@@ -67,8 +67,8 @@ const correo = 'hola@ondexia.com';
               name="correo"
               required
               autocomplete="email"
-              placeholder="tu@empresa.com"
-              class="h-14 rounded-[10px] border-2 border-gray-900 bg-white px-[18px] text-base text-gray-900 shadow-[var(--sombra-dura)] transition-shadow placeholder:text-gray-500 focus:shadow-[var(--sombra-dura-alta)] focus:outline-2 focus:outline-offset-2 focus:outline-brand-500"
+              placeholder="correo@empresa.com"
+              class="h-14 rounded-base border border-gray-900 bg-white px-[18px] text-base text-gray-900 transition-shadow placeholder:text-gray-500 focus:outline-2 focus:outline-offset-2 focus:outline-brand-500"
             />
             {/*
               Ley 29733 (proteccion de datos personales) y su reglamento: el
@@ -86,8 +86,8 @@ const correo = 'hola@ondexia.com';
                 class="mt-0.5 h-4 w-4 shrink-0 accent-brand-900"
               />
               <span>
-                Acepto que Ondexia use este correo solo para avisarme del acceso, y sé que
-                puedo pedir que lo borren escribiendo a
+                Se acepta que Ondexia use este correo solo para avisar del acceso. La
+                baja se pide escribiendo a
                 <a href={`mailto:${correo}`} class="font-semibold underline">{correo}</a>.
                 {/*
                   Sin enlace a una politica de privacidad: no existe todavia y un
@@ -98,21 +98,21 @@ const correo = 'hola@ondexia.com';
                 */}
               </span>
             </label>
-            <button type="submit" class="btn-oscuro w-full">
-              Avísenme
+            <button type="submit" class="btn-primario w-full">
+              Solicitar acceso
             </button>
           </form>
         ) : (
-          <a href={`mailto:${correo}?subject=Acceso%20anticipado%20a%20Ondexia`} class="btn-oscuro w-full">
-            Escríbenos y te avisamos
+          <a href={`mailto:${correo}?subject=Acceso%20anticipado%20a%20Ondexia`} class="btn-primario w-full">
+            Escribir para solicitar acceso
           </a>
         )
       }
 
       <p class="text-[13px] leading-5 text-brand-900">
-        {endpoint ? 'O escribe a ' : 'Directo a '}
+        {endpoint ? 'También se puede escribir a ' : 'Directamente a '}
         <a href={`mailto:${correo}`} class="font-semibold text-brand-950 underline">{correo}</a>
-        {endpoint ? ' si prefieres contarnos tu caso.' : ' si prefieres contarnos tu caso.'}
+        {' para exponer un caso concreto.'}
       </p>
     </div>
   </div>
