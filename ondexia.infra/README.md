@@ -135,6 +135,32 @@ deberían salir cuatro recursos y ninguno de ellos una base de datos.
 
 **7. Repetir sin «solo plan».** La URL sale en el resumen, en la fila `Landing`.
 
+### Si el despliegue muere en «Asumir rol de solo lectura»
+
+```
+Credentials could not be loaded, please check your action inputs:
+Could not load credentials from any providers
+```
+
+**Significa que los pasos 2, 3 y 4 no están hechos**, no que haya un fallo en el
+workflow. Y conviene saber leerlo, porque el mensaje no lo dice: ese texto es de
+`configure-aws-credentials` cuando **no recibe ningún rol que asumir** y cae a la
+cadena de credenciales por omisión, que en un runner está vacía. Es decir,
+`secrets.AWS_PLAN_ROLE_ARN` llegó vacío.
+
+Se distingue de los otros dos fallos de la misma zona por el texto:
+
+| Lo que dice | Qué falta |
+|---|---|
+| `Could not load credentials from any providers` | El secreto está vacío: falta el entorno `<entorno>-plan` en GitHub, o el secreto dentro de él (pasos 3 y 4) |
+| `Not authorized to perform sts:AssumeRoleWithWebIdentity` | El secreto llega, pero la política de confianza del rol no acepta ese `sub`: el entorno de GitHub no se llama como espera, o el rol es de otro repositorio |
+| `terraform output -json roles_despliegue` no devuelve nada | El paso 2 no se ha aplicado todavía: el output existe (`despliegue.tf`), pero sin roles en el estado no tiene valor |
+
+El orden no es decorativo. El pipeline **no puede crear sus propios roles** —su
+política se lo deniega explícitamente, ver el statement
+`NoTocarLaPropiaIdentidad` de `despliegue.tf`—, así que el paso 2 se aplica desde
+un equipo o no se aplica.
+
 ### Qué vas a ver, y dónde
 
 Con `gestionar_dns = false` —lo que trae `dev.tfvars`— **no hace falta tener el
