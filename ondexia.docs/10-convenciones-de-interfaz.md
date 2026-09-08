@@ -143,7 +143,8 @@ se lee como otra marca.
 
 **El icono solo cuando sustituye a una palabra que no cabe.** En el menú, texto.
 
-**Lo verifica el CI.** El mismo script del §2 mira la hoja compilada: Tailwind
+**Los tres pesos también los verifica el CI**, junto al radio y la sombra. El
+mismo script del §2 mira la hoja compilada: Tailwind
 solo emite las utilidades que se usan, así que la ausencia de `.rounded-lg` en
 el CSS servido no es una aproximación a «nadie la escribió», es la prueba. Para
 que eso fuera cierto hubo que decirle a Tailwind que no mire

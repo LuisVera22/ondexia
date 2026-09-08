@@ -24,7 +24,8 @@
  *      forma del elemento.
  *   2. Una sombra, `shadow-flotante`, y solo para lo que flota. Ninguna en
  *      superficies.
- *   3. Ninguna palabra de la lista de abajo en el texto que se sirve.
+ *   3. Tres pesos: 400, 500 y 600. Nada de 700 ni superiores.
+ *   4. Ninguna palabra de la lista de abajo en el texto que se sirve.
  *
  * ── CÓMO SE EJECUTA ────────────────────────────────────────────────────────
  *
@@ -45,6 +46,15 @@ const RADIO_ADMITIDO = /^rounded(?:-[lrtb]{1,2})?-base$|^rounded-full$/;
 
 /** La única sombra que queda. */
 const SOMBRA_ADMITIDA = /^shadow-flotante$/;
+
+/**
+ * Pesos por encima de 600.
+ *
+ * Outfit se usa en 400, 500 y 600. Con menos pesos el conjunto se ve más
+ * sobrio, y un titular en 800 al lado de una pantalla cuyo texto más fuerte es
+ * 600 se lee como otra marca (doc 10 §5).
+ */
+const PESO_PROHIBIDO = /^font-(?:bold|extrabold|black)$/;
 
 /**
  * Lo que no se escribe.
@@ -124,7 +134,7 @@ for (const objetivo of objetivos) {
   const clases = new Set();
   for (const hoja of hojas) {
     const contenido = readFileSync(hoja, 'utf8');
-    for (const coincidencia of contenido.matchAll(/\.(rounded[\w-]*|shadow[\w-]*)[\s,{:]/g)) {
+    for (const coincidencia of contenido.matchAll(/\.(rounded[\w-]*|shadow[\w-]*|font-[\w-]*)[\s,{:]/g)) {
       clases.add(coincidencia[1]);
     }
   }
@@ -140,6 +150,12 @@ for (const objetivo of objetivos) {
       fallos.push(
         `[${objetivo.nombre}] sombra «${clase}» en el CSS compilado. Ninguna en ` +
           `superficies; «shadow-flotante» solo para lo que flota (doc 12 §7.2).`
+      );
+    }
+    if (PESO_PROHIBIDO.test(clase)) {
+      fallos.push(
+        `[${objetivo.nombre}] peso «${clase}» en el CSS compilado. Outfit se usa ` +
+          `en 400, 500 y 600; el 700 y superiores no (doc 12 §7.2).`
       );
     }
   }
@@ -167,4 +183,4 @@ if (fallos.length > 0) {
   process.exit(1);
 }
 
-console.log('Tono y forma: un radio, una sombra y ninguna palabra prohibida.');
+console.log('Tono y forma: un radio, una sombra, tres pesos y ninguna palabra prohibida.');
