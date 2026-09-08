@@ -268,11 +268,9 @@ public class DocumentosDeVenta {
         return avisos;
     }
 
-    /** El almacén del establecimiento: el primero activo que cuelga de él, por código. */
+    /** El almacén del establecimiento: el activo más antiguo, que es el que nació con él. */
     private Almacen almacenDelLocal(UUID sucursalId) {
-        return almacenes.listar().stream()
-                .filter(a -> a.estaActivo() && sucursalId.equals(a.sucursalId()))
-                .findFirst()
+        return almacenes.principalDe(sucursalId)
                 .orElseThrow(() -> new ReglaDeNegocioViolada(
                         "sin_almacen_en_el_local",
                         "Este establecimiento no tiene un almacén activo del que descargar. "

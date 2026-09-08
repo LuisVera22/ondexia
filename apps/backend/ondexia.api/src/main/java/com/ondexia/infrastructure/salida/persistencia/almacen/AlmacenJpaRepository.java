@@ -15,4 +15,6 @@ public interface AlmacenJpaRepository extends JpaRepository<AlmacenJpa, UUID> {
     Optional<AlmacenJpa> findByCodigo(String codigo);
 
     List<AlmacenJpa> findAllByOrderByCodigoAsc();
+
+    Optional<AlmacenJpa> findFirstBySucursalIdAndActivoTrueOrderByCreadoEnAscCodigoAsc(UUID sucursalId);
 }

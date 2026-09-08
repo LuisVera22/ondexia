@@ -131,6 +131,14 @@ Es la interpretación de «los productos se manejan por local» que fija el doc
 | `producto_local` | Por establecimiento: si se vende y el precio propio (nulo: el de lista) | **Sin fila, no se vende ahí.** Un producto nuevo nace disponible solo en el local donde se creó; los demás se activan en la ficha |
 | `movimiento_stock` y `stock` | El libro (cada entrada y salida, con signo) y su proyección por almacén | El libro es de solo inserción por disparador; la proyección se mueve en la misma sentencia que el movimiento |
 
+El almacén «del local» —el que ve el mostrador y el que recibe la descarga de
+cada venta— es el **activo más antiguo** de los que cuelgan del establecimiento:
+el que `DotacionDeEstablecimiento` creó con él. Era «el primero por código» y el
+CI lo desmintió: una prueba que creaba `ALM-STK` en la matriz antes que la del
+punto de venta cambiaba de almacén al cemento. La antigüedad no depende de cómo
+se llame el almacén nuevo. Elegir otro almacén para el mostrador queda para
+cuando un cliente tenga dos en un mismo local (`AlmacenRepositorio.principalDe`).
+
 Los catálogos de SUNAT son enumerados del dominio, no tablas: `UnidadDeMedida`
 trae las veintidós unidades que un mostrador usa (NIU, ZZ para servicios, KGM,
 BG, MTR…) y `AfectacionIgv` las tres onerosas (10, 20, 30). Las variantes

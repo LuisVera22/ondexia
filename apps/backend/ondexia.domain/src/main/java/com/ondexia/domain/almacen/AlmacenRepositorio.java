@@ -26,5 +26,21 @@ public interface AlmacenRepositorio {
     /** Todos los de la empresa activa, activos e inactivos. */
     List<Almacen> listar();
 
+    /**
+     * El almacén con el que opera un establecimiento: el activo <strong>más
+     * antiguo</strong> de los que cuelgan de él, que es el que nació con el
+     * establecimiento ({@code DotacionDeEstablecimiento}).
+     *
+     * <p>Hubo un «el primero por código». Con un solo almacén por local da lo
+     * mismo; con dos, el que recibía la descarga del mostrador cambiaba según
+     * cómo se llamara el nuevo, y lo descubrió el CI: una prueba creaba
+     * {@code ALM-STK} en la matriz antes que la del punto de venta y el
+     * cemento salía de un almacén vacío. Antigüedad es un criterio que no
+     * depende de un nombre y que el usuario puede predecir: el almacén de
+     * siempre sigue siendo el del mostrador hasta que exista una forma de
+     * elegirlo.
+     */
+    Optional<Almacen> principalDe(UUID sucursalId);
+
     Almacen guardar(Almacen almacen);
 }
