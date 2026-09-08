@@ -313,3 +313,76 @@ resource "aws_cloudwatch_metric_alarm" "consultas_excesivas" {
   alarm_actions = [aws_sns_topic.alertas.arn]
   ok_actions    = [aws_sns_topic.alertas.arn]
 }
+
+# ── Lo que la iteración 7 añade antes de salir a producción ────────────────
+
+/**
+ * La pasarela responde 5xx.
+ *
+ * La alarma de `errores_api` mira la Lambda, y hay fallos que la Lambda no ve:
+ * un arranque en frío que agota el tiempo de la integración, una función que no
+ * arranca porque falta un parámetro de SSM, el límite de concurrencia. En todos
+ * esos casos el cliente recibe un 500 y la métrica `Errors` de Lambda no se
+ * mueve, así que hoy nadie se enteraba.
+ *
+ * Es la diferencia entre vigilar el proceso y vigilar lo que el cliente recibe,
+ * y para salir a producción hace falta lo segundo.
+ *
+ * El umbral es el mismo de `errores_api` y por el mismo motivo: con dos
+ * usuarios, cinco respuestas 500 en cinco minutos no son ruido.
+ */
+resource "aws_cloudwatch_metric_alarm" "errores_pasarela" {
+  alarm_name          = "${local.nombre}-errores-pasarela"
+  alarm_description   = "La pasarela esta devolviendo 5xx: el cliente ve errores que la Lambda no registra"
+  namespace           = "AWS/ApiGateway"
+  metric_name         = "5xx"
+  statistic           = "Sum"
+  period              = 300
+  evaluation_periods  = 1
+  threshold           = 5
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    ApiId = aws_apigatewayv2_api.principal.id
+    Stage = aws_apigatewayv2_stage.principal.name
+  }
+
+  alarm_actions = [aws_sns_topic.alertas.arn]
+  ok_actions    = [aws_sns_topic.alertas.arn]
+}
+
+/**
+ * El Emisor se acerca a su tiempo límite.
+ *
+ * Tiene 90 segundos y una orden completa —construir el XML, firmarlo, empaquetar
+ * y hablar con SUNAT— tarda unos pocos. Que la media pase de 60 significa que
+ * SUNAT está lenta, y eso es un aviso y no un fallo: por eso el umbral está
+ * lejos del límite y la alarma pide dos periodos seguidos.
+ *
+ * La diferencia con `errores_facturacion` importa. Aquella se dispara cuando la
+ * función ya reventó, es decir cuando el comprobante ya se quedó sin resultado.
+ * Esta se dispara antes, mientras todavía se puede mirar qué pasa: con un plazo
+ * tributario de por medio, enterarse cuando ya falló es tarde.
+ */
+resource "aws_cloudwatch_metric_alarm" "lentitud_facturacion" {
+  count = local.hay_facturacion ? 1 : 0
+
+  alarm_name          = "${local.nombre}-lentitud-facturacion"
+  alarm_description   = "El Emisor tarda mas de lo normal: SUNAT esta lenta y el tiempo limite se acerca"
+  namespace           = "AWS/Lambda"
+  metric_name         = "Duration"
+  statistic           = "Average"
+  period              = 300
+  evaluation_periods  = 2
+  threshold           = 60000 # 60 s de los 90 que tiene
+  comparison_operator = "GreaterThanThreshold"
+  treat_missing_data  = "notBreaching"
+
+  dimensions = {
+    FunctionName = aws_lambda_function.facturacion[0].function_name
+  }
+
+  alarm_actions = [aws_sns_topic.alertas.arn]
+  ok_actions    = [aws_sns_topic.alertas.arn]
+}

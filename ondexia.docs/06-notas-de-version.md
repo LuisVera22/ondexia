@@ -1,12 +1,98 @@
 # Ondexia — Notas de versión
 
-## Sin publicar
+## v1.0.0 — El primer producto funcional
 
-Trabajo posterior a `v0.1.0`, todavía sin etiquetar. Se resume aquí porque son
-varios cambios grandes y quien vuelva dentro de unos meses no debería tener que
-reconstruirlos leyendo el historial. En orden cronológico: primero la
-infraestructura y el backend, después la conexión del primer módulo, y al final
-una revisión completa de la interfaz.
+Fecha: 2026-09-08 · Rama: `claude/audit-review-validation-t1lisq`
+
+**Una tienda peruana puede vender y declarar con esto.** Es lo que las ocho
+iteraciones del [plan del primer producto](12-plan-primer-producto.md#8-iteraciones)
+se propusieron, y el punto en el que el sistema deja de ser un recorrido de
+pantallas para ser algo que se usa.
+
+### Qué se puede hacer
+
+| Lo que el cliente hace | Desde |
+|---|---|
+| Registrar su empresa con RUC 10 o 20, con su casa matriz, su almacén y su primera caja | Iteración 1 |
+| Abrir y cerrar caja con arqueo por forma de pago | Iteración 2 |
+| Llevar productos con unidad y afectación de SUNAT, existencias por almacén, y clientes verificados contra el padrón | Iteración 3 |
+| Vender desde el punto de venta: nota de venta con correlativo, IGV, pago mixto y descarga de existencias | Iteración 4 |
+| Emitir boleta y factura electrónicas: XML UBL 2.1 firmado, envío a SUNAT, CDR y estado visible con el código y la descripción del rechazo | Iteración 5 |
+| Anular: nota de crédito desde el comprobante, comunicación de baja con su ticket, canje de nota de venta a comprobante | Iteración 6 |
+| Ver la portada con la caja, lo vendido hoy y lo que sigue sin aceptar ante SUNAT | Iteración 7 |
+
+### Lo que sostiene todo eso
+
+- **El aislamiento entre clientes lo pone la base.** Row Level Security forzado
+  sobre `empresa_actual()`, con la aplicación conectándose como un rol que no es
+  superusuario —un superusuario no está sujeto a RLS y el aislamiento quedaría
+  activo y sin efecto—.
+- **El token porta identidad y nada más.** Permisos, empresa y plan se resuelven
+  en cada petición; `permisos_version` invalida la caché de forma atómica, así
+  que revocar un permiso surte efecto en la petición siguiente.
+- **Los documentos emitidos son inmutables por disparador**, no por costumbre.
+  Lo único que cambia es el estado, y solo por la máquina de estados.
+- **La firma vive fuera de `ondexia.api`.** `ondexia.facturacion` es su propio
+  desplegable, y ArchUnit vigila que la API no adquiera ninguna dependencia de
+  firma XML: un módulo que puede firmar es un módulo cuyo compromiso emite
+  documentos con valor tributario.
+- **Importes en `NUMERIC(18,6)`** en todas las capas, nunca coma flotante.
+
+### Cifras
+
+| Qué | Cuánto |
+|---|---|
+| Pruebas del dominio | 117 |
+| Pruebas de la API, con PostgreSQL de verdad | 255 |
+| Pruebas del panel interno | 41 |
+| Pruebas de consultas externas | 41 |
+| Pruebas del Emisor | 27 |
+| Pruebas del frontend | 78 |
+| Migraciones de base de datos | V1 a V22 |
+
+### Lo que esta versión también hizo con la interfaz
+
+Un solo registro —formal, impersonal, preciso—, un radio de seis píxeles y una
+sola sombra, para lo que flota. La landing pierde el sistema neobrutalista y el
+menú se recorta a tres entradas: Ventas, Almacén y Configuración. Las cincuenta
+maquetas de los módulos que aún no existen salen de las rutas y quedan en
+`pages/_maquetas/`, fuera de la compilación. Un menú con entradas que no
+funcionan es lo contrario de un producto mínimo. El detalle está en
+[doc 10](10-convenciones-de-interfaz.md) §2 y §5.
+
+### Lo que sigue pendiente, y hay que decirlo claro
+
+- **El ensayo contra el entorno de pruebas de SUNAT no se ha ejecutado.** Todo
+  lo anterior al último salto está verificado —el XML, la firma, el sobre SOAP,
+  la lectura de las tres respuestas, la orden completa contra una SUNAT
+  fingida—, pero **que SUNAT acepte de verdad el XML que producimos** sigue sin
+  comprobarse. El entorno donde se construyó esta versión no tiene salida a
+  `e-beta.sunat.gob.pe`. Se ejecuta siguiendo [doc 14 §6](14-emision-electronica.md)
+  y hasta entonces la landing dice «en ensayo», no «listo».
+- **Nada se ha desplegado en una cuenta de AWS real.** `terraform validate` pasa;
+  `plan` y `apply` son parte del trabajo, no un trámite. La guía de alta del
+  primer cliente está en el README de `ondexia.infra`.
+- **El planificador que consulta los tickets de la comunicación de baja no
+  existe.** Se sincroniza al listar, que funciona; un planificador es
+  infraestructura que no se puede ejercitar desde el repositorio.
+- **Compras, cotizaciones, preventas, guías de remisión y los catálogos de
+  almacén siguen siendo maquetas.** Están en el repositorio, sin ruta, hasta su
+  iteración.
+
+---
+
+## Entre v0.1.0 y v1.0.0
+
+Trabajo entre `v0.1.0` y `v1.0.0`. Se conserva porque son varios cambios grandes
+y quien vuelva dentro de unos meses no debería tener que reconstruirlos leyendo
+el historial. En orden cronológico: primero la infraestructura y el backend,
+después la conexión del primer módulo, y al final una revisión completa de la
+interfaz.
+
+Lo que en su momento se listó aquí como «lo que sigue sin existir» dejó de ser
+cierto con la v1.0.0: el panel, Almacén y Ventas piden datos reales, la API se
+despliega como Lambda, y la infraestructura está escrita entera. Lo que sigue sin
+hacerse está arriba, en las pendientes de la v1.0.0.
 
 ### Se retiró la plantilla de terceros · 2026-08-10
 
