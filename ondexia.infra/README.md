@@ -342,6 +342,95 @@ Emisor lo dice en la propia pantalla de configuracion —«No abre: la contrasen
 corresponde al certificado»— porque al confirmar la carga se encola una
 verificacion. No hace falta emitir para descubrirlo.
 
+## Alta del primer cliente en producción
+
+Lo que hay que hacer, y en qué orden, para que una empresa real empiece a emitir
+con valor tributario. Es la iteración 7 del [plan](../ondexia.docs/12-plan-primer-producto.md#8-iteraciones).
+
+**Antes de nada:** este apartado describe pasos sobre una cuenta de AWS real y
+sobre comprobantes que SUNAT va a recibir. Un error aquí no produce una pantalla
+fea, produce un comprobante inválido con consecuencias fiscales para alguien que
+confió. Nada de esto se hace con prisa.
+
+### 0. Lo que tiene que ser cierto antes de tocar producción
+
+| Requisito | Cómo se comprueba |
+|---|---|
+| El ensayo de cinco días contra el entorno de pruebas de SUNAT terminó con CDR aceptado | Está anotado con su fecha en [doc 14 §6](../ondexia.docs/14-emision-electronica.md) |
+| El MFA de la cuenta raíz de AWS está activado | En la consola de IAM, «Security credentials» de la cuenta |
+| El presupuesto mensual y las alarmas existen en el entorno de producción | `terraform state list \| grep -E 'budgets\|metric_alarm'` |
+| El rol de despliegue de producción es distinto del de `dev` | Un rol por entorno, sin fusionar (`CLAUDE.md`, hallazgo C1) |
+
+Mientras el primero no esté anotado, la landing dice «en ensayo» y no «listo»
+—lo pone `Estado.astro`—, y eso es coherente a propósito: la página no promete
+lo que no se ha comprobado.
+
+### 1. El `apply` de producción, con el plan leído
+
+Nunca `apply` a secas. La regla está en `CLAUDE.md` y aquí es donde más pesa:
+
+```bash
+cd ondexia.infra
+terraform workspace select prod   # o el mecanismo de entorno que se use
+terraform plan -var-file=entornos/prod.tfvars -out=prod.tfplan
+```
+
+Se **lee el plan entero**, y en particular:
+
+- que no haya `destroy` ni `replace` sobre `aws_db_instance.principal`;
+- que `aws_iam_role_policy.api_emision` siga sin `s3:GetObject` sobre
+  `certificados/*` ni `credenciales/*` (es la frontera del hallazgo A2);
+- que todo `aws_iam_role` lleve su `permissions_boundary`, porque sin ella el
+  apply muere con `AccessDenied` y a medio camino.
+
+Solo entonces:
+
+```bash
+terraform apply prod.tfplan
+```
+
+### 2. La empresa, desde la aplicación
+
+Ni el certificado ni la clave SOL ni el modo de SUNAT los toca Terraform. Se
+configuran desde **Configuración › Emisión electrónica** con la empresa activa,
+y el orden importa:
+
+1. **Subir el certificado y las credenciales.** El navegador los sube directo al
+   bucket con URL prefirmadas; el `.pfx` y su contraseña no pasan por la API
+   (doc 14 §4). El certificado lo paga el cliente a una entidad certificadora:
+   Ondexia no lo revende.
+2. **Esperar la verificación.** Al confirmar la carga se encola una orden que
+   abre el archivo. La misma pantalla dice si abrió, con qué sujeto y cuándo
+   vence, o por qué no abrió. Si la contraseña no corresponde, se ve aquí y no
+   al emitir.
+3. **Pasar a producción.** El botón solo funciona con un certificado verificado
+   y vigente; el servidor lo vuelve a comprobar. Desde ese momento **lo que se
+   emita tiene valor tributario**.
+4. **Revisar las series.** Una serie de producción no se comparte con las de
+   prueba: conviene crear las suyas, con la letra que le toca a cada tipo (F
+   factura, B boleta, N nota de venta).
+
+### 3. La comprobación, con un comprobante de verdad
+
+Una boleta pequeña, a nombre del propio cliente, emitida desde el punto de
+venta. Se da por buena cuando en la ficha del documento aparece:
+
+- el estado **Aceptado por SUNAT**;
+- el XML firmado y el CDR descargables;
+- el resumen de la firma, que es lo que va impreso y en el código QR.
+
+Si sale rechazada, el código y la descripción de SUNAT están en la misma
+pantalla. Un rechazo por un dato del comprobante —un RUC que no está activo, una
+serie que no corresponde— se corrige y se vuelve a emitir; no es motivo para
+volver a la beta.
+
+### 4. Volver atrás
+
+Se puede: el mismo botón devuelve la empresa a la beta. Lo que **no** se
+deshace es lo ya emitido en producción, que existe ante SUNAT y solo se corrige
+con una nota de crédito o una comunicación de baja (doc 13 §5 y §6). Por eso el
+paso 3 se hace con un comprobante pequeño y del propio cliente.
+
 ## Deuda conocida
 
 **La contraseña de la base queda en el estado de Terraform.** Es inherente a

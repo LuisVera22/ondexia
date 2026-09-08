@@ -20,11 +20,43 @@ pregunta sea «¿esto está así por un motivo o porque salió así?».
 
 **Nada de esto se escribe dos veces.** Cuando algo se repitió —la colocación de
 los paneles flotantes, las clases del botón primario— acabó divergiendo, y el
-arreglo se hizo en una copia y no en la otra. Ver §6.
+arreglo se hizo en una copia y no en la otra. Ver §8.
 
 ---
 
-## 2. Color
+## 2. Tono
+
+**Un solo registro, en la aplicación y en la landing: formal, impersonal,
+preciso.** Se decidió en la iteración 7 (doc 12 §7.2) y se aplicó de una vez a
+las dos superficies.
+
+Lo que había antes no era otro registro, era **indecisión**: los errores
+tuteaban («Tu sesión ya no es válida. Vuelve a ingresar»), «Sin permisos»
+trataba de usted, el panel saludaba con «Buenos días», y la landing hablaba de
+chamba, de que el comprobante salía al toque y de no paltearse. Dos registros en
+la misma sesión se leen como dos productos.
+
+| Regla | Se escribe | No se escribe |
+|---|---|---|
+| Las acciones, en infinitivo | «Emitir comprobante», «Cerrar caja» | «Emite tu comprobante» |
+| Los mensajes, impersonales | «La sesión ha caducado. Es necesario ingresar de nuevo» | «Tu sesión ya no es válida. Vuelve a ingresar» |
+| Ningún peruanismo ni coloquialismo | «Anular una venta emitida» | «No te paltees» |
+| Sin exclamaciones, sin humor, sin saludos | «Panel» | «¡Buenos días!» |
+| Los términos de SUNAT, exactos | «Boleta de venta electrónica», «adquirente», «comunicación de baja» | «boletita», «cliente» donde SUNAT dice adquirente |
+| Los errores dicen qué hacer | «Para emitir factura el cliente debe tener RUC» | «Datos inválidos» |
+
+La tabla de mensajes por código HTTP vive en `src/app/nucleo/errores.ts`, que es
+la que más se ve. Es el sitio por el que empezar cuando el tono se desvíe.
+
+**Lo verifica el CI**, no la revisión: `herramientas/comprobar-tono-y-forma.mjs`
+busca una lista cerrada de palabras prohibidas en la salida **compilada** de la
+aplicación y de la landing. Sobre el código no funcionaría —los comentarios
+explican en español lo que la pantalla decía antes, y pondrían el CI en rojo por
+documentar la decisión—; sobre `dist/` lo que queda es lo que el cliente lee.
+
+---
+
+## 3. Color
 
 ### La paleta es propia, no de la plantilla
 
@@ -67,7 +99,7 @@ no dejarlo a medio leer.**
 
 ---
 
-## 3. El color nunca va solo
+## 4. El color nunca va solo
 
 Todo estado que se comunica con color lleva además una forma o una palabra:
 
@@ -83,7 +115,44 @@ Todo estado que se comunica con color lleva además una forma o una palabra:
 
 ---
 
-## 4. Movimiento
+## 5. Forma
+
+**Un radio y una sombra.** Minimalismo es quitar, no decorar poco.
+
+```
+--radius-base: 6px    el único radio; `rounded-full` solo en insignias y avatares
+--shadow-flotante     la única sombra, y solo para lo que flota sobre otra cosa
+```
+
+Antes convivían cuatro radios —174 `rounded-lg`, 58 `rounded-2xl`, 49
+`rounded-xl` y los `rounded-md` sueltos— y cinco sombras, con cincuenta y dos
+superficies llevando la de apoyo. No eran cuatro decisiones de diseño sino la
+ausencia de una: cada pantalla heredó el radio de la maqueta de la que salió, y
+dos tarjetas contiguas se veían distintas sin que nadie lo hubiera querido.
+
+**En una superficie no hay sombra.** La separación la hacen el borde de un píxel
+y el espacio, que además son los que siguen funcionando en modo oscuro —una
+sombra sobre fondo casi negro no se ve—. La sombra se reserva para un
+desplegable, un diálogo o un aviso, donde sí comunica algo: que eso se puede
+cerrar y que lo de debajo sigue estando.
+
+**Tipografía: Outfit en 400, 500 y 600.** El 700 y superiores no se usan, ni
+siquiera en los titulares de la landing. Con menos pesos el conjunto se ve más
+sobrio, y un titular en 800 al lado de una pantalla cuyo texto más fuerte es 600
+se lee como otra marca.
+
+**El icono solo cuando sustituye a una palabra que no cabe.** En el menú, texto.
+
+**Lo verifica el CI.** El mismo script del §2 mira la hoja compilada: Tailwind
+solo emite las utilidades que se usan, así que la ausencia de `.rounded-lg` en
+el CSS servido no es una aproximación a «nadie la escribió», es la prueba. Para
+que eso fuera cierto hubo que decirle a Tailwind que no mire
+`pages/_maquetas/` —descubre el contenido recorriendo el proyecto entero—, o las
+pantallas retiradas seguirían metiendo sus radios en la hoja.
+
+---
+
+## 6. Movimiento
 
 Cuatro tokens, y nada fuera de ellos:
 
@@ -104,7 +173,7 @@ antes quedan tarjetas huérfanas en el DOM, invisibles pero interceptando clics.
 
 ---
 
-## 5. Botones
+## 7. Botones
 
 `app-boton` es el único sitio donde vive el aspecto de un botón. Diez pantallas
 repetían la cadena de clases a mano y cada una había derivado su propia altura.
@@ -131,7 +200,7 @@ trazo.
 
 ---
 
-## 6. Paneles flotantes
+## 8. Paneles flotantes
 
 Todos —menús, desplegables, globos de ayuda— se colocan con
 `posicionFlotante` (`shared/components/comunes/panel-flotante/`).
@@ -163,7 +232,7 @@ existe.
 
 ---
 
-## 7. Tablas
+## 9. Tablas
 
 `tabla-datos` sirve a los diecisiete listados. Dos presentaciones del mismo dato:
 
@@ -199,7 +268,7 @@ acciones.
 
 ---
 
-## 8. Encabezado de vista
+## 10. Encabezado de vista
 
 `app-encabezado-pagina`, en todas las vistas salvo el panel, que tiene el suyo
 con saludo y fecha. Dos filas: **la ruta de
@@ -221,7 +290,7 @@ legal, y esconderlo puede costar un comprobante que ya no se puede anular.
 
 ---
 
-## 9. Marco de la aplicación
+## 11. Marco de la aplicación
 
 **La barra superior mide `--spacing-barra` (64 px)**, y la banda de la marca
 del menú lateral usa el mismo token. Mientras fueron números independientes
@@ -248,7 +317,7 @@ para lo que contiene un dato.
 
 ---
 
-## 10. Foco de teclado
+## 12. Foco de teclado
 
 Definido una vez, en `@layer base`:
 
@@ -274,7 +343,7 @@ de todo el panel.
 
 ---
 
-## 11. Respuestas y errores
+## 13. Respuestas y errores
 
 `nucleo/errores.ts` interpreta lo que devuelve la API.
 
@@ -294,10 +363,11 @@ siguiente cambio de ese control. Solo lo que sobra va al aviso flotante.
 
 ---
 
-## 12. Cómo se verifica todo esto
+## 14. Cómo se verifica todo esto
 
-**52 pruebas** en el frontend, y las de interfaz siguen tres reglas aprendidas
-a base de escribir pruebas que no medían nada:
+**78 pruebas** en el frontend, más la comprobación de tono y forma del CI, y las
+de interfaz siguen tres reglas aprendidas a base de escribir pruebas que no
+medían nada:
 
 1. **Una prueba que no falla al deshacer el cambio no prueba nada.** Cada regla
    de maquetación de aquí se comprobó quitando el cambio y viendo la prueba en

@@ -818,6 +818,68 @@ resultado sin hacer nada más.
   Construir una segunda integración sobre una primera sin verificar multiplica
   el riesgo. El mecanismo que necesitaría —el envío asíncrono— ya está.
 
+## Lo que la iteración 7 dejó hecho
+
+Salir a producción, que en este plan significa dos cosas distintas: dejar el
+producto con una sola cara, y dejar escrito lo que hay que hacer sobre una
+cuenta real. La primera se hizo entera; la segunda es una guía, porque no hay
+cuenta contra la que ejecutarla desde aquí.
+
+**Un solo registro, formal e impersonal, en la aplicación y en la landing.** No
+había dos registros: había indecisión. Los errores tuteaban, «Sin permisos»
+trataba de usted, el panel saludaba por la hora del día, y la landing hablaba de
+chamba y de no paltearse delante de un sistema que emite documentos con valor
+tributario. El detalle está en [doc 10](10-convenciones-de-interfaz.md) §2.
+
+**Un radio y una sombra.** 289 clases de radio pasan a `rounded-base`; cincuenta
+y cuatro superficies pierden la suya. Cuatro radios y cinco sombras no eran
+cuatro y cinco decisiones de diseño, eran la ausencia de una: cada pantalla
+heredó lo de la maqueta de la que salió (doc 10 §5).
+
+**Y lo vigila el CI, no la revisión.** `herramientas/comprobar-tono-y-forma.mjs`
+lee la salida compilada de las dos superficies. Sobre el código no funcionaría
+—los comentarios explican en español lo que la pantalla decía antes—; sobre
+`dist/` lo que queda es lo que el cliente lee, y Tailwind solo emite las
+utilidades que se usan, así que la ausencia de un radio en la hoja servida no es
+una aproximación a «nadie lo escribió», es la prueba. Se comprobó inyectando un
+radio y un peruanismo en la salida: los dos salen por pantalla y el paso
+devuelve 1.
+
+**El menú, tres entradas.** Ventas, Almacén y Configuración. Salen Compras
+entera, los ocho catálogos de almacén, cotizaciones, preventas, formas de pago,
+resumen diario y la suscripción: de treinta y tantas entradas, respondían con
+datos reales una docena. Las maquetas no se borran —cada una es el diseño
+acordado de su iteración— sino que pasan a `pages/_maquetas/`, fuera de la
+compilación. Una prueba nueva recorre cada entrada del menú y exige que su ruta
+esté declarada: sin ella, dejar una apuntando a una ruta retirada se descubre
+pulsándola.
+
+**El panel, con cifras de la base.** Pintaba siete indicadores, un gráfico y una
+banda de avisos, todo escrito a mano en el componente. Quedan tres cifras y una
+lista: la caja, lo vendido hoy y lo que sigue sin aceptar ante SUNAT (§7.2). Un
+bloque en `null` significa «no te corresponde verlo» y no se pinta; un cero
+significa «hoy no se ha vendido» y sí. Colapsarlos le diría a un usuario de
+Configuración que la empresa no vende.
+
+**Dos alarmas que faltaban para producción.** Una sobre los 5xx de la pasarela
+—hay fallos que el cliente ve y la métrica de la Lambda no registra: un arranque
+en frío que agota el tiempo de la integración, un parámetro de SSM que falta— y
+otra sobre la duración del Emisor. La segunda importa por el plazo: la alarma de
+errores se dispara cuando la función ya reventó, es decir cuando el comprobante
+ya se quedó sin resultado.
+
+**La guía de alta del primer cliente**, en el README de `ondexia.infra`: lo que
+tiene que ser cierto antes de tocar producción, el `apply` con el plan leído y
+qué mirar en él, la subida del certificado real y el paso a `PRODUCCION` desde la
+aplicación, la comprobación con un comprobante pequeño, y cómo volver atrás.
+
+**Lo que no se hizo, y por qué.** El `apply` de producción, el certificado real y
+el cambio de modo son pasos sobre una cuenta de AWS y sobre comprobantes que
+SUNAT recibe: desde aquí no hay ni cuenta ni salida a SUNAT. Por eso la landing
+dice «en ensayo» y no «listo», y por eso [doc 14 §1](14-emision-electronica.md)
+sigue teniendo una fila en «Pendiente». Decir «listo» antes del primer CDR sería
+exactamente la promesa que esa sección de la landing existe para no hacer.
+
 ## Registro de cambios
 
 - **v1 (2026-09-07)** — Propuesta inicial sobre las decisiones del propietario del
@@ -832,3 +894,6 @@ resultado sin hacer nada más.
 - **v1.6 (2026-09-08)** — Comunicación de baja y el envío asíncrono con ticket
   (doc 13 §6). El planificador y el resumen diario quedan pendientes, con su
   motivo.
+- **v1.7 (2026-09-08)** — Cierre de la iteración 7: tono y forma en las dos
+  superficies con su comprobación en el CI, menú de tres entradas, panel con
+  cifras reales, dos alarmas de producción y la guía de alta del primer cliente.
