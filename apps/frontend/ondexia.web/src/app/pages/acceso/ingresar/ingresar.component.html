@@ -6,13 +6,13 @@
         ¡Bienvenido!
       </h1>
       <p class="text-sm text-gray-500 dark:text-gray-400">
-        Ingresa con tu cuenta para continuar.
+        Es necesario iniciar sesión para continuar.
       </p>
     </div>
 
     @if (error()) {
     <div
-      class="mb-5 rounded-lg border border-error-500/30 bg-error-500/10 px-4 py-3 text-sm text-error-500"
+      class="mb-5 rounded-base border border-error-500/30 bg-error-500/10 px-4 py-3 text-sm text-error-500"
       role="alert"
     >
       {{ error() }}
@@ -23,7 +23,7 @@
       type="button"
       (click)="entrar()"
       [disabled]="enviando()"
-      class="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand-500 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
+      class="flex h-11 w-full items-center justify-center gap-2 rounded-base bg-brand-500 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
     >
       @if (enviando()) {
       <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -38,7 +38,7 @@
       segura de Cognito: la contraseña no pasa por este código en ningún momento.
     -->
     <p class="mt-4 text-center text-xs text-gray-400 dark:text-gray-500">
-      Se te pedirá tu correo y contraseña en la página segura de acceso.
+      El correo y la contraseña se piden en la página segura de acceso.
     </p>
 
     <div class="my-7 flex items-center gap-4" aria-hidden="true">
@@ -49,7 +49,7 @@
 
     @if (autoservicio) {
       <p class="text-center text-sm text-gray-500 dark:text-gray-400">
-        ¿Aún no tienes una cuenta?
+        ¿Todavía sin cuenta?
         <button
           type="button"
           (click)="crearCuenta()"
@@ -60,16 +60,16 @@
         </button>
       </p>
       <p class="mt-2 text-center text-xs text-gray-400 dark:text-gray-500">
-        Prueba Ondexia con tu empresa: solo necesitas tu RUC.
+        Para registrar una empresa basta con su RUC.
       </p>
     } @else {
       <p class="text-center text-sm text-gray-500 dark:text-gray-400">
-        ¿Aún no tienes una cuenta?
+        ¿Todavía sin cuenta?
         <a
           href="mailto:hola@ondexia.com?subject=Quiero%20probar%20Ondexia"
           class="font-medium text-brand-500 transition hover:text-brand-600"
         >
-          Escríbenos
+          Escribir al soporte
         </a>
       </p>
       <p class="mt-2 text-center text-xs text-gray-400 dark:text-gray-500">

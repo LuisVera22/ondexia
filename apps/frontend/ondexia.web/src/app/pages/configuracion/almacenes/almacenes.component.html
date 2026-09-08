@@ -17,7 +17,7 @@
     desaparecer el botón que se acababa de pulsar.
   -->
   @if (error()) {
-  <div class="flex items-start gap-3 rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert">
+  <div class="flex items-start gap-3 rounded-base border border-error-500/30 bg-error-500/10 p-4" role="alert">
     <svg class="mt-0.5 shrink-0 text-error-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
       <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
     </svg>
@@ -67,7 +67,7 @@
             formControlName="codigo"
             maxlength="20"
             placeholder="CENTRAL"
-            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm uppercase text-gray-800 shadow-apoyo placeholder:normal-case placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90"
+            class="h-11 w-full rounded-base border bg-transparent px-4 text-sm uppercase text-gray-800 placeholder:normal-case placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90"
             [class]="controles.codigo.touched && controles.codigo.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.codigo.touched && controles.codigo.invalid) {
@@ -87,7 +87,7 @@
             id="nombre"
             type="text"
             formControlName="nombre"
-            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 shadow-apoyo focus:outline-hidden focus:ring-3 dark:text-white/90"
+            class="h-11 w-full rounded-base border bg-transparent px-4 text-sm text-gray-800 focus:outline-hidden focus:ring-3 dark:text-white/90"
             [class]="controles.nombre.touched && controles.nombre.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.nombre.touched && controles.nombre.invalid) {

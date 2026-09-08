@@ -77,7 +77,7 @@ export class FichaUsuarioComponent implements ConCambiosSinGuardar {
   private readonly sucursalAsignada = signal<string | null>(null);
 
   readonly opcionesRol = computed<OpcionDesplegable[]>(() => [
-    { valor: '', etiqueta: 'Elige un rol…' },
+    { valor: '', etiqueta: 'Elegir un rol…' },
     ...this.roles().map((rol) => ({ valor: rol.id, etiqueta: rol.nombre })),
   ]);
 

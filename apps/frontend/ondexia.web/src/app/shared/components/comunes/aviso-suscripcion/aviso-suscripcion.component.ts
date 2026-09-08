@@ -65,7 +65,7 @@ interface Aviso {
   template: `
     @if (aviso(); as a) {
       <div
-        class="mb-5 flex items-start gap-3 rounded-xl border px-4 py-3.5"
+        class="mb-5 flex items-start gap-3 rounded-base border px-4 py-3.5"
         [class]="
           a.tono === 'atencion'
             ? 'border-warning-200 bg-warning-50 dark:border-warning-500/30 dark:bg-warning-500/10'
@@ -133,33 +133,33 @@ export class AvisoSuscripcionComponent {
       case 'SUSPENDIDA':
         return {
           tono: 'atencion',
-          titulo: 'Tu suscripción está suspendida.',
+          titulo: 'La suscripción está suspendida.',
           cuerpo:
-            'Puedes seguir consultando y descargando todos tus comprobantes y reportes; ' +
+            'Los comprobantes y los reportes se pueden seguir consultando y descargando; ' +
             'mientras esté suspendida no se pueden registrar ni emitir documentos nuevos. ' +
-            'Escríbenos a ',
-          cierre: ' y lo regularizamos.',
+            'Para reactivarla, escribir a ',
+          cierre: '.',
         };
 
       case 'CANCELADA':
         return {
           tono: 'atencion',
-          titulo: 'Tu cuenta está cerrada.',
+          titulo: 'La cuenta está cerrada.',
           cuerpo:
-            'Tus datos siguen aquí y puedes consultarlos y exportarlos cuando quieras: los ' +
-            'comprobantes electrónicos deben conservarse cinco años y son tuyos. No se pueden ' +
-            'registrar ni emitir documentos nuevos. Si quieres reactivarla o necesitas ayuda ' +
-            'para exportar, escríbenos a ',
+            'Los datos siguen aquí y se pueden consultar y exportarlos en cualquier ' +
+            'momento: los comprobantes electrónicos deben conservarse cinco años y son ' +
+            'del cliente. No se pueden registrar ni emitir documentos nuevos. Para ' +
+            'reactivar la cuenta o pedir ayuda con la exportación, escribir a ',
           cierre: '.',
         };
 
       case 'EN_PRUEBA':
         return {
           tono: 'informativo',
-          titulo: 'Estás en el periodo de prueba.',
+          titulo: 'Periodo de prueba en curso.',
           cuerpo:
-            'Puedes configurar tu empresa y recorrer el sistema completo; durante la prueba ' +
-            'no se emiten comprobantes hacia SUNAT. Para activar tu cuenta escríbenos a ',
+            'La empresa se puede configurar y el sistema se recorre entero; durante la prueba ' +
+            'no se emiten comprobantes hacia SUNAT. Para activar la cuenta, escribir a ',
           cierre: '.',
         };
 

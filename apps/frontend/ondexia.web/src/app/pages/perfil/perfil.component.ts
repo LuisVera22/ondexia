@@ -98,7 +98,7 @@ export class PerfilComponent implements OnInit {
         this.faltaPartirElNombre.set(true);
       }
     } catch (fallo: unknown) {
-      this.error.set(mensajeDeError(fallo, 'No se pudieron cargar tus datos.'));
+      this.error.set(mensajeDeError(fallo, 'No se pudieron cargar los datos del perfil.'));
     } finally {
       this.cargando.set(false);
     }

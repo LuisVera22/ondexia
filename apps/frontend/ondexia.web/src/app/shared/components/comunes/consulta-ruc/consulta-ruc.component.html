@@ -21,13 +21,13 @@
         autocomplete="off"
         placeholder="20123456789"
         [disabled]="consultando()"
-        class="h-11 min-w-0 flex-1 rounded-lg border border-gray-300 bg-transparent px-4 text-sm tabular-nums text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:opacity-60 dark:border-gray-700 dark:text-white/90 dark:placeholder:text-white/30"
+        class="h-11 min-w-0 flex-1 rounded-base border border-gray-300 bg-transparent px-4 text-sm tabular-nums text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:opacity-60 dark:border-gray-700 dark:text-white/90 dark:placeholder:text-white/30"
       />
       <button
         type="button"
         (click)="consultar()"
         [disabled]="!formaValida || consultando()"
-        class="flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg border border-transparent bg-brand-500 px-5 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-50"
+        class="flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-base border border-transparent bg-brand-500 px-5 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-50"
       >
         @if (consultando()) {
         <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -49,7 +49,7 @@
 
   @if (error()) {
   <div
-    class="rounded-lg border border-error-500/30 bg-error-500/10 px-4 py-3 text-sm text-error-500"
+    class="rounded-base border border-error-500/30 bg-error-500/10 px-4 py-3 text-sm text-error-500"
     role="alert"
   >
     <p>{{ error() }}</p>
@@ -78,7 +78,7 @@
     corregir — y corregirlos no cambiaria nada de lo que se guarda.
   -->
   <div
-    class="rounded-xl border px-4 py-4"
+    class="rounded-base border px-4 py-4"
     [class]="apta()
       ? 'border-gray-200 bg-gray-50 dark:border-gray-800 dark:bg-white/[0.03]'
       : 'border-error-500/30 bg-error-500/5'"

@@ -4,7 +4,7 @@
     descripcion="A quién se le emite. Una factura exige RUC; una boleta admite DNI o ningún documento, y el que no tiene documento no se registra aquí."
   />
 
-  <div class="mb-5 flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03] lg:flex-row lg:items-end lg:justify-between">
+  <div class="mb-5 flex flex-col gap-4 rounded-base border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03] lg:flex-row lg:items-end lg:justify-between">
     <div class="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-3">
       <div class="sm:col-span-2">
         <label for="busqueda" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Buscar</label>
@@ -15,7 +15,7 @@
             </svg>
           </span>
           <input id="busqueda" type="text" [(ngModel)]="termino" placeholder="Nombre o número de documento"
-            class="h-10 w-full rounded-lg border border-gray-300 bg-transparent pl-9 pr-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+            class="h-10 w-full rounded-base border border-gray-300 bg-transparent pl-9 pr-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
         </div>
       </div>
 
@@ -28,7 +28,7 @@
     <div class="flex shrink-0 gap-2">
       @if (hayFiltrosActivos) {
       <button type="button" (click)="limpiarFiltros()"
-        class="h-10 rounded-lg border border-gray-300 px-4 text-sm text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+        class="h-10 rounded-base border border-gray-300 px-4 text-sm text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
         Limpiar
       </button>
       }
@@ -39,7 +39,7 @@
   </div>
 
   @if (error()) {
-  <div class="flex items-start gap-3 rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert">
+  <div class="flex items-start gap-3 rounded-base border border-error-500/30 bg-error-500/10 p-4" role="alert">
     <p class="text-sm text-error-500">{{ error() }}</p>
   </div>
   } @else {

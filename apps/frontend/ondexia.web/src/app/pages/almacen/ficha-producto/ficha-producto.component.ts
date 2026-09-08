@@ -239,7 +239,7 @@ export class FichaProductoComponent implements ConCambiosSinGuardar {
       if (this.esNuevo()) {
         const activo = this.contexto.establecimientoActivo();
         if (!activo) {
-          throw new Error('Elige un establecimiento en la barra superior antes de crear el producto.');
+          throw new Error('Falta elegir un establecimiento en la barra superior antes de crear el producto.');
         }
         const creado = await this.api.crearProducto({
           ...datos,

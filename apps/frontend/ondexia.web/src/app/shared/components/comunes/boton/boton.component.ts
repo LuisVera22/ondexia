@@ -143,7 +143,7 @@ export class BotonComponent {
 
   get clases(): string {
     const base =
-      'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium' +
+      'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-base text-sm font-medium' +
       ' transition disabled:cursor-not-allowed disabled:opacity-60';
 
     if (this.variante === 'icono') {

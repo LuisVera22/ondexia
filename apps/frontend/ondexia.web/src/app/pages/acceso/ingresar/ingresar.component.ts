@@ -54,7 +54,7 @@ export class IngresarComponent {
       await this.sesion.iniciar(destinoSeguro(this.ruta.snapshot.queryParamMap.get('volverA')));
     } catch {
       this.enviando.set(false);
-      this.error.set('No se pudo contactar con el servicio de acceso. Inténtalo de nuevo.');
+      this.error.set('No se pudo contactar con el servicio de acceso. Conviene reintentar.');
     }
   }
 
@@ -71,7 +71,7 @@ export class IngresarComponent {
       await this.sesion.registrarse();
     } catch {
       this.enviando.set(false);
-      this.error.set('No se pudo contactar con el servicio de acceso. Inténtalo de nuevo.');
+      this.error.set('No se pudo contactar con el servicio de acceso. Conviene reintentar.');
     }
   }
 }

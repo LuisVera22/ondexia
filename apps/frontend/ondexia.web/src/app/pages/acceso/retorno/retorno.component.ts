@@ -65,12 +65,12 @@ export class RetornoComponent {
       case 'invalid_request':
       case 'invalid_client':
       case 'unauthorized_client':
-        return 'No se pudo completar el acceso por un problema de configuración. Escríbenos.';
+        return 'No se pudo completar el acceso por un problema de configuración. Conviene avisar al soporte.';
       case 'temporarily_unavailable':
       case 'server_error':
-        return 'El servicio de acceso no responde ahora mismo. Inténtalo en unos minutos.';
+        return 'El servicio de acceso no responde ahora mismo. Conviene reintentar en unos minutos.';
       default:
-        return 'No se pudo iniciar sesión. Inténtalo de nuevo.';
+        return 'No se pudo iniciar sesión. Conviene reintentar.';
     }
   }
 

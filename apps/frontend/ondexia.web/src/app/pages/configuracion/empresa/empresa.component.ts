@@ -291,7 +291,7 @@ export class EmpresaComponent implements ConCambiosSinGuardar {
          * para «tu empresa esta NO HABIDA» se pierde.
          */
         this.avisos.error(
-          consulta.datos.motivoDeRechazo ?? 'Revisa su situación en SUNAT.',
+          consulta.datos.motivoDeRechazo ?? 'Conviene revisar su situación en SUNAT.',
           'Atención: cambió la situación de esta empresa en SUNAT'
         );
         return;

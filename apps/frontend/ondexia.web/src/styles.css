@@ -250,16 +250,24 @@
   --color-blue-light-950: #082f49;
 
   /*
-   * Sombras. Se nombran por elevación, no por tamaño: una tarjeta apoyada en
-   * la página usa `apoyo`, un panel que flota sobre ella usa `flotante`, y un
-   * diálogo que cubre todo usa `superpuesto`. El tinte es el gris más oscuro
-   * de la escala y no negro puro, que sobre fondos claros se ve sucio.
+   * Una sombra, y solo para lo que flota.
+   *
+   * Habia cinco —apoyo, tarjeta, elevado, flotante, superpuesto— y cincuenta y
+   * dos superficies llevaban `apoyo`. Cinco elevaciones describen una jerarquia
+   * que la aplicacion no tiene: una tarjeta de configuracion y una fila de tabla
+   * estan al mismo nivel, y darles sombras distintas solo aparenta profundidad.
+   *
+   * Minimalismo es quitar (doc 12 §7.2). En una superficie la separacion la
+   * hacen el borde de un pixel y el espacio, que son los que siguen funcionando
+   * en modo oscuro, donde una sombra sobre fondo casi negro no se ve. La sombra
+   * se reserva para lo que de verdad flota sobre otra cosa —un desplegable, un
+   * dialogo, un aviso— porque ahi si comunica algo: que se puede cerrar y que lo
+   * de debajo sigue estando.
+   *
+   * El tinte es el gris mas oscuro de la escala y no negro puro, que sobre
+   * fondos claros se ve sucio.
    */
-  --shadow-apoyo: 0 1px 2px 0 rgb(16 24 40 / 0.05);
-  --shadow-tarjeta: 0 1px 3px 0 rgb(16 24 40 / 0.1), 0 1px 2px 0 rgb(16 24 40 / 0.06);
-  --shadow-elevado: 0 4px 8px -2px rgb(16 24 40 / 0.1), 0 2px 4px -2px rgb(16 24 40 / 0.06);
   --shadow-flotante: 0 12px 16px -4px rgb(16 24 40 / 0.08), 0 4px 6px -2px rgb(16 24 40 / 0.03);
-  --shadow-superpuesto: 0 20px 24px -4px rgb(16 24 40 / 0.08), 0 8px 8px -4px rgb(16 24 40 / 0.03);
 
   /*
    * Movimiento. Una curva y tres duraciones, para todo.

@@ -5,15 +5,15 @@
   />
 
   @if (cargando()) {
-  <div class="rounded-2xl border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+  <div class="rounded-base border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">
     <p class="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>
   </div>
   } @else if (error()) {
-  <div class="rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert"><p class="text-sm text-error-500">{{ error() }}</p></div>
+  <div class="rounded-base border border-error-500/30 bg-error-500/10 p-4" role="alert"><p class="text-sm text-error-500">{{ error() }}</p></div>
   } @else if (emision(); as e) {
 
   <!-- Entorno -->
-  <section class="mb-5 rounded-2xl border p-5"
+  <section class="mb-5 rounded-base border p-5"
     [class]="e.modoSunat === 'PRODUCCION' ? 'border-success-500/40 bg-success-500/5' : 'border-warning-500/40 bg-warning-500/5'">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
@@ -45,7 +45,7 @@
   </section>
 
   <!-- Certificado y clave SOL -->
-  <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+  <section class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div>
         <h2 class="text-sm font-semibold text-gray-800 dark:text-white/90">Certificado digital y clave SOL</h2>
@@ -90,22 +90,22 @@
       <div class="sm:col-span-2">
         <label for="certificado" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Archivo del certificado (.pfx o .p12)</label>
         <input #entradaArchivo id="certificado" type="file" accept=".pfx,.p12,application/x-pkcs12" (change)="alElegirArchivo($event)"
-          class="block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-gray-700 dark:text-gray-300 dark:file:bg-white/[0.06] dark:file:text-gray-300" />
+          class="block w-full text-sm text-gray-700 file:mr-3 file:rounded-base file:border-0 file:bg-gray-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-gray-700 dark:text-gray-300 dark:file:bg-white/[0.06] dark:file:text-gray-300" />
       </div>
       <div>
         <label for="claveCertificado" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Contraseña del certificado</label>
         <input id="claveCertificado" type="password" name="claveCertificado" [(ngModel)]="claveCertificado" autocomplete="off"
-          class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+          class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
       </div>
       <div>
         <label for="usuarioSol" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Usuario SOL</label>
         <input id="usuarioSol" type="text" name="usuarioSol" [(ngModel)]="usuarioSol" autocomplete="off" maxlength="100" placeholder="MODDATOS en la beta"
-          class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 font-mono text-sm uppercase text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+          class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 font-mono text-sm uppercase text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
       </div>
       <div>
         <label for="claveSol" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Clave SOL</label>
         <input id="claveSol" type="password" name="claveSol" [(ngModel)]="claveSol" autocomplete="off"
-          class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+          class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
       </div>
       <p class="text-xs text-gray-500 dark:text-gray-400 sm:col-span-2">
         El archivo y las contraseñas suben directo al almacén cifrado; Ondexia no los guarda en su base ni los muestra después. Reemplazar el certificado reinicia la verificación.

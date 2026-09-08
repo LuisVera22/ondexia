@@ -13,7 +13,7 @@
     [attr.aria-controls]="idBase + '-panel'"
     [attr.aria-activedescendant]="abierto() ? idOpcionResaltada : null"
     [attr.aria-label]="etiquetaAccesible || null"
-    class="campo-desplegable flex w-full items-center justify-between gap-2 rounded-lg border bg-transparent text-left text-sm transition focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:cursor-not-allowed disabled:opacity-50">
+    class="campo-desplegable flex w-full items-center justify-between gap-2 rounded-base border bg-transparent text-left text-sm transition focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:cursor-not-allowed disabled:opacity-50">
     <span class="truncate" [class.text-gray-400]="!haySeleccion"
       [class.text-gray-800]="haySeleccion" [class.dark:text-white/90]="haySeleccion">
       {{ textoVisible }}
@@ -30,7 +30,7 @@
   @if (abierto()) {
   <div #panel [id]="idBase + '-panel'" role="listbox" [style]="posicion()"
     [attr.aria-label]="etiquetaAccesible || null"
-    class="z-9999 overflow-y-auto rounded-lg border border-gray-200 bg-white py-1 shadow-flotante dark:border-gray-700 dark:bg-gray-900">
+    class="z-9999 overflow-y-auto rounded-base border border-gray-200 bg-white py-1 shadow-flotante dark:border-gray-700 dark:bg-gray-900">
     @for (opcion of opciones; track opcion.valor; let i = $index) {
     <div [id]="idOpcion(i)" role="option"
       [attr.aria-selected]="opcion.valor === seleccionada?.valor"
