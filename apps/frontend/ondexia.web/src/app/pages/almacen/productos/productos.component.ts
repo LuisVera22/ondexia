@@ -39,7 +39,13 @@ export class ProductosComponent {
   private readonly contexto = inject(ContextoService);
   private readonly router = inject(Router);
 
-  termino = '';
+  /**
+   * El estado es el único filtro propio de la pantalla.
+   *
+   * La búsqueda por nombre o código la hace la tabla, que es donde vive en el
+   * resto del sistema. El estado no puede irse con ella: la tabla busca texto
+   * sobre todas las columnas y «activo» casaría también con «inactivo».
+   */
   estadoFiltro = '';
 
   orden: OrdenTabla | null = { campo: 'nombre', direccion: 'asc' };
@@ -96,15 +102,8 @@ export class ProductosComponent {
   }
 
   get registros(): Record<string, unknown>[] {
-    const termino = this.termino.trim().toLowerCase();
     return this.todos()
-      .filter((p) => {
-        const coincideTermino =
-          !termino || p.nombre.toLowerCase().includes(termino) || p.codigo.toLowerCase().includes(termino);
-        const coincideEstado =
-          !this.estadoFiltro || (this.estadoFiltro === 'activo' ? p.activo : !p.activo);
-        return coincideTermino && coincideEstado;
-      })
+      .filter((p) => !this.estadoFiltro || (this.estadoFiltro === 'activo' ? p.activo : !p.activo))
       .map((p) => ({
         id: p.id,
         codigo: p.codigo,
@@ -117,13 +116,12 @@ export class ProductosComponent {
       }));
   }
 
+  /**
+   * Para que el vacío diga «no hay ninguno con este filtro» y no «aún no hay
+   * productos». El vacío por búsqueda lo resuelve la tabla por su cuenta.
+   */
   get hayFiltrosActivos(): boolean {
-    return Boolean(this.termino || this.estadoFiltro);
-  }
-
-  limpiarFiltros(): void {
-    this.termino = '';
-    this.estadoFiltro = '';
+    return Boolean(this.estadoFiltro);
   }
 
   abrirFicha(registro: Record<string, unknown>): void {

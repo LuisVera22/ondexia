@@ -4,43 +4,27 @@
     descripcion="El catálogo es de la empresa: código, unidad, afectación al IGV y precio de lista. En qué local se vende, a qué precio y cuánto hay se decide en cada ficha."
   />
 
-  <div class="mb-5 flex flex-col gap-4 rounded-base border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03] lg:flex-row lg:items-end lg:justify-between">
-    <div class="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-3">
-      <div class="sm:col-span-2">
-        <label for="busqueda" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Buscar</label>
-        <div class="relative">
-          <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
-            </svg>
-          </span>
-          <input
-            id="busqueda"
-            type="text"
-            [(ngModel)]="termino"
-            placeholder="Nombre o código"
-            class="h-10 w-full rounded-base border border-gray-300 bg-transparent pl-9 pr-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
-          />
-        </div>
-      </div>
+  <!--
+    Solo el filtro de estado y el boton de crear. El buscador NO va aqui: lo
+    trae la tabla, que es donde esta en almacenes, establecimientos, series y
+    usuarios. Tener uno propio partia la pantalla en dos cajas que hacian lo
+    mismo y dejaba la barra de la tabla medio vacia.
 
-      <div>
-        <label for="estado" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Estado</label>
-        <app-desplegable idCampo="estado" [opciones]="opcionesEstado" [(ngModel)]="estadoFiltro" />
-      </div>
-    </div>
-
-    <div class="flex shrink-0 gap-2">
-      @if (hayFiltrosActivos) {
-      <button type="button" (click)="limpiarFiltros()"
-        class="h-10 rounded-base border border-gray-300 px-4 text-sm text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
-        Limpiar
-      </button>
-      }
-      @if (puedeRegistrar()) {
-      <app-boton icono="mas" class="shrink-0" (accion)="nuevo()">Nuevo producto</app-boton>
-      }
-    </div>
+    El estado si se queda fuera, y no por capricho: la busqueda de la tabla es
+    texto sobre todas las columnas, y escribir «activo» tambien casa con
+    «inactivo». Un desplegable dice exactamente cual de los dos.
+  -->
+  <div class="mb-5 flex flex-wrap items-center justify-end gap-3">
+    <app-desplegable
+      idCampo="estado"
+      etiquetaAccesible="Filtrar por estado"
+      [opciones]="opcionesEstado"
+      [(ngModel)]="estadoFiltro"
+      class="w-full sm:w-48"
+    />
+    @if (puedeRegistrar()) {
+    <app-boton icono="mas" class="shrink-0" (accion)="nuevo()">Nuevo producto</app-boton>
+    }
   </div>
 
   @if (error()) {
@@ -63,7 +47,6 @@
     [tamanoPagina]="tamanoPagina"
     [totalRegistros]="registros.length"
     [vacioPorFiltros]="hayFiltrosActivos"
-    [buscable]="false"
     vacioTitulo="Aún no hay productos"
     vacioDescripcion="Sin productos no hay nada que vender. El primero se ofrece en el establecimiento en el que trabajas."
     [vacioAccion]="puedeRegistrar() ? 'Nuevo producto' : ''"
