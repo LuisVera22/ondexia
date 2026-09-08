@@ -202,7 +202,7 @@ class SeriesIT extends PruebaIntegracion {
                         .header("X-Empresa-Id", EMPRESA_ADMINISTRADA)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"sucursalId":"%s","tipoDocumento":"07","serie":"BC01"}"""
+                                {"sucursalId":"%s","tipoDocumento":"07","serie":"BC77"}"""
                                 .formatted(SUCURSAL_MATRIZ)))
                 .andExpect(status().isCreated());
     }

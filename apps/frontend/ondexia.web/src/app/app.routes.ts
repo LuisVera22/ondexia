@@ -44,8 +44,6 @@ import { CotizacionesComponent } from './pages/ventas/cotizaciones/cotizaciones.
 import { NuevaCotizacionComponent } from './pages/ventas/cotizaciones/nueva-cotizacion.component';
 import { PreventasComponent } from './pages/ventas/preventas/preventas.component';
 import { NuevaPreventaComponent } from './pages/ventas/preventas/nueva-preventa.component';
-import { NotasCreditoComponent } from './pages/ventas/notas-credito/notas-credito.component';
-import { EmitirNotaCreditoComponent } from './pages/ventas/notas-credito/emitir-nota-credito.component';
 import { DetalleComprobanteComponent } from './pages/ventas/comprobantes/detalle-comprobante.component';
 import { ComunicacionBajaComponent } from './pages/ventas/comunicacion-baja/comunicacion-baja.component';
 import { ResumenDiarioComponent } from './pages/ventas/resumen-diario/resumen-diario.component';
@@ -166,11 +164,14 @@ export const routes: Routes = [
       // Facturas y boletas salen del punto de venta; las maquetas de emisión
       // (EmitirFacturaComponent, EmitirBoletaComponent) quedan sin ruta.
       { path: 'ventas/facturas', component: ListaDocumentosComponent, data: { tipo: 'FACTURA' }, title: `Facturas | ${TITULO}` },
+      { path: 'ventas/notas-credito', component: ListaDocumentosComponent, data: { tipo: 'NOTA_CREDITO' }, title: `Notas de crédito | ${TITULO}` },
       { path: 'ventas/facturas/nueva', redirectTo: 'ventas/punto-de-venta' },
       { path: 'ventas/boletas', component: ListaDocumentosComponent, data: { tipo: 'BOLETA' }, title: `Boletas | ${TITULO}` },
       { path: 'ventas/boletas/nueva', redirectTo: 'ventas/punto-de-venta' },
-      { path: 'ventas/notas-credito', component: NotasCreditoComponent, title: `Notas de crédito | ${TITULO}` },
-      { path: 'ventas/notas-credito/nueva', component: EmitirNotaCreditoComponent, title: `Emitir nota de crédito | ${TITULO}` },
+      // La maqueta de «emitir nota de crédito» se retira con la iteración 6: una
+      // nota nace de un comprobante concreto, así que se emite desde su ficha y
+      // no desde un formulario en blanco. La ruta redirige al listado real.
+      { path: 'ventas/notas-credito/nueva', redirectTo: 'ventas/notas-credito', pathMatch: 'full' },
       { path: 'ventas/preventas', component: PreventasComponent, title: `Notas de preventa | ${TITULO}` },
       { path: 'ventas/preventas/nueva', component: NuevaPreventaComponent, title: `Nueva nota de preventa | ${TITULO}` },
       { path: 'ventas/comunicacion-baja', component: ComunicacionBajaComponent, title: `Comunicación de baja | ${TITULO}` },

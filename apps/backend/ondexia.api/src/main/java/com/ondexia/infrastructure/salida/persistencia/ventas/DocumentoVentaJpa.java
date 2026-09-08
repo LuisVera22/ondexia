@@ -83,6 +83,22 @@ public class DocumentoVentaJpa extends EntidadJpaBase {
     @Column(name = "documento_origen_id", updatable = false)
     private UUID documentoOrigenId;
 
+    /** Catálogo 09, solo en una nota de crédito. Lo exige documento_venta_motivo_coherente. */
+    @Column(name = "motivo_nota", updatable = false, length = 2)
+    private String motivoNota;
+
+    // El documento al que este se refiere, copiado. Va entero o no va: lo
+    // impone documento_venta_origen_completo.
+
+    @Column(name = "origen_tipo", updatable = false, length = 2)
+    private String origenTipo;
+
+    @Column(name = "origen_serie", updatable = false, length = 4)
+    private String origenSerie;
+
+    @Column(name = "origen_numero", updatable = false)
+    private Long origenNumero;
+
     @Column(name = "estado", nullable = false, length = 12)
     private String estado;
 
@@ -103,6 +119,7 @@ public class DocumentoVentaJpa extends EntidadJpaBase {
             LocalDate fechaEmision, Instant emitidoEn, UUID emitidoPor, BigDecimal totalGravado,
             BigDecimal totalExonerado, BigDecimal totalInafecto, BigDecimal totalDescuento,
             BigDecimal totalIgv, BigDecimal total, String observaciones, UUID documentoOrigenId,
+            String motivoNota, String origenTipo, String origenSerie, Long origenNumero,
             String estado) {
         this.id = id;
         this.empresaId = empresaId;
@@ -124,6 +141,10 @@ public class DocumentoVentaJpa extends EntidadJpaBase {
         this.total = total;
         this.observaciones = observaciones;
         this.documentoOrigenId = documentoOrigenId;
+        this.motivoNota = motivoNota;
+        this.origenTipo = origenTipo;
+        this.origenSerie = origenSerie;
+        this.origenNumero = origenNumero;
         this.estado = estado;
     }
 
@@ -187,6 +208,22 @@ public class DocumentoVentaJpa extends EntidadJpaBase {
 
     public UUID getDocumentoOrigenId() {
         return documentoOrigenId;
+    }
+
+    public String getMotivoNota() {
+        return motivoNota;
+    }
+
+    public String getOrigenTipo() {
+        return origenTipo;
+    }
+
+    public String getOrigenSerie() {
+        return origenSerie;
+    }
+
+    public Long getOrigenNumero() {
+        return origenNumero;
     }
 
     public String getEstado() {

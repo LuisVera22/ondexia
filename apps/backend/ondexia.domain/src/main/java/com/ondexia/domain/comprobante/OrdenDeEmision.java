@@ -88,6 +88,22 @@ public record OrdenDeEmision(
             BigDecimal total) {
     }
 
+    /**
+     * El documento al que una nota de crédito se refiere. SUNAT lo exige dentro
+     * del XML de la nota: sin él no sabe qué está corrigiendo.
+     */
+    public record Referencia(String tipo, String serie, long numero) {
+
+        /** {@code B001-12}, que es como va en el XML: sin ceros a la izquierda. */
+        public String numeroCompleto() {
+            return serie + "-" + numero;
+        }
+    }
+
+    /**
+     * @param motivoNota código del catálogo 09; solo en una nota de crédito
+     * @param referencia el documento que la nota modifica; solo en una nota de crédito
+     */
     public record Documento(
             String tipo,
             String serie,
@@ -103,7 +119,9 @@ public record OrdenDeEmision(
             BigDecimal totalDescuento,
             BigDecimal totalIgv,
             BigDecimal total,
-            String observaciones) {
+            String observaciones,
+            String motivoNota,
+            Referencia referencia) {
 
         public Documento {
             lineas = lineas == null ? List.of() : List.copyOf(lineas);
@@ -112,6 +130,11 @@ public record OrdenDeEmision(
         /** {@code 20100000009-03-B001-00000012}: el nombre que SUNAT espera para el archivo. */
         public String nombreDeArchivo(String ruc) {
             return ruc + "-" + tipo + "-" + serie + "-" + String.format("%08d", numero);
+        }
+
+        /** Si el XML que hay que construir es el de una nota de crédito (07). */
+        public boolean esNotaDeCredito() {
+            return "07".equals(tipo);
         }
     }
 

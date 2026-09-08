@@ -94,6 +94,17 @@ INSERT INTO serie_correlativo (id, empresa_id, sucursal_id, tipo_documento, seri
     ('00000000-0000-4000-8000-0000000000a2', '00000000-0000-4000-8000-000000000010',
      '00000000-0000-4000-8000-000000000020', '01', 'F001');
 
+-- Series de nota de credito, una por letra: la nota hereda la del documento que
+-- modifica, asi que anular una boleta (B001) necesita una serie que empiece por
+-- B, y anular una factura (F001), una que empiece por F.
+INSERT INTO serie_correlativo (id, empresa_id, sucursal_id, tipo_documento, serie) VALUES
+    ('00000000-0000-4000-8000-0000000000a4',
+     '00000000-0000-4000-8000-000000000010',
+     '00000000-0000-4000-8000-000000000020', '07', 'BC01'),
+    ('00000000-0000-4000-8000-0000000000a5',
+     '00000000-0000-4000-8000-000000000010',
+     '00000000-0000-4000-8000-000000000020', '07', 'FC01');
+
 SELECT set_config('ondexia.empresa_id', '00000000-0000-4000-8000-000000000011', true);
 INSERT INTO almacen (id, empresa_id, sucursal_id, codigo, nombre) VALUES
     ('00000000-0000-4000-8000-000000000092', '00000000-0000-4000-8000-000000000011',

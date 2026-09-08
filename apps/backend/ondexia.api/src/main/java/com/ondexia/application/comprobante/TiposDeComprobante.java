@@ -95,6 +95,20 @@ public class TiposDeComprobante {
          * comprobante que SUNAT rechaza. La salida no es esta pantalla sino
          * cambiar el regimen en la ficha de la empresa, y el mensaje lo dice.
          */
+        /*
+         * La nota de credito tampoco se apaga, y por un motivo distinto al de
+         * la nota de venta: es la unica forma de anular una boleta o una
+         * factura ya aceptada. Un cliente que la desactivara —por descuido o
+         * por «no la uso»— se quedaria sin poder corregir un comprobante con
+         * efecto tributario, y lo descubriria el dia que tuviera que hacerlo.
+         */
+        if (!emite && tipo == TipoDocumento.NOTA_CREDITO) {
+            throw new ReglaDeNegocioViolada(
+                    "tipo_no_desactivable",
+                    "La nota de crédito no se desactiva: es la forma de anular una boleta o una "
+                            + "factura, y eso tiene que ser posible siempre.");
+        }
+
         if (emite && tipo == TipoDocumento.FACTURA && !empresa.ejecutar().emiteFacturas()) {
             throw new ReglaDeNegocioViolada(
                     "nuevo_rus_no_emite_facturas",

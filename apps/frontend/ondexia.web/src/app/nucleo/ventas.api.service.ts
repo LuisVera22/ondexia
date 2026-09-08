@@ -85,7 +85,8 @@ export interface DatosCliente {
 // ── Documentos de venta ─────────────────────────────────────────────────
 
 /** '01' factura, '03' boleta, 'NV' nota de venta (interna, no se declara). */
-export type TipoDocumentoVenta = '01' | '03' | 'NV';
+/** Los códigos del catálogo 01 que el punto de venta maneja, más la nota de venta. */
+export type TipoDocumentoVenta = '01' | '03' | '07' | 'NV';
 export type TipoComprobanteEmitible = 'BOLETA' | 'FACTURA';
 export type EstadoDocumentoVenta = 'EMITIDO' | 'PENDIENTE' | 'CANJEADO' | 'ANULADO';
 
@@ -167,8 +168,29 @@ export interface DocumentoVentaApi {
   readonly total: number;
   readonly observaciones: string | null;
   readonly documentoOrigenId: string | null;
+  /** Solo en una nota de crédito: el motivo del catálogo 09. */
+  readonly motivo: string | null;
+  readonly motivoNombre: string | null;
+  readonly origen: OrigenDocumentoApi | null;
   readonly lineas: LineaDocumentoApi[];
   readonly pagos: PagoDocumentoApi[];
+}
+
+/**
+ * Motivo de una nota de crédito, catálogo 09 de SUNAT (doc 13 §5.2). El
+ * servidor dice cuáles anulan y cuáles reponen existencias: la pantalla no lo
+ * deduce del código.
+ */
+export interface MotivoNotaCredito {
+  /** El nombre del enumerado, que es lo que se manda de vuelta. */
+  readonly codigo: string;
+  /** El del catálogo 09, que es lo que viaja en el XML. */
+  readonly codigoSunat: string;
+  readonly nombre: string;
+  /** Deja sin efecto el comprobante entero. */
+  readonly anula: boolean;
+  /** La mercadería vuelve al almacén. */
+  readonly repone: boolean;
 }
 
 /** Dónde está una boleta o factura ante SUNAT (doc 14 §3). */
@@ -200,6 +222,13 @@ export interface EstadoSunatApi {
   /** El DigestValue de la firma, que va impreso y en el QR. */
   readonly resumenFirma: string | null;
   readonly admiteReintento: boolean;
+}
+
+/** El documento al que otro se refiere: el corregido, o la nota de venta canjeada. */
+export interface OrigenDocumentoApi {
+  readonly id: string;
+  readonly tipo: TipoDocumentoVenta;
+  readonly numeroCompleto: string;
 }
 
 export interface ResumenDocumentoApi {
@@ -373,4 +402,101 @@ export class VentasApiService {
     const r = await firstValueFrom(this.http.get<{ url: string }>(`${this.base}/comprobantes/${documentoId}/sunat/cdr`));
     return r.url;
   }
+
+  // ── Anular y canjear (doc 13 §5) ──────────────────────────────────────────
+  //
+  // Anular y emitir una nota de crédito son dos rutas distintas y no un
+  // parámetro, porque exigen permisos distintos: anular un comprobante ya
+  // emitido tiene efecto tributario y quien atiende el mostrador casi nunca
+  // debe poder hacerlo.
+
+  motivosDeNotaDeCredito(): Promise<MotivoNotaCredito[]> {
+    return firstValueFrom(this.http.get<MotivoNotaCredito[]>(`${this.base}/notas-de-credito/motivos`));
+  }
+
+  /** Deja sin efecto el comprobante entero. */
+  anularComprobante(documentoId: string, datos: PeticionAnulacion): Promise<DocumentoVentaApi> {
+    return firstValueFrom(
+      this.http.post<DocumentoVentaApi>(`${this.base}/comprobantes/${documentoId}/anulacion`, datos)
+    );
+  }
+
+  /** Devolución por ítem, descuentos y correcciones. */
+  emitirNotaDeCredito(datos: PeticionNotaDeCredito): Promise<DocumentoVentaApi> {
+    return firstValueFrom(this.http.post<DocumentoVentaApi>(`${this.base}/notas-de-credito`, datos));
+  }
+
+  notasDeCredito(): Promise<ResumenDocumentoApi[]> {
+    return firstValueFrom(this.http.get<ResumenDocumentoApi[]>(`${this.base}/notas-de-credito`));
+  }
+
+  notaDeCredito(id: string): Promise<DocumentoVentaApi> {
+    return firstValueFrom(this.http.get<DocumentoVentaApi>(`${this.base}/notas-de-credito/${id}`));
+  }
+
+  /** Las series de nota de crédito que sirven para ese comprobante: su misma letra. */
+  seriesDeNotaDeCredito(documentoId: string): Promise<SerieDisponibleApi[]> {
+    return firstValueFrom(
+      this.http.get<SerieDisponibleApi[]>(`${this.base}/comprobantes/${documentoId}/series-nota-credito`)
+    );
+  }
+
+  /** Lo que salió de este documento: sus notas de crédito, o el comprobante que lo canjeó. */
+  relacionadosCon(documentoId: string): Promise<ResumenDocumentoApi[]> {
+    return firstValueFrom(
+      this.http.get<ResumenDocumentoApi[]>(`${this.base}/documentos/${documentoId}/relacionados`)
+    );
+  }
+
+  canjear(notaDeVentaId: string, datos: PeticionCanje): Promise<DocumentoVentaApi> {
+    return firstValueFrom(
+      this.http.post<DocumentoVentaApi>(`${this.base}/notas-de-venta/${notaDeVentaId}/canje`, datos)
+    );
+  }
+
+  seriesDeCanje(notaDeVentaId: string, tipo: TipoComprobanteEmitible): Promise<SerieDisponibleApi[]> {
+    const params = new HttpParams().set('tipo', tipo);
+    return firstValueFrom(
+      this.http.get<SerieDisponibleApi[]>(`${this.base}/notas-de-venta/${notaDeVentaId}/series-canje`, { params })
+    );
+  }
+}
+
+/** Cómo se devolvió el dinero. Vacío: no se devolvió nada ahora. */
+export interface PagoDevuelto {
+  readonly forma: FormaDePago;
+  readonly monto: number;
+  readonly referencia?: string | null;
+}
+
+export interface PeticionAnulacion {
+  /** Ausente se toma como anulación de la operación, que es el caso normal. */
+  readonly motivo?: string;
+  readonly cajaId: string;
+  readonly serieId?: string | null;
+  readonly pagos?: PagoDevuelto[];
+  readonly observaciones?: string | null;
+}
+
+/** @param orden el de la línea del comprobante original. */
+export interface LineaAcreditada {
+  readonly orden: number;
+  readonly cantidad: number;
+}
+
+export interface PeticionNotaDeCredito {
+  readonly documentoId: string;
+  readonly motivo: string;
+  readonly cajaId: string;
+  readonly serieId?: string | null;
+  readonly lineas?: LineaAcreditada[];
+  readonly pagos?: PagoDevuelto[];
+  readonly observaciones?: string | null;
+}
+
+export interface PeticionCanje {
+  readonly tipo: TipoComprobanteEmitible;
+  readonly serieId?: string | null;
+  readonly clienteId?: string | null;
+  readonly observaciones?: string | null;
 }

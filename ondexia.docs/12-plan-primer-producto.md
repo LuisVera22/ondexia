@@ -766,6 +766,46 @@ en la tabla del doc 14 §1, con el procedimiento del ensayo en §6. La decisión
 sigue siendo revisable hasta entonces, y la puerta de salida al proveedor PSE no
 toca nada fuera de `ondexia.facturacion`.
 
+## Lo que la iteración 6 dejó hecho
+
+Anular y canjear, que es lo que faltaba para que el mostrador se pueda
+equivocar. El detalle está en [doc 13 §5](13-ventas-en-punto-de-venta.md); aquí
+lo que cierra la iteración.
+
+**Sin tabla nueva.** La nota de crédito y el canje son un `documento_venta` con
+la referencia a lo que modifican. La V21 añade el motivo del catálogo 09 y el
+tipo, serie y número del original, y rehace el disparador de inmutabilidad con
+esas columnas dentro: la lista es explícita, así que una columna que no esté en
+ella se podría modificar después de emitida sin que nada lo impidiera.
+
+**Anular y emitir una nota de crédito son dos rutas con permisos distintos.** Es
+la separación que el catálogo de la V2 hace desde el principio, aplicada por la
+anotación y no por una comprobación a mano que alguien tenga que recordar.
+
+**El comprobante se anula cuando SUNAT acepta la nota**, no cuando se registra.
+El canje, al revés: la nota de venta se marca `CANJEADO` al emitir, porque ese
+estado existe para impedir un segundo canje.
+
+**El arqueo cuenta lo que se movió, no lo que sigue vigente** (doc 13 §5.3). La
+consulta de cobros excluía los documentos anulados; con la anulación construida,
+eso habría cambiado el calculado de sesiones ya cerradas.
+
+**Un defecto de xbuilder encontrado y acotado.** Su plantilla de nota de crédito
+rellena el `ResponseCode` —el motivo del catálogo 09— con el tipo del documento
+afectado, y no usa el campo `tipoNota` en ninguna de sus nueve plantillas: no hay
+valor del modelo que deje correctos a la vez el motivo y la referencia. Se
+corrige sobre el XML generado y antes de firmar, con la prueba que fija los dos
+valores, y el método se podrá retirar si una versión posterior lo arregla.
+
+**Lo que la iteración 6 del plan pedía y no está: la comunicación de baja y el
+resumen diario.** Las dos son el mismo mecanismo asíncrono —`sendSummary`
+devuelve un ticket y `getStatus` lo consulta después—, que es una máquina de
+estados distinta de la de la emisión y necesita el planificador que la consulte.
+Con la nota de crédito ya se puede anular una boleta o una factura, que es el
+caso que un negocio encuentra a diario; la comunicación de baja hace falta
+cuando SUNAT ya no admite la nota. Queda como lo primero de la iteración
+siguiente, con el ensayo contra la beta.
+
 ## Registro de cambios
 
 - **v1 (2026-09-07)** — Propuesta inicial sobre las decisiones del propietario del
@@ -776,3 +816,5 @@ toca nada fuera de `ondexia.facturacion`.
 - **v1.3 (2026-09-07)** — Cierre de la iteración 4.
 - **v1.4 (2026-09-08)** — Cierre de la iteración 5 y documento 14. El almacén del
   local pasa a ser el activo más antiguo (§4.1).
+- **v1.5 (2026-09-08)** — Nota de crédito y canje (doc 13 §5). La comunicación de
+  baja y el resumen diario quedan pendientes, con su motivo.
