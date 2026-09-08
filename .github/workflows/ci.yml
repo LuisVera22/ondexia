@@ -155,6 +155,19 @@ jobs:
           pnpm audit --prod --audit-level=high
           pnpm run build
 
+      # Va DESPUES de construir la aplicacion y la landing, y no antes: lee
+      # `dist/`, no `src/`. Sobre el codigo no se podria — los comentarios
+      # explican en espanol lo que la pantalla decia antes, y buscar palabras
+      # prohibidas ahi pondria el CI en rojo por documentar la decision. Ademas
+      # Tailwind solo emite las utilidades que se usan, asi que la ausencia de
+      # `.rounded-lg` en la hoja compilada no es una aproximacion: es la prueba.
+      #
+      # Si alguna de las dos no esta construida, el script falla diciendolo, que
+      # es lo contrario de pasar en verde sin haber mirado nada.
+      - name: Tono y forma
+        if: hashFiles('apps/frontend/ondexia.web/package.json') != ''
+        run: node herramientas/comprobar-tono-y-forma.mjs
+
       - name: Panel interno
         if: hashFiles('apps/frontend/ondexia.admin/package.json') != ''
         working-directory: apps/frontend/ondexia.admin

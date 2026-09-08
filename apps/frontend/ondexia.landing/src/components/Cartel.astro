@@ -3,39 +3,44 @@
  * La portada.
  *
  * El <h1> lleva las dos cosas dentro: el rótulo con el término que se busca y
- * el cartel que se ve. No es un truco — es un solo encabezado con dos
+ * el titular que se ve. No es un truco — es un solo encabezado con dos
  * renglones, y por eso el buscador lo lee entero. Separarlos en un <p> aparte
  * «porque igual está en la página» es lo que hace que no pese nada.
  *
  * Ver ondexia.docs/landing-propuesta/SEO.md §1.
+ *
+ * <h2>Qué cambió con la iteración 7</h2>
+ *
+ * Decía «Papelito manda», el comprobante salía «al toque» y la llamada era
+ * «Quiero mi acceso», sobre una trama de puntos con un banderín rotado y una
+ * sombra dura. Era una portada de afiche delante de un producto que emite
+ * documentos con valor tributario, y esa distancia la paga el cliente el día
+ * que entra (doc 12 §7.2). El titular dice ahora lo que el sistema hace, con
+ * los términos que SUNAT usa.
  */
 import VistaProducto from './VistaProducto.astro';
 ---
 
 <section class="sobre-oscuro relative overflow-hidden bg-brand-500">
-  <div class="trama absolute inset-0" aria-hidden="true"></div>
-
   <div class="relative mx-auto max-w-[1240px] px-5 pt-14 md:px-10 md:pt-[76px]">
     <h1 class="flex flex-col gap-4 font-normal md:gap-5">
-      <span class="rotulo text-fluor">Facturación electrónica ante SUNAT · Perú</span>
+      <span class="rotulo text-brand-200">Facturación electrónica ante SUNAT · Perú</span>
 
       {/*
-        El tamaño baja de 148 a 52 px entre escritorio y móvil. Es mucho salto y
-        es deliberado: un cartel se dimensiona por el ancho disponible, no por
-        una escala tipográfica. A 390 px, «Papelito» tiene que caber en un
-        renglón y quedar cerca del borde.
+        El tamaño baja de 68 a 34 px entre escritorio y móvil. Un titular se
+        dimensiona por el ancho disponible, no por una escala tipográfica: a
+        390 px la frase tiene que caber sin partir palabras.
       */}
       <span
-        class="cartel text-[52px] text-white sm:text-[86px] lg:text-[120px] xl:text-[148px]"
+        class="titular max-w-[900px] text-[34px] text-white sm:text-[46px] lg:text-[58px] xl:text-[68px]"
       >
-        Papelito<br />manda.
+        Emitir boletas y facturas electrónicas, con el almacén al día.
       </span>
 
-      <span class="max-w-[660px] text-lg leading-8 text-white md:text-[23px] md:leading-[34px]">
-        Sistema de facturación electrónica con control de almacén, para empresas
-        peruanas. Tu comprobante sale firmado <mark
-          class="rounded bg-fluor px-2 font-bold text-brand-950">al toque</mark
-        > y descuenta del stock solo.
+      <span class="max-w-[660px] text-lg leading-8 text-brand-50 md:text-[21px] md:leading-[32px]">
+        Sistema de gestión comercial para empresas peruanas. El comprobante se
+        firma y se envía a SUNAT desde el punto de venta, y las existencias
+        quedan descontadas en el mismo movimiento.
       </span>
     </h1>
 
@@ -43,21 +48,20 @@ import VistaProducto from './VistaProducto.astro';
       class="mt-8 flex flex-col items-stretch justify-between gap-8 sm:flex-row sm:items-end sm:gap-10"
     >
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <a href="#acceso" class="btn-fluor">Quiero mi acceso</a>
+        <a href="#acceso" class="btn-claro">Solicitar acceso</a>
         <a href="#precios" class="btn-contorno-claro">Ver precios</a>
       </div>
 
       {/*
-        El banderín rotado del cartel chicha. `-rotate-3` y no más: pasado ese
-        ángulo el texto cuesta de leer y deja de parecer un sticker pegado para
-        parecer un error de maquetación.
+        La nota del periodo de prueba. Era un banderín fucsia rotado que se
+        bamboleaba al pasar por encima; ahora es un recuadro alineado con el
+        resto. Dice lo mismo, y ya no compite con el titular durante toda la
+        visita.
       */}
-      <div
-        class="banderin -rotate-3 self-start rounded-2xl border-2 border-gray-900 bg-fucsia px-6 py-5 shadow-[var(--sombra-dura)] sm:self-auto"
-      >
-        <p class="cartel text-[38px] text-white md:text-[46px]">30 días</p>
-        <p class="mt-1 text-sm font-semibold leading-5 text-white">
-          gratis · sin tarjeta<br />contra la beta de SUNAT
+      <div class="self-start rounded-base border border-brand-400 px-5 py-4 sm:self-auto">
+        <p class="titular text-[26px] text-white md:text-[30px]">30 días</p>
+        <p class="mt-1 text-sm leading-5 text-brand-100">
+          sin coste y sin tarjeta,<br />contra el entorno de pruebas de SUNAT
         </p>
       </div>
     </div>

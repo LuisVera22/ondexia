@@ -133,7 +133,7 @@
               [checked]="estaMarcado(modulo.id)"
               [disabled]="soloLectura"
               (change)="alternarModulo(modulo)"
-              class="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/20 disabled:opacity-60 dark:border-gray-700 dark:bg-transparent"
+              class="mt-0.5 h-4 w-4 rounded-base border-gray-300 text-brand-500 focus:ring-brand-500/20 disabled:opacity-60 dark:border-gray-700 dark:bg-transparent"
             />
 
             <div class="min-w-0 flex-1">
@@ -203,7 +203,7 @@
                     [checked]="estaMarcado(submodulo.id)"
                     [disabled]="soloLectura || bloqueadoPorModulo(modulo)"
                     (change)="alternarSubmodulo(modulo, submodulo)"
-                    class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/20 disabled:opacity-60 dark:border-gray-700 dark:bg-transparent"
+                    class="h-4 w-4 rounded-base border-gray-300 text-brand-500 focus:ring-brand-500/20 disabled:opacity-60 dark:border-gray-700 dark:bg-transparent"
                   />
                   <label
                     [for]="'sub-' + submodulo.codigo"
@@ -239,7 +239,7 @@
                       [checked]="estaMarcado(funcion.id)"
                       [disabled]="soloLectura || bloqueadaPorSubmodulo(modulo, submodulo)"
                       (change)="alternarFuncion(modulo, submodulo, funcion.id)"
-                      class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/20 disabled:opacity-60 dark:border-gray-700 dark:bg-transparent"
+                      class="h-4 w-4 rounded-base border-gray-300 text-brand-500 focus:ring-brand-500/20 disabled:opacity-60 dark:border-gray-700 dark:bg-transparent"
                     />
                     {{ funcion.nombre }}
                   </label>

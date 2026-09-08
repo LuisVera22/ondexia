@@ -124,7 +124,7 @@
 
           <div class="sm:col-span-2">
             <label class="flex items-start gap-3">
-              <input type="checkbox" formControlName="controlaStock" class="mt-1 size-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/20" />
+              <input type="checkbox" formControlName="controlaStock" class="mt-1 size-4 rounded-base border-gray-300 text-brand-500 focus:ring-brand-500/20" />
               <span>
                 <span class="block text-sm font-medium text-gray-700 dark:text-gray-400">Controla existencias</span>
                 <span class="block text-xs text-gray-500 dark:text-gray-400">Un servicio no tiene existencias y venderlo no descarga nada.</span>
@@ -275,7 +275,7 @@
     [procesando]="guardarLocal.estado() === 'cargando'" (cerrar)="modalLocal.set(false)">
     <form [formGroup]="formularioLocal" (ngSubmit)="guardarLocal.ejecutar()" novalidate id="formulario-local" class="space-y-5">
       <label class="flex items-start gap-3">
-        <input type="checkbox" formControlName="disponible" class="mt-1 size-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/20" />
+        <input type="checkbox" formControlName="disponible" class="mt-1 size-4 rounded-base border-gray-300 text-brand-500 focus:ring-brand-500/20" />
         <span class="text-sm font-medium text-gray-700 dark:text-gray-400">Se vende en este establecimiento</span>
       </label>
       <div>

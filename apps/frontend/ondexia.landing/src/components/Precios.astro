@@ -54,12 +54,12 @@ const planes = [
     >
       <h2 class="revelar flex flex-col gap-3.5 font-normal">
         <span class="rotulo text-brand-500">Precios del software de facturación electrónica</span>
-        <span class="cartel text-[38px] text-gray-900 sm:text-[52px] lg:text-[62px]">
-          Cuentas claras.
+        <span class="titular text-[34px] text-gray-900 sm:text-[42px] lg:text-[50px]">
+          Precios cerrados, sin letra pequeña.
         </span>
       </h2>
       <p class="revelar max-w-[330px] text-[15px] leading-6 text-gray-600 md:text-right" style="--retardo: 1">
-        Tus locales no cuentan. Sube de plan solo si emites con más de un RUC o
+        Los locales no cuentan. Se sube de plan solo al emitir con más de un RUC o
         entra más gente.
       </p>
     </div>
@@ -68,17 +68,17 @@ const planes = [
       {
         planes.map((plan, indice) => (
           <article
-            class={`tile pop revelar relative flex flex-col gap-5 p-6 lg:p-[30px] ${plan.destacado ? 'bg-brand-500' : ''}`}
+            class={`tarjeta revelar relative flex flex-col gap-5 p-6 lg:p-[30px] ${plan.destacado ? 'bg-brand-500' : ''}`}
             style={`--retardo: ${indice + 1}`}
           >
             {plan.destacado && (
-              <span class="banderin absolute -top-3.5 right-6 rotate-3 rounded-full border-2 border-gray-900 bg-fucsia px-3.5 py-1 text-menudo font-bold uppercase tracking-[0.1em] text-white">
+              <span class="absolute -top-3.5 right-6 rounded-full border border-gray-900 bg-brand-600 px-3.5 py-1 text-menudo font-bold uppercase tracking-[0.1em] text-white">
                 El más pedido
               </span>
             )}
 
             <div class="flex flex-col gap-1.5">
-              <h3 class={`rotulo ${plan.destacado ? 'text-fluor' : 'text-gray-500'}`}>
+              <h3 class={`rotulo ${plan.destacado ? 'text-brand-200' : 'text-gray-500'}`}>
                 {plan.nombre}
               </h3>
               <p class={`text-dato ${plan.destacado ? 'text-brand-100' : 'text-gray-500'}`}>
@@ -96,7 +96,7 @@ const planes = [
             <p
               class={`flex items-baseline gap-2 ${plan.destacado ? 'text-white' : 'text-gray-900'}`}
             >
-              <span class="cartel cifra-viva text-[48px] tabular-nums lg:text-[60px]">
+              <span class="titular text-[48px] tabular-nums lg:text-[60px]">
                 {plan.precio}
               </span>
               {plan.sufijo && (
@@ -124,7 +124,7 @@ const planes = [
 
             <a
               href="#acceso"
-              class={`mt-auto w-full ${plan.destacado ? 'btn-fluor' : 'btn-contorno'}`}
+              class={`mt-auto w-full ${plan.destacado ? 'btn-claro' : 'btn-contorno'}`}
             >
               {plan.accion}
               <span class="sr-only"> con el plan {plan.nombre}</span>
@@ -136,7 +136,7 @@ const planes = [
 
     <div class="mt-4 flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
       <div
-class="tile revelar flex grow flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8"
+class="tarjeta revelar flex grow flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8"
         style="--retardo: 4"
       >
         <p class="text-[15px] leading-6 text-gray-600">
@@ -152,17 +152,17 @@ class="tile revelar flex grow flex-col gap-4 px-6 py-5 sm:flex-row sm:items-cent
         </div>
       </div>
 
-      <div class="tile pop revelar flex items-center gap-3.5 bg-fluor px-6 py-4" style="--retardo: 4">
-        <p class="cartel shrink-0 text-[28px] text-brand-950 lg:text-[30px]">La yapa</p>
-        <p class="text-dato font-semibold leading-5 text-brand-900">
-          2 meses gratis<br />pagando el año
+      <div class="tarjeta revelar flex items-center gap-3.5 px-6 py-4" style="--retardo: 4">
+        <p class="titular shrink-0 text-[24px] text-brand-600 lg:text-[26px]">Anual</p>
+        <p class="text-dato leading-5 text-gray-600">
+          Dos meses sin coste<br />al pagar el año por adelantado
         </p>
       </div>
     </div>
 
     <p class="mt-4 text-[13px] leading-5 text-gray-500">
-      Precios en soles, sin IGV. Sin plan gratuito: la prueba de 30 días te da el
-      producto completo contra la beta de SUNAT.
+      Precios en soles, sin IGV. No hay plan gratuito: la prueba de 30 días abre el
+      producto completo contra el entorno de pruebas de SUNAT.
     </p>
   </div>
 </section>

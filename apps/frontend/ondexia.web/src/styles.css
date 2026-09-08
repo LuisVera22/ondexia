@@ -15,6 +15,21 @@
 
 @import "tailwindcss";
 
+/*
+ * Las maquetas no generan CSS.
+ *
+ * Tailwind 4 descubre el contenido solo, recorriendo el proyecto entero, y eso
+ * incluye `pages/_maquetas/` — que está fuera de la compilación porque nadie la
+ * importa, pero sigue estando en el disco. Sin esta línea, sus clases entran en
+ * la hoja compilada: la iteración 7 dejó un solo radio en toda la aplicación y
+ * el CSS seguía trayendo `rounded-lg`, `rounded-xl` y `rounded-2xl` de las
+ * pantallas retiradas, con lo que la comprobación del CI no podría distinguir
+ * una regresión de un resto.
+ *
+ * La ruta es relativa a este archivo.
+ */
+@source not "./app/pages/_maquetas";
+
 /* La app alterna el tema añadiendo `dark` en <html>; no seguimos al sistema
  * a ciegas porque la preferencia elegida debe sobrevivir a la recarga. */
 @custom-variant dark (&:is(.dark *));
