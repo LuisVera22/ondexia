@@ -151,7 +151,8 @@ suyo, y sirve para comprobar la cadena entera antes de gastar en `ondexia.com`.
 
 | Qué | Por qué importa | Dónde |
 |---|---|---|
-| **Datos del titular** | `[RAZÓN SOCIAL]`, `[TU RUC]` y `[DIRECCIÓN FISCAL]` están literales en el pie. No se puede publicar así | `src/components/Pie.astro` |
+| **Datos del titular** | Salen de `PUBLIC_TITULAR_RAZON_SOCIAL`, `PUBLIC_TITULAR_RUC` y `PUBLIC_TITULAR_DIRECCION`; sin ellos el pie no pinta nada. Siguen siendo obligatorios para publicar | `.env`, ver `.env.example` |
+| **Política de privacidad** | El consentimiento del formulario (Ley 29733) dice finalidad, responsable y cómo borrarse, pero no enlaza a ninguna política porque no existe. Hace falta texto legal de verdad, no inventado | `src/components/Cierre.astro`, y una página `/privacidad` |
 | **Bricolage Grotesque** | Falta el `.woff2`. Mientras tanto los titulares caen en Outfit 800: se ve digno, pero pierde el carácter del cartel | `src/styles/global.css`, bloque comentado |
 | **Imagen social** | `og:image` apunta a `/og-ondexia.png`, que no existe. Es lo único que se ve al compartir por WhatsApp | `public/og-ondexia.png`, 1200×630 |
 | **Destino del formulario** | Sin `PUBLIC_ENDPOINT_LISTA` se muestra el enlace de correo en vez del formulario, a propósito: un formulario que no envía a ninguna parte pierde correos en silencio | `.env`, ver `.env.example` |

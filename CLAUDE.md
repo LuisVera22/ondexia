@@ -126,6 +126,15 @@ roja: es a propósito, para que alguien decida si era lo que se quería.
   401 suele repetir la clave enviada, y CloudWatch conserva los registros.
 - No se pone `X-Forwarded-For` en una bitácora. Su primer elemento lo escribe el
   cliente (hallazgo M3).
+- No se pasa un agregado del dominio a `RegistroDeAuditoria`: solo `record`s de
+  instantánea con los campos que se quieren guardar. `Empresa` lleva
+  `usuarioSol` y los datos de su certificado digital; la bitácora lo rechaza en
+  ejecución (hallazgo M8, `BitacoraSoloInstantaneasIT`).
+- No hay perfil de Spring por defecto. `local` trae un emisor de tokens sin
+  credencial y se activa a mano —`Active profiles: local` en IntelliJ— (hallazgo
+  M4). Sin perfil, la API no arranca, y es lo correcto.
+- No se lee `error_description` ni ningún texto de una URL o de un cuerpo sin
+  `codigo` para mostrarlo al usuario: mensajes fijos por código (hallazgo M10).
 
 ## Dónde mirar
 
