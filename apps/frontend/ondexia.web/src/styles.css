@@ -66,6 +66,22 @@
   --breakpoint-2xl: 1536px;
 
   /*
+   * Un radio, y uno solo.
+   *
+   * La aplicación llegó a la iteración 7 con cuatro: 179 `rounded-lg`, 62
+   * `rounded-2xl`, 41 `rounded-xl` y los `rounded-md` sueltos. Cuatro radios no
+   * son cuatro decisiones de diseño, son la ausencia de una: cada pantalla
+   * heredó el de la maqueta de la que salió, y dos tarjetas contiguas se ven
+   * distintas sin que nadie lo haya querido.
+   *
+   * Seis píxeles porque a ese tamaño la esquina se lee como acabada sin llamar
+   * la atención, que es lo que pide un sistema donde lo que importa es la cifra
+   * (doc 12 §7.2). `rounded-full` se queda para insignias y avatares, donde el
+   * radio no es decoración sino la forma del elemento.
+   */
+  --radius-base: 6px;
+
+  /*
    * Alto de la barra superior.
    *
    * Es un token y no un `py-3` en cada sitio porque lo usan dos piezas que

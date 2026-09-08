@@ -31,6 +31,8 @@ tags:
   description: Ubicaciones físicas de las existencias
 - name: Establecimientos
   description: Anexos de la empresa ante SUNAT
+- name: Panel
+  description: Las cifras del día en la portada
 - name: Usuarios
   description: "Quién entra en la empresa, con qué rol y hasta dónde"
 - name: Comunicaciones de baja
@@ -1993,6 +1995,19 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaSesion"
+  /api/v1/panel:
+    get:
+      tags:
+      - Panel
+      summary: "Estado de las cajas, ventas del día y comprobantes por atender"
+      operationId: consultar_2
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Respuesta"
   /api/v1/contexto:
     get:
       tags:
@@ -2002,7 +2017,7 @@ paths:
         Devuelve la identidad, las empresas a las que tiene acceso y los permisos del rol en la empresa activa.
 
         La empresa activa se indica con la cabecera X-Empresa-Id. Si se omite y el usuario solo tiene una, se toma esa. Si tiene varias y no la indica, la respuesta trae la lista para que elija y el conjunto de permisos vacio.
-      operationId: consultar_2
+      operationId: consultar_3
       responses:
         "200":
           description: OK
@@ -2084,7 +2099,7 @@ paths:
       tags:
       - Identidad visual
       summary: "Los tres logos con su URL pública, si la tienen"
-      operationId: consultar_3
+      operationId: consultar_4
       responses:
         "200":
           description: OK
@@ -2102,7 +2117,7 @@ paths:
       description: "Responde 403 si el id no es de una empresa que el usuario alcance,\
         \ y 404 si no existe. Ninguno de los dos mensajes distingue «no es tuya» de\
         \ «no existe» más de lo imprescindible."
-      operationId: consultar_4
+      operationId: consultar_5
       parameters:
       - name: id
         in: path
@@ -3426,6 +3441,38 @@ components:
           type: string
         nombre:
           type: string
+    Respuesta:
+      type: object
+      properties:
+        fecha:
+          type: string
+          format: date
+        cajasAbiertas:
+          type: array
+          items:
+            $ref: "#/components/schemas/RespuestaCaja"
+        ventas:
+          $ref: "#/components/schemas/RespuestaVentas"
+        comprobantesPorAtender:
+          $ref: "#/components/schemas/RespuestaPorAtender"
+    RespuestaPorAtender:
+      type: object
+      properties:
+        total:
+          type: integer
+          format: int32
+        primeros:
+          type: array
+          items:
+            $ref: "#/components/schemas/RespuestaComprobante"
+    RespuestaVentas:
+      type: object
+      properties:
+        documentos:
+          type: integer
+          format: int32
+        importe:
+          type: number
     CuentaResumen:
       type: object
       properties:
