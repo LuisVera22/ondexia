@@ -36,15 +36,27 @@ public interface UsuarioRepositorio {
     Optional<Usuario> buscarPorEmailEnCuenta(UUID cuentaId, String email);
 
     /**
+     * El usuario de ese correo, esté en la suscripción que esté.
+     *
+     * <p>Devuelve {@code Optional} y no una lista porque desde la V24 el correo
+     * es único en todo el sistema. Existe para poder decir «ese correo ya está
+     * en otra suscripción» con un mensaje entendible, en vez de dejar que el
+     * índice único reviente con su jerga.
+     */
+    Optional<Usuario> buscarPorEmail(String email);
+
+    /**
      * Las invitaciones pendientes de un correo: filas sin {@code cognito_sub}.
      *
-     * <p>Es la única búsqueda del sistema que <strong>cruza cuentas</strong>, y
-     * lo hace a propósito: quien acaba de registrarse en Cognito todavía no
-     * pertenece a ninguna, así que no hay cuenta por la que filtrar. Justo por
-     * eso devuelve una lista y no un {@code Optional} — el correo es único
-     * dentro de cada cuenta, pero nada impide que dos cuentas distintas hayan
-     * invitado a la misma persona. Esconder esa ambigüedad detrás de un «el
-     * primero que salga» metería a alguien en la empresa equivocada.
+     * <p>Cruza cuentas a propósito: quien acaba de registrarse en Cognito
+     * todavía no pertenece a ninguna, así que no hay cuenta por la que filtrar.
+     *
+     * <p>Devuelve una lista y no un {@code Optional} por historia, no por
+     * ambigüedad: hasta la V24 el correo solo era único dentro de cada cuenta y
+     * dos suscripciones podían haber invitado a la misma persona. Desde la V24
+     * el índice único global deja como mucho una fila, y quien la consume
+     * conserva la comprobación de «más de una» como red por si algún día
+     * desaparece el índice.
      *
      * <p>Solo devuelve las no vinculadas. Una fila con {@code cognito_sub} ya
      * puesto es de otra persona que usa ese correo, y reclamarla sería

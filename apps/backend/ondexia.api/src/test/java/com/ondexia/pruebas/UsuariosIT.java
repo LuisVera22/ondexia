@@ -48,6 +48,9 @@ class UsuariosIT extends PruebaIntegracion {
     @Autowired
     private com.ondexia.domain.identidad.PermisoRepositorio permisos;
 
+    @Autowired
+    private org.springframework.jdbc.core.simple.JdbcClient jdbc;
+
     private UUID permiso(String modulo, String accion) {
         return permisos.listarCatalogo().stream()
                 .filter(p -> p.modulo().equals(modulo) && p.accion().equals(accion))
@@ -104,11 +107,11 @@ class UsuariosIT extends PruebaIntegracion {
     @DisplayName("El correo se normaliza y no crea dos personas")
     void elCorreoNoDistingueMayusculas() {
         /*
-         * El índice único de `usuario` es (cuenta_id, lower(email)). Si el alta
-         * no normalizara, el segundo intento chocaría contra el índice con un
-         * error de integridad en vez de reutilizar a la persona — y con dos filas
-         * para el mismo correo, cuál gana al resolver el contexto sería cuestión
-         * de suerte.
+         * El índice único de `usuario` es lower(email), global desde la V24. Si
+         * el alta no normalizara, el segundo intento chocaría contra el índice
+         * con un error de integridad en vez de reutilizar a la persona — y con
+         * dos filas para el mismo correo, cuál gana al resolver el contexto sería
+         * cuestión de suerte.
          */
         comoDemo();
         var primera = usuarios.invitar("Repetido@Ejemplo.com", "Con Mayúsculas", "Apellido",
@@ -125,6 +128,43 @@ class UsuariosIT extends PruebaIntegracion {
         assertThat(segunda.usuarioId())
                 .as("es la misma persona, no una copia")
                 .isEqualTo(primera.usuarioId());
+    }
+
+    @Test
+    @DisplayName("Un correo pertenece a una sola suscripción")
+    void elCorreoNoSeRepiteEntreSuscripciones() {
+        // Decisión del propietario del 2026-09-08: una persona vive en una sola
+        // suscripción. Dentro de ella puede tener tantas empresas como quiera
+        // —eso lo cubre la prueba de arriba—; lo que no puede es trabajar para
+        // dos clientes con el mismo correo.
+        UUID otraCuenta = UUID.randomUUID();
+        // Correo propio de esta prueba. Las de integración comparten base, y un
+        // correo ahora es único en TODO el sistema: reutilizar uno de otra
+        // prueba la rompería a distancia.
+        String correoAjeno = "de-otro-cliente-" + UUID.randomUUID() + "@ejemplo.com";
+        jdbc.sql("""
+                        insert into cuenta (id, nombre, plan, estado_suscripcion, permisos_version)
+                        values (?, 'Otro cliente', 'ESENCIAL', 'EN_PRUEBA', 1)
+                        """)
+                .param(otraCuenta).update();
+        jdbc.sql("""
+                        insert into usuario (id, cuenta_id, email, nombre, activo)
+                        values (?, ?, ?, 'Persona de otro cliente', true)
+                        """)
+                .param(UUID.randomUUID()).param(otraCuenta).param(correoAjeno).update();
+
+        comoDemo();
+
+        // En mayúsculas a propósito: la unicidad no distingue caja.
+        assertThatThrownBy(() -> usuarios.invitar(correoAjeno.toUpperCase(), "Da igual", "Apellido",
+                        rol("VENDEDOR"), null))
+                .isInstanceOf(com.ondexia.domain.comun.error.Conflicto.class)
+                .satisfies(fallo -> assertThat(
+                        ((com.ondexia.domain.comun.error.Conflicto) fallo).getCodigo())
+                        .isEqualTo("correo_en_otra_suscripcion"))
+                // No se dice de qué suscripción se trata: el formulario de
+                // invitación no es un buscador de clientes nuestros.
+                .hasMessageNotContaining("Otro cliente");
     }
 
     @Test

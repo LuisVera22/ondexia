@@ -129,6 +129,8 @@ public class Usuarios {
          * campos pisaran los suyos permitiría cambiarle el nombre a alguien
          * desde una empresa en la que ni siquiera trabaja todavía.
          */
+        exigirCorreoLibre(cuentaId, correo);
+
         var usuario = usuarios.buscarPorEmailEnCuenta(cuentaId, correo)
                 .orElseGet(() -> usuarios.guardar(new Usuario(
                         UUID.randomUUID(), cuentaId, correo,
@@ -291,6 +293,27 @@ public class Usuarios {
      * puede conceder cualquier rol: alguien tiene que poder nombrar al primer
      * Administrador. Lo fija {@code UsuariosIT.nadieConcedeLoQueNoTiene}.
      */
+    /**
+     * Un correo pertenece a una sola suscripción (V24).
+     *
+     * <p>Se comprueba aquí y no se deja caer en el índice único porque el
+     * mensaje importa: quien invita necesita entender que la persona ya trabaja
+     * para otro cliente, no leer una violación de restricción. Lo que NO se
+     * dice es de qué suscripción se trata — eso convertiría el formulario de
+     * invitación en una forma de averiguar quién es cliente nuestro.
+     */
+    private void exigirCorreoLibre(UUID cuentaId, String correo) {
+        usuarios.buscarPorEmail(correo)
+                .filter(ajeno -> !ajeno.cuentaId().equals(cuentaId))
+                .ifPresent(ajeno -> {
+                    throw new Conflicto(
+                            "correo_en_otra_suscripcion",
+                            "Ese correo ya pertenece a otra suscripción. Una persona solo "
+                                    + "puede estar en una; si trabaja también para ustedes, "
+                                    + "invítala con otro correo.", "email");
+                });
+    }
+
     private void exigirQueNoEleve(Rol rol) {
         var actual = contexto.obligatorio();
         if (actual.esAdministradorCuenta()) {

@@ -16,5 +16,7 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioJpa, UUID> {
 
     Optional<UsuarioJpa> findByCuentaIdAndEmailIgnoreCase(UUID cuentaId, String email);
 
+    Optional<UsuarioJpa> findByEmailIgnoreCase(String email);
+
     List<UsuarioJpa> findByEmailIgnoreCaseAndCognitoSubIsNull(String email);
 }

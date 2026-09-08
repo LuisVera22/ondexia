@@ -75,6 +75,11 @@ public final class AdaptadoresIdentidad {
         }
 
         @Override
+        public Optional<Usuario> buscarPorEmail(String email) {
+            return filas.findByEmailIgnoreCase(email).map(MapeadoresIdentidad::aDominio);
+        }
+
+        @Override
         public List<Usuario> buscarInvitacionesPendientes(String email) {
             return filas.findByEmailIgnoreCaseAndCognitoSubIsNull(email).stream()
                     .map(MapeadoresIdentidad::aDominio)
