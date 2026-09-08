@@ -57,6 +57,12 @@ public class AlmacenAdaptador implements AlmacenRepositorio {
     }
 
     @Override
+    public Optional<Almacen> principalDe(UUID sucursalId) {
+        return filas.findFirstBySucursalIdAndActivoTrueOrderByCreadoEnAscCodigoAsc(sucursalId)
+                .map(AlmacenAdaptador::aDominio);
+    }
+
+    @Override
     @Transactional
     public Almacen guardar(Almacen almacen) {
         var fila = filas.findById(almacen.id()).orElse(null);

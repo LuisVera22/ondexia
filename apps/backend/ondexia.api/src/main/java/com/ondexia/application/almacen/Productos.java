@@ -97,9 +97,7 @@ public class Productos {
         if (!producto.controlaStock()) {
             return null;
         }
-        return almacenes.listar().stream()
-                .filter(a -> a.estaActivo() && sucursalId.equals(a.sucursalId()))
-                .findFirst()
+        return almacenes.principalDe(sucursalId)
                 .map(almacen -> existencias.buscar(almacen.id(), producto.id())
                         .map(Existencia::cantidad).orElse(BigDecimal.ZERO))
                 .orElse(null);

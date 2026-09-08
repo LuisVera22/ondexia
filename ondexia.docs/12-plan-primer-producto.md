@@ -217,7 +217,10 @@ de la auditoría, pendiente).
 | `stock` | `almacen_id`, `producto_id`, `cantidad` | Proyección. Se actualiza en la misma transacción que el movimiento |
 
 El almacén del local es el «Almacén Principal» que ya se crea con cada
-establecimiento ([05 §4.2](05-plan-vistas-v1.md)).
+establecimiento ([05 §4.2](05-plan-vistas-v1.md)). Si el local tiene más de
+uno, el mostrador descarga del **activo más antiguo**, que es ese: la regla
+está en `AlmacenRepositorio.principalDe` y explica allí por qué no es «el
+primero por código».
 
 ### 4.2 Caja
 
