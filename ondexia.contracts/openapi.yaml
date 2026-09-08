@@ -2796,6 +2796,10 @@ components:
           maxLength: 100
           minLength: 0
           type: string
+        entregado:
+          minimum: 0
+          exclusiveMinimum: true
+          type: number
     PeticionVenta:
       required:
       - cajaId
@@ -2947,6 +2951,10 @@ components:
           type: number
         referencia:
           type: string
+        entregado:
+          type: number
+        vuelto:
+          type: number
     PeticionCanje:
       required:
       - tipo
