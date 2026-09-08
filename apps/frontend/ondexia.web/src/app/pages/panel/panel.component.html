@@ -1,374 +1,176 @@
-<div>
-  <!--
-    El panel no lleva `app-encabezado-pagina`: ese componente termina en una
-    ruta de navegación que aquí diría «Panel › Panel», y su título es una
-    etiqueta, no un saludo con la fecha.
-  -->
-  <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
-    <div class="min-w-0">
-      <h1 class="text-2xl font-semibold text-gray-800 dark:text-white/90">{{ saludo }}</h1>
-      <!--
-        La fecha es de Lima. No es un detalle de cortesía: es la fecha con la
-        que se emite, y tiene que ser la misma que verá SUNAT.
+<!--
+  Tres cifras y una lista. Sin saludo, sin gráfico y sin banda de avisos: el
+  panel se titula por su contenido y no por la hora del día (doc 12 §7.2).
+-->
+<app-encabezado-pagina titulo="Panel" [descripcion]="fechaLarga()">
+  <app-boton
+    variante="secundario"
+    [estado]="actualizar.estado()"
+    (accion)="actualizar.ejecutar()"
+  >
+    Actualizar
+  </app-boton>
+</app-encabezado-pagina>
 
-        Y el establecimiento, porque delimita lo que se está mirando: la serie
-        del comprobante y el almacén que descarga dependen de él.
-      -->
-      <p class="mt-1 flex flex-wrap items-center gap-1.5 text-dato text-gray-500 dark:text-gray-400">
-        {{ fecha }}
-        @if (establecimiento()) {
-        <span class="text-gray-300 dark:text-gray-600" aria-hidden="true">·</span>
-        <span title="Las cifras corresponden a este establecimiento">{{ establecimiento() }}</span>
-        }
-      </p>
-    </div>
+@if (error(); as fallo) {
+<div
+  role="alert"
+  class="mb-6 rounded-base border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
+>
+  {{ fallo }}
+</div>
+}
 
-    <div class="flex flex-wrap items-center gap-3">
-      <!--
-        «Registrar compra» y no «Nueva compra»: lo que se hace aquí es anotar la
-        factura del proveedor que ya llegó, para el crédito fiscal. Una compra
-        «nueva» sería la orden de compra, que es otro momento del ciclo y otro
-        módulo.
-      -->
-      <app-boton class="shrink-0" variante="secundario" icono="mas" ruta="/compras/facturas/nueva">
-        Registrar compra
-      </app-boton>
+@if (cargando()) {
+<p class="text-sm text-gray-500 dark:text-gray-400">Cargando las cifras del día…</p>
+} @else if (sinNadaQueVer()) {
+<!--
+  Ni cajas, ni ventas, ni comprobantes: el usuario no consulta ninguno de los
+  tres. Se dice, en vez de dejar la portada en blanco como si algo hubiera
+  fallado.
+-->
+<p class="text-sm text-gray-500 dark:text-gray-400">
+  Esta cuenta no tiene acceso a las cifras de ventas. El menú lateral lleva a lo
+  que sí está disponible.
+</p>
+} @else {
 
-      <!--
-        Boleta o factura es la primera decisión de una venta, no un detalle de
-        formato: depende de si el cliente tiene RUC y determina la serie. Un
-        botón único de «Nueva venta» la esconde y obliga a descubrirla dentro
-        del formulario; dos botones sueltos gastan el sitio del encabezado. Un
-        menú de dos opciones la hace explícita y, con el apunte del documento de
-        identidad, la explica de paso.
-      -->
-      <div class="relative shrink-0">
-        <app-boton
-          icono="mas"
-          [abreMenu]="true"
-          [menuAbierto]="menuVenta()"
-          (accion)="alternarMenuVenta()"
-        >
-          Nueva venta
-        </app-boton>
-
-        @if (menuVenta()) {
-        <div
-          role="menu"
-          aria-label="Tipo de comprobante"
-          animate.enter="menu-entra"
-          class="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-gray-200 bg-white p-1.5 shadow-flotante dark:border-gray-700 dark:bg-gray-900"
-        >
-          <a
-            routerLink="/ventas/boletas/nueva"
-            role="menuitem"
-            (click)="cerrarMenuVenta()"
-            class="block rounded-lg px-3 py-2.5 transition hover:bg-gray-100 dark:hover:bg-white/[0.06]"
-          >
-            <span class="block text-dato font-medium text-gray-800 dark:text-white/90">Boleta de venta</span>
-            <span class="block text-menudo text-gray-500 dark:text-gray-400">
-              Consumidor final, con DNI o sin documento
-            </span>
-          </a>
-          <a
-            routerLink="/ventas/facturas/nueva"
-            role="menuitem"
-            (click)="cerrarMenuVenta()"
-            class="block rounded-lg px-3 py-2.5 transition hover:bg-gray-100 dark:hover:bg-white/[0.06]"
-          >
-            <span class="block text-dato font-medium text-gray-800 dark:text-white/90">Factura</span>
-            <span class="block text-menudo text-gray-500 dark:text-gray-400">
-              Empresa con RUC, da derecho a crédito fiscal
-            </span>
-          </a>
-        </div>
-        }
-      </div>
-    </div>
-  </div>
-
-  @if (sinActividad) {
-  <!--
-    Primer día de la cuenta. Un panel de ceros con un gráfico vacío es lo
-    primero que ve cada cliente nuevo, y no le dice qué hacer.
-  -->
-  <section class="rounded-2xl border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
-    <span class="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-brand-50 text-brand-500 dark:bg-brand-500/15">
-      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M7 3.5h7l4 4v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z" />
-        <path d="M13.5 3.5V8h4.5M9 13h6M9 16.5h4" />
-      </svg>
-    </span>
-    <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90">Aún no has emitido comprobantes</h2>
-    <p class="mx-auto mt-2 max-w-md text-dato text-gray-500 dark:text-gray-400">
-      Cuando emitas el primero, aquí verás tus ventas, el estado de cada
-      comprobante ante SUNAT y lo que está por agotarse.
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+  <!-- 1 · La caja. Sin caja abierta no se vende (doc 12 §3.4). -->
+  @if (cajas(); as abiertas) {
+  <section
+    class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"
+  >
+    <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400">Caja</h2>
+    @if (abiertas.length === 0) {
+    <p class="mt-2 text-2xl font-medium text-gray-800 dark:text-white/90">Cerrada</p>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      No se puede vender hasta abrir una caja.
     </p>
-    <div class="mt-5 flex flex-wrap justify-center gap-3">
-      <app-boton icono="mas" ruta="/ventas/boletas/nueva">Emitir mi primera boleta</app-boton>
-      <app-boton variante="secundario" ruta="/configuracion/series">Revisar mis series</app-boton>
-    </div>
-  </section>
-  } @else {
-
-  <!--
-    Lo que exige atención, antes de cualquier cifra. Solo existe cuando hay
-    algo: una banda permanente enseña a ignorarla.
-  -->
-  @if (avisos.length) {
-  <section class="mb-6 flex flex-col gap-2" aria-label="Requiere atención">
-    @for (aviso of avisos; track aviso.texto) {
-    <div
-      class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border px-4 py-3"
-      [class]="
-        aviso.grave
-          ? 'border-error-200 bg-error-50 dark:border-error-500/30 dark:bg-error-500/10'
-          : 'border-warning-200 bg-warning-50 dark:border-warning-500/30 dark:bg-warning-500/10'
-      "
+    <a
+      routerLink="/ventas/cajas"
+      class="mt-4 inline-block text-sm font-medium text-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
     >
-      <span
-        class="shrink-0"
-        [class]="aviso.grave ? 'text-error-500' : 'text-warning-500'"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <circle cx="12" cy="12" r="9" /><path d="M12 8v4.5M12 16h.01" />
-        </svg>
-      </span>
-      <span class="min-w-0 flex-1 text-dato font-medium text-gray-800 dark:text-white/90">
-        {{ aviso.texto }}
-      </span>
-      <a
-        [routerLink]="aviso.ruta"
-        class="shrink-0 text-dato font-medium underline decoration-transparent transition hover:decoration-current"
-        [class]="aviso.grave ? 'text-error-700 dark:text-error-400' : 'text-warning-700 dark:text-warning-400'"
-      >
-        {{ aviso.accion }}
-      </a>
-    </div>
+      Abrir caja
+    </a>
+    } @else {
+    <p class="mt-2 text-2xl font-medium text-gray-800 dark:text-white/90">
+      {{ abiertas.length === 1 ? 'Abierta' : abiertas.length + ' abiertas' }}
+    </p>
+    <ul class="mt-2 space-y-1 text-sm text-gray-500 dark:text-gray-400">
+      @for (sesion of abiertas; track sesion.sesionId) {
+      <li>
+        Desde las {{ hora(sesion.abiertaEn) }}, con {{ importe(sesion.montoInicial) }} de fondo
+      </li>
+      }
+    </ul>
+    <a
+      routerLink="/ventas/punto-de-venta"
+      class="mt-4 inline-block text-sm font-medium text-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
+    >
+      Ir al punto de venta
+    </a>
     }
   </section>
   }
 
-  <!-- ── Indicadores ─────────────────────────────────────────────────── -->
-  <section class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Resumen">
-    @for (indicador of indicadores; track indicador.etiqueta) {
-    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-      <p class="text-dato text-gray-500 dark:text-gray-400">{{ indicador.etiqueta }}</p>
-
-      <div class="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-        <p class="text-2xl font-semibold tabular-nums text-gray-800 dark:text-white/90">
-          {{ indicador.valor }}
-        </p>
-
-        @if (indicador.tendencia) {
-        <!--
-          La flecha dice el movimiento y el color si conviene: son dos cosas
-          distintas. «Por cobrar» bajando lleva flecha abajo y color verde,
-          porque significa que los clientes están pagando.
-
-          El texto entre paréntesis solo lo ve un lector de pantalla: ni la
-          flecha ni el color se anuncian.
-        -->
-        <span
-          class="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-menudo font-medium tabular-nums"
-          [class]="clasesVariacion(indicador)"
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            @if (indicador.tendencia === 'sube') {
-            <path d="m6 15 6-6 6 6" />
-            } @else {
-            <path d="m6 9 6 6 6-6" />
-            }
-          </svg>
-          {{ indicador.variacion }}
-          <span class="sr-only">{{ variacionEnPalabras(indicador) }}</span>
-        </span>
-        }
-      </div>
-
-      <p class="mt-2 text-menudo text-gray-500 dark:text-gray-400">{{ indicador.detalle }}</p>
-    </div>
-    }
+  <!-- 2 · Lo vendido hoy, contando la nota de venta junto al comprobante. -->
+  @if (ventas(); as delDia) {
+  <section
+    class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"
+  >
+    <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400">Ventas del día</h2>
+    <p class="mt-2 text-2xl font-medium text-gray-800 dark:text-white/90">
+      {{ importe(delDia.importe) }}
+    </p>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      {{ delDia.documentos }}
+      {{ delDia.documentos === 1 ? 'documento emitido' : 'documentos emitidos' }}
+    </p>
+    <a
+      routerLink="/ventas/notas-venta"
+      class="mt-4 inline-block text-sm font-medium text-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
+    >
+      Ver los documentos
+    </a>
   </section>
+  }
 
-  <div class="grid grid-cols-1 gap-5 xl:grid-cols-3">
-    <div class="flex flex-col gap-5 xl:col-span-2">
-      <!-- ── Gráfico de ventas ─────────────────────────────────────────── -->
-      <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-        <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h2 class="font-medium text-gray-800 dark:text-white/90">{{ tituloGrafico }}</h2>
-            <p class="text-menudo text-gray-500 dark:text-gray-400">{{ totalDelPeriodo }} en total</p>
-          </div>
-
-          <!--
-            Segmentado con `aria-pressed`: son tres vistas del mismo dato, no
-            tres destinos. Con enlaces o con `role="tab"` prometería otra cosa.
-          -->
-          <div
-            class="flex shrink-0 items-center gap-0.5 rounded-lg bg-gray-100 p-0.5 dark:bg-white/[0.06]"
-            role="group"
-            aria-label="Periodo"
-          >
-            @for (opcion of periodos; track opcion.clave) {
-            <button
-              type="button"
-              (click)="periodo.set(opcion.clave)"
-              [attr.aria-pressed]="periodo() === opcion.clave"
-              class="rounded-md px-3 py-1.5 text-menudo font-medium transition"
-              [class]="
-                periodo() === opcion.clave
-                  ? 'bg-white text-gray-800 shadow-apoyo dark:bg-gray-900 dark:text-white/90'
-                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-              "
-            >
-              {{ opcion.nombre }}
-            </button>
-            }
-          </div>
-        </div>
-
-        <app-grafico-barras [puntos]="puntos" magnitud="Ventas" />
-      </section>
-
-      <!-- ── Últimos comprobantes ──────────────────────────────────────── -->
-      <section class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
-        <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
-          <h2 class="font-medium text-gray-800 dark:text-white/90">Últimos comprobantes</h2>
-          <a routerLink="/ventas/facturas" class="text-dato text-brand-500 transition hover:text-brand-600 dark:hover:text-brand-400">
-            Ver todos
-          </a>
-        </div>
-
-        <ul>
-          @for (comprobante of ultimosComprobantes; track comprobante.id) {
-          <li class="border-b border-gray-100 last:border-0 dark:border-gray-800">
-            <!--
-              En una sola linea no cabe por debajo de 640 px: numero, cliente,
-              importe y estado suman mas que el ancho de un movil, y el estado
-              se salia de la pantalla. Ahi el cliente baja a su propia linea
-              —`order-3 w-full`— y arriba quedan numero, importe y estado.
-            -->
-            <a
-              [routerLink]="['/ventas/comprobantes', comprobante.id]"
-              class="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3.5 transition hover:bg-gray-50 dark:hover:bg-white/[0.02]"
-            >
-              <span class="shrink-0 sm:w-32">
-                <span class="block text-dato tabular-nums text-gray-800 dark:text-white/90">{{ comprobante.numero }}</span>
-                <span class="block text-menudo text-gray-500 dark:text-gray-400">{{ comprobante.tipo }}</span>
-              </span>
-
-              <span class="order-3 w-full min-w-0 truncate text-dato text-gray-600 dark:text-gray-400 sm:order-none sm:w-auto sm:flex-1">
-                {{ comprobante.cliente }}
-              </span>
-
-              <!--
-                Importe y estado viajan juntos, y es el grupo el que lleva el
-                `ml-auto`. Con el `ml-auto` en el importe, este se pegaba al
-                borde derecho y empujaba el estado a una linea propia: la fila
-                pasaba a medir tres renglones en lugar de dos.
-
-                El importe a la derecha y con cifras de ancho fijo: es la única
-                columna que se compara de un vistazo entre filas, y alineada a
-                la izquierda hay que leer cada número entero para saber cuál es
-                mayor.
-              -->
-              <span class="ml-auto flex shrink-0 items-center gap-3 sm:ml-0">
-                <span class="text-right text-dato font-medium tabular-nums text-gray-800 dark:text-white/90 sm:w-28">
-                  S/ {{ importe(comprobante.total) }}
-                </span>
-                <app-estado-comprobante [estado]="comprobante.estado" />
-              </span>
-            </a>
-          </li>
-          }
-        </ul>
-      </section>
-    </div>
-
-    <div class="flex flex-col gap-5">
-      <!-- ── Estado ante SUNAT ─────────────────────────────────────────── -->
-      <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-        <h2 class="font-medium text-gray-800 dark:text-white/90">Estado ante SUNAT</h2>
-        <p class="text-menudo text-gray-500 dark:text-gray-400">
-          {{ comprobantesDelMes }} comprobantes este mes
-        </p>
-
-        <!--
-          La barra apilada es un resumen visual; los números de abajo son el
-          dato. `aria-hidden` porque una barra de tres divs no tiene nada que
-          anunciar que la lista no diga mejor.
-        -->
-        <div class="mt-4 flex h-2 gap-0.5 overflow-hidden rounded-full" aria-hidden="true">
-          @if (sunat.aceptados) {
-          <div class="rounded-full bg-success-500" [style.width.%]="porcentaje(sunat.aceptados)"></div>
-          }
-          @if (sunat.pendientes) {
-          <div class="rounded-full bg-warning-500" [style.width.%]="porcentaje(sunat.pendientes)"></div>
-          }
-          @if (sunat.rechazados) {
-          <div class="flex-1 rounded-full bg-error-500"></div>
-          }
-        </div>
-
-        <ul class="mt-4 flex flex-col gap-2.5">
-          <li class="flex items-center gap-2 text-dato">
-            <span class="size-2 shrink-0 rounded-full bg-success-500" aria-hidden="true"></span>
-            <span class="flex-1 text-gray-600 dark:text-gray-400">Aceptados</span>
-            <span class="font-semibold tabular-nums text-gray-800 dark:text-white/90">{{ sunat.aceptados }}</span>
-            <span class="w-9 text-right tabular-nums text-gray-500 dark:text-gray-400">{{ porcentaje(sunat.aceptados) }} %</span>
-          </li>
-          <li class="flex items-center gap-2 text-dato">
-            <span class="size-2 shrink-0 rounded-full bg-warning-500" aria-hidden="true"></span>
-            <span class="flex-1 text-gray-600 dark:text-gray-400">Pendientes</span>
-            <span class="font-semibold tabular-nums text-gray-800 dark:text-white/90">{{ sunat.pendientes }}</span>
-            <span class="w-9 text-right tabular-nums text-gray-500 dark:text-gray-400">{{ porcentaje(sunat.pendientes) }} %</span>
-          </li>
-          <li class="flex items-center gap-2 text-dato">
-            <span class="size-2 shrink-0 rounded-full bg-error-500" aria-hidden="true"></span>
-            <span class="flex-1 text-gray-600 dark:text-gray-400">Rechazados</span>
-            <span class="font-semibold tabular-nums text-gray-800 dark:text-white/90">{{ sunat.rechazados }}</span>
-            <span class="w-9 text-right tabular-nums text-gray-500 dark:text-gray-400">{{ porcentajeRechazados }} %</span>
-          </li>
-        </ul>
-      </section>
-
-      <!-- ── Existencias por agotarse ──────────────────────────────────── -->
-      <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-        <div class="flex items-center justify-between gap-3">
-          <h2 class="font-medium text-gray-800 dark:text-white/90">Por agotarse</h2>
-          <a routerLink="/almacen/por-agotarse" class="text-dato text-brand-500 transition hover:text-brand-600 dark:hover:text-brand-400">
-            Almacén
-          </a>
-        </div>
-        <!--
-          Dice contra qué mide la barra. Sin esta línea, 4 con barra corta y 15
-          con barra larga solo insinúan un umbral invisible, y entonces la barra
-          decora en lugar de informar.
-        -->
-        <p class="text-menudo text-gray-500 dark:text-gray-400">Existencias frente al mínimo de cada producto</p>
-
-        <ul class="mt-4 flex flex-col gap-3.5">
-          @for (item of porAgotarse; track item.nombre) {
-          <li>
-            <div class="flex items-baseline justify-between gap-3">
-              <span class="min-w-0 truncate text-dato text-gray-700 dark:text-gray-300">{{ item.nombre }}</span>
-              <span class="shrink-0 text-dato font-semibold tabular-nums text-gray-800 dark:text-white/90">
-                {{ item.existencias }} {{ item.unidad }}
-              </span>
-            </div>
-            <div
-              class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-white/[0.08]"
-              [title]="detalleExistencia(item)"
-            >
-              <div class="h-full rounded-full" [class]="clasesBarra(item)" [style.width.%]="llenado(item)"></div>
-            </div>
-            <span class="sr-only">{{ detalleExistencia(item) }}</span>
-          </li>
-          }
-        </ul>
-      </section>
-    </div>
-  </div>
+  <!-- 3 · Lo que espera a alguien ante SUNAT. -->
+  @if (porAtender(); as pendientes) {
+  <section
+    class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"
+  >
+    <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400">Ante SUNAT</h2>
+    <p class="mt-2 text-2xl font-medium text-gray-800 dark:text-white/90">
+      {{ pendientes.total }}
+    </p>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      {{
+        pendientes.total === 1
+          ? 'comprobante sin aceptar'
+          : 'comprobantes sin aceptar'
+      }}
+    </p>
+  </section>
   }
 </div>
+
+<!--
+  La lista. Solo aparece cuando hay algo: una tabla vacía con su encabezado
+  ocupa el mismo sitio que una con contenido y se lee como que falta cargar.
+-->
+@if (porAtender(); as pendientes) { @if (pendientes.primeros.length > 0) {
+<section class="mt-8">
+  <h2 class="mb-3 text-base font-medium text-gray-800 dark:text-white/90">
+    Comprobantes sin aceptar
+  </h2>
+  <div class="overflow-x-auto rounded-base border border-gray-200 dark:border-gray-800">
+    <table class="w-full min-w-[36rem] text-left text-sm">
+      <thead class="border-b border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400">
+        <tr>
+          <th scope="col" class="px-4 py-3 font-medium">Comprobante</th>
+          <th scope="col" class="px-4 py-3 font-medium">Estado</th>
+          <th scope="col" class="px-4 py-3 font-medium">Motivo</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (comprobante of pendientes.primeros; track comprobante.documentoId) {
+        <tr class="border-b border-gray-100 last:border-0 dark:border-gray-800/60">
+          <td class="px-4 py-3">
+            <a
+              [routerLink]="rutaDelComprobante(comprobante.tipo, comprobante.documentoId)"
+              class="font-medium text-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
+            >
+              {{ comprobante.tipoNombre }} {{ comprobante.numeroCompleto }}
+            </a>
+          </td>
+          <td
+            class="px-4 py-3"
+            [class.text-error-600]="exigeAtencion(comprobante.estado)"
+            [class.dark:text-error-400]="exigeAtencion(comprobante.estado)"
+            [class.text-gray-500]="!exigeAtencion(comprobante.estado)"
+            [class.dark:text-gray-400]="!exigeAtencion(comprobante.estado)"
+          >
+            {{ nombreDeEstado(comprobante.estado) }}
+          </td>
+          <td class="px-4 py-3 text-gray-500 dark:text-gray-400">
+            @if (comprobante.descripcionSunat) {
+            <span>{{ comprobante.codigoSunat }} · {{ comprobante.descripcionSunat }}</span>
+            } @else {
+            <span aria-hidden="true">—</span>
+            }
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (pendientes.total > pendientes.primeros.length) {
+  <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+    Se muestran {{ pendientes.primeros.length }} de {{ pendientes.total }}. El resto está en el
+    listado de cada tipo de comprobante.
+  </p>
+  }
+</section>
+} } }

@@ -4,8 +4,10 @@ import com.ondexia.domain.comprobante.ComprobanteElectronico;
 import com.ondexia.domain.comprobante.ComprobanteElectronicoRepositorio;
 import com.ondexia.domain.comprobante.EstadoSunat;
 import com.ondexia.domain.comprobante.TipoDocumento;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,6 +44,17 @@ public class ComprobanteElectronicoAdaptador implements ComprobanteElectronicoRe
             estados.put(fila.getDocumentoId(), EstadoSunat.valueOf(fila.getEstado()));
         }
         return estados;
+    }
+
+    @Override
+    public List<ComprobanteElectronico> listarPorAtender() {
+        var pendientes = Arrays.stream(EstadoSunat.values())
+                .filter(estado -> estado != EstadoSunat.ACEPTADO && estado != EstadoSunat.ANULADO)
+                .map(Enum::name)
+                .toList();
+        return filas.findAllByEstadoInOrderByCreadoEnDesc(pendientes).stream()
+                .map(ComprobanteElectronicoAdaptador::aDominio)
+                .toList();
     }
 
     @Override

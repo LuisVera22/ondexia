@@ -134,7 +134,7 @@ export const routes: Routes = [
       { path: 'ventas/comunicacion-baja', redirectTo: 'ventas/comunicaciones-baja', pathMatch: 'full' },
       // La maqueta P4 mostraba un comprobante suelto; hoy los tres tipos se
       // ven en la misma ficha, que sí lee de la API.
-      { path: 'ventas/comprobantes/:id', redirectTo: 'ventas/documentos/BOLETA/:id' },
+      { path: 'ventas/comprobantes/:id', redirectTo: 'ventas/documentos/03/:id' },
 
       // ── Configuración ────────────────────────────────────────────────────
       // La ruta en singular era el formulario de la empresa activa. Se mantiene
