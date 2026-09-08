@@ -116,11 +116,11 @@ class ProcesadorDeOrdenesTest {
                 new PropiedadesEmision("", null, "https://beta.local/billService",
                         "https://prod.local/billService", Duration.ofSeconds(5)),
                 json, Clock.fixed(Instant.parse("2026-09-08T15:20:00Z"), ZoneOffset.UTC));
-        try (var pfx = getClass().getResourceAsStream("/certificado-prueba.pfx")) {
-            bus.escribir(ClavesDelBus.certificado(Ordenes.RUC), pfx.readAllBytes(), "application/x-pkcs12");
-        }
+        bus.escribir(ClavesDelBus.certificado(Ordenes.RUC), CertificadoDePrueba.bytes(),
+                "application/x-pkcs12");
         bus.escribir(ClavesDelBus.credenciales(Ordenes.RUC),
-                "{\"claveCertificado\": \"prueba\", \"claveSol\": \"MODDATOS\"}".getBytes(), "application/json");
+                ("{\"claveCertificado\": \"" + CertificadoDePrueba.CLAVE + "\", \"claveSol\": \"MODDATOS\"}")
+                        .getBytes(), "application/json");
     }
 
     private ResultadoDeEmision resultadoGuardado(OrdenDeEmision orden) {

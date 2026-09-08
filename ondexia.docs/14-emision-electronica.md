@@ -294,6 +294,35 @@ y qué hubo que corregir. Si al quinto día no hay CDR aceptado, la decisión 1
 cambia y se sustituye `ProcesadorDeOrdenes` por un cliente REST del proveedor,
 sin tocar nada fuera de este módulo.
 
+### 6.1 El certificado con el que se prueba se genera, no se versiona
+
+El paso 2 pide un `.pfx` y las pruebas del Emisor necesitan otro. Ninguno de los
+dos está en el repositorio: `.gitignore` excluye `*.pfx`, `*.p12`, `*.jks` y
+`*.pem` sin excepciones, porque un certificado que entra al historial obliga a
+reescribirlo o a revocarlo, y la única excepción que hay —el paquete de
+autoridades de RDS— es material público.
+
+Un archivo de prueba que vive fuera del repositorio no es neutral: las once
+pruebas que lo cargaban pasaban en la máquina donde se creó y fallaban en el CI
+sin aparecer en ningún diff, y el fallo no se leía como «falta un archivo» sino
+como once errores del módulo. Por eso el material lo produce la propia
+compilación: `CertificadoDePrueba` genera un PKCS#12 autofirmado con el
+`keytool` del JDK que está ejecutando las pruebas —no con openssl, que no está
+garantizado en un runner— y lo deja en `target/certificado-prueba.pfx`.
+
+Ese mismo archivo sirve para el ensayo contra la beta, que acepta un
+autofirmado:
+
+```bash
+cd apps/backend && ./mvnw -o -pl ondexia.facturacion -am test
+cp ondexia.facturacion/target/certificado-prueba.pfx bus-local/certificados/20100000009.pfx
+# la clave del pfx es «prueba»
+```
+
+La regla general que deja esto: **si una prueba necesita material que el
+`.gitignore` excluye, la prueba lo genera.** Traerlo a mano convierte la
+compilación en algo que depende del disco de quien la ejecuta.
+
 ## 7. Qué pasa en el mostrador
 
 - **Sin certificado ni clave SOL, la boleta y la factura no se emiten**:
@@ -325,3 +354,6 @@ sin tocar nada fuera de este módulo.
 ## Registro de cambios
 
 - **v1 (2026-09-08)** — Con la iteración 5.
+- **v2 (2026-09-08)** — §6.1: el certificado de las pruebas lo genera la
+  compilación. Once pruebas del Emisor pasaban en local y fallaban en el CI
+  porque el `.pfx` estaba en el disco y no en el repositorio.
