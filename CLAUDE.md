@@ -105,6 +105,13 @@ decía lo contrario (hallazgo M2), y lo fija ahora `GrantsDeLaAplicacionIT`.
 Una tabla nueva hereda CRUD por los privilegios por omisión. Esa prueba se pondrá
 roja: es a propósito, para que alguien decida si era lo que se quería.
 
+**Una migración ya aplicada no se edita, ni siquiera un comentario.** El checksum
+de Flyway se calcula sobre todas las líneas del archivo, comentarios incluidos:
+una nota añadida a la V2 rompió el arranque en la base local y habría roto el de
+dev, con `Migration checksum mismatch`. Lo que haya que anotar sobre una
+migración vieja se escribe en la migración nueva que la cambia, que es la que
+todavía no ha corrido en ningún sitio.
+
 ## Al tocar infraestructura
 
 - Todo `aws_iam_role` declara `permissions_boundary`. `iam:CreateRole` está

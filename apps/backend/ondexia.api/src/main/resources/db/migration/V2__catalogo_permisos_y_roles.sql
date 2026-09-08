@@ -93,11 +93,6 @@ CROSS JOIN LATERAL unnest(d.acciones) AS a(accion);
 -- Esa inmutabilidad es intencionada. Si cada cliente pudiera editar
 -- «Vendedor», la palabra dejaria de significar lo mismo entre clientes y
 -- cualquier consulta de soporte empezaria por averiguar que quiere decir aqui.
---
--- NOTA (V16, 2026-09-07): de los cuatro roles de abajo solo ADMINISTRADOR sigue
--- siendo del sistema. VENDEDOR, ALMACENERO y CONTADOR pasaron a ser roles de
--- cada cuenta que los usaba y se eliminaron de la semilla (doc 12 §6.1). Se
--- dejan aqui tal como se sembraron: una migracion aplicada no se reescribe.
 
 INSERT INTO rol (id, cuenta_id, codigo, nombre, descripcion) VALUES
     (gen_random_uuid(), NULL, 'ADMINISTRADOR', 'Administrador',

@@ -27,6 +27,13 @@
 --    mismo entre si—. Las empresas existentes quedan en OTRO: ninguna declaro
 --    estar en el RUS porque nadie se lo pregunto, y es el caso mayoritario.
 --
+-- La V2 NO se toca. La semilla de esos tres roles queda alli tal como se
+-- aplico, con su comentario original diciendo que un rol del sistema es
+-- inmutable: era cierto cuando se escribio. Anotar el cambio en la V2 cambia
+-- su checksum y rompe la validacion de Flyway en toda base que ya la tenga
+-- —local, dev y la de cualquier otro—. Lo que la V2 dice de estos tres roles
+-- se lee desde aqui.
+--
 -- Privilegios: no se crea ninguna tabla, asi que no hay nada que REVOKE. La
 -- columna nueva la lee y escribe ondexia_app con los grants de `empresa`.
 -- =============================================================================
