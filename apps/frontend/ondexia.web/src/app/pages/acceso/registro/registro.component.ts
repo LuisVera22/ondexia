@@ -148,7 +148,7 @@ export class RegistroComponent implements OnInit {
       // No deberia poder llegar aqui: el boton esta deshabilitado. Se comprueba
       // igual porque un `disabled` no es una garantia, y el mensaje es mejor que
       // un 400 del servidor.
-      this.error.set('Consulta el RUC de tu empresa antes de continuar.');
+      this.error.set('Es necesario consultar el RUC de la empresa antes de continuar.');
       return;
     }
 
@@ -199,7 +199,7 @@ export class RegistroComponent implements OnInit {
       const colocado = colocarEnCampos(
         fallo,
         this.formulario,
-        'No se pudo completar el registro. Inténtalo de nuevo.'
+        'No se pudo completar el registro. Conviene reintentar.'
       );
       this.error.set(colocado.mensajeGeneral);
       this.enviando.set(false);

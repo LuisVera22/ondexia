@@ -6,7 +6,7 @@
 
   <!-- Panel de marca: se retira en pantallas pequeñas -->
   <aside
-    class="relative hidden w-1/2 shrink-0 overflow-hidden rounded-3xl bg-gradient-to-br from-brand-500 via-brand-600 to-brand-900 lg:flex lg:flex-col lg:items-center lg:justify-center"
+    class="relative hidden w-1/2 shrink-0 overflow-hidden rounded-base bg-gradient-to-br from-brand-500 via-brand-600 to-brand-900 lg:flex lg:flex-col lg:items-center lg:justify-center"
   >
     <!-- Trazado de fondo: líneas suaves que evocan un plano, sin pesar nada -->
     <div
@@ -33,7 +33,7 @@
         Ilustración propia en SVG: un comprobante aceptado sobre una tarjeta de
         vidrio. Dice qué hace el producto sin cargar una imagen de archivo.
       -->
-      <div class="mb-10 w-full rounded-[2rem] border border-white/20 bg-white/10 p-8 shadow-superpuesto backdrop-blur-sm">
+      <div class="mb-10 w-full rounded-[2rem] border border-white/20 bg-white/10 p-8 backdrop-blur-sm">
         <svg viewBox="0 0 280 190" fill="none" xmlns="http://www.w3.org/2000/svg" class="mx-auto w-full max-w-xs" role="img" aria-label="Comprobante aceptado">
           <!-- Documento -->
           <rect x="70" y="14" width="140" height="162" rx="12" fill="#ffffff" fill-opacity="0.95" />
@@ -92,7 +92,7 @@
     type="button"
     (click)="tema.alternar()"
     [attr.aria-label]="tema.tema() === 'oscuro' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'"
-    class="fixed bottom-6 right-6 z-50 flex size-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 shadow-elevado transition hover:text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+    class="fixed bottom-6 right-6 z-50 flex size-11 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition hover:text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
   >
     @if (tema.tema() === 'oscuro') {
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">

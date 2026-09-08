@@ -154,7 +154,7 @@ export class PuntoDeVentaComponent {
         : `Los pagos superan el total en ${this.importe(-this.porCobrar())}.`;
     }
     if (this.series().length > 1 && !this.serieId()) {
-      return 'Elige la serie.';
+      return 'Falta elegir la serie.';
     }
     return null;
   });

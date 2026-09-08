@@ -8,7 +8,7 @@
   }
 
   @if (error()) {
-  <div class="rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert"><p class="text-sm text-error-500">{{ error() }}</p></div>
+  <div class="rounded-base border border-error-500/30 bg-error-500/10 p-4" role="alert"><p class="text-sm text-error-500">{{ error() }}</p></div>
   } @else {
   <app-tabla-datos
     [nombrePlural]="textos.plural"

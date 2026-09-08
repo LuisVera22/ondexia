@@ -128,7 +128,7 @@ export class UsuariosComponent {
   private originales: UsuarioApi[] = [];
 
   readonly opcionesRol = computed<OpcionDesplegable[]>(() => [
-    { valor: '', etiqueta: 'Elige un rol…' },
+    { valor: '', etiqueta: 'Elegir un rol…' },
     ...this.roles().map((rol) => ({ valor: rol.id, etiqueta: rol.nombre })),
   ]);
 

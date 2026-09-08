@@ -18,11 +18,11 @@
   </div>
 
   @if (cargando()) {
-  <div class="rounded-2xl border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">
-    <p class="text-sm text-gray-500 dark:text-gray-400">Comprobando tu plan…</p>
+  <div class="rounded-base border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+    <p class="text-sm text-gray-500 dark:text-gray-400">Comprobando el plan…</p>
   </div>
   } @else if (error()) {
-  <div class="flex items-start gap-3 rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert">
+  <div class="flex items-start gap-3 rounded-base border border-error-500/30 bg-error-500/10 p-4" role="alert">
     <svg class="mt-0.5 shrink-0 text-error-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
       <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
     </svg>
@@ -35,14 +35,14 @@
     Enseñar el formulario y rechazarlo al enviarlo sería hacer trabajar a alguien
     para nada — la consulta del RUC incluida, que cuesta dinero.
   -->
-  <div class="rounded-2xl border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+  <div class="rounded-base border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
     <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-warning-500/10">
       <svg class="text-warning-500" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
       </svg>
     </div>
     <h3 class="mb-2 font-medium text-gray-800 dark:text-white/90">
-      Tu plan no admite otra empresa
+      El plan no admite otra empresa
     </h3>
     <p class="mx-auto max-w-md text-sm text-gray-500 dark:text-gray-400">
       {{ limites.motivo }}
@@ -54,7 +54,7 @@
   } @else {
 
   <form [formGroup]="formulario" (ngSubmit)="registrar.ejecutar()" novalidate class="space-y-5">
-    <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] xl:p-6">
+    <section class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] xl:p-6">
       <h3 class="mb-1 font-medium text-gray-800 dark:text-white/90">Identificación tributaria</h3>
       <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
         Para registrar la empresa, SUNAT tiene que tener su RUC activo y habido.
@@ -68,7 +68,7 @@
         RUS no se emiten facturas: si no se pregunta aquí, la primera factura la
         rechaza SUNAT semanas después.
       -->
-      <label class="flex items-start gap-3 rounded-lg border border-gray-200 p-4 text-sm dark:border-gray-800">
+      <label class="flex items-start gap-3 rounded-base border border-gray-200 p-4 text-sm dark:border-gray-800">
         <input
           type="checkbox"
           formControlName="nuevoRus"
@@ -90,7 +90,7 @@
       sirven todavía es lo que hace que alguien empiece por el sitio equivocado.
     -->
     @if (consulta()) {
-    <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] xl:p-6">
+    <section class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] xl:p-6">
       <h3 class="mb-1 font-medium text-gray-800 dark:text-white/90">Datos propios</h3>
       <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
         Opcionales. Se pueden cambiar después.
@@ -106,7 +106,7 @@
             type="text"
             formControlName="nombreComercial"
             placeholder="Como la conocen sus clientes"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90 dark:placeholder:text-white/30"
+            class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90 dark:placeholder:text-white/30"
           />
         </div>
 
@@ -120,7 +120,7 @@
             formControlName="cuentaDetracciones"
             inputmode="numeric"
             placeholder="Solo dígitos"
-            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm tabular-nums text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90 dark:placeholder:text-white/30"
+            class="h-11 w-full rounded-base border bg-transparent px-4 text-sm tabular-nums text-gray-800 placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90 dark:placeholder:text-white/30"
             [class]="controles.cuentaDetracciones.touched && controles.cuentaDetracciones.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.cuentaDetracciones.touched && controles.cuentaDetracciones.invalid) {
@@ -163,7 +163,7 @@
         siguiente vez no se pueda.
       -->
       <p class="text-sm text-gray-500 dark:text-gray-400">
-        Usarás {{ limites.empresasUsadas + 1 }} de {{ limites.maxEmpresas }} empresas de tu plan.
+        Quedarán {{ limites.empresasUsadas + 1 }} de {{ limites.maxEmpresas }} empresas del plan.
       </p>
       }
     </div>

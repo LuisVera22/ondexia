@@ -5,7 +5,7 @@
   />
 
   @if (!caja()) {
-  <div class="rounded-2xl border border-warning-200 bg-warning-50 p-6 dark:border-warning-500/30 dark:bg-warning-500/10">
+  <div class="rounded-base border border-warning-200 bg-warning-50 p-6 dark:border-warning-500/30 dark:bg-warning-500/10">
     <p class="font-medium text-warning-700 dark:text-warning-400">No hay una caja abierta en este establecimiento.</p>
     <p class="mt-1 text-sm text-warning-700/80 dark:text-warning-400/80">
       Sin sesión de caja no hay a quién atribuir el efectivo. Abre una caja y vuelve.
@@ -18,7 +18,7 @@
   <div class="grid grid-cols-1 gap-5 xl:grid-cols-3">
     <!-- Productos -->
     <section class="space-y-4 xl:col-span-2">
-      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <div class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
         <app-buscador-entidad
           etiqueta="Producto"
           marcador="Nombre o código, y Enter para agregar"
@@ -32,7 +32,7 @@
         </p>
       </div>
 
-      <div class="overflow-x-auto rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+      <div class="overflow-x-auto rounded-base border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
         @if (lineas().length === 0) {
         <p class="p-8 text-center text-sm text-gray-500 dark:text-gray-400">Aún no hay líneas. Busca un producto arriba.</p>
         } @else {
@@ -62,13 +62,13 @@
               <td class="px-2 py-2.5 text-right">
                 <input type="number" min="0.000001" step="any" [ngModel]="linea.cantidad" (ngModelChange)="cambiarCantidad(linea, $event)"
                   [attr.aria-label]="'Cantidad de ' + linea.descripcion"
-                  class="h-9 w-24 rounded-lg border border-gray-300 bg-transparent px-2 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+                  class="h-9 w-24 rounded-base border border-gray-300 bg-transparent px-2 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
               </td>
               <td class="px-2 py-2.5 text-right tabular-nums text-gray-700 dark:text-gray-300">{{ importe(linea.precio) }}</td>
               <td class="px-2 py-2.5 text-right">
                 <input type="number" min="0" step="0.01" [ngModel]="linea.descuento" (ngModelChange)="cambiarDescuento(linea, $event)"
                   [attr.aria-label]="'Descuento de ' + linea.descripcion"
-                  class="h-9 w-24 rounded-lg border border-gray-300 bg-transparent px-2 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+                  class="h-9 w-24 rounded-base border border-gray-300 bg-transparent px-2 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
               </td>
               <td class="px-2 py-2.5 text-right tabular-nums font-medium text-gray-800 dark:text-white/90">{{ importe(totalLinea(linea)) }}</td>
               <td class="px-2 py-2.5 text-right">
@@ -84,7 +84,7 @@
 
     <!-- Documento, cliente y cobro -->
     <aside class="space-y-4">
-      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <div class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
         <p class="mb-3 text-xs text-gray-500 dark:text-gray-400">
           Caja <span class="font-medium text-gray-700 dark:text-gray-300">{{ caja()!.codigo }} · {{ caja()!.nombre }}</span>, abierta.
         </p>
@@ -106,7 +106,7 @@
         }
       </div>
 
-      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <div class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
         @if (cliente(); as elegido) {
         <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ elegido.nombre }}</p>
         <p class="text-xs text-gray-500 dark:text-gray-400">{{ elegido.tipoDocumentoNombre }} {{ elegido.numeroDocumento }}</p>
@@ -131,7 +131,7 @@
         }
       </div>
 
-      <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <div class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
         <div class="mb-3 flex items-baseline justify-between">
           <span class="text-sm text-gray-500 dark:text-gray-400">Total</span>
           <span class="text-2xl font-semibold tabular-nums text-gray-800 dark:text-white/90">{{ importe(total()) }}</span>
@@ -144,18 +144,18 @@
           <div class="grid grid-cols-[1fr_auto] gap-2">
             <div class="grid grid-cols-2 gap-2">
               <select [ngModel]="pago.forma" (ngModelChange)="cambiarFormaDePago(pago, $event)" aria-label="Forma de pago"
-                class="h-10 rounded-lg border border-gray-300 bg-transparent px-2 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden dark:border-gray-700 dark:text-white/90">
+                class="h-10 rounded-base border border-gray-300 bg-transparent px-2 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden dark:border-gray-700 dark:text-white/90">
                 @for (forma of formasDePago; track forma.codigo) {
                 <option [value]="forma.codigo">{{ forma.nombre }}</option>
                 }
               </select>
               <input type="number" min="0" step="0.01" placeholder="0.00" [ngModel]="pago.monto" (ngModelChange)="cambiarMonto(pago, $event)" aria-label="Monto"
-                class="h-10 rounded-lg border border-gray-300 bg-transparent px-2 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden dark:border-gray-700 dark:text-white/90" />
+                class="h-10 rounded-base border border-gray-300 bg-transparent px-2 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden dark:border-gray-700 dark:text-white/90" />
             </div>
             <button type="button" (click)="completarPago(pago)" class="text-xs font-medium text-brand-500 hover:text-brand-600" title="Poner lo que falta">Resto</button>
             @if (pago.forma !== 'EFECTIVO') {
             <input type="text" maxlength="100" placeholder="Referencia (operación, últimos dígitos)" [ngModel]="pago.referencia" (ngModelChange)="cambiarReferencia(pago, $event)" aria-label="Referencia del pago"
-              class="col-span-2 h-9 rounded-lg border border-gray-300 bg-transparent px-2 text-xs text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden dark:border-gray-700 dark:text-white/90" />
+              class="col-span-2 h-9 rounded-base border border-gray-300 bg-transparent px-2 text-xs text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden dark:border-gray-700 dark:text-white/90" />
             }
             @if (pagos().length > 1) {
             <button type="button" (click)="quitarPago(pago)" class="col-span-2 text-left text-xs text-gray-500 hover:text-error-500">Quitar este pago</button>
@@ -172,7 +172,7 @@
 
         <label for="observaciones" class="mb-1.5 mt-4 block text-sm font-medium text-gray-700 dark:text-gray-400">Observaciones</label>
         <input id="observaciones" type="text" maxlength="500" [ngModel]="observaciones()" (ngModelChange)="observaciones.set($event)"
-          class="h-10 w-full rounded-lg border border-gray-300 bg-transparent px-3 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+          class="h-10 w-full rounded-base border border-gray-300 bg-transparent px-3 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
 
         @if (impedimento(); as motivo) {
         <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">{{ motivo }}</p>

@@ -14,11 +14,11 @@
   </div>
 
   @if (cargando()) {
-  <div class="rounded-2xl border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+  <div class="rounded-base border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">
     <p class="text-sm text-gray-500 dark:text-gray-400">Cargando los datos de la empresa…</p>
   </div>
   } @else if (error()) {
-  <div class="mb-5 flex items-start gap-3 rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert">
+  <div class="mb-5 flex items-start gap-3 rounded-base border border-error-500/30 bg-error-500/10 p-4" role="alert">
     <svg class="mt-0.5 shrink-0 text-error-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
       <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
     </svg>
@@ -33,7 +33,7 @@
     escriba a soporte.
   -->
   @if (!esActiva()) {
-  <div class="mb-5 flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-800 dark:bg-white/[0.03]">
+  <div class="mb-5 flex flex-col gap-3 rounded-base border border-gray-200 bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between dark:border-gray-800 dark:bg-white/[0.03]">
     <p class="text-sm text-gray-600 dark:text-gray-400">
       Estás viendo una empresa distinta de aquella en la que trabajas, así que
       sus datos se muestran en solo lectura. Para editarlos hay que pasar a
@@ -52,7 +52,7 @@
   }
 
   <!-- Identificación tributaria: todo esto lo dice SUNAT y nada se edita -->
-  <section class="mb-5 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] xl:p-6">
+  <section class="mb-5 rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] xl:p-6">
     <div class="mb-5 flex flex-wrap items-start justify-between gap-3">
       <div>
         <h3 class="mb-1 font-medium text-gray-800 dark:text-white/90">Identificación tributaria</h3>
@@ -84,12 +84,12 @@
       mano. Se ofrece comprobarlo en vez de acusar.
     -->
     @if (sinVerificar()) {
-    <div class="mb-5 rounded-lg border border-warning-500/30 bg-warning-500/10 px-4 py-3 text-sm text-warning-600 dark:text-warning-400">
+    <div class="mb-5 rounded-base border border-warning-500/30 bg-warning-500/10 px-4 py-3 text-sm text-warning-600 dark:text-warning-400">
       Estos datos nunca se han comprobado contra SUNAT: se escribieron a mano al
       crear la empresa. Pulsa «Actualizar desde SUNAT» para traer los oficiales.
     </div>
     } @else if (!aptaEnElPadron()) {
-    <div class="mb-5 rounded-lg border border-error-500/30 bg-error-500/10 px-4 py-3 text-sm text-error-500" role="alert">
+    <div class="mb-5 rounded-base border border-error-500/30 bg-error-500/10 px-4 py-3 text-sm text-error-500" role="alert">
       Según la última comprobación, esta empresa está
       <strong>{{ legible(datos.estado) }}</strong> y
       <strong>{{ legible(datos.condicion) }}</strong> en SUNAT. Mientras siga así,
@@ -105,14 +105,14 @@
           viaja en la petición de guardado, así que un input deshabilitado
           sugeriría que en alguna circunstancia se podría.
         -->
-        <dd class="flex h-11 items-center rounded-lg bg-gray-50 px-4 text-sm tabular-nums text-gray-800 dark:bg-white/[0.03] dark:text-white/90">
+        <dd class="flex h-11 items-center rounded-base bg-gray-50 px-4 text-sm tabular-nums text-gray-800 dark:bg-white/[0.03] dark:text-white/90">
           {{ datos.ruc }}
         </dd>
       </div>
 
       <div>
         <dt class="mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-400">Situación</dt>
-        <dd class="flex h-11 flex-wrap items-center gap-1.5 rounded-lg bg-gray-50 px-4 dark:bg-white/[0.03]">
+        <dd class="flex h-11 flex-wrap items-center gap-1.5 rounded-base bg-gray-50 px-4 dark:bg-white/[0.03]">
           @if (sinVerificar()) {
           <span class="text-sm text-gray-500 dark:text-gray-400">Sin comprobar</span>
           } @else {
@@ -134,21 +134,21 @@
 
       <div class="sm:col-span-2">
         <dt class="mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-400">Razón social</dt>
-        <dd class="flex min-h-11 items-center rounded-lg bg-gray-50 px-4 py-2.5 text-sm text-gray-800 dark:bg-white/[0.03] dark:text-white/90">
+        <dd class="flex min-h-11 items-center rounded-base bg-gray-50 px-4 py-2.5 text-sm text-gray-800 dark:bg-white/[0.03] dark:text-white/90">
           {{ datos.razonSocial }}
         </dd>
       </div>
 
       <div class="sm:col-span-2">
         <dt class="mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-400">Domicilio fiscal</dt>
-        <dd class="flex min-h-11 items-center rounded-lg bg-gray-50 px-4 py-2.5 text-sm text-gray-800 dark:bg-white/[0.03] dark:text-white/90">
+        <dd class="flex min-h-11 items-center rounded-base bg-gray-50 px-4 py-2.5 text-sm text-gray-800 dark:bg-white/[0.03] dark:text-white/90">
           {{ datos.domicilioFiscal }}
         </dd>
       </div>
 
       <div>
         <dt class="mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-400">Distrito</dt>
-        <dd class="flex h-11 items-center rounded-lg bg-gray-50 px-4 text-sm text-gray-800 dark:bg-white/[0.03] dark:text-white/90">
+        <dd class="flex h-11 items-center rounded-base bg-gray-50 px-4 text-sm text-gray-800 dark:bg-white/[0.03] dark:text-white/90">
           {{ datos.distrito || '—' }}
         </dd>
       </div>
@@ -157,14 +157,14 @@
         <dt class="mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-400">
           Provincia y departamento
         </dt>
-        <dd class="flex h-11 items-center rounded-lg bg-gray-50 px-4 text-sm text-gray-800 dark:bg-white/[0.03] dark:text-white/90">
+        <dd class="flex h-11 items-center rounded-base bg-gray-50 px-4 text-sm text-gray-800 dark:bg-white/[0.03] dark:text-white/90">
           {{ datos.provincia || '—' }}@if (datos.departamento) {, {{ datos.departamento }}}
         </dd>
       </div>
 
       <div>
         <dt class="mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-400">Ubigeo</dt>
-        <dd class="flex h-11 items-center gap-2 rounded-lg bg-gray-50 px-4 text-sm tabular-nums text-gray-800 dark:bg-white/[0.03] dark:text-white/90">
+        <dd class="flex h-11 items-center gap-2 rounded-base bg-gray-50 px-4 text-sm tabular-nums text-gray-800 dark:bg-white/[0.03] dark:text-white/90">
           {{ datos.ubigeo || '—' }}
           <!--
             El ubigeo va en cada comprobante. Sin él SUNAT rechaza, así que su
@@ -178,7 +178,7 @@
 
       <div>
         <dt class="mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-400">Forma societaria</dt>
-        <dd class="flex h-11 items-center rounded-lg bg-gray-50 px-4 text-sm text-gray-800 dark:bg-white/[0.03] dark:text-white/90">
+        <dd class="flex h-11 items-center rounded-base bg-gray-50 px-4 text-sm text-gray-800 dark:bg-white/[0.03] dark:text-white/90">
           {{ datos.tipoSocietario || '—' }}
         </dd>
       </div>
@@ -213,7 +213,7 @@
 
   <!-- Lo nuestro, que sí se edita -->
   <form [formGroup]="formulario" (ngSubmit)="guardar.ejecutar()" novalidate class="space-y-5">
-    <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] xl:p-6">
+    <section class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] xl:p-6">
       <h3 class="mb-1 font-medium text-gray-800 dark:text-white/90">Datos propios</h3>
       <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
         Estos no los registra SUNAT: los decide la empresa.
@@ -228,8 +228,8 @@
             id="nombreComercial"
             type="text"
             formControlName="nombreComercial"
-            placeholder="Como te conocen tus clientes"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:bg-gray-50 disabled:text-gray-500 dark:border-gray-700 dark:text-white/90 dark:placeholder:text-white/30 dark:disabled:bg-white/[0.03]"
+            placeholder="El nombre con el que se conoce a la empresa"
+            class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:bg-gray-50 disabled:text-gray-500 dark:border-gray-700 dark:text-white/90 dark:placeholder:text-white/30 dark:disabled:bg-white/[0.03]"
           />
           <p class="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
             Puede diferir del que registra SUNAT. Sin consecuencias.
@@ -246,7 +246,7 @@
             formControlName="cuentaDetracciones"
             inputmode="numeric"
             placeholder="Solo dígitos"
-            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm tabular-nums text-gray-800 shadow-apoyo placeholder:text-gray-400 focus:outline-hidden focus:ring-3 disabled:bg-gray-50 disabled:text-gray-500 dark:text-white/90 dark:placeholder:text-white/30 dark:disabled:bg-white/[0.03]"
+            class="h-11 w-full rounded-base border bg-transparent px-4 text-sm tabular-nums text-gray-800 placeholder:text-gray-400 focus:outline-hidden focus:ring-3 disabled:bg-gray-50 disabled:text-gray-500 dark:text-white/90 dark:placeholder:text-white/30 dark:disabled:bg-white/[0.03]"
             [class]="controles.cuentaDetracciones.touched && controles.cuentaDetracciones.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
           />
           @if (controles.cuentaDetracciones.touched && controles.cuentaDetracciones.invalid) {
@@ -266,7 +266,7 @@
         </div>
 
         <div class="sm:col-span-2">
-          <label class="flex items-start gap-3 rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-800">
+          <label class="flex items-start gap-3 rounded-base border border-gray-200 p-3 text-sm dark:border-gray-800">
             <input type="checkbox" formControlName="permiteVentaSinStock" class="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/20" />
             <span>
               <span class="block font-medium text-gray-800 dark:text-white/90">Permitir vender sin existencias</span>
@@ -288,14 +288,14 @@
             Régimen tributario
           </legend>
           <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <label class="flex items-start gap-3 rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-800">
+            <label class="flex items-start gap-3 rounded-base border border-gray-200 p-3 text-sm dark:border-gray-800">
               <input type="radio" formControlName="regimenTributario" value="OTRO" class="mt-0.5 h-4 w-4 border-gray-300 text-brand-500 focus:ring-brand-500/20" />
               <span>
                 <span class="block font-medium text-gray-800 dark:text-white/90">General, MYPE o especial</span>
                 <span class="block text-gray-500 dark:text-gray-400">Emite boletas y facturas.</span>
               </span>
             </label>
-            <label class="flex items-start gap-3 rounded-lg border border-gray-200 p-3 text-sm dark:border-gray-800">
+            <label class="flex items-start gap-3 rounded-base border border-gray-200 p-3 text-sm dark:border-gray-800">
               <input type="radio" formControlName="regimenTributario" value="NUEVO_RUS" class="mt-0.5 h-4 w-4 border-gray-300 text-brand-500 focus:ring-brand-500/20" />
               <span>
                 <span class="block font-medium text-gray-800 dark:text-white/90">Nuevo RUS</span>

@@ -13,7 +13,7 @@
   class="flex items-center text-dato"
   [class]="
     hayAlgoQueElegir
-      ? 'h-10 divide-x divide-gray-300 rounded-lg border border-gray-300 dark:divide-gray-700 dark:border-gray-700'
+      ? 'h-10 divide-x divide-gray-300 rounded-base border border-gray-300 dark:divide-gray-700 dark:border-gray-700'
       : 'gap-2 text-gray-600 dark:text-gray-400'
   "
 >
@@ -26,8 +26,8 @@
       [attr.aria-expanded]="desplegado === 'empresa'"
       aria-haspopup="menu"
       [title]="'Empresa: ' + (empresaActiva?.nombre || 'sin seleccionar')"
-      [class.rounded-r-lg]="!establecimientos.length"
-      class="flex h-full max-w-[190px] items-center gap-2 rounded-l-lg px-3 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.04]"
+      [class.rounded-r-base]="!establecimientos.length"
+      class="flex h-full max-w-[190px] items-center gap-2 rounded-l-base px-3 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.04]"
     >
       <!--
         El icono, y no solo el nombre. «Demo» y «Principal» uno al lado del otro
@@ -53,7 +53,7 @@
       role="menu"
       aria-label="Empresa"
       animate.enter="menu-entra"
-      class="absolute left-0 top-full z-50 mt-2 w-56 rounded-xl sm:w-64 border border-gray-200 bg-white p-1.5 shadow-flotante dark:border-gray-700 dark:bg-gray-900"
+      class="absolute left-0 top-full z-50 mt-2 w-56 rounded-base sm:w-64 border border-gray-200 bg-white p-1.5 shadow-flotante dark:border-gray-700 dark:bg-gray-900"
     >
       <!--
         El título dice de qué es la lista. Es el sitio donde cabe la palabra
@@ -68,7 +68,7 @@
         role="menuitemradio"
         [attr.aria-checked]="opcion.id === empresaActiva?.id"
         (click)="elegirEmpresa(opcion)"
-        class="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left transition hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+        class="flex w-full items-center gap-2 rounded-base px-2.5 py-2 text-left transition hover:bg-gray-100 dark:hover:bg-white/[0.06]"
       >
         <span class="min-w-0 flex-1">
           <span class="block truncate text-gray-800 dark:text-white/90">{{ opcion.nombre }}</span>
@@ -123,7 +123,7 @@
       [attr.aria-expanded]="desplegado === 'establecimiento'"
       aria-haspopup="menu"
       [title]="'Establecimiento: ' + (establecimientoActivo?.nombre || 'sin seleccionar')"
-      class="flex h-full max-w-[180px] items-center gap-2 rounded-r-lg px-3 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.04]"
+      class="flex h-full max-w-[180px] items-center gap-2 rounded-r-base px-3 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.04]"
     >
       <svg class="size-4 shrink-0 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <path d="M4 10.5V19a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8.5M2.5 9.5 4.5 4.5h15l2 5a3 3 0 0 1-5.5 1.5 3 3 0 0 1-5 0 3 3 0 0 1-5.5-1.5Z" />
@@ -144,7 +144,7 @@
       role="menu"
       aria-label="Establecimiento"
       animate.enter="menu-entra"
-      class="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl sm:w-64 border border-gray-200 bg-white p-1.5 shadow-flotante dark:border-gray-700 dark:bg-gray-900"
+      class="absolute right-0 top-full z-50 mt-2 w-56 rounded-base sm:w-64 border border-gray-200 bg-white p-1.5 shadow-flotante dark:border-gray-700 dark:bg-gray-900"
     >
       <p class="px-2.5 pb-1.5 pt-1 text-menudo font-medium uppercase text-gray-400 dark:text-gray-500">
         Establecimiento
@@ -155,7 +155,7 @@
         role="menuitemradio"
         [attr.aria-checked]="opcion.id === establecimientoActivo?.id"
         (click)="elegirEstablecimiento(opcion)"
-        class="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left transition hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+        class="flex w-full items-center gap-2 rounded-base px-2.5 py-2 text-left transition hover:bg-gray-100 dark:hover:bg-white/[0.06]"
       >
         <span class="min-w-0 flex-1">
           <span class="block truncate text-gray-800 dark:text-white/90">{{ opcion.nombre }}</span>

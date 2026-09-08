@@ -37,17 +37,17 @@ export interface ErrorDeApi {
  * escritas para nadie que use la aplicación.
  */
 const POR_ESTADO: Record<number, string> = {
-  0: 'No se pudo contactar con el servidor. Revisa tu conexión y vuelve a intentarlo.',
-  400: 'La solicitud no es válida. Revisa los datos e inténtalo de nuevo.',
-  401: 'Tu sesión ya no es válida. Vuelve a ingresar.',
-  403: 'No tienes permiso para realizar esta acción.',
-  404: 'No encontramos lo que buscabas.',
+  0: 'No se pudo contactar con el servidor. Conviene revisar la conexión y reintentar.',
+  400: 'La solicitud no es válida. Hay que revisar los datos y reintentar.',
+  401: 'La sesión ha caducado. Es necesario ingresar de nuevo.',
+  403: 'Esta cuenta no tiene permiso para esta acción.',
+  404: 'No se encontró lo solicitado.',
   409: 'La operación choca con un dato existente.',
   413: 'El archivo es demasiado grande.',
-  429: 'Demasiadas solicitudes seguidas. Espera un momento y vuelve a intentarlo.',
-  502: 'El servicio no está respondiendo. Vuelve a intentarlo en unos segundos.',
+  429: 'Demasiadas solicitudes seguidas. Es necesario esperar un momento.',
+  502: 'El servicio no está respondiendo. Conviene reintentar en unos segundos.',
   503: 'El servicio no está disponible en este momento.',
-  504: 'El servidor tardó demasiado en responder. Vuelve a intentarlo.',
+  504: 'El servidor tardó demasiado en responder. Conviene reintentar.',
 };
 
 /**

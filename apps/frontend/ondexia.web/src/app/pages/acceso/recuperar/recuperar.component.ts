@@ -35,7 +35,7 @@ export class RecuperarComponent {
       await this.sesion.recuperar();
     } catch {
       this.enviando.set(false);
-      this.error.set('No se pudo contactar con el servicio de acceso. Inténtalo de nuevo.');
+      this.error.set('No se pudo contactar con el servicio de acceso. Conviene reintentar.');
     }
   }
 

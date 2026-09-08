@@ -97,7 +97,7 @@ export class NuevaEmpresaComponent {
     try {
       this.cupo.set(await this.api.cupoDeEmpresas());
     } catch (fallo: unknown) {
-      this.error.set(mensajeDeError(fallo, 'No se pudo comprobar cuántas empresas admite tu plan.'));
+      this.error.set(mensajeDeError(fallo, 'No se pudo comprobar cuántas empresas admite el plan.'));
     } finally {
       this.cargando.set(false);
     }

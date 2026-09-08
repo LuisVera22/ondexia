@@ -7,13 +7,13 @@
       </h1>
       <p class="text-sm text-gray-500 dark:text-gray-400">
         Te llevaremos a la página segura de acceso: ahí pides el código, te
-        llega al correo y eliges tu contraseña nueva.
+        llega al correo y desde ahí se define la contraseña nueva.
       </p>
     </div>
 
     @if (error()) {
     <div
-      class="mb-5 rounded-lg border border-error-500/30 bg-error-500/10 px-4 py-3 text-sm text-error-500"
+      class="mb-5 rounded-base border border-error-500/30 bg-error-500/10 px-4 py-3 text-sm text-error-500"
       role="alert"
     >
       {{ error() }}
@@ -24,7 +24,7 @@
       type="button"
       (click)="recuperar()"
       [disabled]="enviando()"
-      class="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand-500 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
+      class="flex h-11 w-full items-center justify-center gap-2 rounded-base bg-brand-500 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
     >
       @if (enviando()) {
       <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

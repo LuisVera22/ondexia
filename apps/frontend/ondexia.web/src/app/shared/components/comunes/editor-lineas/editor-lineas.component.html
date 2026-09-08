@@ -1,4 +1,4 @@
-<div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+<div class="rounded-base border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
   <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-gray-800">
     <h4 class="font-medium text-gray-800 dark:text-white/90">Detalle</h4>
 
@@ -6,7 +6,7 @@
     <button
       type="button"
       (click)="solicitarProducto.emit()"
-      class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-brand-600"
+      class="inline-flex items-center gap-2 rounded-base bg-brand-500 px-3.5 py-2 text-sm font-medium text-white transition hover:bg-brand-600"
     >
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
         <path d="M12 5v14M5 12h14" />
@@ -57,7 +57,7 @@
               [(ngModel)]="linea.cantidad"
               (ngModelChange)="alEditar()"
               [disabled]="soloLectura"
-              class="h-9 w-full rounded-lg border border-gray-300 bg-transparent px-2.5 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:bg-gray-50 dark:border-gray-700 dark:text-white/90"
+              class="h-9 w-full rounded-base border border-gray-300 bg-transparent px-2.5 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:bg-gray-50 dark:border-gray-700 dark:text-white/90"
             />
           </td>
 
@@ -72,7 +72,7 @@
               [(ngModel)]="linea.valorUnitario"
               (ngModelChange)="alEditar()"
               [disabled]="soloLectura"
-              class="h-9 w-full rounded-lg border border-gray-300 bg-transparent px-2.5 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:bg-gray-50 dark:border-gray-700 dark:text-white/90"
+              class="h-9 w-full rounded-base border border-gray-300 bg-transparent px-2.5 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:bg-gray-50 dark:border-gray-700 dark:text-white/90"
             />
           </td>
 
@@ -84,7 +84,7 @@
               [(ngModel)]="linea.descuento"
               (ngModelChange)="alEditar()"
               [disabled]="soloLectura"
-              class="h-9 w-full rounded-lg border border-gray-300 bg-transparent px-2.5 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:bg-gray-50 dark:border-gray-700 dark:text-white/90"
+              class="h-9 w-full rounded-base border border-gray-300 bg-transparent px-2.5 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 disabled:bg-gray-50 dark:border-gray-700 dark:text-white/90"
             />
           </td>
 

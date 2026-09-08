@@ -42,7 +42,7 @@
     [attr.aria-labelledby]="titulo ? 'modal-titulo' : null"
     [attr.aria-describedby]="subtitulo ? 'modal-subtitulo' : null"
     animate.enter="dialogo-entra"
-    class="relative max-h-[90dvh] w-full overflow-y-auto overscroll-contain rounded-t-2xl bg-white shadow-flotante max-sm:max-w-none sm:max-h-[calc(100dvh-3rem)] sm:rounded-2xl dark:bg-gray-900"
+    class="relative max-h-[90dvh] w-full overflow-y-auto overscroll-contain rounded-t-base bg-white shadow-flotante max-sm:max-w-none sm:max-h-[calc(100dvh-3rem)] sm:rounded-base dark:bg-gray-900"
     [class]="clasesAncho"
   >
     <!--
@@ -79,7 +79,7 @@
         (click)="intentarCerrar()"
         [disabled]="procesando"
         aria-label="Cerrar"
-        class="-mr-1 -mt-1 shrink-0 rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 disabled:opacity-40 dark:hover:bg-white/[0.05] dark:hover:text-gray-300"
+        class="-mr-1 -mt-1 shrink-0 rounded-base p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 disabled:opacity-40 dark:hover:bg-white/[0.05] dark:hover:text-gray-300"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
           <path d="m6 6 12 12M18 6 6 18" />

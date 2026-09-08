@@ -47,7 +47,7 @@
             [attr.aria-label]="muestraTexto ? null : entrada.nombre"
             [class.activa]="contieneRutaActiva(entrada)"
             [class.justify-center]="!muestraTexto"
-            class="entrada-menu group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-dato font-medium transition"
+            class="entrada-menu group flex w-full items-center gap-3 rounded-base px-3 py-2 text-dato font-medium transition"
           >
             <span
               class="entrada-menu-icono flex size-6 shrink-0 items-center justify-center text-2xl"
@@ -79,7 +79,7 @@
                   [attr.tabindex]="estaAbierto(entrada) ? null : -1"
                   [class.activa]="esActiva(sub.ruta)"
                   [attr.aria-current]="esActiva(sub.ruta) ? 'page' : null"
-                  class="entrada-menu block rounded-lg px-3 py-2 text-dato transition"
+                  class="entrada-menu block rounded-base px-3 py-2 text-dato transition"
                 >
                   {{ sub.nombre }}
                 </a>
@@ -96,7 +96,7 @@
             [attr.aria-current]="esActiva(entrada.ruta) ? 'page' : null"
             [class.activa]="esActiva(entrada.ruta)"
             [class.justify-center]="!muestraTexto"
-            class="entrada-menu group flex items-center gap-3 rounded-lg px-3 py-2 text-dato font-medium transition"
+            class="entrada-menu group flex items-center gap-3 rounded-base px-3 py-2 text-dato font-medium transition"
           >
             <span
               class="entrada-menu-icono flex size-6 shrink-0 items-center justify-center text-2xl"

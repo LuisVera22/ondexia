@@ -3,12 +3,12 @@
 
   <div class="space-y-5">
     <!-- Cabecera del documento -->
-    <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+    <section class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
       <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
         <h3 class="font-medium text-gray-800 dark:text-white/90">Datos del documento</h3>
 
         @if (configuracion.esComprobanteElectronico && configuracion.serie) {
-        <span class="rounded-lg border border-gray-200 px-3 py-1.5 text-sm tabular-nums text-gray-600 dark:border-gray-700 dark:text-gray-300">
+        <span class="rounded-base border border-gray-200 px-3 py-1.5 text-sm tabular-nums text-gray-600 dark:border-gray-700 dark:text-gray-300">
           {{ configuracion.serie }}-{{ configuracion.siguienteNumero }}
           <span class="ml-1 text-xs text-gray-400">(provisional)</span>
         </span>
@@ -28,7 +28,7 @@
           />
 
           @if (terceroSeleccionado) {
-          <div class="mt-2 flex items-center justify-between gap-3 rounded-lg bg-gray-50 px-3.5 py-2.5 dark:bg-white/[0.04]">
+          <div class="mt-2 flex items-center justify-between gap-3 rounded-base bg-gray-50 px-3.5 py-2.5 dark:bg-white/[0.04]">
             <span class="min-w-0">
               <span class="block truncate text-sm text-gray-800 dark:text-white/90">{{ terceroSeleccionado.titulo }}</span>
               <span class="block text-xs text-gray-500 dark:text-gray-400">{{ terceroSeleccionado.detalle }}</span>
@@ -46,7 +46,7 @@
             Fecha de emisión
           </label>
           <input id="fechaEmision" type="date" [(ngModel)]="fechaEmision"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+            class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
         </div>
 
         @if (configuracion.usaVencimiento) {
@@ -55,7 +55,7 @@
             Válido hasta
           </label>
           <input id="fechaVencimiento" type="date" [(ngModel)]="fechaVencimiento"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+            class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
         </div>
         }
 
@@ -78,7 +78,7 @@
             Documento que modifica <span class="text-error-500">*</span>
           </label>
           <input id="referencia" type="text" [(ngModel)]="documentoReferencia" placeholder="F001-000123"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+            class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
           @if (intentoEnvio && !documentoReferencia) {
           <p class="mt-1.5 text-xs text-error-500">Indique el comprobante que se está modificando.</p>
           }
@@ -101,7 +101,7 @@
 
     <!-- Traslado: exclusivo de la guía de remisión -->
     @if (configuracion.usaTraslado) {
-    <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+    <section class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
       <h3 class="mb-1 font-medium text-gray-800 dark:text-white/90">Datos del traslado</h3>
       <p class="mb-5 text-sm text-gray-500 dark:text-gray-400">
         El punto de partida debe corresponder a un establecimiento registrado
@@ -127,7 +127,7 @@
           </label>
           <input id="puntoPartida" type="text" [(ngModel)]="puntoPartida"
             placeholder="Dirección y ubigeo de origen"
-            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90"
+            class="h-11 w-full rounded-base border bg-transparent px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90"
             [class]="intentoEnvio && !puntoPartida ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'" />
         </div>
 
@@ -137,7 +137,7 @@
           </label>
           <input id="puntoLlegada" type="text" [(ngModel)]="puntoLlegada"
             placeholder="Dirección y ubigeo de destino"
-            class="h-11 w-full rounded-lg border bg-transparent px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90"
+            class="h-11 w-full rounded-base border bg-transparent px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90"
             [class]="intentoEnvio && !puntoLlegada ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'" />
         </div>
 
@@ -147,19 +147,19 @@
           </label>
           <input id="transportista" type="text" [(ngModel)]="transportista"
             placeholder="Razón social o nombre del conductor"
-            class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+            class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label for="placa" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Placa</label>
             <input id="placa" type="text" [(ngModel)]="placaVehiculo" placeholder="ABC-123"
-              class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm uppercase text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+              class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm uppercase text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
           </div>
           <div>
             <label for="peso" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Peso (kg)</label>
             <input id="peso" type="number" min="0" step="0.001" [(ngModel)]="pesoTotal"
-              class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+              class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
           </div>
         </div>
       </div>
@@ -167,7 +167,7 @@
     }
 
     <!-- Búsqueda de producto -->
-    <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+    <section class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
       <app-buscador-entidad
         etiqueta="Agregar producto"
         marcador="Buscar por nombre o código y presionar Enter…"
@@ -187,19 +187,19 @@
     />
 
     <!-- Observaciones -->
-    <section class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+    <section class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
       <label for="observaciones" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
         Observaciones
       </label>
       <textarea id="observaciones" [(ngModel)]="observaciones" rows="2"
         placeholder="Texto adicional que se imprime en el documento"
-        class="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"></textarea>
+        class="w-full rounded-base border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"></textarea>
     </section>
 
     <!-- Acciones -->
     <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
       <a [routerLink]="configuracion.rutaListado"
-        class="rounded-lg border border-gray-300 px-5 py-3 text-center text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+        class="rounded-base border border-gray-300 px-5 py-3 text-center text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
         Cancelar
       </a>
 
@@ -211,7 +211,7 @@
         }
 
         <button type="button" (click)="intentarAccion()" [disabled]="!puedeEmitir && intentoEnvio"
-          class="rounded-lg bg-brand-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-50">
+          class="rounded-base bg-brand-500 px-5 py-3 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-50">
           {{ configuracion.textoAccion }}
         </button>
       </div>

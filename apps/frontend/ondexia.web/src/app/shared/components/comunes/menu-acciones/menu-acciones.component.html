@@ -11,7 +11,7 @@
   [attr.aria-label]="'Acciones' + (descripcionFila ? ' de ' + descripcionFila : '')"
   aria-haspopup="menu"
   [attr.aria-expanded]="abierto()"
-  class="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 focus:outline-hidden focus-visible:ring-3 focus-visible:ring-brand-500/25 dark:hover:bg-white/[0.05] dark:hover:text-gray-300"
+  class="inline-flex h-9 w-9 items-center justify-center rounded-base text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 focus:outline-hidden focus-visible:ring-3 focus-visible:ring-brand-500/25 dark:hover:bg-white/[0.05] dark:hover:text-gray-300"
   [class.bg-gray-100]="abierto()"
   [class.dark:bg-white/[0.06]]="abierto()"
 >
@@ -39,7 +39,7 @@
   (keydown)="alTeclearEnPanel($event)"
   animate.enter="menu-entra"
   #panel
-  class="z-99999 min-w-48 overflow-y-auto overscroll-contain rounded-xl border border-gray-200 bg-white py-1.5 shadow-flotante focus:outline-hidden dark:border-gray-800 dark:bg-gray-900"
+  class="z-99999 min-w-48 overflow-y-auto overscroll-contain rounded-base border border-gray-200 bg-white py-1.5 shadow-flotante focus:outline-hidden dark:border-gray-800 dark:bg-gray-900"
 >
   @for (opcion of ordenadas; track opcion.id; let i = $index) {
   @if (i === primeraPeligrosa && i > 0) {

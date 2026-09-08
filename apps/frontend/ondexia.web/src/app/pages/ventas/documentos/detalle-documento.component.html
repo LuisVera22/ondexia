@@ -8,9 +8,9 @@
       </a>
       @if (documento()) {
       <div class="flex items-center gap-2">
-        <div class="flex rounded-lg border border-gray-300 p-0.5 text-xs dark:border-gray-700" role="group" aria-label="Formato de impresión">
-          <button type="button" (click)="formato.set('ticket')" class="rounded-md px-3 py-1.5 font-medium" [class]="formato() === 'ticket' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">Ticket 80 mm</button>
-          <button type="button" (click)="formato.set('a4')" class="rounded-md px-3 py-1.5 font-medium" [class]="formato() === 'a4' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">A4</button>
+        <div class="flex rounded-base border border-gray-300 p-0.5 text-xs dark:border-gray-700" role="group" aria-label="Formato de impresión">
+          <button type="button" (click)="formato.set('ticket')" class="rounded-base px-3 py-1.5 font-medium" [class]="formato() === 'ticket' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">Ticket 80 mm</button>
+          <button type="button" (click)="formato.set('a4')" class="rounded-base px-3 py-1.5 font-medium" [class]="formato() === 'a4' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">A4</button>
         </div>
         <app-boton (accion)="imprimir()">Imprimir</app-boton>
         @if (sePuedeAnular()) {
@@ -31,12 +31,12 @@
   @if (cargando()) {
   <p class="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>
   } @else if (error()) {
-  <div class="rounded-xl border border-error-500/30 bg-error-500/10 p-4" role="alert"><p class="text-sm text-error-500">{{ error() }}</p></div>
+  <div class="rounded-base border border-error-500/30 bg-error-500/10 p-4" role="alert"><p class="text-sm text-error-500">{{ error() }}</p></div>
   } @else if (documento(); as d) {
 
   @if (d.fiscal && sunat(); as s) {
   <!-- Lo que SUNAT dijo (doc 14 §3). No se imprime: la hoja lleva su propia leyenda. -->
-  <section class="no-imprimir mx-auto mb-5 rounded-2xl border p-4" [class]="formato() === 'ticket' ? 'max-w-md' : 'max-w-3xl'"
+  <section class="no-imprimir mx-auto mb-5 rounded-base border p-4" [class]="formato() === 'ticket' ? 'max-w-md' : 'max-w-3xl'"
     [class.border-success-500/40]="s.estado === 'ACEPTADO'" [class.bg-success-500/5]="s.estado === 'ACEPTADO'"
     [class.border-warning-500/40]="s.estado === 'EN_COLA'" [class.bg-warning-500/5]="s.estado === 'EN_COLA'"
     [class.border-error-500/40]="s.estado === 'RECHAZADO' || s.estado === 'ERROR_ENVIO'" [class.bg-error-500/5]="s.estado === 'RECHAZADO' || s.estado === 'ERROR_ENVIO'"
@@ -89,7 +89,7 @@
   }
 
   @if (relacionados().length > 0) {
-  <section class="no-imprimir mx-auto mb-5 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]"
+  <section class="no-imprimir mx-auto mb-5 rounded-base border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]"
     [class]="formato() === 'ticket' ? 'max-w-md' : 'max-w-3xl'">
     <h2 class="mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">Lo que salió de este documento</h2>
     <ul class="divide-y divide-gray-100 text-sm dark:divide-gray-800">
@@ -104,7 +104,7 @@
   }
 
   <!-- La hoja: lo que se imprime. -->
-  <article class="hoja mx-auto rounded-xl border border-gray-200 bg-white p-6 text-gray-900 shadow-apoyo print:text-black"
+  <article class="hoja mx-auto rounded-base border border-gray-200 bg-white p-6 text-gray-900 print:text-black"
     [class]="formato() === 'ticket' ? 'hoja--ticket' : 'max-w-3xl'">
     <header class="text-center">
       <p class="text-base font-semibold uppercase">{{ empresa()?.nombreComercial || empresa()?.razonSocial }}</p>
@@ -209,7 +209,7 @@
 >
   <div class="grid gap-4">
     @if (!cajaEnUso()) {
-    <p class="rounded-lg border border-warning-500/40 bg-warning-500/10 p-3 text-sm text-gray-700 dark:text-gray-300">
+    <p class="rounded-base border border-warning-500/40 bg-warning-500/10 p-3 text-sm text-gray-700 dark:text-gray-300">
       No hay ninguna caja abierta. La devolución pasa por el cajón, así que hay que abrir una antes.
     </p>
     } @else {
@@ -240,7 +240,7 @@
       <label for="obsNota" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Sustento</label>
       <input id="obsNota" type="text" name="obsNota" [(ngModel)]="observacionesDeLaNota" maxlength="500"
         placeholder="Por qué se anula. Va impreso y en el XML."
-        class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+        class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
     </div>
   </div>
 
@@ -263,16 +263,16 @@
   <div class="grid gap-4">
     <div>
       <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Comprobante</span>
-      <div class="flex rounded-lg border border-gray-300 p-0.5 text-sm dark:border-gray-700" role="group">
+      <div class="flex rounded-base border border-gray-300 p-0.5 text-sm dark:border-gray-700" role="group">
         <button type="button" (click)="tipoDeCanje = 'BOLETA'; cargarSeriesDeCanje()"
-          class="flex-1 rounded-md px-3 py-2 font-medium" [class]="tipoDeCanje === 'BOLETA' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">Boleta</button>
+          class="flex-1 rounded-base px-3 py-2 font-medium" [class]="tipoDeCanje === 'BOLETA' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">Boleta</button>
         <button type="button" (click)="tipoDeCanje = 'FACTURA'; cargarSeriesDeCanje()"
-          class="flex-1 rounded-md px-3 py-2 font-medium" [class]="tipoDeCanje === 'FACTURA' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">Factura</button>
+          class="flex-1 rounded-base px-3 py-2 font-medium" [class]="tipoDeCanje === 'FACTURA' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">Factura</button>
       </div>
     </div>
 
     @if (tipoDeCanje === 'FACTURA' && documento()?.cliente?.tipoDocumento !== 'RUC') {
-    <p class="rounded-lg border border-warning-500/40 bg-warning-500/10 p-3 text-sm text-gray-700 dark:text-gray-300">
+    <p class="rounded-base border border-warning-500/40 bg-warning-500/10 p-3 text-sm text-gray-700 dark:text-gray-300">
       Una factura exige un cliente con RUC. Esta nota de venta
       @if (documento()?.cliente) { está a nombre de un cliente con {{ documento()?.cliente?.tipoDocumento }}. } @else { no tiene cliente. }
       Cámbialo desde el punto de venta o canjéala por boleta.
@@ -289,7 +289,7 @@
     <div>
       <label for="obsCanje" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Observaciones</label>
       <input id="obsCanje" type="text" name="obsCanje" [(ngModel)]="observacionesDeLaNota" maxlength="500"
-        class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+        class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
     </div>
   </div>
 
@@ -309,14 +309,14 @@
   (cerrar)="cerrarModal()"
 >
   <div class="grid gap-4">
-    <p class="rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-300">
+    <p class="rounded-base border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-300">
       SUNAT no responde en el momento: devuelve un ticket y el veredicto llega después. El comprobante queda anulado cuando lo acepte.
     </p>
     <div>
       <label for="motivoBaja" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Por qué no debió existir</label>
       <input id="motivoBaja" type="text" name="motivoBaja" [(ngModel)]="observacionesDeLaNota" maxlength="300"
         placeholder="Emitida al cliente equivocado, duplicada…"
-        class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+        class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
     </div>
   </div>
 

@@ -110,7 +110,7 @@ export class SeriesComponent {
 
   private aDesactivar: SerieApi | null = null;
   readonly opcionesTipo = computed<OpcionDesplegable[]>(() => [
-    { valor: '', etiqueta: 'Elige un tipo…' },
+    { valor: '', etiqueta: 'Elegir un tipo…' },
     ...this.tipos().map((tipo) => ({ valor: tipo.codigo, etiqueta: tipo.nombre })),
   ]);
 
