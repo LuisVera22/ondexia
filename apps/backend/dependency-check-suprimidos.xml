@@ -86,6 +86,62 @@
   </suppress>
 
   <!--
+    2026-09-08 · jaxb-impl y jaxb-core (com.sun.xml.bind)
+
+    Tres CVE de Eclipse GlassFish —el servidor de aplicaciones— asignados a la
+    biblioteca que enlaza XML con objetos Java:
+
+      · CVE-2026-2586 (9.1): ejecucion de codigo por la CONSOLA DE
+        ADMINISTRACION de GlassFish, para quien ya tiene acceso de
+        administrador.
+      · CVE-2026-2587 (9.6): inyeccion de EL en el GADGET HANDLER de GlassFish,
+        que evalua expresiones dentro de archivos .xml.
+      · CVE-2024-9329: del mismo grupo.
+
+    Ninguno describe a JAXB. Lo que los trae es el identificador
+    `cpe:2.3:a:eclipse:glassfish:4.0.9` que el analisis le cuelga al jar por
+    coincidencia de numero: GlassFish va por la 7 y la 8, y su version 4.0.9 no
+    existe. Es un falso positivo conocido rio arriba, reportado en
+    dependency-check/DependencyCheck#8612 para rngom-4.0.9, que es otro artefacto
+    de la misma familia y misma version.
+
+    Aqui no hay servidor de aplicaciones: el Emisor es una Lambda con Spring
+    Boot, y jaxb-impl entra por xbuilder para serializar el UBL. No hay consola
+    de administracion ni gadget handler que atacar.
+
+    No hay version que lo corrija porque no hay nada que corregir: 4.0.9 es la
+    ultima publicada de com.sun.xml.bind:jaxb-impl.
+
+    Igual que con tomcat-embed-*, el patron cubre la familia y no un solo
+    artefacto: el CPE se asigna por version, y jaxb-core lleva la misma.
+
+    Deja de aplicar si: el CPE se corrige rio arriba y el hallazgo apunta a otro
+    producto, o si aparece un CVE que describa de verdad a JAXB.
+  -->
+  <suppress>
+    <notes><![CDATA[
+      CVE del servidor GlassFish (consola de administracion y gadget handler)
+      asignados a com.sun.xml.bind por un CPE que coincide solo en el numero de
+      version. Falso positivo conocido (DependencyCheck#8612). El Emisor es una
+      Lambda con Spring Boot: no hay GlassFish. 4.0.9 es la ultima publicada.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.sun\.xml\.bind/jaxb-.*@.*$</packageUrl>
+    <cve>CVE-2026-2586</cve>
+    <cve>CVE-2026-2587</cve>
+    <cve>CVE-2024-9329</cve>
+  </suppress>
+
+  <!--
+    qute-core NO figura aqui, y por el mismo motivo que swagger-ui: tenia
+    arreglo. xbuilder 5.1.1 arrastraba Qute 3.4.1 y con el cinco CVE de
+    quarkus-vertx-http, quarkus-rest y la capa de seguridad de Quarkus, todos
+    colgados del CPE generico `quarkus:quarkus`. Fijar qute-core en 3.39.2 desde
+    el pom del Emisor —por encima de la 3.37.0 que corrige el ultimo— los deja
+    fuera de rango sin necesidad de afirmar nada. Ver el comentario de
+    `qute.version` en ondexia.facturacion/pom.xml.
+  -->
+
+  <!--
     CVE-2026-65898 (DOMPurify dentro de swagger-ui) NO figura aqui, y conviene
     dejar dicho por que: se corrigio de verdad.
 

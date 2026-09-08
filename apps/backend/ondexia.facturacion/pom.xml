@@ -48,7 +48,39 @@
 
   <properties>
     <xbuilder.version>5.1.1</xbuilder.version>
+    <!--
+      Qute al dia, por encima de la version que xbuilder arrastra.
+
+      xbuilder 5.1.1 pide qute-core 3.4.1 y el analisis de dependencias lo tumba
+      con cinco CVE de CVSS alto. Ninguno es de Qute: al jar se le asigna el
+      identificador generico `cpe:2.3:a:quarkus:quarkus`, y con el entran
+      hallazgos de quarkus-vertx-http, quarkus-rest y la capa de seguridad de
+      Quarkus (CVE-2026-50559, CVE-2026-39852, CVE-2024-12225, CVE-2023-6394,
+      CVE-2025-66560). Aqui no hay Quarkus: qute-core se usa como motor de
+      plantillas suelto dentro de un Spring Boot.
+
+      Aun asi la salida NO es suprimirlos. Con una version por encima de 3.37.0
+      —la que corrige el ultimo de la lista— el analisis deja de senalarlos por
+      si mismo, y de paso el motor de plantillas queda al dia. Suprimir habria
+      dejado la dependencia congelada en 3.4.1 y el detector apagado para lo que
+      si aparezca en Qute manana.
+
+      Si al subirla las plantillas de xbuilder dejaran de renderizar, lo dirian
+      ConstructorDeComprobanteTest y ConstructorDeBaja: comparan el XML generado
+      contra lo que SUNAT espera, nodo a nodo.
+    -->
+    <qute.version>3.39.2</qute.version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.quarkus.qute</groupId>
+        <artifactId>qute-core</artifactId>
+        <version>${qute.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <!--
