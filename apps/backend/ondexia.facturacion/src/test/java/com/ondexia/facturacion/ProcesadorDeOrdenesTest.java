@@ -58,10 +58,13 @@ class ProcesadorDeOrdenesTest {
     /** SUNAT fingida: devuelve lo que se le programe y recuerda lo que recibió. */
     static class SunatFingida extends ClienteSunat {
         RespuestaSunat respuesta;
+        RespuestaSunat respuestaDeResumen;
         String urlUsada;
         String usuarioUsado;
         String claveUsada;
         String zipUsado;
+        byte[] zipEnviado;
+        String ticketConsultado;
 
         SunatFingida() {
             super(Duration.ofSeconds(1));
@@ -70,13 +73,34 @@ class ProcesadorDeOrdenesTest {
         @Override
         public RespuestaSunat enviar(String urlServicio, String ruc, String usuarioSol, String claveSol,
                 String nombreZip, byte[] zip) {
+            anotar(urlServicio, ruc, usuarioSol, claveSol, nombreZip, zip);
+            assertThat(new String(Empaquetador.primerXml(zip), StandardCharsets.ISO_8859_1))
+                    .contains("<ds:Signature");
+            return respuesta;
+        }
+
+        @Override
+        public RespuestaSunat enviarResumen(String urlServicio, String ruc, String usuarioSol,
+                String claveSol, String nombreZip, byte[] zip) {
+            anotar(urlServicio, ruc, usuarioSol, claveSol, nombreZip, zip);
+            return respuestaDeResumen;
+        }
+
+        @Override
+        public RespuestaSunat consultarTicket(String urlServicio, String ruc, String usuarioSol,
+                String claveSol, String ticket) {
+            this.urlUsada = urlServicio;
+            this.ticketConsultado = ticket;
+            return respuesta;
+        }
+
+        private void anotar(String urlServicio, String ruc, String usuarioSol, String claveSol,
+                String nombreZip, byte[] zip) {
             this.urlUsada = urlServicio;
             this.usuarioUsado = ruc + usuarioSol;
             this.claveUsada = claveSol;
             this.zipUsado = nombreZip;
-            assertThat(new String(Empaquetador.primerXml(zip), StandardCharsets.ISO_8859_1))
-                    .contains("<ds:Signature");
-            return respuesta;
+            this.zipEnviado = zip;
         }
     }
 
@@ -189,11 +213,60 @@ class ProcesadorDeOrdenesTest {
     }
 
     @Test
+    @DisplayName("La comunicación de baja: se firma, se envía y vuelve con ticket, no con constancia")
+    void comunicacionDeBaja() {
+        sunat.respuestaDeResumen = new LectorDeRespuestaSunat().leerTicket(200, """
+                <soap-env:Envelope xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/">
+                  <soap-env:Body><br:sendSummaryResponse xmlns:br="http://service.sunat.gob.pe">
+                    <ticket>1554895</ticket>
+                  </br:sendSummaryResponse></soap-env:Body>
+                </soap-env:Envelope>
+                """.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        OrdenDeEmision orden = Ordenes.baja(UUID.randomUUID());
+
+        ResultadoDeEmision resultado = procesador.procesar(orden);
+
+        assertThat(resultado.estado()).isEqualTo(EstadoSunat.EN_PROCESO);
+        assertThat(resultado.codigo()).as("el ticket va en el código").isEqualTo("1554895");
+        assertThat(resultado.claveXml())
+                .isEqualTo("documentos/20100000009/20100000009-RA-20260909-1.xml");
+        assertThat(bus.objetos).containsKey(resultado.claveXml());
+        assertThat(sunat.zipUsado).isEqualTo("20100000009-RA-20260909-1.zip");
+        // Firmada, como cualquier cosa que sale hacia SUNAT.
+        assertThat(new String(Empaquetador.primerXml(sunat.zipEnviado),
+                java.nio.charset.StandardCharsets.ISO_8859_1)).contains("<ds:Signature");
+    }
+
+    @Test
+    @DisplayName("Consultar el ticket: si sigue en proceso lo dice, y si resuelve guarda el CDR")
+    void consultaDelTicket() {
+        var lector = new LectorDeRespuestaSunat();
+        sunat.respuesta = lector.leer(200, """
+                <soap-env:Envelope xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/">
+                  <soap-env:Body><br:getStatusResponse xmlns:br="http://service.sunat.gob.pe">
+                    <status><statusCode>98</statusCode><statusMessage>En proceso</statusMessage></status>
+                  </br:getStatusResponse></soap-env:Body>
+                </soap-env:Envelope>
+                """.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        var enProceso = procesador.procesar(Ordenes.consultaDeTicket(UUID.randomUUID(), "1554895"));
+        assertThat(enProceso.estado()).isEqualTo(EstadoSunat.EN_PROCESO);
+        assertThat(enProceso.claveCdr()).isNull();
+
+        sunat.respuesta = lector.leerCdr(LectorDeRespuestaSunatTest.cdr("0", "Aceptada"));
+        var aceptada = procesador.procesar(Ordenes.consultaDeTicket(UUID.randomUUID(), "1554895"));
+
+        assertThat(aceptada.estado()).isEqualTo(EstadoSunat.ACEPTADO);
+        assertThat(aceptada.claveCdr()).isEqualTo("documentos/20100000009/R-ticket-1554895.zip");
+        assertThat(bus.objetos).containsKey(aceptada.claveCdr());
+    }
+
+    @Test
     @DisplayName("En producción se envía a la URL de producción")
     void produccion() {
         sunat.respuesta = RespuestaSunat.sinRespuesta("SIN_CONEXION", "x");
         var beta = Ordenes.boleta(UUID.randomUUID());
-        var prod = new OrdenDeEmision(beta.id(), beta.operacion(), beta.empresaId(),
+        var prod = OrdenDeEmision.paraEmitir(beta.id(), beta.empresaId(),
                 com.ondexia.domain.identidad.ModoSunat.PRODUCCION, beta.emisor(), beta.documento(),
                 beta.creadaEn());
         procesador.procesar(prod);

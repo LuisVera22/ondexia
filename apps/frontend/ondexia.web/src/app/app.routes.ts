@@ -45,7 +45,7 @@ import { NuevaCotizacionComponent } from './pages/ventas/cotizaciones/nueva-coti
 import { PreventasComponent } from './pages/ventas/preventas/preventas.component';
 import { NuevaPreventaComponent } from './pages/ventas/preventas/nueva-preventa.component';
 import { DetalleComprobanteComponent } from './pages/ventas/comprobantes/detalle-comprobante.component';
-import { ComunicacionBajaComponent } from './pages/ventas/comunicacion-baja/comunicacion-baja.component';
+import { ComunicacionesBajaComponent } from './pages/ventas/comunicaciones-baja/comunicaciones-baja.component';
 import { ResumenDiarioComponent } from './pages/ventas/resumen-diario/resumen-diario.component';
 import { FormasPagoComponent } from './pages/ventas/formas-pago/formas-pago.component';
 import { GuiasIngresoComponent } from './pages/almacen/guias-ingreso/guias-ingreso.component';
@@ -174,7 +174,10 @@ export const routes: Routes = [
       { path: 'ventas/notas-credito/nueva', redirectTo: 'ventas/notas-credito', pathMatch: 'full' },
       { path: 'ventas/preventas', component: PreventasComponent, title: `Notas de preventa | ${TITULO}` },
       { path: 'ventas/preventas/nueva', component: NuevaPreventaComponent, title: `Nueva nota de preventa | ${TITULO}` },
-      { path: 'ventas/comunicacion-baja', component: ComunicacionBajaComponent, title: `Comunicación de baja | ${TITULO}` },
+      { path: 'ventas/comunicaciones-baja', component: ComunicacionesBajaComponent, title: `Comunicaciones de baja | ${TITULO}` },
+      // La ruta en singular era la maqueta. Se mantiene como redirección: es la
+      // que quedó en marcadores y en pestañas abiertas.
+      { path: 'ventas/comunicacion-baja', redirectTo: 'ventas/comunicaciones-baja', pathMatch: 'full' },
       { path: 'ventas/resumen-diario', component: ResumenDiarioComponent, title: `Resumen diario | ${TITULO}` },
       { path: 'ventas/formas-pago', component: FormasPagoComponent, title: `Formas de pago | ${TITULO}` },
       { path: 'ventas/comprobantes/:id', component: DetalleComprobanteComponent, title: `Detalle de comprobante | ${TITULO}` },

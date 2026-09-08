@@ -93,7 +93,7 @@ export class DetalleDocumentoComponent implements OnDestroy {
   /** Lo que salió de este documento: sus notas de crédito, o su canje. */
   readonly relacionados = signal<ResumenDocumentoApi[]>([]);
 
-  readonly modal = signal<'ninguno' | 'anular' | 'canjear'>('ninguno');
+  readonly modal = signal<'ninguno' | 'anular' | 'canjear' | 'baja'>('ninguno');
   readonly motivos = signal<MotivoNotaCredito[]>([]);
   readonly series = signal<SerieDisponibleApi[]>([]);
 
@@ -128,6 +128,21 @@ export class DetalleDocumentoComponent implements OnDestroy {
   });
 
   readonly motivosQueAnulan = computed(() => this.motivos().filter((m) => m.anula));
+
+  /**
+   * La baja es solo para facturas y sus notas: una boleta se anula con nota de
+   * crédito (doc 13 §6). El plazo lo comprueba el servidor, que es quien tiene
+   * el calendario; aquí no se adivina.
+   */
+  readonly sePuedeDarDeBaja = computed(() => {
+    const d = this.documento();
+    return (
+      d != null &&
+      (d.tipo === '01' || d.tipo === '07') &&
+      d.estado === 'EMITIDO' &&
+      this.contexto.puede('ventas.comunicacion_baja:enviar')
+    );
+  });
 
   readonly opcionesDeMotivo = computed<OpcionDesplegable[]>(() =>
     this.motivosQueAnulan().map((m) => ({
@@ -278,6 +293,36 @@ export class DetalleDocumentoComponent implements OnDestroy {
   cerrarModal(): void {
     this.modal.set('ninguno');
   }
+
+  pedirBaja(): void {
+    this.observacionesDeLaNota = '';
+    this.modal.set('baja');
+  }
+
+  readonly darDeBaja = accionConEstado(async () => {
+    const d = this.documento();
+    if (!d) {
+      return;
+    }
+    if (!this.observacionesDeLaNota.trim()) {
+      this.avisos.error('Indica por qué el comprobante no debió existir: SUNAT lo recibe.');
+      throw new Error('Sin motivo');
+    }
+    try {
+      const comunicacion = await this.ventas.darDeBaja([
+        { documentoId: d.id, motivo: this.observacionesDeLaNota.trim() },
+      ]);
+      this.cerrarModal();
+      this.avisos.exito(
+        'SUNAT responde con un ticket; el comprobante queda anulado cuando lo acepte.',
+        `Comunicación ${comunicacion.identificador} enviada`
+      );
+      void this.router.navigate(['/ventas/comunicaciones-baja']);
+    } catch (fallo: unknown) {
+      this.avisos.error(mensajeDeError(fallo, 'No se pudo comunicar la baja.'));
+      throw fallo;
+    }
+  });
 
   readonly anular = accionConEstado(async () => {
     const d = this.documento();

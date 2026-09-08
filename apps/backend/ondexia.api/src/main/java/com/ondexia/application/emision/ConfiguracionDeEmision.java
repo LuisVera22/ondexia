@@ -172,8 +172,8 @@ public class ConfiguracionDeEmision {
         var emisor = new OrdenDeEmision.Emisor(e.ruc().valor(), e.razonSocial(), e.nombreComercial(),
                 e.domicilioFiscal(), e.ubigeo() == null ? null : e.ubigeo().valor(), "0000",
                 e.usuarioSol());
-        return new OrdenDeEmision(idDeVerificacion(e), OrdenDeEmision.Operacion.VERIFICAR_CREDENCIALES,
-                e.id(), e.modoSunat(), emisor, null, reloj.instant());
+        return OrdenDeEmision.paraVerificarCredenciales(idDeVerificacion(e), e.id(), e.modoSunat(),
+                emisor, reloj.instant());
     }
 
     /**

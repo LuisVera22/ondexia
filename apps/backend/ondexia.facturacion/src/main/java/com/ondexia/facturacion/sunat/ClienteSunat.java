@@ -37,16 +37,41 @@ public class ClienteSunat {
 
     public RespuestaSunat enviar(String urlServicio, String ruc, String usuarioSol, String claveSol,
             String nombreZip, byte[] zip) {
-        String sobre = sobre(ruc + usuarioSol, claveSol, nombreZip, zip);
+        return llamar(urlServicio, "sendBill",
+                sobre(ruc + usuarioSol, claveSol, nombreZip, zip), false);
+    }
+
+    /**
+     * El envío asíncrono: SUNAT recibe el archivo y devuelve un ticket
+     * (doc 13 §6). Misma operación SOAP que {@code sendBill} salvo el nombre y
+     * la forma de la respuesta.
+     */
+    public RespuestaSunat enviarResumen(String urlServicio, String ruc, String usuarioSol,
+            String claveSol, String nombreZip, byte[] zip) {
+        return llamar(urlServicio, "sendSummary",
+                sobre(ruc + usuarioSol, claveSol, nombreZip, zip), true);
+    }
+
+    /** Preguntar por un ticket que SUNAT dio antes. */
+    public RespuestaSunat consultarTicket(String urlServicio, String ruc, String usuarioSol,
+            String claveSol, String ticket) {
+        return llamar(urlServicio, "getStatus",
+                sobreDeConsulta(ruc + usuarioSol, claveSol, ticket), false);
+    }
+
+    private RespuestaSunat llamar(String urlServicio, String operacion, String sobre,
+            boolean esperaTicket) {
         var peticion = HttpRequest.newBuilder(URI.create(urlServicio))
                 .timeout(tiempoDeEspera)
                 .header("Content-Type", "text/xml; charset=utf-8")
-                .header("SOAPAction", "urn:sendBill")
+                .header("SOAPAction", "urn:" + operacion)
                 .POST(HttpRequest.BodyPublishers.ofString(sobre, StandardCharsets.UTF_8))
                 .build();
         try {
             HttpResponse<byte[]> respuesta = http.send(peticion, HttpResponse.BodyHandlers.ofByteArray());
-            return lector.leer(respuesta.statusCode(), respuesta.body());
+            return esperaTicket
+                    ? lector.leerTicket(respuesta.statusCode(), respuesta.body())
+                    : lector.leer(respuesta.statusCode(), respuesta.body());
         } catch (IOException e) {
             return RespuestaSunat.sinRespuesta("SIN_CONEXION",
                     "No se pudo conectar con SUNAT: " + e.getClass().getSimpleName()
@@ -70,6 +95,20 @@ public class ClienteSunat {
                 </ser:sendBill></soapenv:Body></soapenv:Envelope>"""
                 .formatted(escapar(usuario), escapar(clave), escapar(nombreZip),
                         Base64.getEncoder().encodeToString(zip));
+    }
+
+    /** El sobre de {@code getStatus}: solo el ticket. */
+    static String sobreDeConsulta(String usuario, String clave, String ticket) {
+        return """
+                <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" \
+                xmlns:ser="http://service.sunat.gob.pe" \
+                xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">\
+                <soapenv:Header><wsse:Security><wsse:UsernameToken>\
+                <wsse:Username>%s</wsse:Username><wsse:Password>%s</wsse:Password>\
+                </wsse:UsernameToken></wsse:Security></soapenv:Header>\
+                <soapenv:Body><ser:getStatus><ticket>%s</ticket></ser:getStatus></soapenv:Body>\
+                </soapenv:Envelope>"""
+                .formatted(escapar(usuario), escapar(clave), escapar(ticket));
     }
 
     private static String escapar(String texto) {

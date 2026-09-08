@@ -797,14 +797,26 @@ valor del modelo que deje correctos a la vez el motivo y la referencia. Se
 corrige sobre el XML generado y antes de firmar, con la prueba que fija los dos
 valores, y el método se podrá retirar si una versión posterior lo arregla.
 
-**Lo que la iteración 6 del plan pedía y no está: la comunicación de baja y el
-resumen diario.** Las dos son el mismo mecanismo asíncrono —`sendSummary`
-devuelve un ticket y `getStatus` lo consulta después—, que es una máquina de
-estados distinta de la de la emisión y necesita el planificador que la consulte.
-Con la nota de crédito ya se puede anular una boleta o una factura, que es el
-caso que un negocio encuentra a diario; la comunicación de baja hace falta
-cuando SUNAT ya no admite la nota. Queda como lo primero de la iteración
-siguiente, con el ensayo contra la beta.
+**La comunicación de baja, con el envío asíncrono entero** (doc 13 §6). Es el
+otro camino para dejar sin efecto una factura, y afirma algo distinto de la nota
+de crédito: que el comprobante no debió existir. SUNAT no responde en el
+momento —devuelve un ticket y el veredicto llega después—, así que aparece un
+estado que un comprobante nunca tiene, `EN_PROCESO`, y dos viajes al Emisor por
+comunicación. La API sincroniza al leer, de modo que quien envía una baja ve el
+resultado sin hacer nada más.
+
+**Dos piezas que el plan pedía y no están, cada una con su motivo escrito**
+(doc 13 §6.2 y §6.3):
+
+- El **planificador** que consulte los tickets cuando nadie mira. Su diseño está
+  escrito; no se construye porque es infraestructura que solo corre en AWS y no
+  hay forma de ejercitarla desde este repositorio, sobre un camino que ya
+  funciona al consultar.
+- El **resumen diario** para anular boletas. La nota de crédito ya lo hace, y
+  cuál de los dos mecanismos admite SUNAT para una boleta enviada
+  individualmente es justo lo que el ensayo contra la beta tiene que confirmar.
+  Construir una segunda integración sobre una primera sin verificar multiplica
+  el riesgo. El mecanismo que necesitaría —el envío asíncrono— ya está.
 
 ## Registro de cambios
 
@@ -816,5 +828,7 @@ siguiente, con el ensayo contra la beta.
 - **v1.3 (2026-09-07)** — Cierre de la iteración 4.
 - **v1.4 (2026-09-08)** — Cierre de la iteración 5 y documento 14. El almacén del
   local pasa a ser el activo más antiguo (§4.1).
-- **v1.5 (2026-09-08)** — Nota de crédito y canje (doc 13 §5). La comunicación de
-  baja y el resumen diario quedan pendientes, con su motivo.
+- **v1.5 (2026-09-08)** — Nota de crédito y canje (doc 13 §5).
+- **v1.6 (2026-09-08)** — Comunicación de baja y el envío asíncrono con ticket
+  (doc 13 §6). El planificador y el resumen diario quedan pendientes, con su
+  motivo.

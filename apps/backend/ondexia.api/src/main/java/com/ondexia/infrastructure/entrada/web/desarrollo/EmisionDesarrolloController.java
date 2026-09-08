@@ -1,5 +1,6 @@
 package com.ondexia.infrastructure.entrada.web.desarrollo;
 
+import com.ondexia.application.emision.ComunicacionesDeBaja;
 import com.ondexia.application.emision.ConfiguracionDeEmision;
 import com.ondexia.application.emision.EmisionElectronica;
 import com.ondexia.domain.comprobante.OrdenDeEmision;
@@ -33,12 +34,14 @@ public class EmisionDesarrolloController {
     private final BusDeEmisionEnMemoria bus;
     private final EmisionElectronica emision;
     private final ConfiguracionDeEmision configuracion;
+    private final ComunicacionesDeBaja bajas;
 
     public EmisionDesarrolloController(BusDeEmisionEnMemoria bus, EmisionElectronica emision,
-            ConfiguracionDeEmision configuracion) {
+            ConfiguracionDeEmision configuracion, ComunicacionesDeBaja bajas) {
         this.bus = bus;
         this.emision = emision;
         this.configuracion = configuracion;
+        this.bajas = bajas;
     }
 
     /** Las órdenes publicadas desde el arranque: lo que iría a {@code pendientes/}. */
@@ -51,10 +54,10 @@ public class EmisionDesarrolloController {
     @PostMapping("/resultados")
     public void depositar(@RequestBody ResultadoDeEmision resultado) {
         bus.depositarResultado(resultado);
-        if (resultado.operacion() == OrdenDeEmision.Operacion.VERIFICAR_CREDENCIALES) {
-            configuracion.aplicarResultadoDeVerificacion(resultado);
-        } else {
-            emision.aplicarResultado(resultado);
+        switch (resultado.operacion()) {
+            case VERIFICAR_CREDENCIALES -> configuracion.aplicarResultadoDeVerificacion(resultado);
+            case ENVIAR_BAJA, CONSULTAR_TICKET -> bajas.aplicarResultado(resultado);
+            case EMITIR -> emision.aplicarResultado(resultado);
         }
     }
 

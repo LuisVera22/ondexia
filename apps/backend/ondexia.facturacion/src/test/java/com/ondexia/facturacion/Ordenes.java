@@ -39,8 +39,8 @@ public final class Ordenes {
                 new OrdenDeEmision.Adquirente("1", "70123456", "Juan Perez Gomez", "Calle 1, Lima"),
                 lineas, new BigDecimal("122.88"), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
                 new BigDecimal("22.12"), new BigDecimal("145.00"), "Entrega mañana", null, null);
-        return new OrdenDeEmision(id, OrdenDeEmision.Operacion.EMITIR, EMPRESA, ModoSunat.BETA,
-                emisor(), documento, Instant.parse("2026-09-08T15:15:00Z"));
+        return OrdenDeEmision.paraEmitir(id, EMPRESA, ModoSunat.BETA, emisor(), documento,
+                Instant.parse("2026-09-08T15:15:00Z"));
     }
 
     /** Una factura con una línea exonerada, a consumidor con RUC. */
@@ -53,8 +53,8 @@ public final class Ordenes {
                 new OrdenDeEmision.Adquirente("6", "20131312955", "SUNAT", null),
                 lineas, BigDecimal.ZERO, new BigDecimal("50.00"), BigDecimal.ZERO, BigDecimal.ZERO,
                 BigDecimal.ZERO, new BigDecimal("50.00"), null, null, null);
-        return new OrdenDeEmision(id, OrdenDeEmision.Operacion.EMITIR, EMPRESA, ModoSunat.BETA,
-                emisor(), documento, Instant.parse("2026-09-08T16:00:00Z"));
+        return OrdenDeEmision.paraEmitir(id, EMPRESA, ModoSunat.BETA, emisor(), documento,
+                Instant.parse("2026-09-08T16:00:00Z"));
     }
 
     /** Boleta a consumidor final sin documento. */
@@ -64,8 +64,8 @@ public final class Ordenes {
                 base.fechaEmision(), base.horaEmision(), base.moneda(), null, base.lineas(),
                 base.totalGravado(), base.totalExonerado(), base.totalInafecto(),
                 base.totalDescuento(), base.totalIgv(), base.total(), null, null, null);
-        return new OrdenDeEmision(id, OrdenDeEmision.Operacion.EMITIR, EMPRESA, ModoSunat.BETA,
-                emisor(), documento, Instant.parse("2026-09-08T15:15:00Z"));
+        return OrdenDeEmision.paraEmitir(id, EMPRESA, ModoSunat.BETA, emisor(), documento,
+                Instant.parse("2026-09-08T15:15:00Z"));
     }
 
     /**
@@ -80,12 +80,27 @@ public final class Ordenes {
                 base.totalDescuento(), base.totalIgv(), base.total(),
                 "Cliente devolvió la mercadería", "01",
                 new OrdenDeEmision.Referencia("03", "B001", 12));
-        return new OrdenDeEmision(id, OrdenDeEmision.Operacion.EMITIR, EMPRESA, ModoSunat.BETA,
-                emisor(), documento, Instant.parse("2026-09-09T14:30:00Z"));
+        return OrdenDeEmision.paraEmitir(id, EMPRESA, ModoSunat.BETA, emisor(), documento,
+                Instant.parse("2026-09-09T14:30:00Z"));
     }
 
     public static OrdenDeEmision verificacion(UUID id) {
-        return new OrdenDeEmision(id, OrdenDeEmision.Operacion.VERIFICAR_CREDENCIALES, EMPRESA,
-                ModoSunat.BETA, emisor(), null, Instant.parse("2026-09-08T15:00:00Z"));
+        return OrdenDeEmision.paraVerificarCredenciales(id, EMPRESA, ModoSunat.BETA, emisor(),
+                Instant.parse("2026-09-08T15:00:00Z"));
+    }
+
+    /** Una comunicación de baja de la factura F001-7. */
+    public static OrdenDeEmision baja(UUID id) {
+        var baja = new OrdenDeEmision.Baja(1, java.time.LocalDate.of(2026, 9, 8),
+                java.time.LocalDate.of(2026, 9, 9),
+                List.of(new OrdenDeEmision.ComprobanteDadoDeBaja("01", "F001", 7,
+                        "Emitida al cliente equivocado")));
+        return OrdenDeEmision.paraBaja(id, EMPRESA, ModoSunat.BETA, emisor(), baja,
+                Instant.parse("2026-09-09T15:00:00Z"));
+    }
+
+    public static OrdenDeEmision consultaDeTicket(UUID id, String ticket) {
+        return OrdenDeEmision.paraConsultarTicket(id, EMPRESA, ModoSunat.BETA, emisor(), ticket,
+                Instant.parse("2026-09-09T15:05:00Z"));
     }
 }

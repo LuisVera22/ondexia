@@ -39,11 +39,46 @@ public record OrdenDeEmision(
         ModoSunat modo,
         Emisor emisor,
         Documento documento,
+        Baja baja,
+        Consulta consulta,
         Instant creadaEn) {
 
+    /** Emitir un comprobante: la operación de siempre. */
+    public static OrdenDeEmision paraEmitir(UUID id, UUID empresaId, ModoSunat modo, Emisor emisor,
+            Documento documento, Instant creadaEn) {
+        return new OrdenDeEmision(id, Operacion.EMITIR, empresaId, modo, emisor, documento, null,
+                null, creadaEn);
+    }
+
+    public static OrdenDeEmision paraBaja(UUID id, UUID empresaId, ModoSunat modo, Emisor emisor,
+            Baja baja, Instant creadaEn) {
+        return new OrdenDeEmision(id, Operacion.ENVIAR_BAJA, empresaId, modo, emisor, null, baja,
+                null, creadaEn);
+    }
+
+    public static OrdenDeEmision paraConsultarTicket(UUID id, UUID empresaId, ModoSunat modo,
+            Emisor emisor, String ticket, Instant creadaEn) {
+        return new OrdenDeEmision(id, Operacion.CONSULTAR_TICKET, empresaId, modo, emisor, null,
+                null, new Consulta(ticket), creadaEn);
+    }
+
+    public static OrdenDeEmision paraVerificarCredenciales(UUID id, UUID empresaId, ModoSunat modo,
+            Emisor emisor, Instant creadaEn) {
+        return new OrdenDeEmision(id, Operacion.VERIFICAR_CREDENCIALES, empresaId, modo, emisor,
+                null, null, null, creadaEn);
+    }
+
     public enum Operacion {
-        /** Construir, firmar y enviar un comprobante. */
+        /** Construir, firmar y enviar un comprobante. Síncrono: vuelve con el CDR. */
         EMITIR,
+        /**
+         * La comunicación de baja. <strong>Asíncrona</strong>: SUNAT recibe el
+         * archivo y devuelve un ticket, y la respuesta se pide después con
+         * {@link #CONSULTAR_TICKET}.
+         */
+        ENVIAR_BAJA,
+        /** Preguntar por un ticket que SUNAT dio antes. */
+        CONSULTAR_TICKET,
         /** Abrir el certificado con su contraseña y decir qué hay dentro. Sin SUNAT. */
         VERIFICAR_CREDENCIALES
     }
@@ -104,6 +139,10 @@ public record OrdenDeEmision(
      * @param motivoNota código del catálogo 09; solo en una nota de crédito
      * @param referencia el documento que la nota modifica; solo en una nota de crédito
      */
+    /** El ticket que SUNAT dio al recibir un envío asíncrono. */
+    public record Consulta(String ticket) {
+    }
+
     public record Documento(
             String tipo,
             String serie,
@@ -140,5 +179,40 @@ public record OrdenDeEmision(
 
     public boolean esEmision() {
         return operacion == Operacion.EMITIR;
+    }
+
+    /**
+     * La comunicación de baja (doc 13 §6): qué comprobantes se dan de baja y por
+     * qué.
+     *
+     * @param numeroDelDia el correlativo de la comunicación dentro del día. El
+     *                     identificador ante SUNAT es {@code RA-yyyyMMdd-N}, así
+     *                     que dos comunicaciones del mismo día con el mismo
+     *                     número serían el mismo documento
+     * @param fechaDeLosComprobantes el día en que se emitió lo que se da de baja.
+     *                     Todos tienen que ser del mismo, lo exige SUNAT
+     */
+    public record Baja(
+            int numeroDelDia,
+            LocalDate fechaDeLosComprobantes,
+            LocalDate fechaDeGeneracion,
+            List<ComprobanteDadoDeBaja> comprobantes) {
+
+        public Baja {
+            comprobantes = comprobantes == null ? List.of() : List.copyOf(comprobantes);
+        }
+
+        /** {@code RA-20260909-1}: el nombre con el que SUNAT lo identifica. */
+        public String identificador() {
+            return "RA-" + fechaDeGeneracion.format(
+                    java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")) + "-" + numeroDelDia;
+        }
+
+        public String nombreDeArchivo(String ruc) {
+            return ruc + "-" + identificador();
+        }
+    }
+
+    public record ComprobanteDadoDeBaja(String tipo, String serie, long numero, String motivo) {
     }
 }
