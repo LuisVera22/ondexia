@@ -322,7 +322,15 @@ Lo que **no** conviene relajar es la regla de que `main` nunca recibe un commit 
 
 **Sin filtros de rutas.** Construir todo en cada commit cuesta minutos y evita la clase de error que aparece cuando frontend y backend se compilan por separado. Los filtros se agregan el día que el build moleste por lento, no antes.
 
-**Sin workflows por módulo.** Un solo job con pasos que **se saltan solos** mientras el módulo no exista (`if: hashFiles(...) != ''`). El pipeline está listo desde hoy sin fallar en rojo por lo que aún no se ha escrito.
+**Sin workflows por módulo.** Pasos que **se saltan solos** mientras el módulo no exista (`if: hashFiles(...) != ''`). El pipeline está listo desde hoy sin fallar en rojo por lo que aún no se ha escrito.
+
+> **Corregido el 2026-09-01 (hallazgos C1 y M14).** Aquí decía «un solo job», y
+> el despliegue lo era: asumía el rol de AWS en el segundo paso, con lo que las
+> credenciales estaban vivas durante `mvnw verify` y `pnpm install` —cualquier
+> dependencia comprometida las tenía a mano—, y la aprobación de prod llegaba al
+> principio, sin ningún plan que mirar. `deploy.yml` tiene ahora **tres jobs**:
+> `construir` sin credenciales, `planificar` con un rol de solo lectura en un
+> entorno sin revisor, y `aplicar` con el entorno protegido. Ver §9.1.
 
 **Sin paso separado de análisis de dependencias.** El OWASP Dependency-Check se declara como plugin del `pom.xml` enlazado a la fase `verify`. Así corre igual en CI y en la máquina local, con un paso menos en el workflow. El control de seguridad se mantiene; lo que desaparece es la duplicación.
 
@@ -332,11 +340,11 @@ Lo que **no** conviene relajar es la regla de que `main` nunca recibe un commit 
 
 Sigue siendo manual (`workflow_dispatch`) porque no hay nada desplegado: un workflow automático que apunta a nada solo produce fallos rojos que enseñan a ignorar el tablero. El disparador por rama se activa al llegar la Fase 1.
 
-Orden de los pasos, que no es arbitrario:
+Tres jobs, y el orden es el control:
 
-1. **Construir y probar antes de tocar AWS.** Si el frontend no compila o una prueba falla, conviene enterarse con la infraestructura intacta y no con medio despliegue hecho.
-2. **`terraform plan` a un archivo, y `apply` sobre ese archivo.** Un `apply` que vuelve a planificar puede hacer algo distinto de lo que se revisó, y entre uno y otro hay una aprobación humana.
-3. **El plan se publica en el resumen de la ejecución.** Con un solo operador (R-13) no hay un segundo par de ojos; el plan legible después del hecho es lo más parecido a una revisión que existe.
+1. **`construir`, sin credenciales de AWS.** Compila, prueba y empaqueta los artefactos en un tar. No declara `environment`, así que el token OIDC ni siquiera se puede canjear desde aquí: la política de confianza de los roles exige un `sub` con forma `environment:…`. Si el frontend no compila o una prueba falla, la infraestructura sigue intacta.
+2. **`planificar`, con el rol de solo lectura** (`ondexia-plan-<entorno>`) en el entorno `<entorno>-plan`, que **no lleva revisor**. Calcula el plan con `-lock=false` y lo publica en el resumen. Es lo que el revisor de prod lee antes de aprobar.
+3. **`aplicar`, con el rol de escritura** en el entorno protegido. Corre primero las migraciones —que mueven el estado— y por eso **recalcula el plan** antes de aplicarlo; un plan guardado caduca cuando el estado avanza. Publica también el recalculado: si difiere del revisado, se ve en la misma página.
 4. **Publicar la SPA después del `apply`**, porque los buckets y las distribuciones tienen que existir. `index.html` sin caché y el resto con un año: los bundles llevan hash y son inmutables, `index.html` es el único que cambia de contenido conservando el nombre.
 5. **Sondear `/salud`.** Sin esta comprobación el workflow puede terminar en verde con la API caída.
 
@@ -351,12 +359,16 @@ Hay una casilla **«solo plan»** que se detiene antes de aplicar. Es la forma d
 Requiere, al llegar la Fase 1:
 
 1. Proveedor de identidad OIDC de GitHub en la cuenta AWS.
-2. Rol con política de confianza restringida **a este repositorio y a la rama `main`** — sin esa restricción, cualquier repositorio de la organización podría asumirlo.
-3. Secreto `AWS_DEPLOY_ROLE_ARN` en GitHub con el ARN del rol.
+2. **Cuatro roles, uno por entorno y por función** (`despliegue.tf`): `ondexia-despliegue-dev`, `-prod`, `ondexia-plan-dev`, `-prod`. Cada uno confía en **un solo** `sub` con forma `environment:<nombre>`. Los de despliegue llevan `PowerUserAccess` más IAM acotado: `iam:CreateRole` exige una frontera de permisos, `iam:AttachRolePolicy` admite una lista cerrada, `iam:PassRole` solo a Lambda, y ninguno puede tocar su propia identidad ni la de sus hermanos. Cambiar los roles del pipeline se hace desde un equipo, no desde el pipeline.
+3. Los cuatro ARN como **secretos de entorno** —no de repositorio—: `AWS_DEPLOY_ROLE_ARN` en `dev` y `prod`, `AWS_PLAN_ROLE_ARN` en `dev-plan` y `prod-plan`. Un secreto de repositorio lo lee cualquier job, y entonces el que planifica podría pedir el rol que aplica.
+
+> Hasta el 2026-09-01 era un rol con dos `sub` y sin frontera (hallazgo C1). Con el entorno `dev` sin revisor, la aprobación de prod no protegía nada.
 
 ### 9.3 Aprobación manual de producción
 
 El DTE §10.2 exige aprobación manual antes de producción. Se implementa con **GitHub Environments**: el entorno `prod` se configura con revisor requerido. Aunque el revisor seas tú (R-13), es la pausa deliberada que evita desplegar una versión rota que emita comprobantes con valor legal.
+
+Los entornos `dev-plan` y `prod-plan` **no llevan revisor**, y eso es parte del diseño: son los que calculan el plan que el revisor lee antes de aprobar, y pedirles aprobación devolvería el problema que resuelven. Que estén desprotegidos es aceptable porque su rol es de solo lectura.
 
 ### 9.4 Análisis de dependencias
 

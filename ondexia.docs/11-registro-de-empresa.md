@@ -210,6 +210,17 @@ Lo que se retira del borrador:
 
 ## 8. Lo que gatea el registro
 
+> **Desde el 2026-09-01 el alta pública está cerrada** (hallazgo C2 de la
+> auditoría): el pool de inquilinos tiene `allow_admin_create_user_only` y la
+> pantalla de acceso no ofrece «Crear cuenta». Con el autoservicio abierto,
+> cualquiera obtenía un token válido en dos minutos, y ese token abría la
+> consulta de RUC —que gasta clave de pago de un tercero— y permitía enumerar por
+> el 409 del registro qué contribuyentes son clientes. Dar de alta un cliente es
+> hoy crear su usuario en Cognito a mano; después, todo lo que sigue en este
+> documento aplica igual. Reabrirlo es la variable `autoservicio_inquilinos` de
+> Terraform, y hacerlo sin que la consulta de RUC exija fila en `usuario` reabre
+> C2.
+
 Se exige **ACTIVO** y **HABIDO**. Cualquier otra combinación no registra.
 
 Y esto no contradice la regla I-03 del DTE («nunca bloquear una venta por una
@@ -240,8 +251,9 @@ Es la pieza que permite que la comprobación siga siendo del servidor sin que la
 API salga a internet.
 
 `ondexia.consultas` firma lo que SUNAT dijo; el navegador lo transporta; la API
-verifica la firma **sin red**. Un cliente puede reenviar una atestación, no
-fabricarla.
+verifica la firma **sin red**. Un cliente no puede fabricar una atestación, y
+desde el hallazgo M17 tampoco reenviar la de otra persona: va firmada para un
+`sub` concreto (§10.5).
 
 ### 10.1 Se firma todo, no solo la puerta
 
@@ -296,6 +308,26 @@ Es el tiempo entre consultar el RUC y enviar el formulario, con margen para quie
 se distrae. Más corto obligaría a repetir la consulta a gente normal; mucho más
 largo permitiría guardar una atestación de cuando la empresa estaba habida y
 usarla cuando ya no lo está.
+
+### 10.5 Para quién es
+
+La carga lleva, además de los datos y la caducidad, el `sub` de Cognito de
+quien hizo la consulta. La API exige que coincida con el `sub` del token de
+quien presenta la atestación; si no, `atestacion_invalida`.
+
+Sin esto, una atestación válida servía a cualquiera que la tuviera durante sus
+diez minutos —otro usuario de la misma cuenta, o de otra—, y la caducidad era la
+única defensa contra el reenvío. Es el hallazgo M17 de la auditoría 2026-09-01.
+
+Dos consecuencias prácticas:
+
+- `GET /consultas/ruc/{ruc}` exige el token de acceso también en local, porque
+  sin él no hay para quién emitir. `ondexia.consultas` lee el `sub` del token
+  **sin verificar la firma**, y eso está bien: la firma la verifica la pasarela
+  antes de invocar, y la propiedad la sostiene la API al comparar contra el
+  `sub` de un JWT que sí verifica. Ver `Solicitante`.
+- El formato es la **versión 2** —16 campos— y una atestación de la versión 1
+  no se lee. No hay ninguna que deba sobrevivir a un despliegue.
 
 ## 11. Dónde vive cada cosa
 

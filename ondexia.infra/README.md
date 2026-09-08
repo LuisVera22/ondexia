@@ -247,6 +247,17 @@ El porqué está en `ManejadorMigraciones`: en Lambda, «al arrancar» significa
 - **Crear los parametros de la consulta de RUC.** Cuatro, y sin ellos el `plan`
   falla antes de tocar nada: Terraform lee la clave publica con un *data source*,
   y un *data source* se resuelve al planificar. Ver mas abajo.
+- **Meter a cada persona del equipo en un grupo del pool de personal**:
+  `soporte` (lee) u `operaciones` (escribe). Sin grupo, la cuenta autentica y no
+  puede hacer nada en el panel (hallazgo A5). La pertenencia no esta en Terraform
+  a proposito: dar de baja a alguien no debe exigir un despliegue.
+- **Dar de alta a los clientes.** El autoservicio del pool de inquilinos esta
+  cerrado desde el hallazgo C2 (`autoservicio_inquilinos = false`): un cliente
+  nuevo es un usuario creado a mano en Cognito, y desde ahi completa el registro
+  en la aplicacion. Reabrirlo es una linea, y reabre C2.
+- **Registrar el dominio antes de prod.** `gestionar_dns = true` es obligatorio
+  en produccion y lo valida Terraform: sin dominio propio CloudFront acepta TLS
+  1.0 y la CSP queda con comodines.
 
 ## Las claves de la consulta de RUC
 

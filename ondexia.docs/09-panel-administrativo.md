@@ -332,11 +332,46 @@ decisión escrita en algo que se ejecuta, y el comentario del
 
 Del orden de **1 USD/mes**, contra un presupuesto de 15 en dev.
 
+### 6.5 Quién puede qué (auditoría 2026-09-01, hallazgos A5 y A6)
+
+Hasta el 2026-09-01 **todo el personal era superadministrador**: no había
+grupos ni autorización por endpoint, y la única frontera era estar dentro o
+fuera del pool. La primera cuenta que se le creaba a alguien —para consultar una
+duda— venía con la capacidad de suspender el servicio de un cliente.
+
+Ahora hay dos grupos de Cognito en el pool de personal, y solo dos:
+
+| Grupo | Puede |
+|---|---|
+| `soporte` | Leer: listar cuentas y sus módulos |
+| `operaciones` | Todo lo anterior y cambiar plan, suspender, decidir módulos |
+
+La pertenencia **no está en Terraform** a propósito: quién está en cada grupo
+es un dato de personal, no de infraestructura, y codificarlo significaría que dar
+de baja a alguien exige un despliegue. Se asigna en la consola de Cognito.
+**Sin grupo, la cuenta autentica y no puede hacer nada**: un token sin
+`cognito:groups` llega sin ninguna autoridad.
+
+Dos detalles que no son evidentes:
+
+- Spring busca las autoridades en `scope`/`scp`, que Cognito no emite. El
+  conversor de `SeguridadAdmin` traduce `cognito:groups` con prefijo `ROLE_`;
+  sin él, «estar en el pool» era la única comprobación posible.
+- La autorización va en la cadena de filtros por patrón y método, **no en
+  `@PreAuthorize` por endpoint**: un endpoint nuevo sin anotación quedaría
+  abierto a cualquiera del pool. Lo que no esté cubierto cae en `anyRequest()`,
+  que exige `operaciones`.
+
+La bitácora (`auditoria_admin`) guarda desde la V15 el `sub` del operador
+además de su correo —el correo lo cambia su dueño, el `sub` no— y es de solo
+inserción por disparador, como la de clientes. Y la pasarela del panel tiene
+registro de acceso con el `sub` del autorizador y un techo de 5 rps.
+
 ## 7. Entregas
 
 | # | Entrega | Contenido |
 |---|---|---|
-| 0 | **Requisito previo** | MFA del grupo de personal en `ON` |
+| 0 | **Requisito previo** · CODIFICADO | MFA del grupo de personal en `ON`, impuesto por una `precondition` de Terraform en prod (hallazgo A4). Ya no es un recordatorio |
 | 1 | **Esquema** · ENTREGADA | Tablas `plan`, `plan_modulo`, `cuenta_modulo`, `auditoria_admin`; FK de `cuenta.plan`; límites negociables por cuenta; permisos por columna del §3.2; rol `ondexia_panel`. Todo en la V9 |
 | 2 | **Comprobación** | El cuarto conjunto en `Permisos`, con pruebas. Sin panel todavía: se verifica que un módulo apagado devuelve 403 |
 | 3 | **Infraestructura** | Módulo Maven, Lambda, API, cliente de Cognito, bucket y distribución del SPA |
