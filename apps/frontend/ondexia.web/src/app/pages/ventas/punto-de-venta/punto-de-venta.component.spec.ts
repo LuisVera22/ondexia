@@ -117,8 +117,45 @@ describe('PuntoDeVentaComponent · totales, cobro y reglas', () => {
     expect(peticion.cajaId).toBe('caja-1');
     expect(peticion.serieId).toBe('ser-1');
     expect(peticion.lineas).toEqual([{ productoId: 'p-cem', cantidad: 1, descuento: 2.5 }]);
-    expect(peticion.pagos).toEqual([{ forma: 'EFECTIVO', monto: 30, referencia: null }]);
+    // `entregado` en null es «pagó justo». Va explícito y no ausente para que
+    // la forma del cuerpo no dependa de si hubo vuelto.
+    expect(peticion.pagos).toEqual([
+      { forma: 'EFECTIVO', monto: 30, referencia: null, entregado: null },
+    ]);
     expect(JSON.stringify(peticion)).not.toContain('precio');
+  });
+
+  it('un billete de más se manda como entregado, y el monto sigue siendo la venta', async () => {
+    const componente = crear();
+    await asentar();
+    await componente.buscarProducto('cem');
+    componente.agregarProducto({ id: 'p-cem', titulo: 'Cemento' });
+
+    // La casilla del efectivo es lo que ENTREGA el cliente: 50 sobre una venta
+    // de 32.50.
+    componente.cambiarMonto(componente.pagos()[0], 50);
+
+    expect(componente.cobrado()).toBe(32.5);
+    expect(componente.vuelto()).toBe(17.5);
+    // Pasarse en efectivo ya no impide registrar: es vuelto, no un cobro de más.
+    expect(componente.impedimento()).toBeNull();
+
+    expect(componente.peticion().pagos).toEqual([
+      { forma: 'EFECTIVO', monto: 32.5, referencia: null, entregado: 50 },
+    ]);
+  });
+
+  it('solo el efectivo da vuelto: pasarse con tarjeta sigue siendo un impedimento', async () => {
+    const componente = crear();
+    await asentar();
+    await componente.buscarProducto('cem');
+    componente.agregarProducto({ id: 'p-cem', titulo: 'Cemento' });
+
+    componente.cambiarFormaDePago(componente.pagos()[0], 'TARJETA');
+    componente.cambiarMonto(componente.pagos()[0], 50);
+
+    expect(componente.vuelto()).toBe(0);
+    expect(componente.impedimento()).toContain('superan el total');
   });
 
   it('dice antes lo que el servidor rechazaría: factura sin RUC y boleta grande sin cliente', async () => {
