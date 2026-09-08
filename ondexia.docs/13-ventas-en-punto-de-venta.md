@@ -354,7 +354,103 @@ de venta sigue emitiéndose.
 
 ## 5. Canje y anulación
 
-Pendiente: iteración 6.
+Los dos son un `documento_venta` más, con la referencia a lo que modifican. Por
+eso no hay tabla nueva: lo que se añadió en la V21 son cuatro columnas —el
+motivo del catálogo 09, y el tipo, la serie y el número del original—
+denormalizadas a propósito, porque son lo que se imprime y lo que viaja en el
+XML, y tienen que decir lo mismo dentro de diez años aunque el original cambie
+de estado.
+
+```
+  nota de crédito (07) ──documento_origen_id──▶ boleta o factura aceptada
+  boleta o factura     ──documento_origen_id──▶ nota de venta canjeada
+```
+
+### 5.1 Canje: de nota de venta a comprobante
+
+Es lo que hace útil a la nota de venta en un mostrador real: se cobra rápido y
+se documenta después, cuando el cliente pide su comprobante. Copia las líneas
+tal cual —mismos productos, mismas cantidades, mismos precios— y deja la
+referencia en los dos sentidos. La nota de venta pasa a `CANJEADO` y no se borra
+nunca.
+
+**Lo que no se repite es lo que ya ocurrió.** Ni el cobro ni la salida de
+mercadería:
+
+| Qué | Por qué |
+|---|---|
+| El comprobante **no lleva pagos propios** | El dinero entró una sola vez, con la nota de venta, en la sesión de caja donde ocurrió. Copiarlos aquí los contaría dos veces en el arqueo, y si el canje ocurre días después cambiaría el calculado de una sesión ya cerrada. La nota conserva sus pagos; el comprobante hereda su forma de cobro para lo que se imprime, no para lo que se cuenta |
+| **No descarga existencias** | Ya salieron con la nota de venta |
+| Se marca `CANJEADO` **al emitir**, no al aceptar SUNAT | Ese estado existe para impedir un segundo canje, y eso tiene que valer desde que el comprobante existe. Si SUNAT lo rechaza, lo que se corrige y reenvía es ese comprobante; no se canjea otra vez |
+
+El comprobante del canje es una boleta o una factura corriente para SUNAT: su
+XML **no** lleva referencia a la nota de venta, porque la nota de venta no es un
+documento que SUNAT conozca. La referencia existe solo en nuestra base, para
+poder ir de una a otra.
+
+### 5.2 Nota de crédito: anular y corregir
+
+Sobre un comprobante que **SUNAT ya aceptó**, y no antes. Mientras la boleta
+está pendiente o rechazada no hay nada que corregir allí: lo que hay que
+arreglar es su propio envío. Emitir la nota antes daría un rechazo por
+«documento que modifica no existe», con un correlativo de nota ya gastado.
+
+El motivo sale del catálogo 09 de SUNAT, y de él dependen dos comportamientos
+que no son de pantalla:
+
+| Motivo | Anula el comprobante | Repone existencias |
+|---|---|---|
+| `01` Anulación de la operación | Sí | Sí |
+| `02` Anulación por error en el RUC | Sí | Sí |
+| `06` Devolución total | Sí | Sí |
+| `07` Devolución por ítem | No | Sí |
+| `03` Corrección por error en la descripción | No | No |
+| `04`, `05` Descuentos, `08` Bonificación, `09` Disminución en el valor, `10` Otros | No | No |
+
+**Anular es un permiso distinto de emitir**, y por eso son dos rutas y no un
+parámetro: `POST /comprobantes/{id}/anulacion` exige
+`ventas.nota_credito:anular`, y `POST /notas-de-credito` —devoluciones
+parciales, descuentos, correcciones— exige `ventas.nota_credito:emitir`. El
+catálogo de permisos hace esa separación desde la V2 y dice por qué: anular un
+comprobante ya emitido tiene efecto tributario y quien atiende el mostrador casi
+nunca debe poder hacerlo. Con una sola ruta habría que comprobar el permiso a
+mano según el motivo, y eso se olvida al añadir el siguiente caso.
+
+Cuatro reglas más, cada una con su prueba:
+
+- **Media anulación no existe.** Con un motivo que anula, la nota tiene que
+  sumar el total del comprobante. Para devolver una parte está la devolución por
+  ítem.
+- **No se acredita más de lo que se cobró.**
+- **La nota hereda la letra de la serie del original**: `B` para una boleta,
+  `F` para una factura. Con la letra cambiada apuntaría a un documento que no
+  existe en ese libro.
+- **Ni dos anulaciones, ni una segunda mientras la primera está en camino.** Lo
+  segundo hace falta porque mientras la nota está pendiente el comprobante sigue
+  `EMITIDO`, así que sin esa comprobación nada impediría emitir otra y acabar con
+  dos notas por el mismo importe.
+
+**El comprobante pasa a `ANULADO` cuando SUNAT acepta la nota, no cuando se
+registra.** Si SUNAT la rechazara, la anulación no habría ocurrido. Ese orden es
+lo que hace que el estado que se ve en pantalla sea el que SUNAT reconoce.
+
+Las cantidades y los precios de la nota se toman **del comprobante guardado**,
+nunca de la petición: la pantalla solo dice qué líneas se acreditan y cuántas
+unidades. Un precio distinto entre la nota y el comprobante es una diferencia
+que SUNAT ve, y dejar que el navegador lo proponga sería ponerla al alcance de
+cualquiera.
+
+### 5.3 Lo que el arqueo cuenta
+
+La devolución de una nota de crédito **resta** en la sesión en la que se
+devolvió el dinero, que puede no ser la de la venta. Y un documento anulado
+después **sigue contando** en la sesión donde se cobró.
+
+Esa segunda línea era `estado <> 'ANULADO'` cuando todavía no se podía anular
+nada. Con la anulación construida dejó de ser inofensiva: excluir el documento
+cambiaría, semanas más tarde, el calculado de una sesión ya cerrada, y una
+diferencia que alguien justificó en su día pasaría a no cuadrar sin que nadie
+tocara nada. El arqueo cuenta lo que se movió, no lo que sigue vigente.
 
 ## Registro de cambios
 

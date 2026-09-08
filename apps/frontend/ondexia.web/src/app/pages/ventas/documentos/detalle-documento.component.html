@@ -13,6 +13,12 @@
           <button type="button" (click)="formato.set('a4')" class="rounded-md px-3 py-1.5 font-medium" [class]="formato() === 'a4' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">A4</button>
         </div>
         <app-boton (accion)="imprimir()">Imprimir</app-boton>
+        @if (sePuedeAnular()) {
+        <app-boton variante="peligro" (accion)="pedirAnulacion()">Anular</app-boton>
+        }
+        @if (sePuedeCanjear()) {
+        <app-boton (accion)="pedirCanje()">Canjear</app-boton>
+        }
         <app-boton variante="secundario" ruta="/ventas/punto-de-venta">Nueva venta</app-boton>
       </div>
       }
@@ -67,6 +73,30 @@
         }
       </div>
     </div>
+  </section>
+  }
+
+  @if (documento()?.origen; as origen) {
+  <!-- De dónde viene: el comprobante corregido, o la nota de venta canjeada. -->
+  <p class="no-imprimir mx-auto mb-3 text-sm text-gray-600 dark:text-gray-400" [class]="formato() === 'ticket' ? 'max-w-md' : 'max-w-3xl'">
+    @if (documento()?.tipo === '07') { Corrige a }
+    @else { Sale del canje de }
+    <a [routerLink]="rutaDe(origen)" class="font-medium text-brand-500 hover:underline">{{ origen.numeroCompleto }}</a>@if (documento()?.motivoNombre) { · {{ documento()?.motivoNombre }}}.
+  </p>
+  }
+
+  @if (relacionados().length > 0) {
+  <section class="no-imprimir mx-auto mb-5 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]"
+    [class]="formato() === 'ticket' ? 'max-w-md' : 'max-w-3xl'">
+    <h2 class="mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">Lo que salió de este documento</h2>
+    <ul class="divide-y divide-gray-100 text-sm dark:divide-gray-800">
+      @for (r of relacionados(); track r.id) {
+      <li class="flex items-center justify-between gap-3 py-2">
+        <a [routerLink]="rutaDe(r)" class="font-medium text-brand-500 hover:underline">{{ r.tipoNombre }} {{ r.numeroCompleto }}</a>
+        <span class="tabular-nums text-gray-600 dark:text-gray-400">S/ {{ importe(r.total) }} · {{ estadoTexto(r.estado) }}</span>
+      </li>
+      }
+    </ul>
   </section>
   }
 
@@ -151,6 +181,9 @@
     <footer class="mt-4 text-center text-[10px] text-gray-600">
       @if (d.tipo === 'NV') {
       Este documento no otorga derecho a crédito fiscal ni sustenta gasto o costo. Puede canjearse por boleta o factura.
+      } @else if (d.tipo === '07' && d.origen) {
+      Nota de crédito de {{ d.origen.numeroCompleto }}@if (d.motivoNombre) { · {{ d.motivoNombre }}}.
+      @if (sunat()?.estado === 'ACEPTADO') { Aceptada por SUNAT. } @else { Pendiente de aceptación por SUNAT. }
       } @else if (sunat()?.estado === 'ACEPTADO') {
       Representación impresa del comprobante electrónico. Aceptado por SUNAT.
       @if (sunat()?.resumenFirma) {<span class="block break-all font-mono">Resumen: {{ sunat()?.resumenFirma }}</span>}
@@ -161,3 +194,104 @@
   </article>
   }
 </div>
+
+<!-- Anular: deja sin efecto el comprobante entero (doc 13 §5.2). -->
+<app-modal
+  [abierto]="modal() === 'anular'"
+  titulo="Anular el comprobante"
+  [subtitulo]="'Se emite una nota de crédito de ' + (documento()?.numeroCompleto || '') + '. El comprobante queda anulado cuando SUNAT la acepte.'"
+  rol="alertdialog"
+  [procesando]="anular.estado() === 'cargando'"
+  (cerrar)="cerrarModal()"
+>
+  <div class="grid gap-4">
+    @if (!cajaEnUso()) {
+    <p class="rounded-lg border border-warning-500/40 bg-warning-500/10 p-3 text-sm text-gray-700 dark:text-gray-300">
+      No hay ninguna caja abierta. La devolución pasa por el cajón, así que hay que abrir una antes.
+    </p>
+    } @else {
+    <p class="text-sm text-gray-600 dark:text-gray-400">Caja: {{ cajaEnUso()?.nombre }}</p>
+    }
+
+    <div>
+      <label for="motivo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Motivo</label>
+      <app-desplegable idCampo="motivo" [opciones]="opcionesDeMotivo()" [(ngModel)]="motivoElegido" />
+    </div>
+
+    @if (series().length !== 1) {
+    <div>
+      <label for="serieNota" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Serie de la nota</label>
+      <app-desplegable idCampo="serieNota" [opciones]="opcionesDeSerie()" [(ngModel)]="serieElegida" marcador="Elige una serie" />
+      @if (series().length === 0) {
+      <p class="mt-1 text-xs text-error-500">No hay serie de nota de crédito para este establecimiento. Créala en Configuración › Series y correlativos.</p>
+      }
+    </div>
+    }
+
+    <label class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+      <input type="checkbox" name="devolver" [(ngModel)]="devolverElDinero" class="mt-0.5 h-4 w-4 rounded border-gray-300 text-brand-500" />
+      <span>Se devuelve el dinero ahora (S/ {{ importe(documento()?.total || 0) }}). Sin marcar, la nota se emite sin movimiento de caja.</span>
+    </label>
+
+    <div>
+      <label for="obsNota" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Sustento</label>
+      <input id="obsNota" type="text" name="obsNota" [(ngModel)]="observacionesDeLaNota" maxlength="500"
+        placeholder="Por qué se anula. Va impreso y en el XML."
+        class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+    </div>
+  </div>
+
+  <div acciones class="flex justify-end gap-2">
+    <app-boton variante="secundario" (accion)="cerrarModal()">Cancelar</app-boton>
+    <app-boton variante="peligro" [deshabilitado]="!cajaEnUso() || !motivoElegido" [estado]="anular.estado()" (accion)="anular.ejecutar()">
+      Anular
+    </app-boton>
+  </div>
+</app-modal>
+
+<!-- Canjear: la nota de venta se convierte en comprobante (doc 13 §5.1). -->
+<app-modal
+  [abierto]="modal() === 'canjear'"
+  titulo="Canjear por comprobante"
+  [subtitulo]="'Las líneas y los importes se copian de ' + (documento()?.numeroCompleto || '') + '. El dinero ya entró con ella: no se vuelve a cobrar.'"
+  [procesando]="canjear.estado() === 'cargando'"
+  (cerrar)="cerrarModal()"
+>
+  <div class="grid gap-4">
+    <div>
+      <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Comprobante</span>
+      <div class="flex rounded-lg border border-gray-300 p-0.5 text-sm dark:border-gray-700" role="group">
+        <button type="button" (click)="tipoDeCanje = 'BOLETA'; cargarSeriesDeCanje()"
+          class="flex-1 rounded-md px-3 py-2 font-medium" [class]="tipoDeCanje === 'BOLETA' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">Boleta</button>
+        <button type="button" (click)="tipoDeCanje = 'FACTURA'; cargarSeriesDeCanje()"
+          class="flex-1 rounded-md px-3 py-2 font-medium" [class]="tipoDeCanje === 'FACTURA' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">Factura</button>
+      </div>
+    </div>
+
+    @if (tipoDeCanje === 'FACTURA' && documento()?.cliente?.tipoDocumento !== 'RUC') {
+    <p class="rounded-lg border border-warning-500/40 bg-warning-500/10 p-3 text-sm text-gray-700 dark:text-gray-300">
+      Una factura exige un cliente con RUC. Esta nota de venta
+      @if (documento()?.cliente) { está a nombre de un cliente con {{ documento()?.cliente?.tipoDocumento }}. } @else { no tiene cliente. }
+      Cámbialo desde el punto de venta o canjéala por boleta.
+    </p>
+    }
+
+    @if (series().length !== 1) {
+    <div>
+      <label for="serieCanje" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Serie</label>
+      <app-desplegable idCampo="serieCanje" [opciones]="opcionesDeSerie()" [(ngModel)]="serieElegida" marcador="Elige una serie" />
+    </div>
+    }
+
+    <div>
+      <label for="obsCanje" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Observaciones</label>
+      <input id="obsCanje" type="text" name="obsCanje" [(ngModel)]="observacionesDeLaNota" maxlength="500"
+        class="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+    </div>
+  </div>
+
+  <div acciones class="flex justify-end gap-2">
+    <app-boton variante="secundario" (accion)="cerrarModal()">Cancelar</app-boton>
+    <app-boton [estado]="canjear.estado()" (accion)="canjear.ejecutar()">Canjear</app-boton>
+  </div>
+</app-modal>

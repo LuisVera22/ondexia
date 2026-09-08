@@ -37,7 +37,8 @@ class ConstructorDeComprobanteTest {
     private static final Map<String, String> PREFIJOS = Map.of(
             "inv", "urn:oasis:names:specification:ubl:schema:xsd:Invoice-2",
             "cbc", "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2",
-            "cac", "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2");
+            "cac", "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2",
+            "nota", "urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2");
 
     private static String valor(Document doc, String ruta) throws Exception {
         XPath xpath = XPathFactory.newInstance().newXPath();
@@ -118,6 +119,30 @@ class ConstructorDeComprobanteTest {
         assertThat(valor(doc, "/inv:Invoice/cac:TaxTotal/cac:TaxSubtotal//cac:TaxScheme/cbc:ID")).isEqualTo("9997");
         assertThat(valor(doc, "//cac:InvoiceLine[1]//cbc:TaxExemptionReasonCode")).isEqualTo("20");
         assertThat(valor(doc, "/inv:Invoice/cac:LegalMonetaryTotal/cbc:PayableAmount")).isEqualTo("50.00");
+    }
+
+    @Test
+    @DisplayName("La nota de crédito dice qué comprobante modifica, con qué motivo y con qué sustento")
+    void notaDeCredito() throws Exception {
+        String xml = constructor.construir(Ordenes.notaDeCredito(UUID.randomUUID()));
+        Document doc = analizar(xml);
+
+        assertThat(valor(doc, "/nota:CreditNote/cbc:ID")).isEqualTo("BC01-3");
+        // El motivo del catálogo 09 y el comprobante afectado, que es lo que
+        // distingue una nota de crédito de todo lo demás.
+        assertThat(valor(doc, "//cac:DiscrepancyResponse/cbc:ResponseCode")).isEqualTo("01");
+        assertThat(valor(doc, "//cac:DiscrepancyResponse/cbc:ReferenceID")).isEqualTo("B001-12");
+        assertThat(valor(doc, "//cac:DiscrepancyResponse/cbc:Description"))
+                .isEqualTo("Cliente devolvió la mercadería");
+        assertThat(valor(doc, "//cac:BillingReference//cbc:ID")).isEqualTo("B001-12");
+        assertThat(valor(doc, "//cac:BillingReference//cbc:DocumentTypeCode")).isEqualTo("03");
+
+        // Y los importes son los de la orden, igual que en la boleta.
+        assertThat(valor(doc, "//cac:CreditNoteLine[1]/cbc:CreditedQuantity")).isEqualTo("2");
+        assertThat(valor(doc, "/nota:CreditNote/cac:TaxTotal/cbc:TaxAmount")).isEqualTo("22.12");
+        assertThat(valor(doc, "/nota:CreditNote/cac:LegalMonetaryTotal/cbc:PayableAmount"))
+                .isEqualTo("145.00");
+        assertThat(valor(doc, "//cac:AccountingCustomerParty//cbc:ID")).isEqualTo("70123456");
     }
 
     @Test

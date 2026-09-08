@@ -12,6 +12,8 @@ import com.ondexia.domain.ventas.EstadoDocumento;
 import com.ondexia.domain.ventas.FormaDePago;
 import com.ondexia.domain.ventas.LineaDeVenta;
 import com.ondexia.domain.ventas.Pago;
+import com.ondexia.domain.ventas.ReferenciaDocumento;
+import com.ondexia.domain.ventas.TipoNotaCredito;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -49,6 +51,12 @@ public class DocumentoVentaAdaptador implements DocumentoVentaRepositorio {
     }
 
     @Override
+    public List<DocumentoVenta> listarPorOrigen(UUID origenId) {
+        return filas.findAllByDocumentoOrigenIdOrderByEmitidoEnAsc(origenId).stream()
+                .map(this::aDominio).toList();
+    }
+
+    @Override
     @Transactional
     public DocumentoVenta guardar(DocumentoVenta d) {
         UUID empresaId = contexto.obligatorio().empresaActivaObligatoria();
@@ -64,7 +72,12 @@ public class DocumentoVentaAdaptador implements DocumentoVentaRepositorio {
                 d.cliente() == null ? null : d.cliente().id(), d.fechaEmision(), d.emitidoEn(),
                 d.emitidoPor(), d.totalGravado(), d.totalExonerado(), d.totalInafecto(),
                 d.totalDescuento(), d.totalIgv(), d.total(), d.observaciones(),
-                d.documentoOrigenId(), d.estado().name());
+                d.documentoOrigenId(),
+                d.motivoNota() == null ? null : d.motivoNota().codigo(),
+                d.origen() == null ? null : d.origen().tipo().codigo(),
+                d.origen() == null ? null : d.origen().serie(),
+                d.origen() == null ? null : d.origen().numero(),
+                d.estado().name());
         for (LineaDeVenta l : d.lineas()) {
             fila.agregarLinea(new DetalleVentaJpa(UUID.randomUUID(), empresaId, l.orden(),
                     l.productoId(), l.codigo(), l.descripcion(), l.unidad().codigo(), l.cantidad(),
@@ -89,6 +102,10 @@ public class DocumentoVentaAdaptador implements DocumentoVentaRepositorio {
                 fila.getPagos().stream().map(p -> new Pago(FormaDePago.valueOf(p.getForma()),
                         p.getMonto(), p.getReferencia())).toList(),
                 fila.getObservaciones(), fila.getDocumentoOrigenId(),
+                fila.getMotivoNota() == null ? null : TipoNotaCredito.porCodigo(fila.getMotivoNota()),
+                fila.getOrigenTipo() == null ? null : new ReferenciaDocumento(
+                        TipoDocumento.porCodigo(fila.getOrigenTipo()), fila.getOrigenSerie(),
+                        fila.getOrigenNumero()),
                 EstadoDocumento.valueOf(fila.getEstado()));
     }
 

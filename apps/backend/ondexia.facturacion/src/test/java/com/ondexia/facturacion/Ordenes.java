@@ -38,7 +38,7 @@ public final class Ordenes {
                 LocalTime.of(10, 15, 0), "PEN",
                 new OrdenDeEmision.Adquirente("1", "70123456", "Juan Perez Gomez", "Calle 1, Lima"),
                 lineas, new BigDecimal("122.88"), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-                new BigDecimal("22.12"), new BigDecimal("145.00"), "Entrega mañana");
+                new BigDecimal("22.12"), new BigDecimal("145.00"), "Entrega mañana", null, null);
         return new OrdenDeEmision(id, OrdenDeEmision.Operacion.EMITIR, EMPRESA, ModoSunat.BETA,
                 emisor(), documento, Instant.parse("2026-09-08T15:15:00Z"));
     }
@@ -52,7 +52,7 @@ public final class Ordenes {
                 LocalTime.of(11, 0), "PEN",
                 new OrdenDeEmision.Adquirente("6", "20131312955", "SUNAT", null),
                 lineas, BigDecimal.ZERO, new BigDecimal("50.00"), BigDecimal.ZERO, BigDecimal.ZERO,
-                BigDecimal.ZERO, new BigDecimal("50.00"), null);
+                BigDecimal.ZERO, new BigDecimal("50.00"), null, null, null);
         return new OrdenDeEmision(id, OrdenDeEmision.Operacion.EMITIR, EMPRESA, ModoSunat.BETA,
                 emisor(), documento, Instant.parse("2026-09-08T16:00:00Z"));
     }
@@ -63,9 +63,25 @@ public final class Ordenes {
         var documento = new OrdenDeEmision.Documento(base.tipo(), base.serie(), base.numero(),
                 base.fechaEmision(), base.horaEmision(), base.moneda(), null, base.lineas(),
                 base.totalGravado(), base.totalExonerado(), base.totalInafecto(),
-                base.totalDescuento(), base.totalIgv(), base.total(), null);
+                base.totalDescuento(), base.totalIgv(), base.total(), null, null, null);
         return new OrdenDeEmision(id, OrdenDeEmision.Operacion.EMITIR, EMPRESA, ModoSunat.BETA,
                 emisor(), documento, Instant.parse("2026-09-08T15:15:00Z"));
+    }
+
+    /**
+     * Una nota de crédito que anula la boleta de arriba: mismas líneas, mismos
+     * importes, con el motivo del catálogo 09 y el comprobante afectado.
+     */
+    public static OrdenDeEmision notaDeCredito(UUID id) {
+        var base = boleta(UUID.randomUUID()).documento();
+        var documento = new OrdenDeEmision.Documento("07", "BC01", 3, LocalDate.of(2026, 9, 9),
+                LocalTime.of(9, 30), "PEN", base.adquirente(), base.lineas(),
+                base.totalGravado(), base.totalExonerado(), base.totalInafecto(),
+                base.totalDescuento(), base.totalIgv(), base.total(),
+                "Cliente devolvió la mercadería", "01",
+                new OrdenDeEmision.Referencia("03", "B001", 12));
+        return new OrdenDeEmision(id, OrdenDeEmision.Operacion.EMITIR, EMPRESA, ModoSunat.BETA,
+                emisor(), documento, Instant.parse("2026-09-09T14:30:00Z"));
     }
 
     public static OrdenDeEmision verificacion(UUID id) {

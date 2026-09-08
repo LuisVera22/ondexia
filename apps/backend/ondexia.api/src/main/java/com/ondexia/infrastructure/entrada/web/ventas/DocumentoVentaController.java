@@ -199,16 +199,30 @@ public class DocumentoVentaController {
             String nombre, String direccion) {
     }
 
+    /**
+     * El documento al que este se refiere: el que una nota de crédito modifica,
+     * o la nota de venta de la que salió por canje.
+     */
+    public record RespuestaOrigen(UUID id, String tipo, String numeroCompleto) {
+    }
+
+    /**
+     * @param motivo el del catálogo 09, solo en una nota de crédito
+     * @param origen el documento al que este se refiere, o nulo
+     */
     public record RespuestaDocumento(UUID id, String tipo, String tipoNombre, boolean fiscal,
             String serie, long numero, String numeroCompleto, String estado, UUID sucursalId,
             UUID sesionCajaId, RespuestaCliente cliente, LocalDate fechaEmision, Instant emitidoEn,
             UUID emitidoPor, String moneda, BigDecimal totalGravado, BigDecimal totalExonerado,
             BigDecimal totalInafecto, BigDecimal totalDescuento, BigDecimal totalIgv,
-            BigDecimal total, String observaciones, UUID documentoOrigenId,
-            List<RespuestaLinea> lineas, List<RespuestaPago> pagos) {
+            BigDecimal total, String observaciones, UUID documentoOrigenId, String motivo,
+            String motivoNombre, RespuestaOrigen origen, List<RespuestaLinea> lineas,
+            List<RespuestaPago> pagos) {
 
         static RespuestaDocumento desde(DocumentoVenta d) {
             var c = d.cliente();
+            var motivo = d.motivoNota();
+            var origen = d.origen();
             return new RespuestaDocumento(d.id(), d.tipo().codigo(), d.tipo().nombre(), d.esFiscal(),
                     d.serie(), d.numero(), d.numeroCompleto(), d.estado().name(), d.sucursalId(),
                     d.sesionCajaId(),
@@ -217,6 +231,10 @@ public class DocumentoVentaController {
                     d.fechaEmision(), d.emitidoEn(), d.emitidoPor(), "PEN", d.totalGravado(),
                     d.totalExonerado(), d.totalInafecto(), d.totalDescuento(), d.totalIgv(),
                     d.total(), d.observaciones(), d.documentoOrigenId(),
+                    motivo == null ? null : motivo.name(),
+                    motivo == null ? null : motivo.nombre(),
+                    origen == null ? null : new RespuestaOrigen(d.documentoOrigenId(),
+                            origen.tipo().codigo(), origen.numeroCompleto()),
                     d.lineas().stream().map(RespuestaLinea::desde).toList(),
                     d.pagos().stream().map(RespuestaPago::desde).toList());
         }

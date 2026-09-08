@@ -10,4 +10,6 @@ public interface DocumentoVentaJpaRepository extends JpaRepository<DocumentoVent
 
     List<DocumentoVentaJpa> findAllByTipoDocumentoOrderByEmitidoEnDesc(String tipoDocumento,
             org.springframework.data.domain.Pageable pagina);
+
+    List<DocumentoVentaJpa> findAllByDocumentoOrigenIdOrderByEmitidoEnAsc(UUID origenId);
 }

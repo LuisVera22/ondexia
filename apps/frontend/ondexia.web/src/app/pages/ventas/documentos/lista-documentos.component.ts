@@ -7,7 +7,7 @@ import { ESTADOS_SUNAT, ResumenDocumentoApi, TipoDocumentoVenta, VentasApiServic
 import { mensajeDeError } from '../../../nucleo/errores';
 import { ContextoService } from '../../../shared/services/contexto.service';
 
-type Vista = 'NV' | 'BOLETA' | 'FACTURA';
+type Vista = 'NV' | 'BOLETA' | 'FACTURA' | 'NOTA_CREDITO';
 
 const VISTAS: Record<Vista, { titulo: string; descripcion: string; plural: string; singular: string; permisoEmitir: string }> = {
   NV: {
@@ -31,6 +31,17 @@ const VISTAS: Record<Vista, { titulo: string; descripcion: string; plural: strin
     singular: 'factura',
     permisoEmitir: 'ventas.comprobante:emitir',
   },
+  NOTA_CREDITO: {
+    titulo: 'Notas de crédito',
+    descripcion:
+      'Lo que anula o corrige una boleta o una factura ya aceptada. Se emiten desde la ficha del comprobante, no desde aquí.',
+    plural: 'notas de crédito',
+    singular: 'nota de crédito',
+    // Ninguno: una nota de crédito nace de un comprobante concreto, así que
+    // esta pantalla no ofrece «nueva». Pedirle a alguien que elija el
+    // comprobante desde una lista vacía sería el camino largo al mismo sitio.
+    permisoEmitir: '',
+  },
 };
 
 /** El listado de lo emitido, uno por tipo; la ruta dice cuál. */
@@ -48,7 +59,9 @@ export class ListaDocumentosComponent {
   readonly vista: Vista = (this.ruta.snapshot.data['tipo'] as Vista) ?? 'NV';
   readonly textos = VISTAS[this.vista];
 
-  readonly puedeEmitir = computed(() => this.contexto.puede(this.textos.permisoEmitir));
+  readonly puedeEmitir = computed(
+    () => this.textos.permisoEmitir !== '' && this.contexto.puede(this.textos.permisoEmitir)
+  );
 
   readonly columnas: ColumnaTabla[] = [
     { campo: 'numero', titulo: 'Número', ordenable: true, ancho: 'w-40', principal: true },
@@ -93,7 +106,11 @@ export class ListaDocumentosComponent {
     this.error.set(null);
     try {
       const documentos: ResumenDocumentoApi[] =
-        this.vista === 'NV' ? await this.api.notasDeVenta() : await this.api.comprobantes(this.vista);
+        this.vista === 'NV'
+          ? await this.api.notasDeVenta()
+          : this.vista === 'NOTA_CREDITO'
+            ? await this.api.notasDeCredito()
+            : await this.api.comprobantes(this.vista);
       this.tipos = new Map(documentos.map((d) => [d.id, d.tipo]));
       this.registros.set(
         documentos.map((d) => ({

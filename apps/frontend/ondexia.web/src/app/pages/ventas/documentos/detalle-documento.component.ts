@@ -1,8 +1,23 @@
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
-import { DocumentoVentaApi, ESTADOS_SUNAT, EstadoSunatApi, FORMAS_DE_PAGO, TipoDocumentoVenta, VentasApiService } from '../../../nucleo/ventas.api.service';
+import { ModalComponent } from '../../../shared/components/comunes/modal/modal.component';
+import { DesplegableComponent, OpcionDesplegable } from '../../../shared/components/comunes/desplegable/desplegable.component';
+import { FormsModule } from '@angular/forms';
+import { CajaActivaService } from '../../../nucleo/caja-activa.service';
+import {
+  DocumentoVentaApi,
+  ESTADOS_SUNAT,
+  EstadoSunatApi,
+  FORMAS_DE_PAGO,
+  MotivoNotaCredito,
+  ResumenDocumentoApi,
+  SerieDisponibleApi,
+  TipoComprobanteEmitible,
+  TipoDocumentoVenta,
+  VentasApiService,
+} from '../../../nucleo/ventas.api.service';
 import { accionConEstado } from '../../../shared/components/comunes/boton/estado-accion';
 import { AvisosService } from '../../../shared/services/avisos.service';
 import { ContextoService } from '../../../shared/services/contexto.service';
@@ -30,7 +45,7 @@ import { mensajeDeError } from '../../../nucleo/errores';
  */
 @Component({
   selector: 'app-detalle-documento',
-  imports: [EncabezadoPaginaComponent, BotonComponent, RouterModule],
+  imports: [EncabezadoPaginaComponent, BotonComponent, RouterModule, ModalComponent, DesplegableComponent, FormsModule],
   templateUrl: './detalle-documento.component.html',
   styles: `
     @media print {
@@ -49,6 +64,8 @@ export class DetalleDocumentoComponent implements OnDestroy {
   private readonly ruta = inject(ActivatedRoute);
   private readonly avisos = inject(AvisosService);
   private readonly contexto = inject(ContextoService);
+  private readonly cajas = inject(CajaActivaService);
+  private readonly router = inject(Router);
 
   readonly documento = signal<DocumentoVentaApi | null>(null);
   readonly empresa = signal<Empresa | null>(null);
@@ -70,6 +87,59 @@ export class DetalleDocumentoComponent implements OnDestroy {
   /** Cuántas veces se ha vuelto a preguntar mientras está en cola. */
   private sondeos = 0;
   private sondeo: ReturnType<typeof setTimeout> | null = null;
+
+  // ── Anular y canjear (doc 13 §5) ──────────────────────────────────────────
+
+  /** Lo que salió de este documento: sus notas de crédito, o su canje. */
+  readonly relacionados = signal<ResumenDocumentoApi[]>([]);
+
+  readonly modal = signal<'ninguno' | 'anular' | 'canjear'>('ninguno');
+  readonly motivos = signal<MotivoNotaCredito[]>([]);
+  readonly series = signal<SerieDisponibleApi[]>([]);
+
+  motivoElegido = '';
+  serieElegida = '';
+  tipoDeCanje: TipoComprobanteEmitible = 'BOLETA';
+  devolverElDinero = true;
+  observacionesDeLaNota = '';
+
+  /**
+   * Anular exige una caja abierta: la devolución pasa por el cajón y el arqueo
+   * de esa sesión tiene que verla. Se toma la que ya está en uso, que es la
+   * misma que ofrece el punto de venta.
+   */
+  readonly cajaEnUso = computed(() => this.cajas.enUso());
+
+  /** Una boleta o factura que SUNAT aceptó y que nadie ha anulado todavía. */
+  readonly sePuedeAnular = computed(() => {
+    const d = this.documento();
+    return (
+      d != null &&
+      d.fiscal &&
+      d.tipo !== '07' &&
+      d.estado === 'EMITIDO' &&
+      this.contexto.puede('ventas.nota_credito:anular')
+    );
+  });
+
+  readonly sePuedeCanjear = computed(() => {
+    const d = this.documento();
+    return d != null && d.tipo === 'NV' && d.estado === 'EMITIDO' && this.contexto.puede('ventas.nota_venta:canjear');
+  });
+
+  readonly motivosQueAnulan = computed(() => this.motivos().filter((m) => m.anula));
+
+  readonly opcionesDeMotivo = computed<OpcionDesplegable[]>(() =>
+    this.motivosQueAnulan().map((m) => ({
+      valor: m.codigo,
+      etiqueta: m.nombre,
+      detalle: m.repone ? 'La mercadería vuelve al almacén' : 'No mueve existencias',
+    }))
+  );
+
+  readonly opcionesDeSerie = computed<OpcionDesplegable[]>(() =>
+    this.series().map((s) => ({ valor: s.id, etiqueta: s.serie, detalle: `Siguiente: ${s.siguienteNumero}` }))
+  );
 
   constructor() {
     const tipo = this.ruta.snapshot.paramMap.get('tipo') as TipoDocumentoVenta | null;
@@ -94,6 +164,13 @@ export class DetalleDocumentoComponent implements OnDestroy {
       this.establecimiento.set(establecimientos.find((e) => e.id === documento.sucursalId) ?? null);
       if (documento.fiscal) {
         await this.consultarSunat(id);
+      }
+      // Lo que salió de este documento: las notas de crédito que lo corrigen,
+      // o el comprobante que lo canjeó. Un fallo aquí no impide ver la hoja.
+      try {
+        this.relacionados.set(await this.ventas.relacionadosCon(id));
+      } catch {
+        this.relacionados.set([]);
       }
     } catch (fallo: unknown) {
       this.error.set(mensajeDeError(fallo, 'No se pudo cargar el documento.'));
@@ -150,6 +227,118 @@ export class DetalleDocumentoComponent implements OnDestroy {
     }
   });
 
+  /** Abre el diálogo de anulación con lo que hace falta para decidir. */
+  async pedirAnulacion(): Promise<void> {
+    const d = this.documento();
+    if (!d) {
+      return;
+    }
+    this.modal.set('anular');
+    this.observacionesDeLaNota = '';
+    this.devolverElDinero = true;
+    try {
+      const [motivos, series] = await Promise.all([
+        this.ventas.motivosDeNotaDeCredito(),
+        this.ventas.seriesDeNotaDeCredito(d.id),
+      ]);
+      this.motivos.set(motivos);
+      this.series.set(series);
+      this.motivoElegido = motivos.find((m) => m.anula)?.codigo ?? '';
+      this.serieElegida = series.length === 1 ? series[0].id : '';
+    } catch (fallo: unknown) {
+      this.avisos.error(mensajeDeError(fallo, 'No se pudo preparar la anulación.'));
+      this.modal.set('ninguno');
+    }
+  }
+
+  async pedirCanje(): Promise<void> {
+    const d = this.documento();
+    if (!d) {
+      return;
+    }
+    this.modal.set('canjear');
+    this.observacionesDeLaNota = '';
+    await this.cargarSeriesDeCanje();
+  }
+
+  async cargarSeriesDeCanje(): Promise<void> {
+    const d = this.documento();
+    if (!d) {
+      return;
+    }
+    try {
+      const series = await this.ventas.seriesDeCanje(d.id, this.tipoDeCanje);
+      this.series.set(series);
+      this.serieElegida = series.length === 1 ? series[0].id : '';
+    } catch (fallo: unknown) {
+      this.avisos.error(mensajeDeError(fallo, 'No se pudieron cargar las series.'));
+    }
+  }
+
+  cerrarModal(): void {
+    this.modal.set('ninguno');
+  }
+
+  readonly anular = accionConEstado(async () => {
+    const d = this.documento();
+    const caja = this.cajaEnUso();
+    if (!d || !caja) {
+      this.avisos.error('Abre una caja antes de anular: la devolución pasa por el cajón.');
+      throw new Error('Sin caja abierta');
+    }
+    try {
+      const nota = await this.ventas.anularComprobante(d.id, {
+        motivo: this.motivoElegido || undefined,
+        cajaId: caja.id,
+        serieId: this.serieElegida || null,
+        // Lo cobrado se devuelve por la misma vía y en un solo pago: en el
+        // mostrador es lo que ocurre. Un reparto distinto entre formas de pago
+        // se hace desde la nota de crédito por devolución.
+        pagos: this.devolverElDinero
+          ? [{ forma: d.pagos[0]?.forma ?? 'EFECTIVO', monto: d.total }]
+          : [],
+        observaciones: this.observacionesDeLaNota || null,
+      });
+      this.cerrarModal();
+      this.avisos.exito(
+        'El comprobante quedará anulado cuando SUNAT acepte la nota.',
+        `Nota de crédito ${nota.numeroCompleto}`
+      );
+      void this.router.navigate(['/ventas/documentos', '07', nota.id]);
+    } catch (fallo: unknown) {
+      this.avisos.error(mensajeDeError(fallo, 'No se pudo anular el comprobante.'));
+      throw fallo;
+    }
+  });
+
+  readonly canjear = accionConEstado(async () => {
+    const d = this.documento();
+    if (!d) {
+      return;
+    }
+    try {
+      const comprobante = await this.ventas.canjear(d.id, {
+        tipo: this.tipoDeCanje,
+        serieId: this.serieElegida || null,
+        clienteId: d.cliente?.id ?? null,
+        observaciones: this.observacionesDeLaNota || null,
+      });
+      this.cerrarModal();
+      this.avisos.exito(
+        'La nota de venta queda canjeada y el comprobante sale hacia SUNAT.',
+        `${comprobante.tipoNombre} ${comprobante.numeroCompleto}`
+      );
+      void this.router.navigate(['/ventas/documentos', comprobante.tipo, comprobante.id]);
+    } catch (fallo: unknown) {
+      this.avisos.error(mensajeDeError(fallo, 'No se pudo canjear la nota de venta.'));
+      throw fallo;
+    }
+  });
+
+  rutaDe(documento: { id: string; tipo: TipoDocumentoVenta }): string[] {
+    return ['/ventas/documentos', documento.tipo, documento.id];
+  }
+
   readonly descargarXml = accionConEstado(async () => this.abrir(await this.ventas.urlDelXml(this.documento()!.id)));
   readonly descargarCdr = accionConEstado(async () => this.abrir(await this.ventas.urlDelCdr(this.documento()!.id)));
 
@@ -164,8 +353,16 @@ export class DetalleDocumentoComponent implements OnDestroy {
   }
 
   get rutaListado(): string {
-    const tipo = this.documento()?.tipo;
-    return tipo === '01' ? '/ventas/facturas' : tipo === '03' ? '/ventas/boletas' : '/ventas/notas-venta';
+    switch (this.documento()?.tipo) {
+      case '01':
+        return '/ventas/facturas';
+      case '03':
+        return '/ventas/boletas';
+      case '07':
+        return '/ventas/notas-credito';
+      default:
+        return '/ventas/notas-venta';
+    }
   }
 
   get tituloImpreso(): string {
@@ -173,7 +370,16 @@ export class DetalleDocumentoComponent implements OnDestroy {
     if (!d) {
       return '';
     }
-    return d.tipo === 'NV' ? 'NOTA DE VENTA' : d.tipo === '03' ? 'BOLETA DE VENTA ELECTRÓNICA' : 'FACTURA ELECTRÓNICA';
+    switch (d.tipo) {
+      case 'NV':
+        return 'NOTA DE VENTA';
+      case '03':
+        return 'BOLETA DE VENTA ELECTRÓNICA';
+      case '07':
+        return 'NOTA DE CRÉDITO ELECTRÓNICA';
+      default:
+        return 'FACTURA ELECTRÓNICA';
+    }
   }
 
   estadoTexto(estado: string): string {

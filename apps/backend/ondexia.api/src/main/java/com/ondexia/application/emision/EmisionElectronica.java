@@ -15,6 +15,7 @@ import com.ondexia.domain.identidad.Sucursal;
 import com.ondexia.domain.identidad.SucursalRepositorio;
 import com.ondexia.domain.ventas.DocumentoVenta;
 import com.ondexia.domain.ventas.DocumentoVentaRepositorio;
+import com.ondexia.domain.ventas.EstadoDocumento;
 import com.ondexia.domain.ventas.LineaDeVenta;
 import java.time.Clock;
 import java.time.Duration;
@@ -145,8 +146,30 @@ public class EmisionElectronica {
                             "El comprobante " + comprobante.id() + " apunta a un documento que no existe."));
             documento.aceptarPorSunat();
             documentos.guardar(documento);
+            anularOriginalSiCorresponde(documento);
         }
         return comprobantes.guardar(comprobante);
+    }
+
+    /**
+     * Una nota de crédito de anulación aceptada deja sin efecto el comprobante
+     * que corrige (doc 13 §5.2).
+     *
+     * <p>Aquí y no al registrarla: si SUNAT rechazara la nota, la anulación no
+     * habría ocurrido y el comprobante seguiría vigente. Ese orden es lo que
+     * hace que el estado que se ve en pantalla sea el que SUNAT reconoce.
+     */
+    private void anularOriginalSiCorresponde(DocumentoVenta nota) {
+        if (!nota.esNotaDeCredito() || !nota.motivoNota().anulaElDocumento()
+                || nota.documentoOrigenId() == null) {
+            return;
+        }
+        documentos.buscarPorId(nota.documentoOrigenId()).ifPresent(original -> {
+            if (original.estado() == EstadoDocumento.EMITIDO) {
+                original.anularPorNotaDeCredito();
+                documentos.guardar(original);
+            }
+        });
     }
 
     /** Vuelve a encolar. Las reglas de cuándo se puede están en el agregado. */
@@ -230,7 +253,16 @@ public class EmisionElectronica {
         var documento = new OrdenDeEmision.Documento(d.tipo().codigo(), d.serie(), d.numero(),
                 d.fechaEmision(), LocalTime.ofInstant(emitidoEn, LIMA).withNano(0), "PEN",
                 adquirente, lineas, d.totalGravado(), d.totalExonerado(), d.totalInafecto(),
-                d.totalDescuento(), d.totalIgv(), d.total(), d.observaciones());
+                d.totalDescuento(), d.totalIgv(), d.total(), d.observaciones(),
+                d.motivoNota() == null ? null : d.motivoNota().codigo(),
+                // La referencia solo viaja en la nota de crédito. En un canje
+                // existe igual en la base —de dónde salió el comprobante— pero
+                // el XML de una boleta no la lleva: para SUNAT es una boleta
+                // corriente, y la nota de venta no es un documento que conozca.
+                d.esNotaDeCredito() && d.origen() != null
+                        ? new OrdenDeEmision.Referencia(d.origen().tipo().codigo(),
+                                d.origen().serie(), d.origen().numero())
+                        : null);
         return new OrdenDeEmision(comprobante.id(), OrdenDeEmision.Operacion.EMITIR, e.id(),
                 e.modoSunat(), emisor, documento, reloj.instant());
     }

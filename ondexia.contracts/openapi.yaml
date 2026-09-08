@@ -45,6 +45,8 @@ tags:
   description: Series de comprobante y su correlativo
 - name: Clientes
   description: "Adquirentes identificados: a quién se le emite"
+- name: Notas de crédito
+  description: "Anular o corregir un comprobante, y canjear una nota de venta"
 - name: Registro
   description: "Alta de cuenta, empresa y primer administrador"
 - name: Envío a SUNAT
@@ -869,6 +871,73 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaEmision"
+  /api/v1/ventas/notas-de-venta/{id}/canje:
+    post:
+      tags:
+      - Notas de crédito
+      summary: Canjea una nota de venta por boleta o factura
+      description: "Copia las líneas y deja la referencia en los dos sentidos. La\
+        \ nota de venta pasa a CANJEADO y conserva sus pagos: el dinero entró con\
+        \ ella y el arqueo de su sesión ya lo contó, así que el comprobante no lleva\
+        \ pagos propios ni vuelve a descargar existencias."
+      operationId: canjear
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionCanje"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaDocumento"
+  /api/v1/ventas/notas-de-credito:
+    get:
+      tags:
+      - Notas de crédito
+      summary: Las últimas notas de crédito
+      operationId: recientes
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaResumen"
+    post:
+      tags:
+      - Notas de crédito
+      summary: Emite una nota de crédito que no anula el comprobante
+      description: "Devolución por ítem, descuentos y correcciones. Las líneas indican\
+        \ qué posiciones del comprobante se acreditan y cuántas unidades de cada una;\
+        \ sin líneas se acreditan todas, que solo tiene sentido con un motivo de anulació\
+        n y por eso aquí se rechaza."
+      operationId: emitir
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionNotaDeCredito"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaDocumento"
   /api/v1/ventas/comprobantes:
     get:
       tags:
@@ -941,6 +1010,35 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaSunat"
+  /api/v1/ventas/comprobantes/{documentoId}/anulacion:
+    post:
+      tags:
+      - Notas de crédito
+      summary: Anula un comprobante con una nota de crédito
+      description: "Copia todas las líneas del comprobante y emite la nota que lo\
+        \ deja sin efecto. El comprobante pasa a ANULADO cuando SUNAT acepta la nota,\
+        \ no antes. Repone las existencias que la venta descargó."
+      operationId: anular
+      parameters:
+      - name: documentoId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PeticionAnulacion"
+        required: true
+      responses:
+        "201":
+          description: Created
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaDocumento"
   /api/v1/ventas/clientes:
     get:
       tags:
@@ -1542,6 +1640,98 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaDocumento"
+  /api/v1/ventas/notas-de-venta/{id}/series-canje:
+    get:
+      tags:
+      - Notas de crédito
+      summary: Las series disponibles para canjear esta nota de venta
+      operationId: seriesDeCanje
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: tipo
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - FACTURA
+          - BOLETA
+          - NOTA_CREDITO
+          - NOTA_DEBITO
+          - GUIA_REMISION
+          - NOTA_VENTA
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaSerie"
+  /api/v1/ventas/notas-de-credito/{id}:
+    get:
+      tags:
+      - Notas de crédito
+      summary: "Una nota de crédito, con sus líneas"
+      operationId: nota
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/RespuestaDocumento"
+  /api/v1/ventas/notas-de-credito/motivos:
+    get:
+      tags:
+      - Notas de crédito
+      summary: Los motivos del catálogo 09 que la pantalla puede ofrecer
+      operationId: motivos
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaMotivo"
+  /api/v1/ventas/documentos/{documentoId}/relacionados:
+    get:
+      tags:
+      - Notas de crédito
+      summary: Lo que salió de este documento
+      description: "Sus notas de crédito, o el comprobante que lo canjeó."
+      operationId: relacionados
+      parameters:
+      - name: documentoId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaResumen"
   /api/v1/ventas/comprobantes/{id}:
     get:
       tags:
@@ -1624,6 +1814,29 @@ paths:
             '*/*':
               schema:
                 $ref: "#/components/schemas/RespuestaDescarga"
+  /api/v1/ventas/comprobantes/{documentoId}/series-nota-credito:
+    get:
+      tags:
+      - Notas de crédito
+      summary: Las series de nota de crédito que sirven para este comprobante
+      description: Las del mismo establecimiento y con la misma letra que su serie.
+      operationId: seriesDeNota
+      parameters:
+      - name: documentoId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RespuestaSerie"
   /api/v1/ventas/clientes/tipos-documento:
     get:
       tags:
@@ -2534,6 +2747,12 @@ components:
         documentoOrigenId:
           type: string
           format: uuid
+        motivo:
+          type: string
+        motivoNombre:
+          type: string
+        origen:
+          $ref: "#/components/schemas/RespuestaOrigen"
         lineas:
           type: array
           items:
@@ -2573,6 +2792,16 @@ components:
           type: number
         total:
           type: number
+    RespuestaOrigen:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tipo:
+          type: string
+        numeroCompleto:
+          type: string
     RespuestaPago:
       type: object
       properties:
@@ -2581,6 +2810,102 @@ components:
         monto:
           type: number
         referencia:
+          type: string
+    PeticionCanje:
+      required:
+      - tipo
+      type: object
+      properties:
+        tipo:
+          type: string
+          enum:
+          - FACTURA
+          - BOLETA
+          - NOTA_CREDITO
+          - NOTA_DEBITO
+          - GUIA_REMISION
+          - NOTA_VENTA
+        serieId:
+          type: string
+          format: uuid
+        clienteId:
+          type: string
+          format: uuid
+        observaciones:
+          maxLength: 500
+          minLength: 0
+          type: string
+    LineaAcreditada:
+      type: object
+      properties:
+        orden:
+          type: integer
+          format: int32
+        cantidad:
+          minimum: 0
+          exclusiveMinimum: true
+          type: number
+    PagoDevuelto:
+      required:
+      - forma
+      - monto
+      type: object
+      properties:
+        forma:
+          type: string
+          enum:
+          - EFECTIVO
+          - TARJETA
+          - TRANSFERENCIA
+          - BILLETERA_DIGITAL
+        monto:
+          minimum: 0
+          exclusiveMinimum: true
+          type: number
+        referencia:
+          maxLength: 100
+          minLength: 0
+          type: string
+    PeticionNotaDeCredito:
+      required:
+      - cajaId
+      - documentoId
+      - motivo
+      type: object
+      properties:
+        documentoId:
+          type: string
+          format: uuid
+        motivo:
+          type: string
+          enum:
+          - ANULACION_DE_LA_OPERACION
+          - ANULACION_POR_ERROR_EN_RUC
+          - CORRECCION_POR_ERROR_EN_DESCRIPCION
+          - DESCUENTO_GLOBAL
+          - DESCUENTO_POR_ITEM
+          - DEVOLUCION_TOTAL
+          - DEVOLUCION_POR_ITEM
+          - BONIFICACION
+          - DISMINUCION_EN_EL_VALOR
+          - OTROS_CONCEPTOS
+        cajaId:
+          type: string
+          format: uuid
+        serieId:
+          type: string
+          format: uuid
+        lineas:
+          type: array
+          items:
+            $ref: "#/components/schemas/LineaAcreditada"
+        pagos:
+          type: array
+          items:
+            $ref: "#/components/schemas/PagoDevuelto"
+        observaciones:
+          maxLength: 500
+          minLength: 0
           type: string
     PeticionComprobante:
       required:
@@ -2635,6 +2960,38 @@ components:
           type: string
         admiteReintento:
           type: boolean
+    PeticionAnulacion:
+      required:
+      - cajaId
+      type: object
+      properties:
+        motivo:
+          type: string
+          enum:
+          - ANULACION_DE_LA_OPERACION
+          - ANULACION_POR_ERROR_EN_RUC
+          - CORRECCION_POR_ERROR_EN_DESCRIPCION
+          - DESCUENTO_GLOBAL
+          - DESCUENTO_POR_ITEM
+          - DEVOLUCION_TOTAL
+          - DEVOLUCION_POR_ITEM
+          - BONIFICACION
+          - DISMINUCION_EN_EL_VALOR
+          - OTROS_CONCEPTOS
+        cajaId:
+          type: string
+          format: uuid
+        serieId:
+          type: string
+          format: uuid
+        pagos:
+          type: array
+          items:
+            $ref: "#/components/schemas/PagoDevuelto"
+        observaciones:
+          maxLength: 500
+          minLength: 0
+          type: string
     PeticionNuevo:
       required:
       - numeroDocumento
@@ -2842,6 +3199,19 @@ components:
           type: string
         total:
           type: number
+    RespuestaMotivo:
+      type: object
+      properties:
+        codigo:
+          type: string
+        codigoSunat:
+          type: string
+        nombre:
+          type: string
+        anula:
+          type: boolean
+        repone:
+          type: boolean
     RespuestaDescarga:
       type: object
       properties:
