@@ -34,15 +34,24 @@ public class PagoJpa {
     @Column(name = "referencia", length = 100)
     private String referencia;
 
+    /**
+     * Lo que el cliente entrego cuando fue mas que el monto. NULL si pago justo.
+     * El vuelto no se guarda: es entregado - monto. Ver {@code Pago}.
+     */
+    @Column(name = "entregado", precision = 18, scale = 6)
+    private BigDecimal entregado;
+
     protected PagoJpa() {
     }
 
-    public PagoJpa(UUID id, UUID empresaId, String forma, BigDecimal monto, String referencia) {
+    public PagoJpa(UUID id, UUID empresaId, String forma, BigDecimal monto, String referencia,
+            BigDecimal entregado) {
         this.id = id;
         this.empresaId = empresaId;
         this.forma = forma;
         this.monto = monto;
         this.referencia = referencia;
+        this.entregado = entregado;
     }
 
     void asignarA(DocumentoVentaJpa documento) {
@@ -59,6 +68,10 @@ public class PagoJpa {
 
     public String getReferencia() {
         return referencia;
+    }
+
+    public BigDecimal getEntregado() {
+        return entregado;
     }
 
     @Override

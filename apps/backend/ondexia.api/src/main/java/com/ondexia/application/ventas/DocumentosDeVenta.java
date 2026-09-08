@@ -100,7 +100,13 @@ public class DocumentosDeVenta {
     public record LineaPedida(UUID productoId, BigDecimal cantidad, BigDecimal descuento) {
     }
 
-    public record PagoPedido(FormaDePago forma, BigDecimal monto, String referencia) {
+    /**
+     * @param entregado lo que el cliente puso sobre el mostrador, si fue más
+     *                  que el monto. {@code null} cuando pagó justo. El vuelto
+     *                  sale de restarlos y no viaja: lo calcula quien lo pinta
+     */
+    public record PagoPedido(FormaDePago forma, BigDecimal monto, String referencia,
+            BigDecimal entregado) {
     }
 
     /**
@@ -139,7 +145,7 @@ public class DocumentosDeVenta {
 
         var lineas = construirLineas(peticion.lineas(), sucursalId);
         var pagos = (peticion.pagos() == null ? List.<PagoPedido>of() : peticion.pagos()).stream()
-                .map(p -> new Pago(p.forma(), p.monto(), p.referencia()))
+                .map(p -> new Pago(p.forma(), p.monto(), p.referencia(), p.entregado()))
                 .toList();
 
         // El correlativo se reserva bajo bloqueo y dentro de esta misma

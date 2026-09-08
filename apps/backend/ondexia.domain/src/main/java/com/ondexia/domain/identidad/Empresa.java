@@ -49,10 +49,21 @@ public class Empresa {
 
     /**
      * Si el mostrador puede vender con existencias insuficientes (doc 12 §3.5).
-     * Por omisión sí, con aviso: un mostrador no se detiene por un conteo
-     * desfasado. Un almacén formal lo apaga y entonces la venta se rechaza.
+     *
+     * <p><strong>Por omisión no</strong>, desde la V23. Nació en {@code true} con
+     * el argumento de que un mostrador no se detiene por un conteo desfasado, y
+     * el efecto real fue que se vendía un producto con cero unidades sin que
+     * nada se interpusiera. Quien de verdad venda contra mercadería en tránsito
+     * lo enciende a conciencia; las empresas ya registradas conservan lo que
+     * tuvieran, porque cambiarles la regla por migración sería decidir por
+     * ellas.
+     *
+     * <p>Solo alcanza a las líneas que descargan almacén. Un servicio no
+     * descarga, y una cotización tampoco lo hará: la comprobación vive en la
+     * descarga de existencias y no en el tipo de documento, así que lo que no
+     * pase por ahí no se entera.
      */
-    private boolean permiteVentaSinStock = true;
+    private boolean permiteVentaSinStock = false;
 
     /**
      * Alta.

@@ -111,7 +111,7 @@ public class EmpresaJpa extends EntidadJpaBase {
     private RegimenTributario regimenTributario = RegimenTributario.porOmision();
 
     @Column(name = "permite_venta_sin_stock", nullable = false)
-    private boolean permiteVentaSinStock = true;
+    private boolean permiteVentaSinStock = false;
 
     public boolean isPermiteVentaSinStock() {
         return permiteVentaSinStock;

@@ -98,8 +98,16 @@ export interface LineaPedida {
 
 export interface PagoPedido {
   readonly forma: FormaDePago;
+  /** Lo que este pago aporta al total del documento. */
   readonly monto: number;
   readonly referencia?: string | null;
+  /**
+   * Lo que el cliente entregó, si fue más que el monto. Solo en efectivo.
+   *
+   * El vuelto no se manda porque es `entregado - monto`: un dato derivado que
+   * viaja es un dato que algún día no coincide con sus operandos.
+   */
+  readonly entregado?: number | null;
 }
 
 export interface PeticionVenta {
@@ -133,6 +141,10 @@ export interface PagoDocumentoApi {
   readonly forma: FormaDePago;
   readonly monto: number;
   readonly referencia: string | null;
+  /** Lo que el cliente entregó; `null` si pagó justo. */
+  readonly entregado: number | null;
+  /** `entregado - monto`. Lo calcula el servidor para no repetir la resta. */
+  readonly vuelto: number;
 }
 
 export interface ClienteDocumentoApi {

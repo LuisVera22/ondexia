@@ -52,7 +52,10 @@ class PuntoDeVentaIT extends PruebaIntegracion {
 
     @AfterEach
     void limpiar() {
-        jdbc.sql("update empresa set permite_venta_sin_stock = true where id = ?::uuid")
+        // Se restituye el valor POR OMISION, que desde la V23 es no dejar vender
+        // sin existencias. Dejarlo en `true` haria que la prueba de abajo pasara
+        // por herencia de otra en vez de por lo que comprueba.
+        jdbc.sql("update empresa set permite_venta_sin_stock = false where id = ?::uuid")
                 .param(EMPRESA_ADMINISTRADA).update();
     }
 
@@ -175,6 +178,9 @@ class PuntoDeVentaIT extends PruebaIntegracion {
     @DisplayName("Una boleta de más de S/ 700 sin adquirente no se emite; con DNI queda pendiente de SUNAT")
     void boletaDeMasDe700() throws Exception {
         String caja = cajaAbierta("0");
+        // Hay existencias de sobra: lo que esta prueba mira es el adquirente de
+        // la boleta, no el almacen, y desde la V23 vender sin stock se rechaza.
+        contar(FIERRO, "40");
         // Veinte fierros a 48: S/ 960.
         String venta = """
                 {"tipo": "BOLETA", "venta": {"cajaId": "%s", %s "serieId": "%s",
@@ -272,10 +278,18 @@ class PuntoDeVentaIT extends PruebaIntegracion {
     }
 
     @Test
-    @DisplayName("Vender sin existencias se avisa; si la empresa lo prohíbe, se rechaza")
+    @DisplayName("Vender sin existencias se avisa si la empresa lo permite; si no, se rechaza")
     void ventaSinExistencias() throws Exception {
         String caja = cajaAbierta("0");
         contar(FIERRO, "1");
+
+        // Se enciende a proposito: desde la V23 el valor de omision es el
+        // contrario, y esta prueba es la del camino permisivo.
+        mockMvc.perform(comoAdministrador(put("/api/v1/configuracion/empresa")).content("""
+                        {"nombreComercial": "Demo", "permiteVentaSinStock": true}
+                        """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.permiteVentaSinStock").value(true));
 
         mockMvc.perform(comoAdministrador(post("/api/v1/ventas/notas-de-venta")).content("""
                         {"cajaId": "%s", "serieId": "%s", "lineas": [{"productoId": "%s", "cantidad": 3}],
@@ -301,6 +315,88 @@ class PuntoDeVentaIT extends PruebaIntegracion {
                 .andExpect(jsonPath("$.codigo").value("existencias_insuficientes"));
         // Nada se descargó en el intento rechazado.
         assertThat(existencia(FIERRO)).isEqualTo("-2");
+    }
+
+    @Test
+    @DisplayName("Sin tocar nada, la empresa nace sin poder vender lo que no tiene")
+    void sinExistenciasBloqueadoDeOrigen() throws Exception {
+        // Observación del propietario del 2026-09-08: el bloqueo existía y venía
+        // apagado. Lo que se fija aquí es el valor de omisión, no el mecanismo
+        // —ese ya lo prueba ventaSinExistencias—, porque el defecto estaba en
+        // que nadie lo encendía.
+        mockMvc.perform(comoAdministrador(get("/api/v1/configuracion/empresa")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.permiteVentaSinStock").value(false));
+
+        String caja = cajaAbierta("0");
+        contar(FIERRO, "1");
+
+        mockMvc.perform(comoAdministrador(post("/api/v1/ventas/notas-de-venta")).content("""
+                        {"cajaId": "%s", "serieId": "%s", "lineas": [{"productoId": "%s", "cantidad": 2}],
+                         "pagos": [{"forma": "EFECTIVO", "monto": 96.00}]}
+                        """.formatted(caja, SERIE_NV, FIERRO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("existencias_insuficientes"));
+        assertThat(existencia(FIERRO)).isEqualTo("1");
+    }
+
+    @Test
+    @DisplayName("Un billete de 100 sobre 98: el comprobante dice 98 y la caja devuelve 2")
+    void vueltoEnEfectivo() throws Exception {
+        String caja = cajaAbierta("50");
+        contar(CEMENTO, "10");
+
+        // Tres bolsas a 32.50 son 97.50. El cliente paga con un billete de 100.
+        String cuerpo = mockMvc.perform(comoAdministrador(post("/api/v1/ventas/notas-de-venta")).content("""
+                        {"cajaId": "%s", "serieId": "%s", "lineas": [{"productoId": "%s", "cantidad": 3}],
+                         "pagos": [{"forma": "EFECTIVO", "monto": 97.50, "entregado": 100.00}]}
+                        """.formatted(caja, SERIE_NV, CEMENTO)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.documento.pagos[0].entregado").value(100.00))
+                .andExpect(jsonPath("$.documento.pagos[0].vuelto").value(2.50))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+        // Lo que va al comprobante es la venta, no el billete.
+        assertThat(leer(cuerpo).path("documento").path("total").decimalValue())
+                .isEqualByComparingTo("97.50");
+
+        // Y el arqueo cuadra con el IMPORTE cobrado, no con el billete: 50 de
+        // monto inicial mas 97.50 son 147.50, y no 150. Es la razon de que el
+        // vuelto viva aparte del monto.
+        String sesionId = leer(mockMvc.perform(comoAdministrador(
+                        get("/api/v1/ventas/cajas/" + caja + "/sesion-abierta")))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8))
+                .path("id").asString();
+
+        mockMvc.perform(comoAdministrador(put("/api/v1/ventas/cajas/sesiones/" + sesionId + "/cierre"))
+                        .content("""
+                                {"declarado": {"EFECTIVO": 147.50}}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.calculado.EFECTIVO").value(147.50))
+                .andExpect(jsonPath("$.diferencia.EFECTIVO").value(0));
+    }
+
+    @Test
+    @DisplayName("Entregar de más solo vale en efectivo, y nunca por debajo del importe")
+    void vueltoSoloEnEfectivo() throws Exception {
+        String caja = cajaAbierta("0");
+        contar(CEMENTO, "10");
+
+        mockMvc.perform(comoAdministrador(post("/api/v1/ventas/notas-de-venta")).content("""
+                        {"cajaId": "%s", "serieId": "%s", "lineas": [{"productoId": "%s", "cantidad": 1}],
+                         "pagos": [{"forma": "TARJETA", "monto": 32.50, "entregado": 40.00}]}
+                        """.formatted(caja, SERIE_NV, CEMENTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("vuelto_solo_en_efectivo"));
+
+        mockMvc.perform(comoAdministrador(post("/api/v1/ventas/notas-de-venta")).content("""
+                        {"cajaId": "%s", "serieId": "%s", "lineas": [{"productoId": "%s", "cantidad": 1}],
+                         "pagos": [{"forma": "EFECTIVO", "monto": 32.50, "entregado": 20.00}]}
+                        """.formatted(caja, SERIE_NV, CEMENTO)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.codigo").value("entregado_insuficiente"));
     }
 
     @Test

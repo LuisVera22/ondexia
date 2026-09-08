@@ -150,7 +150,17 @@ public class DocumentoVentaController {
             @DecimalMin(value = "0", inclusive = false, message = "El monto tiene que ser mayor que cero.")
             @Digits(integer = 12, fraction = 2, message = "El monto va en céntimos.")
             BigDecimal monto,
-            @Size(max = 100) String referencia) {
+            @Size(max = 100) String referencia,
+            /*
+             * Lo que el cliente entregó, cuando fue más que el monto. Opcional:
+             * sin él se entiende que pagó justo. El vuelto no se pide ni se
+             * devuelve porque es una resta, y un dato derivado que viaja es un
+             * dato que algún día no coincide.
+             */
+            @DecimalMin(value = "0", inclusive = false,
+                    message = "Lo entregado tiene que ser mayor que cero.")
+            @Digits(integer = 12, fraction = 2, message = "Lo entregado va en céntimos.")
+            BigDecimal entregado) {
     }
 
     public record PeticionVenta(
@@ -166,7 +176,7 @@ public class DocumentoVentaController {
                     lineas.stream().map(l -> new DocumentosDeVenta.LineaPedida(
                             l.productoId(), l.cantidad(), l.descuento())).toList(),
                     pagos.stream().map(p -> new DocumentosDeVenta.PagoPedido(
-                            p.forma(), p.monto(), p.referencia())).toList(),
+                            p.forma(), p.monto(), p.referencia(), p.entregado())).toList(),
                     observaciones);
         }
     }
@@ -188,10 +198,19 @@ public class DocumentoVentaController {
         }
     }
 
-    public record RespuestaPago(String forma, BigDecimal monto, String referencia) {
+    /**
+     * @param entregado lo que el cliente puso sobre el mostrador; {@code null}
+     *                  si pagó justo
+     * @param vuelto    entregado menos monto. Va calculado y no guardado: se
+     *                  manda porque el comprobante impreso lo enseña, y así el
+     *                  cliente que lo pinte no repite la resta
+     */
+    public record RespuestaPago(String forma, BigDecimal monto, String referencia,
+            BigDecimal entregado, BigDecimal vuelto) {
 
         static RespuestaPago desde(Pago p) {
-            return new RespuestaPago(p.forma().name(), p.monto(), p.referencia());
+            return new RespuestaPago(p.forma().name(), p.monto(), p.referencia(),
+                    p.entregado(), p.vuelto());
         }
     }
 

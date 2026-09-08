@@ -86,7 +86,7 @@ public class DocumentoVentaAdaptador implements DocumentoVentaRepositorio {
         }
         for (Pago p : d.pagos()) {
             fila.agregarPago(new PagoJpa(UUID.randomUUID(), empresaId, p.forma().name(), p.monto(),
-                    p.referencia()));
+                    p.referencia(), p.entregado()));
         }
         return aDominio(filas.save(fila));
     }
@@ -100,7 +100,7 @@ public class DocumentoVentaAdaptador implements DocumentoVentaRepositorio {
                 fila.getEmitidoEn(), fila.getEmitidoPor(),
                 fila.getLineas().stream().map(DocumentoVentaAdaptador::aLinea).toList(),
                 fila.getPagos().stream().map(p -> new Pago(FormaDePago.valueOf(p.getForma()),
-                        p.getMonto(), p.getReferencia())).toList(),
+                        p.getMonto(), p.getReferencia(), p.getEntregado())).toList(),
                 fila.getObservaciones(), fila.getDocumentoOrigenId(),
                 fila.getMotivoNota() == null ? null : TipoNotaCredito.porCodigo(fila.getMotivoNota()),
                 fila.getOrigenTipo() == null ? null : new ReferenciaDocumento(

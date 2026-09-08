@@ -41,8 +41,26 @@ export interface LineaPos {
 
 export interface PagoPos {
   forma: FormaDePago;
+  /**
+   * Lo que se escribe en la casilla.
+   *
+   * En efectivo es lo que el cliente ENTREGA, que es lo que un cajero tiene
+   * en la mano: si la venta son S/ 98 y da un billete de 100, escribe 100. Lo
+   * que se aplica al comprobante lo calcula `aplicaciones()`, y la diferencia
+   * es el vuelto. En las demás formas de pago es el importe exacto, porque un
+   * datáfono no devuelve suelto.
+   */
   monto: number | null;
   referencia: string;
+}
+
+/** Un renglón de cobro con lo escrito ya repartido entre importe y vuelto. */
+export interface PagoAplicado {
+  readonly pago: PagoPos;
+  /** Lo que este renglón aporta al total del documento. */
+  readonly aplicado: number;
+  /** Lo que sobra y hay que devolver. Siempre cero fuera del efectivo. */
+  readonly vuelto: number;
 }
 
 /** Redondeo a céntimos, que es lo que el servidor valida. */
@@ -131,8 +149,36 @@ export class PuntoDeVentaComponent {
         .reduce((suma, l) => suma + (totalDeLinea(l) - redondear(totalDeLinea(l) / 1.18)), 0)
     )
   );
-  readonly cobrado = computed(() => redondear(this.pagos().reduce((suma, p) => suma + (Number(p.monto) || 0), 0)));
+  /**
+   * Reparte lo escrito en cada renglón entre lo que se aplica y lo que se
+   * devuelve.
+   *
+   * El efectivo no puede pasarse: lo que exceda de lo que queda por cobrar es
+   * vuelto, no un cobro de más. Las demás formas sí pueden pasarse, y entonces
+   * es un error — nadie devuelve suelto de una transferencia.
+   *
+   * Se recorre en orden y descontando, para que en un pago mixto cada renglón
+   * vea lo que dejaron los anteriores.
+   */
+  readonly aplicaciones = computed<PagoAplicado[]>(() => {
+    let restante = this.total();
+    return this.pagos().map((pago) => {
+      const escrito = redondear(Number(pago.monto) || 0);
+      const aplicado =
+        pago.forma === 'EFECTIVO' ? Math.min(escrito, Math.max(restante, 0)) : escrito;
+      restante = redondear(restante - aplicado);
+      return { pago, aplicado, vuelto: redondear(escrito - aplicado) };
+    });
+  });
+
+  readonly cobrado = computed(() =>
+    redondear(this.aplicaciones().reduce((suma, a) => suma + a.aplicado, 0))
+  );
   readonly porCobrar = computed(() => redondear(this.total() - this.cobrado()));
+  /** Lo que hay que devolver de la gaveta. Cero salvo que alguien pague con un billete grande. */
+  readonly vuelto = computed(() =>
+    redondear(this.aplicaciones().reduce((suma, a) => suma + a.vuelto, 0))
+  );
 
   /** Lo que el servidor va a decir, dicho antes. */
   readonly impedimento = computed<string | null>(() => {
@@ -151,7 +197,8 @@ export class PuntoDeVentaComponent {
     if (this.porCobrar() !== 0) {
       return this.porCobrar() > 0
         ? `Falta cobrar ${this.importe(this.porCobrar())}.`
-        : `Los pagos superan el total en ${this.importe(-this.porCobrar())}.`;
+        : `Los pagos superan el total en ${this.importe(-this.porCobrar())}. Solo el efectivo`
+          + ' admite entregar de más, y se devuelve como vuelto.';
     }
     if (this.series().length > 1 && !this.serieId()) {
       return 'Falta elegir la serie.';
@@ -331,9 +378,17 @@ export class PuntoDeVentaComponent {
     this.pagos.set(this.pagos().map((p) => (p === pago ? { ...p, referencia: valor } : p)));
   }
 
-  /** Pone en este pago lo que falta: el gesto más frecuente del mostrador. */
+  /**
+   * Pone en este pago lo que falta: el gesto más frecuente del mostrador.
+   *
+   * Parte de lo APLICADO de este renglón y no de lo escrito, para que pulsarlo
+   * sobre un efectivo con vuelto lo deje en el importe justo en vez de
+   * conservar el billete: quien pulsa «Resto» está pidiendo cuadrar, no
+   * cobrar de más.
+   */
   completarPago(pago: PagoPos): void {
-    const resto = redondear(this.porCobrar() + (Number(pago.monto) || 0));
+    const aplicado = this.aplicaciones().find((a) => a.pago === pago)?.aplicado ?? 0;
+    const resto = redondear(this.porCobrar() + aplicado);
     this.cambiarMonto(pago, resto > 0 ? resto : 0);
   }
 
@@ -349,9 +404,17 @@ export class PuntoDeVentaComponent {
         cantidad: l.cantidad,
         descuento: l.descuento || null,
       })),
-      pagos: this.pagos()
-        .filter((p) => Number(p.monto) > 0)
-        .map((p) => ({ forma: p.forma, monto: redondear(Number(p.monto)), referencia: p.referencia || null })),
+      // Se manda lo APLICADO como monto y, solo si hubo vuelto, lo entregado.
+      // El comprobante y el arqueo cuadran con el monto; el billete del cliente
+      // queda aparte.
+      pagos: this.aplicaciones()
+        .filter((a) => a.aplicado > 0)
+        .map((a) => ({
+          forma: a.pago.forma,
+          monto: a.aplicado,
+          referencia: a.pago.referencia || null,
+          entregado: a.vuelto > 0 ? redondear(a.aplicado + a.vuelto) : null,
+        })),
       observaciones: this.observaciones() || null,
     };
   }

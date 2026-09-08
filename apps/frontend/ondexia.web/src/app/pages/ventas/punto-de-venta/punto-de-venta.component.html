@@ -149,7 +149,9 @@
                 <option [value]="forma.codigo">{{ forma.nombre }}</option>
                 }
               </select>
-              <input type="number" min="0" step="0.01" placeholder="0.00" [ngModel]="pago.monto" (ngModelChange)="cambiarMonto(pago, $event)" aria-label="Monto"
+              <input type="number" min="0" step="0.01" placeholder="0.00" [ngModel]="pago.monto" (ngModelChange)="cambiarMonto(pago, $event)"
+                [attr.aria-label]="pago.forma === 'EFECTIVO' ? 'Efectivo entregado' : 'Monto'"
+                [title]="pago.forma === 'EFECTIVO' ? 'Lo que entrega el cliente. Si es de más, la diferencia sale como vuelto.' : 'Importe exacto de este pago.'"
                 class="h-10 rounded-base border border-gray-300 bg-transparent px-2 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden dark:border-gray-700 dark:text-white/90" />
             </div>
             <button type="button" (click)="completarPago(pago)" class="text-xs font-medium text-brand-500 hover:text-brand-600" title="Poner lo que falta">Resto</button>
@@ -169,6 +171,18 @@
           <span class="text-gray-500 dark:text-gray-400">{{ porCobrar() >= 0 ? 'Por cobrar' : 'De más' }}</span>
           <span class="tabular-nums font-medium" [class]="porCobrar() === 0 ? 'text-success-700 dark:text-success-400' : 'text-gray-800 dark:text-white/90'">{{ importe(porCobrar() < 0 ? -porCobrar() : porCobrar()) }}</span>
         </div>
+
+        <!--
+          El vuelto es lo que el cajero tiene que sacar de la gaveta, asi que se
+          canta grande y aparte del total. No va al comprobante: alli el importe
+          es el de la venta, no el billete que puso el cliente.
+        -->
+        @if (vuelto() > 0) {
+        <div class="mt-2 flex items-baseline justify-between rounded-base bg-warning-50 px-3 py-2 dark:bg-warning-500/10">
+          <span class="text-sm font-medium text-warning-700 dark:text-warning-400">Vuelto</span>
+          <span class="text-xl font-semibold tabular-nums text-warning-700 dark:text-warning-400">{{ importe(vuelto()) }}</span>
+        </div>
+        }
 
         <label for="observaciones" class="mb-1.5 mt-4 block text-sm font-medium text-gray-700 dark:text-gray-400">Observaciones</label>
         <input id="observaciones" type="text" maxlength="500" [ngModel]="observaciones()" (ngModelChange)="observaciones.set($event)"

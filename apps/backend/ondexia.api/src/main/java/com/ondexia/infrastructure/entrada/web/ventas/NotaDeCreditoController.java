@@ -201,7 +201,7 @@ public class NotaDeCreditoController {
 
     private static List<DocumentosDeVenta.PagoPedido> pagos(List<PagoDevuelto> pedidos) {
         return pedidos == null ? List.of() : pedidos.stream()
-                .map(p -> new DocumentosDeVenta.PagoPedido(p.forma(), p.monto(), p.referencia()))
+                .map(p -> new DocumentosDeVenta.PagoPedido(p.forma(), p.monto(), p.referencia(), null))
                 .toList();
     }
 
