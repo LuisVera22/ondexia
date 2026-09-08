@@ -3,6 +3,7 @@ package com.ondexia.facturacion.sunat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.ondexia.facturacion.CertificadoDePrueba;
 import com.ondexia.facturacion.Ordenes;
 import java.io.ByteArrayInputStream;
 import java.time.LocalDate;
@@ -17,23 +18,21 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
 /**
- * La firma con el certificado de prueba ({@code certificado-prueba.pfx},
- * contraseña {@code prueba}, autofirmado con openssl) es una firma XML-DSig que
- * el propio JDK valida. Es la prueba que la regla 1 de CLAUDE.md pide para el
- * comentario de {@link FirmadorDeComprobante}.
+ * La firma con el certificado de prueba ({@link CertificadoDePrueba}, autofirmado
+ * y generado por la propia compilación) es una firma XML-DSig que el propio JDK
+ * valida. Es la prueba que la regla 1 de CLAUDE.md pide para el comentario de
+ * {@link FirmadorDeComprobante}.
  */
 class FirmadorDeComprobanteTest {
 
-    static byte[] pfxDePrueba() throws Exception {
-        try (var entrada = FirmadorDeComprobanteTest.class.getResourceAsStream("/certificado-prueba.pfx")) {
-            return entrada.readAllBytes();
-        }
+    static byte[] pfxDePrueba() {
+        return CertificadoDePrueba.bytes();
     }
 
     @Test
     @DisplayName("El certificado de prueba abre con su contraseña y se puede describir")
     void abrirYDescribir() throws Exception {
-        var certificado = FirmadorDeComprobante.abrir(pfxDePrueba(), "prueba");
+        var certificado = FirmadorDeComprobante.abrir(pfxDePrueba(), CertificadoDePrueba.CLAVE);
         var datos = FirmadorDeComprobante.describir(certificado);
         assertThat(datos.sujeto()).contains("CN=CERTIFICADO DE PRUEBA ONDEXIA").contains("OU=20100000009");
         assertThat(datos.venceEn()).isAfter(LocalDate.of(2030, 1, 1));
@@ -46,7 +45,7 @@ class FirmadorDeComprobanteTest {
         assertThatThrownBy(() -> FirmadorDeComprobante.abrir(pfx, "otra"))
                 .isInstanceOf(FirmadorDeComprobante.CertificadoNoAbre.class)
                 .hasMessageContaining("contraseña");
-        assertThatThrownBy(() -> FirmadorDeComprobante.abrir("no es un pfx".getBytes(), "prueba"))
+        assertThatThrownBy(() -> FirmadorDeComprobante.abrir("no es un pfx".getBytes(), CertificadoDePrueba.CLAVE))
                 .isInstanceOf(FirmadorDeComprobante.CertificadoNoAbre.class);
     }
 
@@ -54,7 +53,7 @@ class FirmadorDeComprobanteTest {
     @DisplayName("El XML firmado lleva una firma válida dentro de UBLExtensions y un DigestValue")
     void firmaValida() throws Exception {
         String xml = new ConstructorDeComprobante().construir(Ordenes.boleta(UUID.randomUUID()));
-        var certificado = FirmadorDeComprobante.abrir(pfxDePrueba(), "prueba");
+        var certificado = FirmadorDeComprobante.abrir(pfxDePrueba(), CertificadoDePrueba.CLAVE);
 
         var firmado = new FirmadorDeComprobante().firmar(xml, certificado);
 
