@@ -1,0 +1,187 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: "Outfit", ui-sans-serif, system-ui, sans-serif; background: #ffffff; color: #171c2d; -webkit-font-smoothing: antialiased; }
+    a { color: #4f46e5; text-decoration: none; }
+    a:hover { color: #4338ca; }
+    .fila { display: grid; grid-template-columns: 340px repeat(3, minmax(0, 1fr)); align-items: center; padding: 14px 24px; }
+    .celda { font-size: 14px; line-height: 21px; color: #3d4457; text-align: center; }
+    .eje { font-size: 14px; line-height: 21px; color: #171c2d; font-weight: 500; text-align: left; }
+  </style>
+</helmet>
+
+<div style="width: 1160px; box-sizing: border-box; background: #ffffff; padding: 56px 40px 64px">
+
+  <div style="display: flex; flex-direction: column; gap: 12px; max-width: 620px; margin-bottom: 36px">
+    <p style="margin: 0; font-size: 12px; line-height: 18px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #697083">Comparativa</p>
+    <h2 style="margin: 0; font-size: 34px; line-height: 42px; font-weight: 600; letter-spacing: -0.022em; color: #171c2d">Qué cambia entre planes, y qué no cambia nunca.</h2>
+    <p style="margin: 0; font-size: 17px; line-height: 28px; color: #545b6e; text-wrap: pretty">Lo que falta en un plan inferior nunca rompe lo que sí incluye. Los tres módulos van completos en todos, porque un sistema con Compras recortado entrega existencias equivocadas a Ventas.</p>
+  </div>
+
+  <div style="border: 1px solid #e8eaf1; border-radius: 12px; box-shadow: 0 1px 3px 0 rgb(16 24 40 / 0.1), 0 1px 2px 0 rgb(16 24 40 / 0.06); overflow: hidden">
+
+    <!-- Cabecera -->
+    <div class="fila" style="background: #f8f9fb; border-bottom: 1px solid #e8eaf1; padding-top: 20px; padding-bottom: 20px; align-items: end">
+      <span style="font-size: 12px; line-height: 18px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #697083">Se diferencia por</span>
+      <div style="display: flex; flex-direction: column; gap: 3px; align-items: center">
+        <span style="font-size: 16px; line-height: 24px; font-weight: 600; color: #171c2d">Base</span>
+        <span style="font-size: 13px; line-height: 19px; color: #697083; font-variant-numeric: tabular-nums">S/ 89 / mes</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 3px; align-items: center">
+        <span style="font-size: 16px; line-height: 24px; font-weight: 600; color: #4f46e5">Intermedio</span>
+        <span style="font-size: 13px; line-height: 19px; color: #697083; font-variant-numeric: tabular-nums">S/ 199 / mes</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 3px; align-items: center">
+        <span style="font-size: 16px; line-height: 24px; font-weight: 600; color: #171c2d">A demanda</span>
+        <span style="font-size: 13px; line-height: 19px; color: #697083; font-variant-numeric: tabular-nums">desde S/ 390 / mes</span>
+      </div>
+    </div>
+
+    <div class="fila">
+      <span class="eje">Empresas (RUC)</span>
+      <span class="celda" style="font-variant-numeric: tabular-nums">1</span>
+      <span class="celda" style="font-variant-numeric: tabular-nums; font-weight: 600; color: #171c2d">2</span>
+      <span class="celda">Negociable</span>
+    </div>
+
+    <div class="fila" style="background: #f8f9fb">
+      <span class="eje">Usuarios (por cuenta, no por empresa)</span>
+      <span class="celda" style="font-variant-numeric: tabular-nums">2</span>
+      <span class="celda" style="font-variant-numeric: tabular-nums; font-weight: 600; color: #171c2d">5</span>
+      <span class="celda">Negociable</span>
+    </div>
+
+    <div class="fila">
+      <span class="eje">Establecimientos y almacenes</span>
+      <span class="celda">Sin límite</span>
+      <span class="celda">Sin límite</span>
+      <span class="celda">Sin límite</span>
+    </div>
+
+    <div class="fila" style="background: #f8f9fb">
+      <span class="eje">Almacén, Compras y Ventas</span>
+      <span class="celda">Completos</span>
+      <span class="celda">Completos</span>
+      <span class="celda">Completos</span>
+    </div>
+
+    <div class="fila">
+      <span class="eje">Factura, boleta y resumen diario</span>
+      <span class="celda" style="display: flex; justify-content: center; align-items: center; gap: 7px; color: #15803d">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>
+        Incluida
+      </span>
+      <span class="celda" style="display: flex; justify-content: center; align-items: center; gap: 7px; color: #15803d">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>
+        Incluida
+      </span>
+      <span class="celda" style="display: flex; justify-content: center; align-items: center; gap: 7px; color: #15803d">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>
+        Incluida
+      </span>
+    </div>
+
+    <div class="fila" style="background: #f8f9fb">
+      <span class="eje">Notas de crédito y débito</span>
+      <span class="celda" style="display: flex; justify-content: center; align-items: center; gap: 7px; color: #15803d">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>
+        Incluida
+      </span>
+      <span class="celda" style="display: flex; justify-content: center; align-items: center; gap: 7px; color: #15803d">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>
+        Incluida
+      </span>
+      <span class="celda" style="display: flex; justify-content: center; align-items: center; gap: 7px; color: #15803d">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>
+        Incluida
+      </span>
+    </div>
+
+    <div class="fila">
+      <span class="eje">Guías de remisión electrónicas</span>
+      <span class="celda" style="display: flex; justify-content: center; align-items: center; gap: 7px; color: #697083">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#697083" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12"/></svg>
+        No incluida
+      </span>
+      <span class="celda" style="display: flex; justify-content: center; align-items: center; gap: 7px; color: #15803d">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>
+        Incluida
+      </span>
+      <span class="celda" style="display: flex; justify-content: center; align-items: center; gap: 7px; color: #15803d">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>
+        Incluida
+      </span>
+    </div>
+
+    <div class="fila" style="background: #f8f9fb">
+      <span class="eje">Roles y permisos</span>
+      <span class="celda">Roles fijos</span>
+      <span class="celda">Personalizados</span>
+      <span class="celda">Personalizados</span>
+    </div>
+
+    <div class="fila">
+      <span class="eje">Reportes y exportación</span>
+      <span class="celda">Básicos</span>
+      <span class="celda">Completos</span>
+      <span class="celda">Completos y a medida</span>
+    </div>
+
+    <div class="fila" style="background: #f8f9fb">
+      <span class="eje">API para integradores</span>
+      <span class="celda" style="display: flex; justify-content: center; align-items: center; gap: 7px; color: #697083">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#697083" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12"/></svg>
+        No incluida
+      </span>
+      <span class="celda" style="display: flex; justify-content: center; align-items: center; gap: 7px; color: #697083">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#697083" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12"/></svg>
+        No incluida
+      </span>
+      <span class="celda" style="display: flex; justify-content: center; align-items: center; gap: 7px; color: #15803d">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7"/></svg>
+        Incluida
+      </span>
+    </div>
+
+    <div class="fila" style="border-bottom: 1px solid #e8eaf1">
+      <span class="eje">Soporte</span>
+      <span class="celda">Correo</span>
+      <span class="celda">Correo prioritario</span>
+      <span class="celda">Canal directo</span>
+    </div>
+
+    <!-- Lo que nunca se limita -->
+    <div style="background: #f7f8fe; padding: 22px 24px; display: flex; gap: 14px; align-items: flex-start">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f46e5" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-top: 2px; flex-shrink: 0" aria-hidden="true"><rect x="4.5" y="10" width="15" height="10" rx="2"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10"/></svg>
+      <div style="display: flex; flex-direction: column; gap: 4px">
+        <p style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 600; color: #171c2d">Nunca se limita, en ningún plan</p>
+        <p style="margin: 0; font-size: 14px; line-height: 22px; color: #545b6e; max-width: 860px">Emitir, anular y consultar comprobantes; descargar el XML firmado y el CDR de SUNAT; y acceder a todo tu histórico. La ley te obliga a conservarlo cinco años — recortártelo sería dejarte expuesto ante una fiscalización.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 32px; margin-top: 20px; padding: 0 4px">
+    <p style="margin: 0; font-size: 13px; line-height: 20px; color: #697083; max-width: 560px">Si bajas de plan y te quedan recursos por encima del límite, no borramos nada: los excedentes pasan a sólo lectura hasta que regularices.</p>
+    <a href="#acceso" style="display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 22px; border-radius: 8px; background: #4f46e5; color: #ffffff; font-size: 15px; font-weight: 500; border: 1px solid transparent">Solicitar acceso anticipado</a>
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":1160,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

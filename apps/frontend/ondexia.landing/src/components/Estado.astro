@@ -1,0 +1,88 @@
+---
+/**
+ * Los cortes verticales del doc 02 §6.2.
+ *
+ * Decir en la propia landing que el producto está a medias parece mala idea, y
+ * es al revés: la alternativa es prometer hoy una prueba que todavía no existe,
+ * y en un producto tributario esa clase de promesa se paga con el primer
+ * cliente que la descubre. Además explica por qué la llamada dice «solicitar
+ * acceso» y no «empezar la prueba».
+ *
+ * Cuando el ensayo contra el entorno de pruebas de SUNAT devuelva un CDR
+ * aceptado (doc 14 §6), C1 pasa a 'listo' y la llamada a la acción de toda la
+ * página pasa a la prueba de 30 días.
+ */
+const cortes = [
+  { id: 'C1', titulo: 'Emitir una boleta', situacion: 'ensayo' },
+  { id: 'C2', titulo: 'Ventas completas', situacion: 'construccion' },
+  { id: 'C3', titulo: 'Catálogo', situacion: 'planificado' },
+  { id: 'C4', titulo: 'Compras', situacion: 'planificado' },
+  { id: 'C5', titulo: 'Guías de remisión', situacion: 'planificado' },
+] as const;
+
+// Punto de color MÁS palabra, también aquí (doc 10 §4).
+const situaciones = {
+  /*
+   * «En ensayo» y no «listo»: el sistema emite, firma y envía, y las pruebas lo
+   * verifican de punta a punta contra una SUNAT fingida. Lo que falta es el
+   * envío real al entorno de pruebas de SUNAT (doc 14 §1). Decir «listo» antes
+   * de ese CDR sería exactamente la promesa que esta sección existe para no
+   * hacer.
+   */
+  ensayo: { texto: 'En ensayo', punto: 'bg-success-500', color: 'text-success-500' },
+  construccion: { texto: 'En construcción', punto: 'bg-warning-500', color: 'text-warning-300' },
+  siguiente: { texto: 'Sigue', punto: 'bg-gray-500', color: 'text-gray-400' },
+  planificado: { texto: 'Planificado', punto: 'bg-gray-500', color: 'text-gray-400' },
+};
+---
+
+<section id="estado" class="sobre-oscuro scroll-mt-20 bg-gray-900 py-16 md:py-[68px]">
+  <div class="mx-auto max-w-[1240px] px-5 md:px-10">
+    <div
+      class="mb-8 flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-10"
+    >
+      <h2 class="revelar flex flex-col gap-3 font-normal">
+        <span class="rotulo text-brand-200">Estado del producto y hoja de ruta</span>
+        <span class="titular text-[34px] text-white sm:text-[44px] lg:text-[52px]">
+Un corte cada vez.
+        </span>
+      </h2>
+      <p class="max-w-[340px] text-[15px] leading-6 text-gray-400 md:text-right">
+        Cada corte se publica cuando funciona de punta a punta, no cuando está a
+        medias todo a la vez.
+      </p>
+    </div>
+
+    <ol class="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-5">
+      {
+        cortes.map((corte, indice) => {
+          const activo = corte.situacion === 'construccion';
+          const marca = situaciones[corte.situacion];
+          return (
+            <li
+              class={`revelar flex items-center gap-4 rounded-base border p-5 lg:flex-col lg:items-start lg:gap-2 ${activo ? 'border-brand-300 bg-brand-900' : 'border-gray-700'}`}
+              style={`--retardo: ${indice + 1}`}
+            >
+              <p
+                class={`titular w-11 shrink-0 text-[26px] lg:w-auto lg:text-[30px] ${activo ? 'text-brand-200' : 'text-gray-500'}`}
+              >
+                {corte.id}
+              </p>
+              <h3
+                class={`grow text-base font-semibold leading-[22px] ${activo ? 'text-white' : 'text-gray-300'}`}
+              >
+                {corte.titulo}
+              </h3>
+              <span
+                class={`inline-flex shrink-0 items-center gap-1.5 text-[13px] font-medium ${marca.color}`}
+              >
+                <span class={`size-[7px] rounded-full ${marca.punto}`} />
+                {marca.texto}
+              </span>
+            </li>
+          );
+        })
+      }
+    </ol>
+  </div>
+</section>

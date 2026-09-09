@@ -1,0 +1,62 @@
+<div>
+  <app-encabezado-pagina
+    titulo="Productos por agotarse"
+    descripcion="Un producto aparece aquí cuando sus existencias igualan o bajan del
+    stock mínimo configurado en su ficha. Registrar un ingreso lo saca de la lista."
+  />
+
+  @if (totalAgotados > 0) {
+  <div class="mb-5 flex items-start gap-3 rounded-xl border border-error-200 bg-error-50 p-4 dark:border-error-500/30 dark:bg-error-500/10">
+    <svg class="mt-0.5 shrink-0 text-error-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" /><path d="M12 8v4.5M12 16h.01" />
+    </svg>
+    <p class="text-sm text-error-700 dark:text-error-400">
+      {{ totalAgotados }}
+      {{ totalAgotados === 1 ? 'producto está agotado' : 'productos están agotados' }}.
+      No se podrán vender hasta registrar un ingreso.
+    </p>
+  </div>
+  }
+
+  <div class="mb-5 flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03] sm:flex-row sm:items-end sm:justify-between">
+    <div class="flex flex-1 flex-col gap-3 sm:flex-row sm:items-end">
+      <div class="sm:w-64">
+        <label for="almacen" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Almacén</label>
+        <app-desplegable idCampo="almacen" [opciones]="opcionesAlmacen" [(ngModel)]="almacenFiltro" />
+      </div>
+
+      <label class="flex h-10 cursor-pointer items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+        <input type="checkbox" [(ngModel)]="soloAgotados"
+          class="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800" />
+        Solo agotados
+      </label>
+    </div>
+
+    <!--
+      `ruta` y no `(accion)`: esto navega. Asi conserva el clic con rueda, el
+      «abrir en pestana nueva» y la direccion en la barra de estado, y de paso
+      deja de repetir a mano las clases del primario.
+    -->
+    <app-boton icono="mas" class="shrink-0" ruta="/almacen/guias-ingreso/nueva">
+      Registrar ingreso
+    </app-boton>
+  </div>
+
+  <!--
+    Sin el buscador de la tabla: esta pantalla ya trae su panel de filtros
+    arriba, con búsqueda por texto y desplegables. Dos campos de búsqueda uno
+    encima de otro obligan a averiguar cuál manda.
+  -->
+  <app-tabla-datos
+    nombrePlural="productos"
+    nombreSingular="producto"
+    [columnas]="columnas"
+    [registros]="registros"
+    [totalRegistros]="registros.length"
+    [vacioPorFiltros]="hayFiltrosActivos"
+    [buscable]="false"
+    vacioTitulo="Ningún producto está por agotarse"
+    vacioDescripcion="Todos los productos tienen existencias por encima de su stock mínimo."
+  />
+
+</div>

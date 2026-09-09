@@ -1,0 +1,93 @@
+<!--
+  Con `ruta` sale un enlace; sin ella, un botón.
+
+  No es cosmética. Un enlace se abre con la rueda del ratón, con Ctrl, en
+  pestaña nueva, y enseña el destino en la barra de estado. Un `<button>` que
+  llama a `router.navigate` no hace ninguna de las tres — y navegar es
+  exactamente lo que hacen los botones de «crear» de cada módulo. Sin esto
+  había que elegir entre el aspecto del componente y el comportamiento del
+  enlace, así que unas pantallas usaban el componente y otras escribían el
+  enlace y sus clases a mano.
+-->
+@if (ruta) {
+<a [routerLink]="ruta" [class]="clases" [attr.aria-label]="etiquetaAccesible || null">
+  <ng-container [ngTemplateOutlet]="etiqueta" />
+</a>
+} @else {
+<button
+  [attr.type]="tipo"
+  [disabled]="bloqueado"
+  [class]="clases"
+  [attr.aria-label]="etiquetaAccesible || null"
+  [attr.aria-busy]="estado === 'cargando'"
+  [attr.aria-haspopup]="abreMenu ? 'menu' : null"
+  [attr.aria-expanded]="abreMenu ? menuAbierto : null"
+  [attr.form]="formulario || null"
+  (click)="accion.emit()"
+>
+  <ng-container [ngTemplateOutlet]="etiqueta" />
+
+  @if (estadoEnPalabras) {
+  <span class="sr-only">{{ estadoEnPalabras }}</span>
+  }
+
+  @if (muestraIcono) {
+  <span class="absolute inset-0 flex items-center justify-center" [class]="clasesIcono">
+    @switch (estado) {
+      @case ('cargando') {
+      <!-- animate-spin de Tailwind: no hace falta definir la animación. -->
+      <svg class="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 3a9 9 0 1 0 9 9" />
+      </svg>
+      }
+      @case ('exito') {
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+        <path d="m5 12.5 4.5 4.5L19 7" />
+      </svg>
+      }
+      @case ('error') {
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
+      </svg>
+      }
+    }
+  </span>
+  }
+</button>
+}
+
+<!--
+  La etiqueta nunca sale del DOM: pierde la opacidad y conserva el ancho.
+  aria-hidden mientras está invisible, para que el lector de pantalla no lea
+  un texto que ya no describe lo que el botón está haciendo — de eso se
+  encarga aria-busy.
+-->
+<ng-template #etiqueta>
+  <span
+    class="inline-flex items-center gap-2 transition-opacity"
+    [class.opacity-0]="muestraIcono"
+    [attr.aria-hidden]="muestraIcono"
+  >
+    @if (icono === 'mas') {
+    <!--
+      El «+» de crear. `aria-hidden` porque la etiqueta ya dice qué se crea:
+      anunciarlo sería leer «más agregar establecimiento».
+    -->
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+    }
+
+    <ng-content />
+
+    @if (abreMenu) {
+    <svg
+      class="size-3.5 shrink-0 transition-transform"
+      [class.rotate-180]="menuAbierto"
+      width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
+    >
+      <path d="m5 7.5 5 5 5-5" />
+    </svg>
+    }
+  </span>
+</ng-template>

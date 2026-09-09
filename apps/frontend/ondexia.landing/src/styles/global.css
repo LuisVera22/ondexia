@@ -1,0 +1,382 @@
+/*
+ * Tema de la landing.
+ *
+ * Los nombres de token son LOS MISMOS que en ondexia.web/src/styles.css a
+ * propósito: `--color-brand-500` vale lo mismo en los dos sitios. Cuando exista
+ * un paquete compartido —hoy no lo hay, y el doc 03 §3 deja esa decisión
+ * abierta— mover este bloque será copiar y pegar, no traducir.
+ *
+ * Hasta la iteración 7 este archivo tenía además tres tokens propios —una
+ * tipografía de titular, un fluorescente y un fucsia— y un sistema visual
+ * neobrutalista: sombras duras sin difuminar, bordes de dos píxeles, banderines
+ * rotados. Se retiran enteros (doc 12 §7.2). La landing y el producto tienen
+ * que verse de la misma casa, y el producto es una pantalla de trabajo donde se
+ * emiten documentos con valor tributario: una portada de afiche promete otra
+ * cosa, y esa distancia la paga el cliente el día que entra.
+ *
+ * Lo que queda es lo mismo que en la app: índigo, grises azulados, el verde,
+ * el ámbar y el rojo como semántica de estado, un radio y una sombra.
+ */
+
+@import "tailwindcss";
+
+/*
+ * Outfit, servida por nosotros.
+ *
+ * Es el mismo archivo que ondexia.web —copiado, no enlazado: son dos
+ * desplegables sin nada compartido todavía— y es una fuente variable, así que
+ * un solo woff2 cubre de 100 a 900. `swap` enseña la del sistema mientras
+ * llega, que es preferible a un texto invisible en una conexión lenta.
+ *
+ * Nada de CDN. Es la regla de styles.css y aquí pesa más: un tercero en la
+ * ruta crítica de la portada es latencia que no controlamos, y en la métrica
+ * que Google mide para posicionar.
+ *
+ * Outfit se distribuye bajo SIL Open Font License 1.1 — ver public/fonts/OFL.txt.
+ */
+@font-face {
+  font-family: "Outfit";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/outfit-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Outfit";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/outfit-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@theme {
+  --font-*: initial;
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+
+  --breakpoint-*: initial;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  --color-*: initial;
+  --color-current: currentColor;
+  --color-inherit: inherit;
+  --color-transparent: transparent;
+  --color-white: #ffffff;
+  --color-black: #101828;
+
+  /* Marca — índigo. Idéntica a la de la app: la landing y el producto tienen
+   * que verse de la misma casa. */
+  --color-brand-25: #f7f8fe;
+  --color-brand-50: #eef0fd;
+  --color-brand-100: #dde1fb;
+  --color-brand-200: #c7d2fe;
+  --color-brand-300: #a5b4fc;
+  --color-brand-400: #818cf8;
+  --color-brand-500: #4f46e5;
+  --color-brand-600: #4338ca;
+  --color-brand-700: #3730a3;
+  --color-brand-800: #312e81;
+  --color-brand-900: #26235e;
+  --color-brand-950: #1a1840;
+
+  /* Neutros — tiran a azul, como el índigo. Un gris neutro puro al lado de un
+   * primario frío se ve sucio. */
+  --color-gray-25: #f8f9fb;
+  --color-gray-50: #f4f5f9;
+  --color-gray-100: #eef0f4;
+  --color-gray-200: #e8eaf1;
+  --color-gray-300: #c2c8d4;
+  --color-gray-400: #9aa0b2;
+  --color-gray-500: #697083;
+  --color-gray-600: #545b6e;
+  --color-gray-700: #3d4457;
+  --color-gray-800: #262c3c;
+  --color-gray-900: #171c2d;
+  --color-gray-950: #0e121d;
+
+  --color-success-500: #16a34a;
+  --color-success-600: #15803d;
+  --color-error-500: #d92525;
+  --color-error-600: #b91c1c;
+  --color-warning-500: #f59e0b;
+  --color-warning-700: #b45309;
+  --color-warning-300: #fcd34d;
+
+  --text-dato: 14px;
+  --text-dato--line-height: 20px;
+  --text-menudo: 12px;
+  --text-menudo--line-height: 18px;
+
+  /* Un radio y una sombra, los mismos que la app. Ver su styles.css. */
+  --radius-base: 6px;
+  --shadow-flotante: 0 12px 16px -4px rgb(16 24 40 / 0.08), 0 4px 6px -2px rgb(16 24 40 / 0.03);
+
+  --ease-propia: cubic-bezier(0.22, 0.85, 0.3, 1);
+  --duracion-rapida: 150ms;
+  --duracion-normal: 200ms;
+  --duracion-lenta: 250ms;
+
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Quien pide menos movimiento no quiere que la página se deslice sola al
+   * pulsar un enlace del menú. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    @apply bg-white font-sans font-normal text-gray-900 antialiased;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    @apply cursor-pointer;
+  }
+
+  /*
+   * El foco visible, definido una vez y en la capa `base` — igual que en la
+   * app, y por el mismo motivo: las utilidades de Tailwind viven en una capa
+   * posterior, así que un componente que resuelva su propio foco lo apaga sin
+   * pelearse por especificidad.
+   *
+   * Sobre los fondos oscuros de la landing el índigo de marca casi no se
+   * distingue, y ahí se sube al brand-300, que sí destaca contra el gris 900 y
+   * contra el índigo 500 sin salirse de la paleta.
+   */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+
+  .sobre-oscuro :focus-visible {
+    outline-color: var(--color-brand-300);
+  }
+}
+
+@layer components {
+  /*
+   * El titular. Sigue siendo una pieza y no una cadena de utilidades porque
+   * aparece en varias secciones con tres tamaños distintos, y lo que tiene que
+   * ser idéntico es el interletraje y el interlineado, no el tamaño.
+   *
+   * Lo que cambia con la iteración 7 es el peso: 800 pasa a 600, que es el más
+   * alto que la app usa (doc 12 §7.2). Un titular en 800 al lado de una
+   * pantalla cuyo texto más fuerte es 600 se lee como otra marca.
+   */
+  .titular {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.06;
+    text-wrap: balance;
+  }
+
+  /* El rótulo pequeño que acompaña a cada titular. Lleva el término que se
+   * busca (ver ondexia.docs/landing-propuesta/SEO.md). */
+  .rotulo {
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  /*
+   * La tarjeta.
+   *
+   * Un borde de un píxel y nada más. Antes eran dos píxeles de negro y una
+   * sombra dura desplazada cuatro: el registro desplazado de la serigrafía,
+   * que es exactamente el efecto que la iteración 7 retira. En una superficie
+   * la separación la hacen el borde y el espacio.
+   */
+  .tarjeta {
+    @apply rounded-base border border-gray-200 bg-white;
+  }
+
+  /* La misma sobre el fondo oscuro de su sección. */
+  .tarjeta-oscura {
+    @apply rounded-base border border-gray-700 bg-gray-800;
+  }
+
+  /*
+   * Los botones.
+   *
+   * La base va en una lista de selectores y no en un `.btn` que las variantes
+   * apliquen con `@apply`: Tailwind 4 solo admite utilidades ahí, no clases
+   * propias, y el build falla con «Cannot apply unknown utility class». Además
+   * así el marcado escribe una sola clase por botón en vez de dos.
+   *
+   * Sin sombra dura, sin hundirse al pulsar y sin desplazarse al pasar por
+   * encima. Un botón que se mueve tres píxeles es materia de dibujo animado;
+   * lo que aquí tiene que quedar claro es cuál de los dos es el principal, y
+   * eso lo dice el relleno.
+   */
+  .btn,
+  .btn-primario,
+  .btn-claro,
+  .btn-contorno,
+  .btn-contorno-claro {
+    @apply inline-flex h-12 items-center justify-center gap-2.5 rounded-base border border-transparent px-6 text-base font-medium;
+    transition:
+      background-color var(--duracion-normal) var(--ease-propia),
+      color var(--duracion-normal) var(--ease-propia),
+      border-color var(--duracion-normal) var(--ease-propia);
+  }
+
+  .btn-primario {
+    @apply bg-brand-500 text-white;
+  }
+
+  .btn-primario:hover {
+    @apply bg-brand-600;
+  }
+
+  /* La portada invierte el principal: sobre índigo, el botón es blanco. */
+  .btn-claro {
+    @apply bg-white text-brand-700;
+  }
+
+  .btn-claro:hover {
+    @apply bg-brand-50;
+  }
+
+  .btn-contorno {
+    @apply border-gray-300 bg-white text-gray-800;
+  }
+
+  .btn-contorno:hover {
+    @apply bg-gray-50;
+  }
+
+  /* La variante de contorno sobre el índigo de la portada. */
+  .btn-contorno-claro {
+    @apply border-brand-300 bg-transparent text-white;
+  }
+
+  .btn-contorno-claro:hover {
+    @apply bg-brand-600;
+  }
+
+  /*
+   * El subrayado que entra.
+   *
+   * Crece desde la izquierda con `background-size`. Un `border-bottom` que
+   * aparece de golpe empuja el texto y se nota; esto no toca el flujo. Se
+   * conserva porque no imita nada: es la respuesta mínima de un enlace.
+   */
+  .enlace-subrayado {
+    background-image: linear-gradient(var(--color-brand-500), var(--color-brand-500));
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 1px;
+    transition: background-size var(--duracion-normal) var(--ease-propia);
+  }
+
+  @media (hover: hover) {
+    .enlace-subrayado:hover {
+      background-size: 100% 1px;
+    }
+  }
+
+  .enlace-subrayado:focus-visible {
+    background-size: 100% 1px;
+  }
+
+  /*
+   * ── Aparecer al desplazar ───────────────────────────────────────────
+   *
+   * Con `animation-timeline: view()`, que es CSS y no JavaScript: el progreso
+   * lo marca la posición del elemento en la ventana, no un reloj. Sin
+   * observadores, sin escuchas de scroll, sin un solo byte de script — que era
+   * la promesa de esta página, y sigue siéndolo.
+   *
+   * Las DOS guardas de abajo son la parte importante:
+   *
+   * 1. `@supports`: en un navegador que no lo entiende, la regla entera no se
+   *    aplica y el contenido sale visible. Es la diferencia entre una mejora y
+   *    una página en blanco. Nunca se esconde algo cuyo mecanismo de aparición
+   *    puede no existir.
+   *
+   * 2. `prefers-reduced-motion`: se desactiva aquí explícitamente y no se
+   *    confía en la regla global que acorta duraciones — con una línea de
+   *    tiempo de desplazamiento la duración se ignora, así que aquella regla no
+   *    serviría de nada.
+   *
+   * El recorrido termina pronto, a `entry 45%`. Un texto que sigue apareciendo
+   * cuando ya lo estás leyendo es un texto que no se deja leer. Y el
+   * desplazamiento baja de 22 a 10 píxeles: la aparición acompaña, no anuncia.
+   */
+  .revelar {
+    --retardo: 0;
+  }
+
+  @keyframes revelar {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes llenar-barra {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .revelar {
+        animation: revelar linear both;
+        animation-timeline: view();
+        /* El escalonado va por POSICIÓN y no por tiempo: con una línea de
+           tiempo de desplazamiento, `animation-delay` no significa nada. Cada
+           ficha arranca un poco más abajo que la anterior. */
+        animation-range: entry calc(var(--retardo) * 7%) entry calc(45% + var(--retardo) * 7%);
+      }
+
+      /* La barra de existencias se llena al entrar. `scaleX` y no `width`: el
+         ancho real lo fija el dato en línea y esto solo lo revela. */
+      .barra-existencia {
+        transform-origin: left center;
+        animation: llenar-barra linear both;
+        animation-timeline: view();
+        animation-range: entry 15% entry 60%;
+      }
+    }
+  }
+}

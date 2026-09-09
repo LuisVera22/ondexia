@@ -1,0 +1,453 @@
+<div
+  class="overflow-hidden rounded-base border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]"
+>
+  <!--
+    Barra de herramientas. Va DENTRO de la tarjeta y por encima de la cabecera
+    porque lo que hay aquí actúa sobre esta tabla y no sobre la pantalla: el
+    botón de crear, que sí es de la pantalla, vive fuera junto al título.
+
+    Se pinta aunque la tabla esté vacía o cargando. Si se fuera con las filas,
+    quien busca algo que no existe se quedaría sin campo donde corregir lo que
+    escribió, y sin forma de volver atrás salvo recargar la página.
+  -->
+  @if (muestraBuscador || recargable || !muestraEsqueleto) {
+  <div
+    class="flex flex-col gap-3 border-b border-gray-200 px-5 py-3.5 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between"
+  >
+    <!--
+      Cuantos hay. Estaba en el pie, y abajo obligaba a recorrer la tabla entera
+      para encontrar el dato con el que uno se hace la primera idea de lo que
+      tiene delante. No lleva titulo: la pantalla ya pone el suyo justo encima,
+      con su miga de pan, y repetirlo seria decir «Ubigeos» dos veces en quince
+      centimetros.
+
+      En region activa porque al filtrar cambia y quien no ve la tabla no se
+      entera; `polite` espera a que se deje de escribir en vez de interrumpir
+      en cada tecla.
+    -->
+    @if (!muestraEsqueleto) {
+    <p class="text-sm text-gray-500 dark:text-gray-400" aria-live="polite">{{ recuento }}</p>
+    }
+
+    <!--
+      Buscar y actualizar, juntos y a la derecha. Los dos actúan sobre la tabla
+      —a diferencia del botón de crear, que es de la pantalla y vive fuera—, así
+      que van agrupados en vez de repartidos por la barra.
+
+      `sm:ml-auto` y no solo el `justify-between` del padre: mientras carga no
+      hay recuento a la izquierda, y con un solo hijo `justify-between` lo deja
+      pegado al principio. Se veía: el botón de actualizar aparecía a media
+      barra y saltaba a la derecha al llegar los datos.
+    -->
+    <div class="flex items-center gap-3 sm:ml-auto sm:justify-end">
+    @if (muestraBuscador) {
+    <div class="relative w-full sm:w-80">
+      <span
+        class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"
+        aria-hidden="true"
+      >
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
+        </svg>
+      </span>
+
+      <!--
+        `type="search"` y no `text`: el teclado del móvil pone la lupa en lugar
+        de «intro», y los lectores de pantalla lo anuncian como campo de
+        búsqueda. El aspa propia del navegador se apaga en el CSS porque solo la
+        pinta WebKit — tener la nuestra en un navegador y dos en otro es peor
+        que tener siempre la nuestra.
+
+        Escape limpia. Es lo que hace todo campo de búsqueda y no cuesta nada;
+        `stopPropagation` evita que la misma tecla cierre además el modal que
+        pudiera haber detrás.
+      -->
+      <input
+        type="search"
+        [value]="busqueda"
+        (input)="filtrar($any($event.target).value)"
+        (keydown.escape)="$event.stopPropagation(); limpiarBusqueda()"
+        [attr.aria-label]="'Buscar ' + nombrePlural + ' en la tabla'"
+        [placeholder]="marcadorBusqueda"
+        class="h-10 w-full rounded-base border border-gray-300 bg-transparent py-2 pl-9 pr-9 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
+      />
+
+      @if (hayBusqueda) {
+      <button
+        type="button"
+        (click)="limpiarBusqueda()"
+        aria-label="Limpiar la búsqueda"
+        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 transition hover:text-gray-600 dark:hover:text-gray-300"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+          <path d="m6 6 12 12M18 6 6 18" />
+        </svg>
+      </button>
+      }
+    </div>
+    }
+
+      @if (recargable) {
+      <button
+        type="button"
+        (click)="actualizar.emit()"
+        [disabled]="cargando"
+        [attr.aria-label]="'Actualizar ' + nombrePlural"
+        [attr.aria-busy]="refrescando"
+        class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-base border border-gray-300 text-gray-500 transition hover:bg-gray-50 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-white/[0.03] dark:hover:text-gray-300"
+      >
+        <svg
+          width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"
+          xmlns="http://www.w3.org/2000/svg"
+          [class.animate-spin]="refrescando"
+        >
+          <path d="M21 12a9 9 0 1 1-2.64-6.36" /><path d="M21 4v5h-5" />
+        </svg>
+      </button>
+      }
+    </div>
+  </div>
+  }
+
+  @if (muestraEsqueleto) {
+  <div class="p-6">
+    @for (fila of [1,2,3,4,5]; track fila) {
+    <div class="mb-3 h-11 animate-pulse rounded-base bg-gray-100 dark:bg-white/[0.05]"></div>
+    }
+  </div>
+  } @else if (hayBusqueda && total === 0) {
+  <!--
+    Vacía por la búsqueda, no por falta de registros. Se dice qué se buscó y se
+    ofrece deshacerlo: «Aún no hay establecimientos» delante de una tabla con
+    cuarenta sería sencillamente falso, y el botón de crear invitaría a dar de
+    alta uno que ya existe.
+  -->
+  <app-pagina-vacia
+    [titulo]="'Ningún resultado para «' + busqueda.trim() + '»'"
+    descripcion="Se busca en todas las columnas que se ven. Revisa cómo está escrito o prueba con menos palabras."
+    textoAccion="Limpiar la búsqueda"
+    [porFiltros]="true"
+    (accion)="limpiarBusqueda()"
+  />
+  } @else if (total === 0 && vacioPorFiltros) {
+  <!--
+    Vacía por los filtros de la PANTALLA, que están fuera de esta tarjeta. No se
+    ofrece acción porque los filtros no son nuestros: el botón para quitarlos
+    está arriba, junto a ellos, que es donde se puso lo que hay que deshacer.
+  -->
+  <app-pagina-vacia
+    titulo="Ningún registro coincide con los filtros"
+    descripcion="Ajusta o quita los filtros de arriba para ver más registros."
+    [porFiltros]="true"
+  />
+  } @else if (total === 0) {
+  <app-pagina-vacia
+    [titulo]="vacioTitulo"
+    [descripcion]="vacioDescripcion"
+    [textoAccion]="vacioAccion"
+    (accion)="accionVacio.emit()"
+  />
+  } @else {
+  <!--
+    ── En teléfono, tarjetas ────────────────────────────────────────────────
+
+    La tabla reserva 640 px de ancho mínimo porque seis columnas apretadas en
+    375 son ilegibles. El precio es que en un móvil toda lista del sistema
+    aparecía dentro de una caja que se arrastra de lado, con las primeras
+    columnas fuera de vista: se leía «NOMBRE COMERCIAL» y había que empujar
+    para descubrir de qué registro se hablaba.
+
+    Aquí cada registro es una tarjeta: el dato que lo identifica de título, el
+    estado como insignia y el resto como pares de etiqueta y valor. Las
+    etiquetas hacen falta justamente porque no hay cabecera que las diga.
+
+    Es la misma lista, no otra: se pinta desde `registrosVisibles`, con el
+    mismo filtro, el mismo orden, la misma paginación y las mismas acciones.
+  -->
+  <ul class="divide-y divide-gray-200 sm:hidden dark:divide-gray-800">
+    @for (registro of registrosVisibles; track registro[campoClave]) {
+    <li
+      class="px-5 py-4 transition"
+      [class.bg-brand-25]="estaSeleccionado(registro)"
+    >
+      <div class="flex items-start gap-3">
+        @if (seleccionable) {
+        <input
+          type="checkbox"
+          [checked]="estaSeleccionado(registro)"
+          (change)="alternarSeleccion(registro)"
+          aria-label="Seleccionar registro"
+          class="mt-1 h-4 w-4 shrink-0 cursor-pointer rounded-base border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800"
+        />
+        }
+
+        <div class="min-w-0 flex-1 cursor-pointer" (click)="filaClic.emit(registro)">
+          @if (columnaTitulo) {
+          <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+            {{ valor(registro, columnaTitulo) }}
+          </p>
+          }
+
+          @for (columna of columnasInsignia; track columna.campo) {
+          <span class="mt-1 inline-flex items-center gap-2 text-sm">
+            <span
+              class="h-2 w-2 shrink-0 rounded-full"
+              [class]="clasesPunto(columna, registro)"
+              aria-hidden="true"
+            ></span>
+            <span [class]="esNeutra(columna, registro) ? 'text-gray-500 dark:text-gray-400' : ''">
+              {{ valor(registro, columna) }}
+            </span>
+          </span>
+          }
+
+          @if (columnasDetalle.length) {
+          <dl class="mt-2 flex flex-col gap-1">
+            @for (columna of columnasDetalle; track columna.campo) {
+            <div class="flex gap-2 text-sm">
+              <dt class="w-28 shrink-0 text-gray-500 dark:text-gray-400">{{ columna.titulo }}</dt>
+              <dd
+                class="min-w-0 flex-1 text-gray-700 dark:text-gray-300"
+                [class.tabular-nums]="columna.formato === 'importe' || columna.formato === 'cantidad'"
+              >
+                {{ valor(registro, columna) }}
+              </dd>
+            </div>
+            }
+          </dl>
+          }
+        </div>
+
+        @if (acciones.length > 0) {
+        <div class="shrink-0">
+          <app-menu-acciones
+            [opciones]="opcionesDeFila(registro)"
+            [descripcionFila]="descripcionDeFila(registro)"
+            (elegir)="accionElegida.emit({ accion: $event, registro })"
+          />
+        </div>
+        }
+      </div>
+    </li>
+    }
+  </ul>
+
+  <!--
+    ── Desde 640 px, la tabla de siempre ───────────────────────────────────
+
+    `hidden sm:block` sobre el contenedor que desplaza, no sobre la tabla: es
+    él quien absorbe los 640 px de ancho mínimo, y escondiendo solo la tabla
+    seguiría existiendo una caja desplazable vacía.
+  -->
+  <div class="hidden overflow-x-auto sm:block">
+    <table class="w-full min-w-[640px]">
+      <thead class="border-b border-gray-200 dark:border-gray-800">
+        <tr>
+          @if (seleccionable) {
+          <th class="w-12 px-5 py-3.5">
+            <input
+              type="checkbox"
+              [checked]="todosSeleccionados"
+              (change)="alternarSeleccionTodos()"
+              aria-label="Seleccionar todos los registros de la página"
+              class="h-4 w-4 cursor-pointer rounded-base border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800"
+            />
+          </th>
+          } @for (columna of columnas; track columna.campo) {
+          <th
+            class="px-5 py-3.5 text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400"
+            [class]="clasesAlineacion(columna) + ' ' + (columna.ancho || '')"
+          >
+            @if (columna.ordenable) {
+            <button
+              type="button"
+              (click)="alternarOrden(columna)"
+              class="inline-flex items-center gap-1.5 transition hover:text-gray-700 dark:hover:text-gray-200"
+            >
+              {{ columna.titulo }}
+              <svg
+                width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                xmlns="http://www.w3.org/2000/svg"
+                [class]="orden?.campo === columna.campo ? 'text-brand-500' : 'text-gray-300 dark:text-gray-600'"
+              >
+                @if (orden?.campo === columna.campo && orden?.direccion === 'desc') {
+                <path d="m6 9 6 6 6-6" />
+                } @else {
+                <path d="m6 15 6-6 6 6" />
+                }
+              </svg>
+            </button>
+            } @else {
+            {{ columna.titulo }}
+            }
+          </th>
+          } @if (acciones.length > 0) {
+          <!--
+            Estrecha y a la derecha: dentro solo va el botón de tres puntos, que
+            mide 36 px. El título se pone para el lector de pantalla y se esconde
+            a la vista — encabezar una columna de puntos con la palabra
+            «ACCIONES» ocupa cuatro veces lo que ocupa su contenido.
+          -->
+          <th class="w-16 px-5 py-3.5 text-right">
+            <span class="sr-only">Acciones</span>
+          </th>
+          }
+        </tr>
+      </thead>
+
+      <!--
+        Sin `divide-y`: la cebra ya separa las filas, y hacerlo con linea y con
+        fondo es separarlas dos veces. La regla del rayado vive en styles.css
+        porque tiene que perder contra el `hover` y contra la fila seleccionada,
+        que son utilidades — ver alli.
+      -->
+      <tbody class="tabla-cebra">
+        @for (registro of registrosVisibles; track registro[campoClave]) {
+        <tr
+          class="transition hover:bg-gray-100 dark:hover:bg-white/[0.05]"
+          [class.bg-brand-25]="estaSeleccionado(registro)"
+        >
+          @if (seleccionable) {
+          <td class="px-5 py-4">
+            <input
+              type="checkbox"
+              [checked]="estaSeleccionado(registro)"
+              (change)="alternarSeleccion(registro)"
+              aria-label="Seleccionar registro"
+              class="h-4 w-4 cursor-pointer rounded-base border-gray-300 text-brand-500 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800"
+            />
+          </td>
+          } @for (columna of columnas; track columna.campo) {
+          <td
+            class="cursor-pointer px-5 py-4 text-sm"
+            [class]="clasesAlineacion(columna) + ' ' + clasesTexto(columna)"
+            [class.tabular-nums]="columna.formato === 'importe' || columna.formato === 'cantidad'"
+            (click)="filaClic.emit(registro)"
+          >
+            @if (columna.formato === 'insignia') {
+            <!--
+              El punto va antes del texto y no lo sustituye: el color solo no
+              dice nada a quien no lo distingue, y de eso no se entera nadie
+              hasta que se queja. `aria-hidden` porque la palabra ya esta ahi.
+            -->
+            <span class="inline-flex items-center gap-2">
+              <span
+                class="h-2 w-2 shrink-0 rounded-full"
+                [class]="clasesPunto(columna, registro)"
+                aria-hidden="true"
+              ></span>
+              <!--
+                `gray-500` y no `gray-400`, que era lo primero que se puso:
+                sobre blanco daba 2,6:1 y el mínimo legible es 4,5:1. Atenuar es
+                bajar el peso de un dato, no dejarlo a medio leer. Este da 4,98:1
+                sobre blanco y 4,78:1 sobre la fila rayada, que es el otro fondo
+                sobre el que puede caer.
+              -->
+              <span [class]="esNeutra(columna, registro) ? 'text-gray-500 dark:text-gray-400' : ''">
+                {{ valor(registro, columna) }}
+              </span>
+            </span>
+            } @else {
+            {{ valor(registro, columna) }}
+            }
+          </td>
+          } @if (acciones.length > 0) {
+          <td class="w-16 whitespace-nowrap px-5 py-4 text-right">
+            <app-menu-acciones
+              [opciones]="opcionesDeFila(registro)"
+              [descripcionFila]="descripcionDeFila(registro)"
+              (elegir)="accionElegida.emit({ accion: $event, registro })"
+            />
+          </td>
+          }
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div
+    class="flex flex-col gap-3 border-t border-gray-200 px-5 py-4 dark:border-gray-800 sm:flex-row sm:items-center sm:justify-between"
+  >
+    <div class="flex flex-wrap items-center justify-between gap-3 sm:justify-start">
+      <!--
+        Solo la pagina. Cuantos hay se dice arriba, y decir «Mostrando 1 a 6 de
+        12 registros» ademas era la misma cuenta contada dos veces en la misma
+        tarjeta.
+      -->
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Página {{ paginaVigente }} de {{ totalPaginas }}
+      </p>
+
+      @if (total > tamanosPagina[0]) {
+      <label class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+        <span class="hidden sm:inline">Por página</span>
+        <div class="w-20">
+          <app-desplegable
+            [opciones]="opcionesTamano"
+            [ngModel]="tamanoVigenteTexto"
+            (ngModelChange)="cambiarTamano($event)"
+            etiquetaAccesible="Registros por página"
+            alto="compacto"
+          />
+        </div>
+      </label>
+      }
+    </div>
+
+    <!--
+      Siempre visible: si desaparece al quedar una sola página, el usuario no
+      sabe si la tabla está paginada o si el control se rompió.
+
+      En móvil «Anterior» y «Siguiente» se van a los extremos y los números
+      quedan en medio. Apilados a la izquierda dejaban media barra vacía, y
+      sobre todo dejaban los dos botones que más se pulsan en el centro de la
+      pantalla, que es donde peor llega el pulgar. Desde `sm` el grupo vuelve
+      junto a la derecha, como estaba.
+
+      Los números van envueltos en su propio contenedor para que el paginador
+      tenga exactamente tres hijos: sin eso, `justify-between` repartiría
+      también los números y «1 2 3» aparecería desperdigado por la barra.
+    -->
+    <div class="flex items-center justify-between gap-1 sm:justify-end">
+      <button
+        type="button"
+        (click)="irAPagina(paginaVigente - 1)"
+        [disabled]="paginaVigente === 1"
+        class="rounded-base border border-gray-300 px-3 py-2.5 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03] sm:py-1.5"
+      >
+        Anterior
+      </button>
+
+      <div class="flex items-center gap-1">
+        @for (numero of paginasVisibles; track numero) {
+        <button
+        type="button"
+        (click)="irAPagina(numero)"
+        [attr.aria-current]="numero === paginaVigente ? 'page' : null"
+        class="min-w-9 rounded-base px-3 py-2.5 text-sm tabular-nums transition sm:py-1.5"
+        [class]="
+          numero === paginaVigente
+            ? 'bg-brand-500 text-white'
+            : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.03]'
+        "
+      >
+          {{ numero }}
+        </button>
+        }
+      </div>
+
+      <button
+        type="button"
+        (click)="irAPagina(paginaVigente + 1)"
+        [disabled]="paginaVigente === totalPaginas"
+        class="rounded-base border border-gray-300 px-3 py-2.5 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03] sm:py-1.5"
+      >
+        Siguiente
+      </button>
+    </div>
+  </div>
+  }
+</div>

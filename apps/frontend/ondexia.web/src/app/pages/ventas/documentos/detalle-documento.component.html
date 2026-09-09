@@ -1,0 +1,327 @@
+<div>
+  <div class="no-imprimir">
+    <app-encabezado-pagina [titulo]="documento()?.numeroCompleto || 'Documento'" />
+    <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+      <a [routerLink]="rutaListado" class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="m15 6-6 6 6 6" /></svg>
+        Volver al listado
+      </a>
+      @if (documento()) {
+      <div class="flex items-center gap-2">
+        <div class="flex rounded-base border border-gray-300 p-0.5 text-xs dark:border-gray-700" role="group" aria-label="Formato de impresión">
+          <button type="button" (click)="formato.set('ticket')" class="rounded-base px-3 py-1.5 font-medium" [class]="formato() === 'ticket' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">Ticket 80 mm</button>
+          <button type="button" (click)="formato.set('a4')" class="rounded-base px-3 py-1.5 font-medium" [class]="formato() === 'a4' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">A4</button>
+        </div>
+        <app-boton (accion)="imprimir()">Imprimir</app-boton>
+        @if (sePuedeAnular()) {
+        <app-boton variante="peligro" (accion)="pedirAnulacion()">Anular</app-boton>
+        }
+        @if (sePuedeDarDeBaja()) {
+        <app-boton variante="secundario" (accion)="pedirBaja()">Dar de baja</app-boton>
+        }
+        @if (sePuedeCanjear()) {
+        <app-boton (accion)="pedirCanje()">Canjear</app-boton>
+        }
+        <app-boton variante="secundario" ruta="/ventas/punto-de-venta">Nueva venta</app-boton>
+      </div>
+      }
+    </div>
+  </div>
+
+  @if (cargando()) {
+  <p class="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>
+  } @else if (error()) {
+  <div class="rounded-base border border-error-500/30 bg-error-500/10 p-4" role="alert"><p class="text-sm text-error-500">{{ error() }}</p></div>
+  } @else if (documento(); as d) {
+
+  @if (d.fiscal && sunat(); as s) {
+  <!-- Lo que SUNAT dijo (doc 14 §3). No se imprime: la hoja lleva su propia leyenda. -->
+  <section class="no-imprimir mx-auto mb-5 rounded-base border p-4" [class]="formato() === 'ticket' ? 'max-w-md' : 'max-w-3xl'"
+    [class.border-success-500/40]="s.estado === 'ACEPTADO'" [class.bg-success-500/5]="s.estado === 'ACEPTADO'"
+    [class.border-warning-500/40]="s.estado === 'EN_COLA'" [class.bg-warning-500/5]="s.estado === 'EN_COLA'"
+    [class.border-error-500/40]="s.estado === 'RECHAZADO' || s.estado === 'ERROR_ENVIO'" [class.bg-error-500/5]="s.estado === 'RECHAZADO' || s.estado === 'ERROR_ENVIO'"
+    [class.border-gray-200]="s.estado === 'ANULADO'">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div class="min-w-0">
+        <p class="text-sm font-semibold text-gray-800 dark:text-white/90">
+          @if (s.estado === 'EN_COLA') {<span class="mr-2 inline-block h-2 w-2 animate-pulse rounded-full bg-warning-500"></span>}
+          {{ textoSunat() }}
+          @if (s.intentos > 1) {<span class="ml-1 text-xs font-normal text-gray-500">· intento {{ s.intentos }}</span>}
+        </p>
+        @if (s.codigo && s.estado !== 'EN_COLA') {
+        <p class="mt-1 text-sm text-gray-700 dark:text-gray-300"><span class="font-mono text-xs text-gray-500">{{ s.codigo }}</span> {{ s.descripcion }}</p>
+        }
+        @if (s.observaciones.length > 0) {
+        <ul class="mt-1 list-disc pl-5 text-xs text-gray-600 dark:text-gray-400">
+          @for (o of s.observaciones; track $index) {<li>{{ o }}</li>}
+        </ul>
+        }
+        @if (s.estado === 'RECHAZADO') {
+        <p class="mt-1 text-xs text-gray-600 dark:text-gray-400">Para SUNAT este comprobante no existe: corrige lo que indica el código y vuelve a enviarlo con el mismo número.</p>
+        }
+        @if (s.respondidoEn) {<p class="mt-1 text-xs text-gray-500">Respondido {{ fecha(s.respondidoEn) }}</p>}
+      </div>
+      <div class="flex shrink-0 flex-wrap gap-2">
+        @if (s.estado === 'EN_COLA') {
+        <app-boton variante="secundario" [estado]="actualizarSunat.estado()" (accion)="actualizarSunat.ejecutar()">Actualizar</app-boton>
+        }
+        @if (puedeReintentar()) {
+        <app-boton [estado]="reintentar.estado()" (accion)="reintentar.ejecutar()">Volver a enviar</app-boton>
+        }
+        @if (s.xmlDisponible) {
+        <app-boton variante="secundario" [estado]="descargarXml.estado()" (accion)="descargarXml.ejecutar()">XML</app-boton>
+        }
+        @if (s.cdrDisponible) {
+        <app-boton variante="secundario" [estado]="descargarCdr.estado()" (accion)="descargarCdr.ejecutar()">CDR</app-boton>
+        }
+      </div>
+    </div>
+  </section>
+  }
+
+  @if (documento()?.origen; as origen) {
+  <!-- De dónde viene: el comprobante corregido, o la nota de venta canjeada. -->
+  <p class="no-imprimir mx-auto mb-3 text-sm text-gray-600 dark:text-gray-400" [class]="formato() === 'ticket' ? 'max-w-md' : 'max-w-3xl'">
+    @if (documento()?.tipo === '07') { Corrige a }
+    @else { Sale del canje de }
+    <a [routerLink]="rutaDe(origen)" class="font-medium text-brand-500 hover:underline">{{ origen.numeroCompleto }}</a>@if (documento()?.motivoNombre) { · {{ documento()?.motivoNombre }}}.
+  </p>
+  }
+
+  @if (relacionados().length > 0) {
+  <section class="no-imprimir mx-auto mb-5 rounded-base border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]"
+    [class]="formato() === 'ticket' ? 'max-w-md' : 'max-w-3xl'">
+    <h2 class="mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">Lo que salió de este documento</h2>
+    <ul class="divide-y divide-gray-100 text-sm dark:divide-gray-800">
+      @for (r of relacionados(); track r.id) {
+      <li class="flex items-center justify-between gap-3 py-2">
+        <a [routerLink]="rutaDe(r)" class="font-medium text-brand-500 hover:underline">{{ r.tipoNombre }} {{ r.numeroCompleto }}</a>
+        <span class="tabular-nums text-gray-600 dark:text-gray-400">S/ {{ importe(r.total) }} · {{ estadoTexto(r.estado) }}</span>
+      </li>
+      }
+    </ul>
+  </section>
+  }
+
+  <!-- La hoja: lo que se imprime. -->
+  <article class="hoja mx-auto rounded-base border border-gray-200 bg-white p-6 text-gray-900 print:text-black"
+    [class]="formato() === 'ticket' ? 'hoja--ticket' : 'max-w-3xl'">
+    <header class="text-center">
+      <p class="text-base font-semibold uppercase">{{ empresa()?.nombreComercial || empresa()?.razonSocial }}</p>
+      @if (empresa()?.nombreComercial) {
+      <p class="text-xs">{{ empresa()?.razonSocial }}</p>
+      }
+      <p class="text-xs">RUC {{ empresa()?.ruc }}</p>
+      <p class="text-xs">{{ establecimiento()?.direccion || empresa()?.domicilioFiscal }}</p>
+      <p class="mt-3 text-sm font-semibold">{{ tituloImpreso }}</p>
+      <p class="text-sm font-semibold tabular-nums">{{ d.numeroCompleto }}</p>
+    </header>
+
+    @if (d.tipo === 'NV') {
+    <!-- La distinción que protege al cliente y a Ondexia (doc 12 §3.2). -->
+    <p class="my-3 border-y border-dashed border-gray-400 py-1.5 text-center text-xs font-semibold uppercase tracking-wide">
+      Documento interno · No válido como comprobante de pago
+    </p>
+    } @else {
+    <p class="my-3 border-y border-dashed border-gray-400 py-1.5 text-center text-xs uppercase tracking-wide">
+      {{ estadoTexto(d.estado) }}
+    </p>
+    }
+
+    <dl class="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-xs">
+      <dt class="text-gray-600">Fecha</dt><dd class="tabular-nums">{{ fecha(d.emitidoEn) }}</dd>
+      <dt class="text-gray-600">Cliente</dt>
+      <dd>
+        @if (d.cliente; as c) {
+        {{ c.nombre }}<br /><span class="tabular-nums">{{ c.tipoDocumento === 'RUC' ? 'RUC' : c.tipoDocumento === 'DNI' ? 'DNI' : c.tipoDocumento }} {{ c.numeroDocumento }}</span>
+        @if (c.direccion) {<br />{{ c.direccion }}}
+        } @else {
+        Cliente varios
+        }
+      </dd>
+      <dt class="text-gray-600">Pago</dt>
+      <dd>
+        @for (p of d.pagos; track $index) {
+        <span class="block">{{ formaDePago(p.forma) }} S/ {{ importe(p.monto) }}@if (p.referencia) { · {{ p.referencia }}}</span>
+        }
+      </dd>
+    </dl>
+
+    <table class="mt-4 w-full text-xs">
+      <thead>
+        <tr class="border-b border-gray-400 text-left">
+          <th class="py-1 font-semibold">Descripción</th>
+          <th class="py-1 text-right font-semibold">Cant.</th>
+          <th class="py-1 text-right font-semibold">P. unit.</th>
+          <th class="py-1 text-right font-semibold">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (l of d.lineas; track l.orden) {
+        <tr class="border-b border-dotted border-gray-300 align-top">
+          <td class="py-1">{{ l.descripcion }}<span class="block text-[10px] text-gray-600">{{ l.codigo }} · {{ l.unidad }}@if (l.descuento > 0) { · dscto. {{ importe(l.descuento) }}}</span></td>
+          <td class="py-1 text-right tabular-nums">{{ cantidad(l.cantidad) }}</td>
+          <td class="py-1 text-right tabular-nums">{{ importe(l.precioUnitario) }}</td>
+          <td class="py-1 text-right tabular-nums">{{ importe(l.total) }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+
+    <dl class="mt-3 ml-auto grid w-full max-w-xs grid-cols-[1fr_auto] gap-x-4 gap-y-0.5 text-xs tabular-nums">
+      @if (d.totalGravado > 0) {<dt>Op. gravada</dt><dd class="text-right">S/ {{ importe(d.totalGravado) }}</dd>}
+      @if (d.totalExonerado > 0) {<dt>Op. exonerada</dt><dd class="text-right">S/ {{ importe(d.totalExonerado) }}</dd>}
+      @if (d.totalInafecto > 0) {<dt>Op. inafecta</dt><dd class="text-right">S/ {{ importe(d.totalInafecto) }}</dd>}
+      @if (d.totalDescuento > 0) {<dt>Descuentos</dt><dd class="text-right">S/ {{ importe(d.totalDescuento) }}</dd>}
+      <dt>IGV 18 %</dt><dd class="text-right">S/ {{ importe(d.totalIgv) }}</dd>
+      <dt class="text-sm font-semibold">Total</dt><dd class="text-right text-sm font-semibold">S/ {{ importe(d.total) }}</dd>
+    </dl>
+
+    @if (d.observaciones) {
+    <p class="mt-3 text-xs"><span class="text-gray-600">Obs.:</span> {{ d.observaciones }}</p>
+    }
+
+    <footer class="mt-4 text-center text-[10px] text-gray-600">
+      @if (d.tipo === 'NV') {
+      Este documento no otorga derecho a crédito fiscal ni sustenta gasto o costo. Puede canjearse por boleta o factura.
+      } @else if (d.tipo === '07' && d.origen) {
+      Nota de crédito de {{ d.origen.numeroCompleto }}@if (d.motivoNombre) { · {{ d.motivoNombre }}}.
+      @if (sunat()?.estado === 'ACEPTADO') { Aceptada por SUNAT. } @else { Pendiente de aceptación por SUNAT. }
+      } @else if (sunat()?.estado === 'ACEPTADO') {
+      Representación impresa del comprobante electrónico. Aceptado por SUNAT.
+      @if (sunat()?.resumenFirma) {<span class="block break-all font-mono">Resumen: {{ sunat()?.resumenFirma }}</span>}
+      } @else {
+      Representación impresa del comprobante electrónico. Pendiente de aceptación por SUNAT.
+      }
+    </footer>
+  </article>
+  }
+</div>
+
+<!-- Anular: deja sin efecto el comprobante entero (doc 13 §5.2). -->
+<app-modal
+  [abierto]="modal() === 'anular'"
+  titulo="Anular el comprobante"
+  [subtitulo]="'Se emite una nota de crédito de ' + (documento()?.numeroCompleto || '') + '. El comprobante queda anulado cuando SUNAT la acepte.'"
+  rol="alertdialog"
+  [procesando]="anular.estado() === 'cargando'"
+  (cerrar)="cerrarModal()"
+>
+  <div class="grid gap-4">
+    @if (!cajaEnUso()) {
+    <p class="rounded-base border border-warning-500/40 bg-warning-500/10 p-3 text-sm text-gray-700 dark:text-gray-300">
+      No hay ninguna caja abierta. La devolución pasa por el cajón, así que hay que abrir una antes.
+    </p>
+    } @else {
+    <p class="text-sm text-gray-600 dark:text-gray-400">Caja: {{ cajaEnUso()?.nombre }}</p>
+    }
+
+    <div>
+      <label for="motivo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Motivo</label>
+      <app-desplegable idCampo="motivo" [opciones]="opcionesDeMotivo()" [(ngModel)]="motivoElegido" />
+    </div>
+
+    @if (series().length !== 1) {
+    <div>
+      <label for="serieNota" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Serie de la nota</label>
+      <app-desplegable idCampo="serieNota" [opciones]="opcionesDeSerie()" [(ngModel)]="serieElegida" marcador="Elige una serie" />
+      @if (series().length === 0) {
+      <p class="mt-1 text-xs text-error-500">No hay serie de nota de crédito para este establecimiento. Créala en Configuración › Series y correlativos.</p>
+      }
+    </div>
+    }
+
+    <label class="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+      <input type="checkbox" name="devolver" [(ngModel)]="devolverElDinero" class="mt-0.5 h-4 w-4 rounded-base border-gray-300 text-brand-500" />
+      <span>Se devuelve el dinero ahora (S/ {{ importe(documento()?.total || 0) }}). Sin marcar, la nota se emite sin movimiento de caja.</span>
+    </label>
+
+    <div>
+      <label for="obsNota" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Sustento</label>
+      <input id="obsNota" type="text" name="obsNota" [(ngModel)]="observacionesDeLaNota" maxlength="500"
+        placeholder="Por qué se anula. Va impreso y en el XML."
+        class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+    </div>
+  </div>
+
+  <div acciones class="flex justify-end gap-2">
+    <app-boton variante="secundario" (accion)="cerrarModal()">Cancelar</app-boton>
+    <app-boton variante="peligro" [deshabilitado]="!cajaEnUso() || !motivoElegido" [estado]="anular.estado()" (accion)="anular.ejecutar()">
+      Anular
+    </app-boton>
+  </div>
+</app-modal>
+
+<!-- Canjear: la nota de venta se convierte en comprobante (doc 13 §5.1). -->
+<app-modal
+  [abierto]="modal() === 'canjear'"
+  titulo="Canjear por comprobante"
+  [subtitulo]="'Las líneas y los importes se copian de ' + (documento()?.numeroCompleto || '') + '. El dinero ya entró con ella: no se vuelve a cobrar.'"
+  [procesando]="canjear.estado() === 'cargando'"
+  (cerrar)="cerrarModal()"
+>
+  <div class="grid gap-4">
+    <div>
+      <span class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Comprobante</span>
+      <div class="flex rounded-base border border-gray-300 p-0.5 text-sm dark:border-gray-700" role="group">
+        <button type="button" (click)="tipoDeCanje = 'BOLETA'; cargarSeriesDeCanje()"
+          class="flex-1 rounded-base px-3 py-2 font-medium" [class]="tipoDeCanje === 'BOLETA' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">Boleta</button>
+        <button type="button" (click)="tipoDeCanje = 'FACTURA'; cargarSeriesDeCanje()"
+          class="flex-1 rounded-base px-3 py-2 font-medium" [class]="tipoDeCanje === 'FACTURA' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">Factura</button>
+      </div>
+    </div>
+
+    @if (tipoDeCanje === 'FACTURA' && documento()?.cliente?.tipoDocumento !== 'RUC') {
+    <p class="rounded-base border border-warning-500/40 bg-warning-500/10 p-3 text-sm text-gray-700 dark:text-gray-300">
+      Una factura exige un cliente con RUC. Esta nota de venta
+      @if (documento()?.cliente) { está a nombre de un cliente con {{ documento()?.cliente?.tipoDocumento }}. } @else { no tiene cliente. }
+      Cámbialo desde el punto de venta o canjéala por boleta.
+    </p>
+    }
+
+    @if (series().length !== 1) {
+    <div>
+      <label for="serieCanje" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Serie</label>
+      <app-desplegable idCampo="serieCanje" [opciones]="opcionesDeSerie()" [(ngModel)]="serieElegida" marcador="Elige una serie" />
+    </div>
+    }
+
+    <div>
+      <label for="obsCanje" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Observaciones</label>
+      <input id="obsCanje" type="text" name="obsCanje" [(ngModel)]="observacionesDeLaNota" maxlength="500"
+        class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+    </div>
+  </div>
+
+  <div acciones class="flex justify-end gap-2">
+    <app-boton variante="secundario" (accion)="cerrarModal()">Cancelar</app-boton>
+    <app-boton [estado]="canjear.estado()" (accion)="canjear.ejecutar()">Canjear</app-boton>
+  </div>
+</app-modal>
+
+<!-- Dar de baja: el comprobante no debió existir (doc 13 §6). -->
+<app-modal
+  [abierto]="modal() === 'baja'"
+  titulo="Comunicar la baja a SUNAT"
+  [subtitulo]="'Dice que ' + (documento()?.numeroCompleto || '') + ' no debió emitirse. No devuelve dinero ni repone mercadería: para eso está la nota de crédito.'"
+  rol="alertdialog"
+  [procesando]="darDeBaja.estado() === 'cargando'"
+  (cerrar)="cerrarModal()"
+>
+  <div class="grid gap-4">
+    <p class="rounded-base border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-300">
+      SUNAT no responde en el momento: devuelve un ticket y el veredicto llega después. El comprobante queda anulado cuando lo acepte.
+    </p>
+    <div>
+      <label for="motivoBaja" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Por qué no debió existir</label>
+      <input id="motivoBaja" type="text" name="motivoBaja" [(ngModel)]="observacionesDeLaNota" maxlength="300"
+        placeholder="Emitida al cliente equivocado, duplicada…"
+        class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+    </div>
+  </div>
+
+  <div acciones class="flex justify-end gap-2">
+    <app-boton variante="secundario" (accion)="cerrarModal()">Cancelar</app-boton>
+    <app-boton variante="peligro" [estado]="darDeBaja.estado()" (accion)="darDeBaja.ejecutar()">Comunicar la baja</app-boton>
+  </div>
+</app-modal>

@@ -1,0 +1,47 @@
+<div>
+  <app-encabezado-pagina
+    titulo="Resumen diario"
+    descripcion="Las boletas no se envían a SUNAT una por una: se declaran agrupadas en el
+    resumen del día. El envío no devuelve la respuesta de inmediato, entrega un
+    ticket que se consulta después — un resumen «enviado» todavía no está
+    aceptado."
+  />
+
+  @if (boletasPendientes > 0) {
+  <div class="mb-5 flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <p class="font-medium text-gray-800 dark:text-white/90">
+        {{ boletasPendientes }} {{ boletasPendientes === 1 ? 'boleta pendiente' : 'boletas pendientes' }} de declarar
+      </p>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Se declaran en el resumen del día correspondiente.
+      </p>
+    </div>
+
+    <button type="button"
+      class="shrink-0 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-600">
+      Enviar resumen pendiente
+    </button>
+  </div>
+  }
+
+  <app-tabla-datos
+    nombrePlural="resúmenes"
+    nombreSingular="resumen"
+    [acciones]="accionesDeFila"
+    campoDescripcion="correlativo"
+    (accionElegida)="ejecutarAccion($event)"
+    [columnas]="columnas"
+    [registros]="registros"
+    [totalRegistros]="registros.length"
+    vacioTitulo="Aún no hay resúmenes diarios"
+    vacioDescripcion="Al emitir la primera boleta se generará el resumen correspondiente a su fecha."
+   />
+
+  @if (hayEnProceso) {
+  <p class="mt-4 text-xs text-gray-500 dark:text-gray-400">
+    Los resúmenes enviados se consultan automáticamente cada pocos minutos hasta
+    obtener respuesta de SUNAT. También puede consultarlos manualmente.
+  </p>
+  }
+</div>

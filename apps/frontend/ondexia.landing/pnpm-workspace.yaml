@@ -1,0 +1,6 @@
+# Astro no necesita compilar nada en la instalacion: sin <Image> no entra sharp,
+# y esbuild se distribuye ya compilado por plataforma. Se declaran igual que en
+# ondexia.web para que pnpm no pregunte en cada instalacion.
+allowBuilds:
+  esbuild: false
+  sharp: false

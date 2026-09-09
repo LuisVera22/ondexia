@@ -1,0 +1,43 @@
+<!--
+  El estado del menú viaja como clase `menu-colapsado`, y de ella cuelgan el
+  ancho del menú y el margen del contenido, definidos juntos en la capa de
+  componentes de styles.css. Ver allí por qué no se resuelve con utilidades.
+-->
+<div class="marco min-h-screen" [class.menu-colapsado]="!menu.anchoCompleto()">
+  <app-menu-lateral />
+
+  <div class="marco-contenido flex min-h-screen flex-col">
+    <app-barra-superior />
+
+    <!--
+      El ancho se limita a 1536 px: una tabla de comprobantes estirada a un
+      monitor ultraancho obliga a recorrer con la vista media pantalla para
+      relacionar el número de una fila con su importe.
+    -->
+    <main class="mx-auto w-full max-w-(--breakpoint-2xl) flex-1 p-4 md:p-6">
+      <!--
+        Va dentro del main y no sobre la barra superior: es informacion de la
+        cuenta, no navegacion, y ahi comparte el ancho del contenido en vez de
+        cruzar toda la pantalla como una alarma.
+      -->
+      <app-aviso-suscripcion />
+      <router-outlet />
+    </main>
+  </div>
+
+  <!--
+    Los avisos van aqui, fuera del <main>, y no dentro de cada pantalla. Si cada
+    pagina montara la suya, un aviso lanzado justo antes de navegar se
+    destruiria con la pantalla que lo pidio — y ese es el caso mas frecuente,
+    porque guardar suele terminar en una navegacion.
+  -->
+  <app-avisos />
+
+  <!--
+    Y aqui la confirmacion que pide quien no tiene plantilla donde ponerla: la
+    guarda que decide si se puede abandonar una ficha con cambios sin guardar
+    esta destruyendo esa pantalla, asi que un dialogo montado en ella
+    desapareceria con la navegacion que intenta detener.
+  -->
+  <app-confirmacion-global />
+</div>

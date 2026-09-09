@@ -74,10 +74,22 @@ Ejes de diferenciación que sí funcionan porque **no rompen nada al faltar**:
 | Almacén, Compras y Ventas | Completos | Completos | Completos |
 | Notas de crédito y débito | Sí | Sí | Sí |
 | **Guías de Remisión Electrónica** | No | Sí | Sí |
-| **Roles personalizados** | Roles fijos | Sí | Sí |
+| **Roles personalizados** | ~~Roles fijos~~ Sí | Sí | Sí |
 | **Acceso por API para integradores** | No | No | Sí |
 | **Reportes avanzados y exportación** | Básicos | Completos | Completos + a medida |
 | Soporte | Correo | Correo prioritario | Canal directo |
+
+**El límite de empresas quedó confirmado el 2026-08-23 en 1 / 2 / negociable**, y
+está sembrado en `plan.max_empresas` (V9) como `1 / 2 / NULL` — donde `NULL` es
+sin límite, no cero. Cambiarlo es un `UPDATE` de tres filas; por eso los límites
+son una tabla y no constantes en el código.
+
+> **Nota del 2026-09-07 (doc 12 §6.1).** Los roles personalizados dejan de ser
+> un diferenciador de plan. Por omisión solo existen dos roles —el Propietario,
+> que es `cuenta_administrador`, y el Administrador— y los demás los crea cada
+> cuenta, en cualquier plan: con dos roles fijos, el plan base necesita poder
+> crear un «Cajero». Los roles Vendedor, Almacenero y Contador que sembraba la
+> V2 salieron de la semilla en la V16.
 
 La GRE es el mejor candidato a estar en plan superior y la razón es honesta: **es una integración técnica aparte** (DTE R-06), con costo real de construcción y mantenimiento, y no todos los clientes trasladan mercadería. Un comercio de mostrador no la necesita.
 

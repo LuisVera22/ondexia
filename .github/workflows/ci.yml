@@ -9,6 +9,16 @@ on:
     branches: [main, develop]
   workflow_dispatch:
 
+# Solo lectura, y explicito (hallazgo M15).
+#
+# Sin este bloque el GITHUB_TOKEN hereda los permisos por omision del
+# repositorio, que en repos creados hace tiempo son de ESCRITURA sobre
+# contenidos, paquetes y despliegues. Este workflow solo necesita leer el
+# codigo: cualquier accion o dependencia comprometida durante el build tendria,
+# si no, un token con el que empujar commits.
+permissions:
+  contents: read
+
 # Un solo job, sin filtros de rutas. Con un desarrollador y un proyecto de este
 # tamaño, construir todo en cada commit cuesta minutos y ahorra la clase de
 # error que aparece cuando el frontend y el backend se compilan por separado.
@@ -16,16 +26,58 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # 120, y la cifra sale de un fallo real: la ejecución #225 murió a los 30
+    # minutos con la base de la NVD al 21 % —80.000 de 381.929 registros—, que
+    # proyecta unos 85 minutos solo de descarga.
+    #
+    # Lo grave no era la lentitud sino que se realimentaba. Al matar el job por
+    # tiempo, GitHub omite los pasos `Post`, así que la caché NO se guarda: la
+    # ejecución siguiente empezaba otra vez desde cero y volvía a caducar. Un
+    # bucle del que el paso no podía salir solo.
+    #
+    # Con la caché caliente las actualizaciones son incrementales y esto vuelve
+    # a durar minutos; el margen es para la primera siembra y para el día que
+    # la caché se desaloje.
+    timeout-minutes: 120
 
     steps:
-      - uses: actions/checkout@v4
+      # Las versiones de las acciones se subieron todas de golpe porque GitHub
+      # está retirando Node 20 y las majors anteriores corren sobre él: hoy sale
+      # un aviso y el día que retiren el runtime dejan de ejecutarse. Se fijan a
+      # la major, no al SHA — con un solo desarrollador, el coste de revisar cada
+      # parche a mano supera al riesgo de que una acción oficial se corrompa.
+      #
+      # De los cambios incompatibles, solo uno nos rozaba: checkout v7 deja de
+      # descargar el código de PR desde bifurcaciones cuando el disparador es
+      # `pull_request_target` o `workflow_run`. Aquí no aplica —el CI se dispara
+      # con `push` y `pull_request`— y además es la clase de protección que
+      # queremos, porque ese patrón es justo el que filtra secretos a una PR
+      # ajena.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
 
-      - uses: actions/setup-node@v4
+      # pnpm antes que setup-node: el runner no lo trae, y setup-node necesita
+      # que exista para poder cachear su almacén.
+      #
+      # `package_json_file` hace falta porque la acción busca `packageManager`
+      # en la RAÍZ del repositorio, y aquí no hay package.json ahí: el frontend
+      # cuelga de apps/frontend/ondexia.web. Sin esta línea falla en ocho
+      # segundos con «No pnpm version is specified», antes de compilar nada, y
+      # el mensaje no menciona que el problema sea dónde está mirando.
+      #
+      # Se apunta al archivo en vez de fijar `version:` aquí para que la versión
+      # siga estando en un solo sitio. Con las dos, la del workflow y la del
+      # package.json se separan el día que alguien actualice una.
+      - uses: pnpm/action-setup@f520eceda224fe1a4aed5a2a27a194379a409996  # v6
+        with:
+          package_json_file: apps/frontend/ondexia.web/package.json
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7
         with:
           node-version: '22'
+          cache: pnpm
+          cache-dependency-path: apps/frontend/ondexia.web/pnpm-lock.yaml
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961  # v5
         with:
           distribution: temurin
           java-version: '21'
@@ -36,21 +88,181 @@ jobs:
       # todavía no se ha escrito.
 
       - name: Frontend
-        if: hashFiles('apps/ondexia.web/package.json') != ''
-        working-directory: apps/ondexia.web
+        if: hashFiles('apps/frontend/ondexia.web/package.json') != ''
+        working-directory: apps/frontend/ondexia.web
+        # pnpm, no npm: el proyecto migró y `package-lock.json` ya no existe,
+        # así que `npm ci` fallaba en cada ejecución. `--frozen-lockfile` es el
+        # equivalente de `npm ci` — se niega a instalar si el lockfile no
+        # concuerda con el package.json, en vez de resolverlo por su cuenta y
+        # construir con versiones distintas a las de tu máquina.
         run: |
-          npm ci
-          npm run build
-          npm run test:ci
+          pnpm install --frozen-lockfile
+          # Ver la nota del frontend principal (hallazgo M11).
+          pnpm audit --prod --audit-level=high
+          pnpm run build
+          pnpm run test:ci
+
+      # La base de vulnerabilidades del NIST, en su propia cache.
+      #
+      # Vivia dentro de la cache de Maven, que se indexa por el hash de los
+      # pom.xml. Consecuencia: cualquier cambio en un pom —anadir un modulo,
+      # subir una version— invalidaba la cache y obligaba a bajar los 377.000
+      # registros otra vez. Son quince minutos, y quince minutos colgados de un
+      # servicio externo que puede fallar:
+      #
+      #   NvdApiException: NVD Returned Status Code: 524
+      #   NoDataException: No documents exist
+      #
+      # Ese 524 es un tiempo de espera del Cloudflare de la NVD, no algo nuestro.
+      # Lo que si era nuestro es no tener de donde tirar cuando ocurre.
+      #
+      # La clave lleva el id de la ejecucion para guardar siempre una copia
+      # fresca, y `restore-keys` recupera la mas reciente aunque no coincida
+      # exactamente. Asi la base sobrevive a los cambios de pom.
+      # Restaurar y guardar van SEPARADOS, y no es cosmética.
+      #
+      # Con `actions/cache` entero, el guardado ocurre en un paso `Post`. En la
+      # ejecución #225 el job murió por tiempo, GitHub omitió los `Post` y los
+      # ochenta mil registros ya descargados se tiraron a la basura: la
+      # ejecución siguiente empezaba de cero y volvía a caducar. Un bucle del
+      # que el paso no podía salir solo.
+      #
+      # Partido en `restore` y `save`, el guardado es un paso normal con
+      # `always()`, que en GitHub incluye el caso cancelado. Un intento que no
+      # llega a terminar deja al menos la base a medio construir, y
+      # dependency-check la completa de forma incremental en el siguiente.
+      #
+      # No se usa `save-always` de `actions/cache`: está obsoleto desde la
+      # v4.2 justamente porque no cubría este caso.
+      - name: Restaurar la base de vulnerabilidades
+        if: hashFiles('apps/backend/pom.xml') != ''
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: nvd-${{ github.run_id }}
+          restore-keys: nvd-
+
+      # La landing no comparte nada con los otros dos: es Astro, no Angular, y
+      # no tiene cache que envenenar ni pruebas todavia. `astro check` corre
+      # dentro de `build` y valida los tipos de las plantillas, que es lo unico
+      # que hay que verificar en una pagina estatica.
+      - name: Landing
+        if: hashFiles('apps/frontend/ondexia.landing/package.json') != ''
+        working-directory: apps/frontend/ondexia.landing
+        run: |
+          pnpm install --frozen-lockfile
+          # Ver la nota del frontend principal (hallazgo M11).
+          pnpm audit --prod --audit-level=high
+          pnpm run build
+
+      # Va DESPUES de construir la aplicacion y la landing, y no antes: lee
+      # `dist/`, no `src/`. Sobre el codigo no se podria — los comentarios
+      # explican en espanol lo que la pantalla decia antes, y buscar palabras
+      # prohibidas ahi pondria el CI en rojo por documentar la decision. Ademas
+      # Tailwind solo emite las utilidades que se usan, asi que la ausencia de
+      # `.rounded-lg` en la hoja compilada no es una aproximacion: es la prueba.
+      #
+      # Si alguna de las dos no esta construida, el script falla diciendolo, que
+      # es lo contrario de pasar en verde sin haber mirado nada.
+      - name: Tono y forma
+        if: hashFiles('apps/frontend/ondexia.web/package.json') != ''
+        run: node herramientas/comprobar-tono-y-forma.mjs
+
+      - name: Panel interno
+        if: hashFiles('apps/frontend/ondexia.admin/package.json') != ''
+        working-directory: apps/frontend/ondexia.admin
+        run: |
+          pnpm install --frozen-lockfile
+          # Ver la nota del frontend principal (hallazgo M11).
+          pnpm audit --prod --audit-level=high
+          rm -rf .angular/cache
+          pnpm run build
+          pnpm run test:ci
 
       - name: Backend
-        if: hashFiles('apps/pom.xml') != ''
-        working-directory: apps
-        run: mvn -B verify
+        if: hashFiles('apps/backend/pom.xml') != ''
+        working-directory: apps/backend
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+          # El análisis pesa ~85 minutos la primera vez y unos pocos después.
+          # Cobrárselo a cada empujón de una rama de trabajo no compra nada:
+          # lo que importa es que ninguna dependencia con CVE entre en
+          # `develop` ni en `main`, y de eso se encarga la PR.
+          #
+          # Esto NO relaja el control del doc 03 §9.4 —sigue siendo bloqueante
+          # donde decide algo—; mueve dónde se paga. El resto del `verify`,
+          # pruebas de integración incluidas, sigue corriendo en cada rama.
+          ANALIZAR_DEPENDENCIAS: ${{ github.event_name == 'pull_request' || github.ref_name == 'main' || github.ref_name == 'develop' }}
+        # Con el wrapper, no con el `mvn` del runner: fija la versión de Maven
+        # en el repositorio, de modo que CI y la máquina de desarrollo
+        # construyen con la misma. `verify` incluye las pruebas de integración,
+        # que levantan PostgreSQL con Testcontainers — el runner de GitHub trae
+        # Docker.
+        #
+        # OWASP Dependency-Check necesita una clave de API del NIST. Sin ella la
+        # NVD limita las peticiones hasta hacer el análisis inviable en un
+        # pipeline: la primera sincronización pasa de minutos a horas. Es
+        # gratuita — https://nvd.nist.gov/developers/request-an-api-key — y se
+        # guarda como secreto `NVD_API_KEY` del repositorio.
+        #
+        # Mientras no exista, se omite con un aviso visible en vez de dejar el
+        # build colgado hasta agotar el tiempo. Un control de seguridad que
+        # nadie puede ejecutar acaba desactivado de todas formas; mejor que
+        # conste que está desactivado.
+        run: |
+          if [ -z "$NVD_API_KEY" ]; then
+            echo "::warning title=Análisis de dependencias omitido::Falta el secreto NVD_API_KEY. OWASP Dependency-Check no se ejecutó. Pídela en https://nvd.nist.gov/developers/request-an-api-key"
+            ./mvnw -B verify -Ddependency-check.skip=true
+          elif [ "$ANALIZAR_DEPENDENCIAS" != "true" ]; then
+            echo "::notice title=Análisis de dependencias aplazado::Rama de trabajo. OWASP Dependency-Check corre en la PR y en develop y main, que es donde bloquea."
+            ./mvnw -B verify -Ddependency-check.skip=true
+          else
+            ./mvnw -B verify -Ddependency-check.nvdApiKey="$NVD_API_KEY"
+          fi
+
+      # La contraparte del `restore` de arriba. `always()` para que la copia
+      # sobreviva a un backend en rojo, que es justo cuando hace falta.
+      - name: Guardar la base de vulnerabilidades
+        if: always() && hashFiles('apps/backend/pom.xml') != ''
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: nvd-${{ github.run_id }}
+
+      # El informe de Dependency-Check, pase o falle el build.
+      #
+      # Sin esto, cuando el análisis rompe el build lo único que queda es la lista
+      # del log, que GitHub corta por la derecha justo donde están los
+      # identificadores de CVE y sus puntuaciones. Se puede diagnosticar a ciegas
+      # o se puede leer el informe; esto es lo segundo.
+      #
+      # `if: always()` es el punto entero: el caso en que hace falta es
+      # precisamente el que aborta el job.
+      - name: Publicar el informe de dependencias
+        if: always() && hashFiles('apps/backend/ondexia.api/target/dependency-check-report.html') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4
+        with:
+          name: dependency-check
+          path: apps/backend/**/target/dependency-check-report.*
+          retention-days: 14
+
+      # DT-16 sustituyó AWS CDK por Terraform. Este paso buscaba
+      # ondexia.infra/package.json y ejecutaba `cdk synth`: no se disparaba
+      # nunca y no validaba nada.
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e  # v4
+        if: hashFiles('ondexia.infra/versions.tf') != ''
+        with:
+          terraform_version: '1.15.8'
 
       - name: Infraestructura
-        if: hashFiles('ondexia.infra/package.json') != ''
+        if: hashFiles('ondexia.infra/versions.tf') != ''
         working-directory: ondexia.infra
+        # -backend=false: no se contacta con S3 ni hacen falta credenciales de
+        # AWS. Comprueba la sintaxis, los tipos y las referencias entre
+        # recursos, que es lo que puede romperse en un commit. Lo que NO
+        # comprueba es si los recursos existen o si la cuenta los admite; para
+        # eso hace falta un `plan`, y un `plan` en CI exige credenciales.
         run: |
-          npm ci
-          npx cdk synth
+          terraform fmt -check -recursive
+          terraform init -backend=false
+          terraform validate

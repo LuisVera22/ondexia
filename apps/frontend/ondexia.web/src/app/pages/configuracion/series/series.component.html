@@ -1,0 +1,165 @@
+<div>
+  <app-encabezado-pagina
+    titulo="Series y correlativos"
+    descripcion="De aquí sale el número de cada comprobante. La serie va atada a un
+    establecimiento y a un tipo de documento, y su correlativo lo lleva el
+    sistema: sin huecos y sin repetidos."
+  />
+
+  <div class="mb-5 flex justify-end">
+    <app-boton icono="mas" class="shrink-0" (accion)="abrirNueva()">Nueva serie</app-boton>
+  </div>
+
+  <!--
+    La carga la pinta la propia tabla. Antes se sustituía la tarjeta entera por
+    un recuadro con «Cargando…», y eso se lleva por delante el buscador y el
+    botón de actualizar justo cuando se están usando: pulsar actualizar hacía
+    desaparecer el botón que se acababa de pulsar.
+  -->
+  @if (error()) {
+  <div class="flex items-start gap-3 rounded-base border border-error-500/30 bg-error-500/10 p-4" role="alert">
+    <svg class="mt-0.5 shrink-0 text-error-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
+    </svg>
+    <p class="text-sm text-error-500">{{ error() }}</p>
+  </div>
+  } @else {
+  <app-tabla-datos
+    [acciones]="accionesDeFila"
+    campoDescripcion="serie"
+    (accionElegida)="ejecutarAccion($event)"
+    [cargando]="cargando()"
+    nombrePlural="series"
+    nombreSingular="serie"
+    (actualizar)="recargar()"
+    [columnas]="columnas"
+    [registros]="registros()"
+    [totalRegistros]="registros().length"
+    vacioTitulo="Aún no hay series"
+    vacioDescripcion="Sin al menos una serie no se puede emitir ningún comprobante: es de donde sale su número."
+    vacioAccion="Agregar serie"
+    (accionVacio)="abrirNueva()"
+   />
+  }
+
+  <!--
+    El alta va en modal. Esta pantalla NO tiene ficha de edición, y no es una
+    omisión: una serie no se edita. Su correlativo ya está impreso en documentos
+    entregados, así que lo que se hace es desactivarla y abrir otra. Es la única
+    del grupo sin vista de detalle, y por ese motivo.
+  -->
+  <app-modal
+    [abierto]="modalAbierto()"
+    titulo="Nueva serie"
+    subtitulo="La letra la impone SUNAT según el tipo, y el último número emitido solo se puede fijar ahora."
+    ancho="ancho"
+    [procesando]="crear.estado() === 'cargando'"
+    (cerrar)="cerrarModal()"
+  >
+    <form [formGroup]="formulario" (ngSubmit)="crear.ejecutar()" novalidate id="formulario-serie">
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div>
+          <label for="tipoDocumento" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Tipo de comprobante <span class="text-error-500">*</span>
+          </label>
+          <app-desplegable
+            idCampo="tipoDocumento"
+            formControlName="tipoDocumento"
+            [opciones]="opcionesTipo()"
+            alto="formulario"
+          />
+          @if (controles.tipoDocumento.touched && controles.tipoDocumento.invalid) {
+          <app-error-campo [control]="controles.tipoDocumento" mensaje="Elige el tipo de comprobante." />
+          }
+        </div>
+
+        <div>
+          <label for="serie" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Serie <span class="text-error-500">*</span>
+          </label>
+          <input
+            id="serie"
+            type="text"
+            formControlName="serie"
+            maxlength="4"
+            placeholder="F001"
+            class="h-11 w-full rounded-base border bg-transparent px-4 text-sm uppercase text-gray-800 placeholder:normal-case placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90"
+            [class]="controles.serie.touched && controles.serie.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+          />
+          @if (controles.serie.touched && controles.serie.invalid) {
+          <app-error-campo [control]="controles.serie" mensaje="Cuatro caracteres: una letra y tres letras o dígitos." />
+          } @else if (letraEsperada) {
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            SUNAT exige que empiece por <strong>{{ letraEsperada }}</strong> para este tipo.
+          </p>
+          } @else {
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            Elige antes el tipo y aquí se dirá con qué letra debe empezar.
+          </p>
+          }
+        </div>
+
+        <div>
+          <label for="sucursalId" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Establecimiento <span class="text-error-500">*</span>
+          </label>
+          <app-desplegable
+            idCampo="sucursalId"
+            formControlName="sucursalId"
+            [opciones]="opcionesEstablecimiento()"
+            alto="formulario"
+          />
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            Obligatorio: SUNAT relaciona la serie con el anexo que emite.
+          </p>
+        </div>
+
+        <div>
+          <label for="numeroInicial" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Último número ya emitido
+          </label>
+          <input
+            id="numeroInicial"
+            type="number"
+            min="0"
+            max="99999999"
+            formControlName="numeroInicial"
+            class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"
+          />
+          <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+            Déjalo en 0 si la serie empieza de cero. Solo se puede fijar ahora:
+            después el número lo lleva el sistema.
+          </p>
+        </div>
+      </div>
+    </form>
+
+    <ng-container acciones>
+      <app-boton
+        variante="secundario"
+        [deshabilitado]="crear.estado() === 'cargando'"
+        (accion)="cerrarModal()"
+      >
+        Cancelar
+      </app-boton>
+
+      <app-boton tipo="submit" [estado]="crear.estado()" formulario="formulario-serie">
+        Crear serie
+      </app-boton>
+    </ng-container>
+  </app-modal>
+
+  <app-confirmacion
+    [abierto]="confirmacionAbierta()"
+    [peligrosa]="true"
+    titulo="¿Desactivar la serie?"
+    [mensaje]="
+      serieADesactivar +
+      ' dejará de ofrecerse al emitir. No se borra ni se pierde su correlativo: los comprobantes ya emitidos con ella siguen siendo válidos, y se puede volver a activar.'
+    "
+    textoConfirmar="Desactivar"
+    [procesando]="desactivar.estado() === 'cargando'"
+    (confirmar)="desactivar.ejecutar()"
+    (cancelar)="cancelarDesactivacion()"
+  />
+</div>

@@ -1,0 +1,103 @@
+<!--
+  Dos filas: la ruta de navegación arriba y el título debajo.
+
+  En una sola fila, con la ruta empujada a la derecha, las dos cosas competían
+  por el mismo renglón: en cuanto la ruta crecía —«Panel › Configuración ›
+  Establecimiento»— se partía en dos líneas y desalineaba el título. Y leídas de
+  izquierda a derecha contaban la historia al revés: primero dónde estás en
+  grande, después cómo llegaste, en pequeño y al otro extremo.
+
+  Apiladas, cada una manda en su renglón: la ruta arrimada a la derecha, donde
+  se consulta solo cuando hace falta volver atrás, y el título abierto en el
+  margen izquierdo, que es por donde empieza a leerse la página.
+-->
+<div class="mb-6">
+  <nav aria-label="Ruta de navegación" class="mb-2">
+    <ol class="flex flex-wrap items-center justify-end gap-1.5 text-dato">
+      <li class="flex items-center gap-1.5">
+        <a routerLink="/" class="text-gray-500 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+          Panel
+        </a>
+        <svg class="size-4 shrink-0 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <path d="m9 6 6 6-6 6" />
+        </svg>
+      </li>
+
+      @if (muestraModulo) {
+      <li class="flex items-center gap-1.5">
+        <span class="text-gray-500 dark:text-gray-400">{{ modulo }}</span>
+        <svg class="size-4 shrink-0 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <path d="m9 6 6 6-6 6" />
+        </svg>
+      </li>
+      }
+
+      <li class="text-gray-800 dark:text-white/90" aria-current="page">{{ titulo }}</li>
+    </ol>
+  </nav>
+
+  <!--
+    `items-center` sobre la fila y no un margen a mano: el icono se centra con la
+    altura de linea del titulo, asi que sigue centrado si algun dia el titulo
+    cambia de tamano.
+  -->
+  <div class="flex items-center gap-2">
+    <h1 class="text-xl font-semibold leading-none text-gray-800 dark:text-white/90">
+      {{ titulo }}
+    </h1>
+
+    @if (descripcion) {
+    <!--
+      El icono ya ES un circulo, asi que el boton no lleva el suyo: un aro
+      alrededor de un aro pinta dos circulos concentricos y engorda el control
+      hasta competir con el titulo, que es lo que se venia a leer.
+
+      El simbolo es la «i» de informacion —punto arriba, trazo abajo—. El de
+      exclamacion es el mismo dibujo del reves y significa otra cosa: que algo
+      va mal. Aqui no va mal nada, se explica lo que hace la pantalla.
+    -->
+    <button
+      #disparador
+      type="button"
+      (click)="alternar()"
+      (keydown)="alTeclear($event)"
+      [attr.aria-label]="'Qué es ' + titulo"
+      [attr.aria-expanded]="abierto()"
+      aria-controls="descripcion-pagina"
+      class="inline-flex shrink-0 rounded-full transition hover:text-brand-500 focus:outline-hidden focus-visible:ring-3 focus-visible:ring-brand-500/25 dark:hover:text-brand-400"
+      [class]="
+        abierto()
+          ? 'text-brand-500 dark:text-brand-400'
+          : 'text-gray-400'
+      "
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="9.5" />
+        <path d="M12 7.6h.01" />
+        <path d="M12 11.4v5" />
+      </svg>
+    </button>
+    }
+  </div>
+
+  @if (abierto()) {
+  <!--
+    `fixed` colocado desde el botón: el encabezado vive dentro del marco de la
+    aplicación, que se recorta, y un globo `absolute` se cortaría por el borde.
+    Ver `posicionFlotante`.
+  -->
+  <div
+    #globo
+    id="descripcion-pagina"
+    role="note"
+    tabindex="-1"
+    [ngStyle]="posicion()"
+    (keydown)="alTeclear($event)"
+    animate.enter="menu-entra"
+    class="z-99999 max-w-[min(24rem,calc(100vw-1rem))] overflow-y-auto overscroll-contain rounded-base border border-gray-200 bg-white p-4 shadow-flotante focus:outline-hidden dark:border-gray-800 dark:bg-gray-900"
+  >
+    <p class="text-sm leading-relaxed text-gray-600 dark:text-gray-300">{{ descripcion }}</p>
+  </div>
+  }
+
+</div>

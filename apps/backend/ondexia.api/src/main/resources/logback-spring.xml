@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Solo cambia una cosa respecto a lo que Spring Boot trae por omision: los saltos
+  de linea DENTRO de un mensaje se sustituyen por un espacio.
+
+  Tabla de bajas de la auditoria 2026-09-01. El manejador de errores registra el
+  metodo, la ruta y el mensaje de la excepcion, y parte de eso lo escribe quien
+  llama: una ruta con %0A dentro, o un correo con un salto de linea, producen en
+  CloudWatch una linea que parece dos. Con eso se fabrica una entrada de registro
+  falsa —«acceso_denegado en POST /admin» donde nunca hubo tal peticion— o se
+  rompe cualquier filtro que trabaje por lineas.
+
+  Se hace en la salida y no en cada LOG.warn a mano porque el sitio que se olvide
+  seria justamente el que importa. Y en Logback, no en el codigo: es la ultima
+  capa antes del archivo, asi que alcanza tambien a lo que registren las
+  bibliotecas.
+
+  El resto —colores, formato de fecha, nivel— es el patron por omision de Boot,
+  copiado tal cual para que el registro se lea igual que antes.
+-->
+<configuration>
+  <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd'T'HH:mm:ss.SSSXXX}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %replace(%m){'[\r\n]+', ' '}%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}</pattern>
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+  </root>
+</configuration>

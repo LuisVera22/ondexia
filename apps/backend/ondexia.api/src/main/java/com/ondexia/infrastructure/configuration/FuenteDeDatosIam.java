@@ -1,0 +1,201 @@
+package com.ondexia.infrastructure.configuration;
+
+import java.io.PrintWriter;
+import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.util.Properties;
+import java.util.logging.Logger;
+import javax.sql.DataSource;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.rds.RdsUtilities;
+
+/**
+ * Fuente de conexiones que se autentica contra RDS con un token de IAM.
+ *
+ * <h2>Aquí no hay contraseña, y ese es todo el propósito</h2>
+ *
+ * <p>El token se genera <strong>firmando localmente</strong> con las
+ * credenciales del rol de la función: no abre ninguna conexión de red. Es el
+ * mismo mecanismo que firma las subidas a S3, y es lo que permite que esto
+ * funcione en una subred privada sin NAT.
+ *
+ * <p>La alternativa era guardar la contraseña en algún sitio. En una variable de
+ * entorno la lee cualquiera con {@code lambda:GetFunctionConfiguration}; en
+ * Secrets Manager haría falta un endpoint de interfaz a ~7.30 USD/mes para
+ * alcanzarlo desde esta subred. Con IAM no hay nada que guardar.
+ *
+ * <h2>Un token por conexión física, sin caché</h2>
+ *
+ * <p>Los tokens caducan a los quince minutos. Cachearlos ahorraría una firma
+ * local —que cuesta microsegundos— a cambio de arriesgar el fallo más
+ * desagradable posible: una credencial vencida que solo se manifiesta cuando el
+ * pool abre una conexión nueva, es decir, bajo carga y no en la primera prueba.
+ *
+ * <p>Con dos conexiones por contenedor, generar el token cada vez es
+ * intrascendente. Se prefiere lo intrascendente y correcto.
+ *
+ * <h2>TLS obligatorio</h2>
+ *
+ * <p>RDS exige conexión cifrada para autenticar por IAM. Se pide explícitamente
+ * en vez de confiar en que el servidor lo imponga: {@code rds.force_ssl} está
+ * en 1 hoy, y un parámetro que alguien cambie mañana no debería degradar esto en
+ * silencio.
+ */
+final class FuenteDeDatosIam implements DataSource {
+
+    private final String url;
+    private final String usuario;
+    private final String anfitrion;
+    private final int puerto;
+    private final RdsUtilities firmador;
+    /** Ruta en disco del paquete de CA de RDS; ver {@link CertificadoRaizRds}. */
+    private final Path raizRds;
+
+    FuenteDeDatosIam(String url, String usuario, String anfitrion, int puerto, Region region,
+            Path raizRds) {
+        this.url = url;
+        this.usuario = usuario;
+        this.anfitrion = anfitrion;
+        this.puerto = puerto;
+        this.raizRds = raizRds;
+        /*
+         * El proveedor de credenciales es OBLIGATORIO, y omitirlo no falla al
+         * construir sino al firmar el primer token:
+         *
+         *   IllegalArgumentException: CredentialProvider should be provided
+         *   either in GenerateAuthenticationTokenRequest object or RdsUtilities
+         *   object
+         *
+         * Y el síntoma llega disfrazado. Hikari no puede abrir la conexión,
+         * Hibernate se queda sin metadatos para deducir el dialecto y lo que
+         * aparece arriba de la traza es «Unable to determine Dialect without JDBC
+         * metadata», que invita a buscar una URL mal formada. En SnapStart el
+         * arranque es el que toma la instantánea, así que la versión ni se
+         * publica: queda en Failed con Runtime.BadFunctionCode.
+         *
+         * La cadena predeterminada resuelve por variables de entorno, que es lo
+         * primero que mira y lo que Lambda inyecta. No hay llamada de red, que es
+         * la condición para que esto funcione en una subred sin NAT.
+         *
+         * `builder().build()` y no `create()`: esa está obsoleta en el SDK, y el
+         * módulo compila con -Werror, así que usarla no produce un aviso sino un
+         * error de compilación.
+         */
+        this.firmador = RdsUtilities.builder()
+                .region(region)
+                .credentialsProvider(DefaultCredentialsProvider.builder().build())
+                .build();
+    }
+
+    @Override
+    public Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(url, propiedadesDeConexion());
+    }
+
+    /** Lo que se le pide al controlador. Separado para poder probarlo sin base. */
+    Properties propiedadesDeConexion() {
+        var propiedades = new Properties();
+        propiedades.setProperty("user", usuario);
+        propiedades.setProperty("password", tokenNuevo());
+        propiedades.setProperty("ssl", "true");
+
+        /*
+         * `verify-full`, no `require`.
+         *
+         * `require` cifra y NO COMPRUEBA CONTRA QUIEN: acepta cualquier
+         * certificado, incluido el de alguien que se haya puesto en medio. Cifrar
+         * sin verificar la identidad protege de quien escucha y no de quien
+         * intercepta, que dentro de una VPC es el escenario menos improbable de
+         * los dos —una entrada de DNS o de tabla de rutas basta—.
+         *
+         * `verify-full` ademas comprueba que el nombre del certificado coincida
+         * con el anfitrion al que se llama, que es lo que cierra el redireccion
+         * a otra instancia.
+         *
+         * Necesita el paquete de CA de RDS en un ARCHIVO: `sslrootcert` no lee
+         * el classpath (CertificadoRaizRds explica el porque y el error que
+         * hubo). Sin el, el fallo es «Could not open SSL root certificate file»
+         * al abrir la primera conexion — ruidoso y en el arranque, que es donde
+         * se quiere.
+         *
+         * Tabla de bajas de la auditoria 2026-09-01; corregido tras la
+         * validacion del 2026-09-07. Lo fija FuenteDeDatosIamTest
+         * («la conexion exige verify-full con el paquete de RDS») y
+         * CertificadoRaizRdsTest.
+         */
+        propiedades.setProperty("sslmode", "verify-full");
+        propiedades.setProperty("sslrootcert", raizRds.toString());
+        return propiedades;
+    }
+
+    /**
+     * Ignora las credenciales que le pasen.
+     *
+     * <p>HikariCP llama a esta sobrecarga cuando su configuración trae usuario y
+     * contraseña. Aquí no hay contraseña que valga: la única credencial válida es
+     * un token recién firmado, así que se delega. Aceptar la que llega
+     * produciría un fallo de autenticación difícil de atribuir.
+     */
+    @Override
+    public Connection getConnection(String usuarioIgnorado, String claveIgnorada)
+            throws SQLException {
+        return getConnection();
+    }
+
+    /**
+     * Con ámbito de paquete, no privado, para que {@code FuenteDeDatosIamTest}
+     * pueda firmar un token sin abrir una conexión. Es la única parte de esta
+     * clase que se puede comprobar fuera de AWS —firmar es una operación local— y
+     * es justo donde estuvo el fallo que dejó una versión en {@code Failed}.
+     */
+    String tokenNuevo() {
+        return firmador.generateAuthenticationToken(constructor -> constructor
+                .hostname(anfitrion)
+                .port(puerto)
+                .username(usuario));
+    }
+
+    // ── Resto del contrato de DataSource, sin uso aquí ──────────────────────
+
+    @Override
+    public PrintWriter getLogWriter() {
+        return null;
+    }
+
+    @Override
+    public void setLogWriter(PrintWriter escritor) {
+        // El registro lo lleva el pool, no esta fuente.
+    }
+
+    @Override
+    public void setLoginTimeout(int segundos) {
+        // Lo gobierna Hikari con su connection-timeout.
+    }
+
+    @Override
+    public int getLoginTimeout() {
+        return 0;
+    }
+
+    @Override
+    public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+        throw new SQLFeatureNotSupportedException();
+    }
+
+    @Override
+    public <T> T unwrap(Class<T> tipo) throws SQLException {
+        if (tipo.isInstance(this)) {
+            return tipo.cast(this);
+        }
+        throw new SQLException("No es una envoltura de " + tipo.getName());
+    }
+
+    @Override
+    public boolean isWrapperFor(Class<?> tipo) {
+        return tipo.isInstance(this);
+    }
+}

@@ -1,0 +1,286 @@
+<div>
+  <app-encabezado-pagina
+    titulo="Cajas"
+    descripcion="Los puntos de cobro de cada establecimiento. Una venta ocurre siempre dentro de una sesión: se abre la caja con lo que hay en el cajón y se cierra declarando lo que se contó."
+  />
+
+  @if (puedeRegistrar()) {
+  <div class="mb-5 flex justify-end">
+    <app-boton icono="mas" class="shrink-0" (accion)="abrirNueva()">Agregar caja</app-boton>
+  </div>
+  }
+
+  @if (error()) {
+  <div class="flex items-start gap-3 rounded-base border border-error-500/30 bg-error-500/10 p-4" role="alert">
+    <svg class="mt-0.5 shrink-0 text-error-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
+    </svg>
+    <p class="text-sm text-error-500">{{ error() }}</p>
+  </div>
+  } @else {
+  <app-tabla-datos
+    [acciones]="accionesDeFila"
+    campoDescripcion="nombre"
+    (accionElegida)="ejecutarAccion($event)"
+    [cargando]="cargando()"
+    nombrePlural="cajas"
+    nombreSingular="caja"
+    (actualizar)="recargar()"
+    [columnas]="columnas"
+    [registros]="registros()"
+    [totalRegistros]="registros().length"
+    vacioTitulo="No hay cajas a la vista"
+    vacioDescripcion="Cada establecimiento nace con su primera caja. Si no aparece ninguna, el usuario no alcanza ningún establecimiento con cajas."
+    [vacioAccion]="puedeRegistrar() ? 'Agregar caja' : ''"
+    (accionVacio)="abrirNueva()"
+  />
+  }
+
+  <!-- Alta -->
+  <app-modal
+    [abierto]="modalNueva()"
+    titulo="Nueva caja"
+    subtitulo="El código identifica la caja dentro de su establecimiento y no se cambia después."
+    [procesando]="crear.estado() === 'cargando'"
+    (cerrar)="modalNueva.set(false)"
+  >
+    <form [formGroup]="formularioNueva" (ngSubmit)="crear.ejecutar()" novalidate id="formulario-caja">
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div>
+          <label for="codigo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Código <span class="text-error-500">*</span>
+          </label>
+          <input
+            id="codigo"
+            type="text"
+            formControlName="codigo"
+            maxlength="20"
+            placeholder="CAJA2"
+            class="h-11 w-full rounded-base border bg-transparent px-4 text-sm uppercase text-gray-800 placeholder:normal-case placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90"
+            [class]="formularioNueva.controls.codigo.touched && formularioNueva.controls.codigo.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+          />
+          @if (formularioNueva.controls.codigo.touched && formularioNueva.controls.codigo.invalid) {
+          <app-error-campo [control]="formularioNueva.controls.codigo" mensaje="Letras, números y guiones, hasta 20 caracteres." />
+          }
+        </div>
+
+        <div>
+          <label for="nombre" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Nombre <span class="text-error-500">*</span>
+          </label>
+          <input
+            id="nombre"
+            type="text"
+            formControlName="nombre"
+            placeholder="Caja mostrador"
+            class="h-11 w-full rounded-base border bg-transparent px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90"
+            [class]="formularioNueva.controls.nombre.touched && formularioNueva.controls.nombre.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+          />
+          @if (formularioNueva.controls.nombre.touched && formularioNueva.controls.nombre.invalid) {
+          <app-error-campo [control]="formularioNueva.controls.nombre" mensaje="El nombre es obligatorio." />
+          }
+        </div>
+
+        <div class="sm:col-span-2">
+          <label for="sucursalId" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Establecimiento <span class="text-error-500">*</span>
+          </label>
+          <app-desplegable
+            idCampo="sucursalId"
+            formControlName="sucursalId"
+            [opciones]="opcionesEstablecimiento()"
+            alto="formulario"
+          />
+          @if (formularioNueva.controls.sucursalId.touched && formularioNueva.controls.sucursalId.invalid) {
+          <app-error-campo [control]="formularioNueva.controls.sucursalId" mensaje="La caja tiene que pertenecer a un establecimiento." />
+          }
+        </div>
+      </div>
+    </form>
+
+    <ng-container acciones>
+      <app-boton variante="secundario" [deshabilitado]="crear.estado() === 'cargando'" (accion)="modalNueva.set(false)">
+        Cancelar
+      </app-boton>
+      <app-boton tipo="submit" [estado]="crear.estado()" formulario="formulario-caja">Registrar caja</app-boton>
+    </ng-container>
+  </app-modal>
+
+  <!-- Nombre -->
+  <app-modal
+    [abierto]="modalRenombrar()"
+    titulo="Cambiar el nombre"
+    [subtitulo]="nombreSeleccionada"
+    ancho="estrecho"
+    [procesando]="renombrar.estado() === 'cargando'"
+    (cerrar)="modalRenombrar.set(false)"
+  >
+    <form [formGroup]="formularioRenombrar" (ngSubmit)="renombrar.ejecutar()" novalidate id="formulario-renombrar">
+      <label for="nuevo-nombre" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+        Nombre <span class="text-error-500">*</span>
+      </label>
+      <input
+        id="nuevo-nombre"
+        type="text"
+        formControlName="nombre"
+        class="h-11 w-full rounded-base border bg-transparent px-4 text-sm text-gray-800 focus:outline-hidden focus:ring-3 dark:text-white/90"
+        [class]="formularioRenombrar.controls.nombre.touched && formularioRenombrar.controls.nombre.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+      />
+      @if (formularioRenombrar.controls.nombre.touched && formularioRenombrar.controls.nombre.invalid) {
+      <app-error-campo [control]="formularioRenombrar.controls.nombre" mensaje="El nombre es obligatorio." />
+      }
+    </form>
+
+    <ng-container acciones>
+      <app-boton variante="secundario" [deshabilitado]="renombrar.estado() === 'cargando'" (accion)="modalRenombrar.set(false)">
+        Cancelar
+      </app-boton>
+      <app-boton tipo="submit" [estado]="renombrar.estado()" formulario="formulario-renombrar">Guardar</app-boton>
+    </ng-container>
+  </app-modal>
+
+  <!-- Apertura -->
+  <app-modal
+    [abierto]="modalApertura()"
+    titulo="Abrir caja"
+    [subtitulo]="nombreSeleccionada"
+    ancho="estrecho"
+    [procesando]="abrir.estado() === 'cargando'"
+    (cerrar)="modalApertura.set(false)"
+  >
+    <form [formGroup]="formularioApertura" (ngSubmit)="abrir.ejecutar()" novalidate id="formulario-apertura">
+      <label for="montoInicial" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+        Monto inicial en efectivo <span class="text-error-500">*</span>
+      </label>
+      <input
+        id="montoInicial"
+        type="number"
+        inputmode="decimal"
+        min="0"
+        step="0.01"
+        formControlName="montoInicial"
+        class="h-11 w-full rounded-base border bg-transparent px-4 text-sm text-gray-800 focus:outline-hidden focus:ring-3 dark:text-white/90"
+        [class]="formularioApertura.controls.montoInicial.touched && formularioApertura.controls.montoInicial.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+      />
+      @if (formularioApertura.controls.montoInicial.touched && formularioApertura.controls.montoInicial.invalid) {
+      <app-error-campo [control]="formularioApertura.controls.montoInicial" mensaje="Indica el monto inicial, aunque sea cero. No puede ser negativo." />
+      } @else {
+      <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+        Lo que hay en el cajón antes de vender. Es el punto de partida del arqueo.
+      </p>
+      }
+    </form>
+
+    <ng-container acciones>
+      <app-boton variante="secundario" [deshabilitado]="abrir.estado() === 'cargando'" (accion)="modalApertura.set(false)">
+        Cancelar
+      </app-boton>
+      <app-boton tipo="submit" [estado]="abrir.estado()" formulario="formulario-apertura">Abrir caja</app-boton>
+    </ng-container>
+  </app-modal>
+
+  <!-- Cierre y arqueo -->
+  <app-modal
+    [abierto]="modalCierre()"
+    [titulo]="arqueo() ? 'Arqueo de caja' : 'Cerrar caja'"
+    [subtitulo]="nombreSeleccionada"
+    [procesando]="cerrar.estado() === 'cargando'"
+    (cerrar)="cerrarModalCierre()"
+  >
+    @if (arqueo(); as lineas) {
+    <!--
+      El resultado, sin corregir nada. La diferencia se muestra y se guarda tal
+      cual: es el dato que dice cuánto faltó o sobró.
+    -->
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-200 text-left text-xs uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
+            <th class="py-2 pr-3 font-medium">Forma de pago</th>
+            <th class="py-2 pr-3 text-right font-medium">Calculado</th>
+            <th class="py-2 pr-3 text-right font-medium">Declarado</th>
+            <th class="py-2 text-right font-medium">Diferencia</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (linea of lineas; track linea.forma) {
+          <tr class="border-b border-gray-100 dark:border-gray-800/60">
+            <td class="py-2 pr-3 text-gray-800 dark:text-white/90">{{ linea.forma }}</td>
+            <td class="py-2 pr-3 text-right tabular-nums text-gray-700 dark:text-gray-300">{{ importe(linea.calculado) }}</td>
+            <td class="py-2 pr-3 text-right tabular-nums text-gray-700 dark:text-gray-300">{{ importe(linea.declarado) }}</td>
+            <td
+              class="py-2 text-right tabular-nums font-medium"
+              [class]="linea.diferencia === 0 ? 'text-gray-500 dark:text-gray-400' : linea.diferencia < 0 ? 'text-error-500' : 'text-warning-600'"
+            >
+              {{ importe(linea.diferencia) }}
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+      @if (arqueoCuadra()) {
+      La caja cuadra. La sesión quedó cerrada.
+      } @else {
+      La diferencia queda registrada en la sesión; no se corrige. La sesión quedó cerrada.
+      }
+    </p>
+    } @else {
+    <form [formGroup]="formularioCierre" (ngSubmit)="cerrar.ejecutar()" novalidate id="formulario-cierre">
+      <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+        Se abrió con {{ montoInicialSeleccionada }} en efectivo. Indica lo que hay ahora por cada forma de pago;
+        lo que se deje vacío se declara como cero.
+      </p>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        @for (forma of formasDePago; track forma.codigo) {
+        <div>
+          <label [for]="'declarado-' + forma.codigo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            {{ forma.nombre }}
+          </label>
+          <input
+            [id]="'declarado-' + forma.codigo"
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            [formControlName]="forma.codigo"
+            class="h-11 w-full rounded-base border bg-transparent px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90"
+            [class]="controlDeCierre(forma.codigo).touched && controlDeCierre(forma.codigo).invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+          />
+          @if (controlDeCierre(forma.codigo).touched && controlDeCierre(forma.codigo).invalid) {
+          <app-error-campo [control]="controlDeCierre(forma.codigo)" mensaje="No puede ser negativo." />
+          }
+        </div>
+        }
+      </div>
+    </form>
+    }
+
+    <ng-container acciones>
+      @if (arqueo()) {
+      <app-boton (accion)="cerrarModalCierre()">Entendido</app-boton>
+      } @else {
+      <app-boton variante="secundario" [deshabilitado]="cerrar.estado() === 'cargando'" (accion)="cerrarModalCierre()">
+        Cancelar
+      </app-boton>
+      <app-boton tipo="submit" [estado]="cerrar.estado()" formulario="formulario-cierre">Cerrar caja</app-boton>
+      }
+    </ng-container>
+  </app-modal>
+
+  <app-confirmacion
+    [abierto]="confirmacionAbierta()"
+    [peligrosa]="true"
+    titulo="¿Desactivar la caja?"
+    [mensaje]="
+      nombreSeleccionada +
+      ' dejará de poder abrirse, pero no se borra: sus sesiones anteriores la siguen referenciando. Se puede volver a activar.'
+    "
+    textoConfirmar="Desactivar"
+    [procesando]="desactivar.estado() === 'cargando'"
+    (confirmar)="desactivar.ejecutar()"
+    (cancelar)="cancelarDesactivacion()"
+  />
+</div>

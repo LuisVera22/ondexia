@@ -1,0 +1,104 @@
+---
+/**
+ * Barra superior.
+ *
+ * El menú de móvil es un <details>, no un botón con JavaScript. La landing no
+ * carga ni un byte de script y no hay motivo para empezar por aquí: el
+ * navegador ya sabe abrir y cerrar un <details>, lo anuncia como plegable a los
+ * lectores de pantalla y funciona aunque el JS falle.
+ *
+ * El corte es en `md` (768 px) y no en `sm`, igual que la app: por debajo, los
+ * cuatro enlaces y el botón no caben junto al logotipo.
+ */
+import Logo from './Logo.astro';
+
+const enlaces = [
+  { texto: 'Qué hace', destino: '#funciones' },
+  { texto: 'Precios', destino: '#precios' },
+  { texto: 'Estado', destino: '#estado' },
+];
+---
+
+<header class="sticky top-0 z-40 border-b border-gray-200 bg-white/95 backdrop-blur">
+  <nav
+    class="mx-auto flex h-[72px] max-w-[1240px] items-center justify-between px-5 md:px-10"
+    aria-label="Principal"
+  >
+    {/* `min-h-11`: el logotipo mide 31 px de alto y es un enlace. Sin esto el
+         area pulsable se queda en la altura del dibujo, por debajo del minimo. */}
+    <a href="/" class="flex min-h-11 items-center" aria-label="Ondexia — inicio">
+      <Logo ancho={148} clase="hidden sm:block" />
+      <Logo ancho={126} clase="sm:hidden" />
+    </a>
+
+    {/* Escritorio */}
+    <div class="hidden items-center gap-7 md:flex">
+      {
+        enlaces.map((enlace) => (
+          <a
+            href={enlace.destino}
+            class="enlace-subrayado rounded-base py-1 text-[15px] font-medium text-gray-700"
+          >
+            {enlace.texto}
+          </a>
+        ))
+      }
+      <a href="#acceso" class="btn-primario h-11 px-5 text-[15px]">Solicitar acceso</a>
+    </div>
+
+    {/* Móvil */}
+    <details class="group md:hidden [&[open]_.abrir]:hidden [&:not([open])_.cerrar]:hidden">
+      <summary
+        class="flex size-11 list-none items-center justify-center rounded-base border border-gray-300 [&::-webkit-details-marker]:hidden"
+        aria-label="Abrir el menú"
+      >
+        <svg
+          class="abrir"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <path d="M4 7h16M4 12h16M4 17h16"></path>
+        </svg>
+        <svg
+          class="cerrar"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          aria-hidden="true"
+        >
+          <path d="M6 6l12 12M18 6L6 18"></path>
+        </svg>
+      </summary>
+
+      {/*
+        Fila completa por debajo de la barra, no un panel flotante: así cada
+        enlace conserva los 44 px de alto pulsable y el ancho entero.
+      */}
+      <div
+        class="absolute inset-x-0 top-[72px] flex flex-col gap-1 border-b border-gray-200 bg-white px-5 pb-5 pt-2"
+      >
+        {
+          enlaces.map((enlace) => (
+            <a
+              href={enlace.destino}
+              class="flex min-h-11 items-center rounded-base text-base font-medium text-gray-700"
+            >
+              {enlace.texto}
+            </a>
+          ))
+        }
+        <a href="#acceso" class="btn-primario mt-2 w-full">Solicitar acceso</a>
+      </div>
+    </details>
+  </nav>
+</header>

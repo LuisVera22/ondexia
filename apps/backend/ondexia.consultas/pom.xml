@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Consultas a fuentes publicas externas (DT-19).
+
+  Existe como desplegable propio porque la Lambda de la API esta en subred
+  privada sin NAT y no alcanza internet: darsela cuesta 32 USD/mes de NAT Gateway
+  o 7,30 de endpoint de interfaz (DTE §4.8). Esta va fuera de la VPC, donde salir
+  es gratis.
+
+  ══════════════════════════════════════════════════════════════════════════
+  MISMA ESTRUCTURA QUE ondexia.api, Y ES UNA DECISION.
+  ══════════════════════════════════════════════════════════════════════════
+
+  La primera version no llevaba Spring: un `main`, siete variables de entorno
+  leidas con System.getenv y un servidor HTTP de la JDK. El argumento era el
+  arranque en frio, y era cierto — pero con un solo desarrollador, tener dos
+  formas de montar un modulo cuesta mas que unos milisegundos. Cada vez que
+  hubiera que buscar donde se configura algo, la respuesta dependeria del modulo.
+
+  Lo que se gana ademas: desaparecen ~150 lineas de servidor HTTP, CORS y sobres
+  JSON escritos a mano. Todo eso ya lo trae el framework, y el mismo artefacto
+  arranca con `spring-boot:run` en local y como Lambda en AWS sin ninguna rama.
+
+  Lo que cuesta: SnapStart deja de ser opcional (DT-02), y por eso la funcion
+  publica versiones y sirve por alias igual que la API. Sin el, un Spring Boot en
+  Lambda arranca en 6-10 s, y esta consulta ocurre mientras una persona espera
+  con el cursor en un formulario de registro.
+
+  Ver ondexia.docs/11-registro-de-empresa.md
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.ondexia</groupId>
+    <artifactId>ondexia-parent</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>ondexia-consultas</artifactId>
+  <name>Ondexia — consultas externas</name>
+
+  <dependencies>
+    <!--
+      El dominio, por Ruc, DatosDeRuc y Atestacion. Es la segunda razon de que el
+      dominio sea un modulo aparte: aqui se firma el mismo objeto que la API
+      verifica, con el mismo formato, sin duplicar una linea. Duplicado, firmante
+      y verificador divergirian en un espacio y el sintoma seria «firma
+      invalida» sin nada que señale por que.
+    -->
+    <dependency>
+      <groupId>com.ondexia</groupId>
+      <artifactId>ondexia-domain</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <!-- Adaptador de Lambda (DT-D17), la misma version que ondexia.api. -->
+    <dependency>
+      <groupId>com.amazonaws.serverless</groupId>
+      <artifactId>aws-serverless-java-container-springboot4</artifactId>
+      <version>${serverless-container.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-lambda-java-core</artifactId>
+      <version>${lambda-core.version}</version>
+    </dependency>
+
+    <!--
+      Donde viven las claves: parametros SecureString de SSM.
+      Sin netty ni apache — en una Lambda que hace una llamada por arranque en
+      frio, un cliente asincrono con su pool de hilos es peso que se paga en el
+      arranque. Mismo criterio que ondexia.api.
+    -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>ssm</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>netty-nio-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>software.amazon.awssdk</groupId>
+          <artifactId>apache-client</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>url-connection-client</artifactId>
+    </dependency>
+
+    <!--
+      CRaC, para los ganchos de SnapStart. Aqui hace falta menos que en la API
+      —no hay pool de conexiones ni certificado de cliente— pero la dependencia
+      va igual: es lo que permite reaccionar al restore el dia que aparezca algo
+      que no sobreviva a la instantanea. Ver DTE §4.2.
+    -->
+    <dependency>
+      <groupId>org.crac</groupId>
+      <artifactId>crac</artifactId>
+      <version>${crac.version}</version>
+    </dependency>
+
+    <!--
+      @AutoConfigureMockMvc y MockMvc. No vienen en spring-boot-starter-test:
+      Boot 4 saco las piezas de web a su propio starter, igual que en
+      ondexia.api.
+    -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-webmvc-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <!--
+      Nombre fijo del artefacto, igual que en ondexia.api: la infraestructura lo
+      referencia por ruta (ondexia.infra/entornos/dev.tfvars). Con el nombre por
+      omision, cada cambio de version obligaria a editar las tfvars.
+    -->
+    <finalName>ondexia-consultas</finalName>
+
+    <plugins>
+      <!--
+        Se desactiva SOLO el reempaquetado, no el plugin entero.
+
+        Lambda necesita el jar que produce shade, asi que el jar ejecutable de
+        Spring Boot sobra — y con los dos, cual acaba subiendose depende del
+        orden. Pero `<skip>true</skip>` a nivel de plugin, que es lo que hace
+        ondexia.api, apaga tambien `spring-boot:run`: el comando termina con
+        BUILD SUCCESS en tres segundos sin arrancar nada, y eso desconcierta un
+        buen rato. Desactivando la ejecucion concreta, `run` sigue funcionando.
+      -->
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>repackage</id>
+            <phase>none</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <configuration>
+          <createDependencyReducedPom>false</createDependencyReducedPom>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <excludes>
+                  <!--
+                    El SERVIDOR de Tomcat fuera del artefacto: en Lambda el
+                    contenedor de servlets lo pone aws-serverless-java-container.
+                    Sigue en el classpath de compilacion y de `spring-boot:run`,
+                    que es como se arranca en local.
+
+                    Ojo con el comodin: `org.apache.tomcat.embed:*` se llevaria
+                    tambien tomcat-embed-el, que NO es parte del servidor y que
+                    Hibernate Validator necesita para interpolar mensajes.
+                  -->
+                  <exclude>org.apache.tomcat.embed:tomcat-embed-core</exclude>
+                  <exclude>org.apache.tomcat.embed:tomcat-embed-websocket</exclude>
+                </excludes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <!--
+                      Firmas de los jars originales. Al fusionar el contenido
+                      dejan de cuadrar y la JVM aborta con SecurityException
+                      («Invalid signature file digest») antes de ejecutar nada.
+                    -->
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                    <exclude>module-info.class</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+              <!--
+                NO se declaran <transformers>: los hereda el pluginManagement de
+                spring-boot-starter-parent, ya completos. Fusionan la lista de
+                autoconfiguraciones y los proveedores de servicios, y sin ellos
+                el contexto arranca a medias.
+              -->
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

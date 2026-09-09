@@ -1,0 +1,168 @@
+---
+/**
+ * Los planes.
+ *
+ * OJO: estos precios también están en el dato estructurado de Base.astro.
+ * Cambiar uno y no el otro hace que el buscador muestre una cifra distinta a la
+ * de la página, que es peor que no mostrar ninguna. Son dos sitios y están
+ * enlazados por este comentario a propósito — unirlos exigiría pasar datos
+ * entre componentes para ahorrar tres números.
+ *
+ * Las cifras salen del doc 04 §2.3, donde constan como HIPÓTESIS sin validar.
+ * Antes de que la página sea pública hay que pasar el método de §2.5.
+ *
+ * Los límites (1/2 empresas, 2/5 usuarios) sí están cerrados: viven en
+ * `plan.max_empresas` (V9) como 1 / 2 / NULL.
+ */
+const planes = [
+  {
+    nombre: 'Base',
+    resumen: 'Un RUC, un mostrador, todo el sistema.',
+    precio: 'S/ 89',
+    limites: '1 empresa · 2 usuarios',
+    incluye: 'Los tres módulos completos, notas de crédito y locales sin límite.',
+    accion: 'Empezar',
+    destacado: false,
+  },
+  {
+    nombre: 'Intermedio',
+    resumen: 'Dos empresas y mercadería que se mueve.',
+    precio: 'S/ 199',
+    limites: '2 empresas · 5 usuarios',
+    incluye:
+      'Todo lo del Base, más guías de remisión, roles propios y reportes completos.',
+    accion: 'Empezar',
+    destacado: true,
+  },
+  {
+    nombre: 'A demanda',
+    resumen: 'Varios RUC, integraciones y un interlocutor.',
+    precio: 'S/ 390',
+    sufijo: 'a más',
+    limites: 'Empresas y usuarios a medida',
+    incluye: 'Todo lo del Intermedio, más API para integradores y canal directo.',
+    accion: 'Conversemos',
+    destacado: false,
+  },
+];
+---
+
+<section id="precios" class="scroll-mt-20 bg-gray-50 py-16 md:py-[76px]">
+  <div class="mx-auto max-w-[1240px] px-5 md:px-10">
+    <div
+      class="mb-8 flex flex-col gap-5 md:mb-[34px] md:flex-row md:items-end md:justify-between md:gap-10"
+    >
+      <h2 class="revelar flex flex-col gap-3.5 font-normal">
+        <span class="rotulo text-brand-500">Precios del software de facturación electrónica</span>
+        <span class="titular text-[34px] text-gray-900 sm:text-[42px] lg:text-[50px]">
+          Precios cerrados, sin letra pequeña.
+        </span>
+      </h2>
+      <p class="revelar max-w-[330px] text-[15px] leading-6 text-gray-600 md:text-right" style="--retardo: 1">
+        Los locales no cuentan. Se sube de plan solo al emitir con más de un RUC o
+        entra más gente.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 items-stretch gap-4 md:grid-cols-3 lg:gap-[18px]">
+      {
+        planes.map((plan, indice) => (
+          <article
+            class={`tarjeta revelar relative flex flex-col gap-5 p-6 lg:p-[30px] ${plan.destacado ? 'bg-brand-500' : ''}`}
+            style={`--retardo: ${indice + 1}`}
+          >
+            {plan.destacado && (
+              <span class="absolute -top-3.5 right-6 rounded-full bg-brand-600 px-3.5 py-1 text-menudo font-medium uppercase tracking-[0.1em] text-white">
+                El más pedido
+              </span>
+            )}
+
+            <div class="flex flex-col gap-1.5">
+              <h3 class={`rotulo ${plan.destacado ? 'text-brand-200' : 'text-gray-500'}`}>
+                {plan.nombre}
+              </h3>
+              <p class={`text-dato ${plan.destacado ? 'text-brand-100' : 'text-gray-500'}`}>
+                {plan.resumen}
+              </p>
+            </div>
+
+            {/*
+              El sufijo va en su propio elemento con `gap`, no como texto
+              pegado detrás de la cifra. Escrito seguido, el espacio se colapsa
+              contra el interletraje negativo del cartel (-0.035em) y «a más»
+              salía «amás». `tracking-normal` le devuelve su espaciado: la
+              compresión del titular es para números grandes, no para palabras.
+            */}
+            <p
+              class={`flex items-baseline gap-2 ${plan.destacado ? 'text-white' : 'text-gray-900'}`}
+            >
+              <span class="titular text-[48px] tabular-nums lg:text-[60px]">
+                {plan.precio}
+              </span>
+              {plan.sufijo && (
+                <span
+                  class={`text-[19px] font-semibold tracking-normal ${plan.destacado ? 'text-brand-100' : 'text-gray-500'}`}
+                >
+                  {plan.sufijo}
+                </span>
+              )}
+              <span class="sr-only">al mes</span>
+            </p>
+
+            <div class="flex flex-col gap-2">
+              <p
+                class={`text-base font-semibold leading-6 ${plan.destacado ? 'text-white' : 'text-gray-900'}`}
+              >
+                {plan.limites}
+              </p>
+              <p
+                class={`text-dato leading-[22px] ${plan.destacado ? 'text-brand-100' : 'text-gray-600'}`}
+              >
+                {plan.incluye}
+              </p>
+            </div>
+
+            <a
+              href="#acceso"
+              class={`mt-auto w-full ${plan.destacado ? 'btn-claro' : 'btn-contorno'}`}
+            >
+              {plan.accion}
+              <span class="sr-only"> con el plan {plan.nombre}</span>
+            </a>
+          </article>
+        ))
+      }
+    </div>
+
+    <div class="mt-4 flex flex-col gap-4 lg:flex-row lg:items-stretch lg:gap-[18px]">
+      <div
+class="tarjeta revelar flex grow flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8"
+        style="--retardo: 4"
+      >
+        <p class="text-[15px] leading-6 text-gray-600">
+          ¿Te quedó corto? Se amplía sin cambiar de plan.
+        </p>
+        <div class="flex items-center gap-8">
+          <span class="text-base font-semibold tabular-nums text-gray-900">
+            + S/ 29 <span class="text-dato font-normal text-gray-500">usuario</span>
+          </span>
+          <span class="text-base font-semibold tabular-nums text-gray-900">
+            + S/ 69 <span class="text-dato font-normal text-gray-500">empresa</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="tarjeta revelar flex items-center gap-3.5 px-6 py-4" style="--retardo: 4">
+        <p class="titular shrink-0 text-[24px] text-brand-600 lg:text-[26px]">Anual</p>
+        <p class="text-dato leading-5 text-gray-600">
+          Dos meses sin coste<br />al pagar el año por adelantado
+        </p>
+      </div>
+    </div>
+
+    <p class="mt-4 text-[13px] leading-5 text-gray-500">
+      Precios en soles, sin IGV. No hay plan gratuito: la prueba de 30 días abre el
+      producto completo contra el entorno de pruebas de SUNAT.
+    </p>
+  </div>
+</section>

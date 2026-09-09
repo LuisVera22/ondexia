@@ -1,0 +1,182 @@
+<!--
+  Empresa y establecimiento son un solo dato —el contexto de trabajo—, así que
+  van en un solo control segmentado y no en dos cajas con un punto suelto entre
+  ellas. Con dos bordes independientes se leían como dos ajustes sin relación, y
+  el separador flotando entre los dos parecía un carácter perdido.
+
+  El borde aparece solo si hay algo que elegir: un recuadro alrededor de un
+  texto que no responde al clic promete una acción que no existe. En el plan de
+  una sola empresa y un solo establecimiento —el caso más frecuente— esto es
+  texto plano.
+-->
+<div
+  class="flex items-center text-dato"
+  [class]="
+    hayAlgoQueElegir
+      ? 'h-10 divide-x divide-gray-300 rounded-base border border-gray-300 dark:divide-gray-700 dark:border-gray-700'
+      : 'gap-2 text-gray-600 dark:text-gray-400'
+  "
+>
+  <!-- ── Empresa ──────────────────────────────────────────────────────── -->
+  <div class="relative flex h-full">
+    @if (empresaEsSeleccionable) {
+    <button
+      type="button"
+      (click)="alternar('empresa')"
+      [attr.aria-expanded]="desplegado === 'empresa'"
+      aria-haspopup="menu"
+      [title]="'Empresa: ' + (empresaActiva?.nombre || 'sin seleccionar')"
+      [class.rounded-r-base]="!establecimientos.length"
+      class="flex h-full max-w-[190px] items-center gap-2 rounded-l-base px-3 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.04]"
+    >
+      <!--
+        El icono, y no solo el nombre. «Demo» y «Principal» uno al lado del otro
+        no dicen cuál es la empresa y cuál el local; el dibujo lo resuelve sin
+        gastar el ancho que costaría escribirlo.
+      -->
+      <svg class="size-4 shrink-0 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M3.5 20.5h17M6 20.5V4.5a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v16M15 9.5h2.5a1 1 0 0 1 1 1v10M9 7.5h3M9 11.5h3M9 15.5h3" />
+      </svg>
+      <span class="sr-only">Empresa:</span>
+      <span class="truncate font-medium">{{ empresaActiva?.nombre || 'Seleccionar empresa' }}</span>
+      <svg
+        class="size-3.5 shrink-0 text-gray-400 transition-transform"
+        [class.rotate-180]="desplegado === 'empresa'"
+        width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
+      >
+        <path d="m5 7.5 5 5 5-5" />
+      </svg>
+    </button>
+
+    @if (desplegado === 'empresa') {
+    <div
+      role="menu"
+      aria-label="Empresa"
+      animate.enter="menu-entra"
+      class="absolute left-0 top-full z-50 mt-2 w-56 rounded-base sm:w-64 border border-gray-200 bg-white p-1.5 shadow-flotante dark:border-gray-700 dark:bg-gray-900"
+    >
+      <!--
+        El título dice de qué es la lista. Es el sitio donde cabe la palabra
+        completa, así que la barra puede quedarse solo con el nombre.
+      -->
+      <p class="px-2.5 pb-1.5 pt-1 text-menudo font-medium uppercase text-gray-400 dark:text-gray-500">
+        Empresa
+      </p>
+      @for (opcion of empresas; track opcion.id) {
+      <button
+        type="button"
+        role="menuitemradio"
+        [attr.aria-checked]="opcion.id === empresaActiva?.id"
+        (click)="elegirEmpresa(opcion)"
+        class="flex w-full items-center gap-2 rounded-base px-2.5 py-2 text-left transition hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+      >
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-gray-800 dark:text-white/90">{{ opcion.nombre }}</span>
+          @if (opcion.detalle) {
+          <span class="block truncate text-menudo text-gray-500 dark:text-gray-400">{{ opcion.detalle }}</span>
+          }
+        </span>
+        <!--
+          La marca de la opción vigente es un icono y no solo un fondo de color:
+          el fondo se confunde con el del puntero encima, y quien no distingue
+          ese matiz no tiene forma de saber dónde está trabajando.
+        -->
+        @if (opcion.id === empresaActiva?.id) {
+        <svg class="size-4 shrink-0 text-brand-500" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="m5 12.5 4.5 4.5L19 7" />
+        </svg>
+        }
+      </button>
+      }
+    </div>
+    } } @else {
+    <span
+      class="flex h-full max-w-[190px] items-center gap-2 font-medium"
+      [class.px-3]="hayAlgoQueElegir"
+      [title]="empresaActiva?.detalle || ''"
+    >
+      <span class="sr-only">Empresa:</span>
+      <span class="truncate">{{ empresaActiva?.nombre }}</span>
+    </span>
+    }
+  </div>
+
+  <!--
+    Sin establecimientos no se pinta ni el separador. Antes se pintaban siempre,
+    así que mientras el contexto no traía ninguno la barra mostraba un punto
+    suelto entre dos huecos: el único rastro visible de que faltaba un dato.
+
+    El punto solo aparece cuando no hay recuadro. Dentro del control segmentado
+    ya separa la línea divisoria, y las dos cosas juntas separan dos veces.
+  -->
+  @if (establecimientos.length) {
+  @if (!hayAlgoQueElegir) {
+  <span class="text-gray-300 dark:text-gray-600" aria-hidden="true">·</span>
+  }
+
+  <!-- ── Establecimiento ──────────────────────────────────────────────── -->
+  <div class="relative flex h-full">
+    @if (establecimientoEsSeleccionable) {
+    <button
+      type="button"
+      (click)="alternar('establecimiento')"
+      [attr.aria-expanded]="desplegado === 'establecimiento'"
+      aria-haspopup="menu"
+      [title]="'Establecimiento: ' + (establecimientoActivo?.nombre || 'sin seleccionar')"
+      class="flex h-full max-w-[180px] items-center gap-2 rounded-r-base px-3 text-gray-700 transition hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.04]"
+    >
+      <svg class="size-4 shrink-0 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M4 10.5V19a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8.5M2.5 9.5 4.5 4.5h15l2 5a3 3 0 0 1-5.5 1.5 3 3 0 0 1-5 0 3 3 0 0 1-5.5-1.5Z" />
+      </svg>
+      <span class="sr-only">Establecimiento:</span>
+      <span class="truncate">{{ establecimientoActivo?.nombre || 'Establecimiento' }}</span>
+      <svg
+        class="size-3.5 shrink-0 text-gray-400 transition-transform"
+        [class.rotate-180]="desplegado === 'establecimiento'"
+        width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
+      >
+        <path d="m5 7.5 5 5 5-5" />
+      </svg>
+    </button>
+
+    @if (desplegado === 'establecimiento') {
+    <div
+      role="menu"
+      aria-label="Establecimiento"
+      animate.enter="menu-entra"
+      class="absolute right-0 top-full z-50 mt-2 w-56 rounded-base sm:w-64 border border-gray-200 bg-white p-1.5 shadow-flotante dark:border-gray-700 dark:bg-gray-900"
+    >
+      <p class="px-2.5 pb-1.5 pt-1 text-menudo font-medium uppercase text-gray-400 dark:text-gray-500">
+        Establecimiento
+      </p>
+      @for (opcion of establecimientos; track opcion.id) {
+      <button
+        type="button"
+        role="menuitemradio"
+        [attr.aria-checked]="opcion.id === establecimientoActivo?.id"
+        (click)="elegirEstablecimiento(opcion)"
+        class="flex w-full items-center gap-2 rounded-base px-2.5 py-2 text-left transition hover:bg-gray-100 dark:hover:bg-white/[0.06]"
+      >
+        <span class="min-w-0 flex-1">
+          <span class="block truncate text-gray-800 dark:text-white/90">{{ opcion.nombre }}</span>
+          @if (opcion.detalle) {
+          <span class="block truncate text-menudo text-gray-500 dark:text-gray-400">{{ opcion.detalle }}</span>
+          }
+        </span>
+        @if (opcion.id === establecimientoActivo?.id) {
+        <svg class="size-4 shrink-0 text-brand-500" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="m5 12.5 4.5 4.5L19 7" />
+        </svg>
+        }
+      </button>
+      }
+    </div>
+    } } @else {
+    <span class="flex h-full max-w-[180px] items-center gap-2" [class.px-3]="hayAlgoQueElegir">
+      <span class="sr-only">Establecimiento:</span>
+      <span class="truncate">{{ establecimientoActivo?.nombre }}</span>
+    </span>
+    }
+  </div>
+  }
+</div>

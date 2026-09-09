@@ -1,0 +1,8 @@
+# La landing sí se indexa. Lo que no se indexa es el portal público de
+# comprobantes (ver.ondexia.com), y eso se resuelve con la cabecera
+# X-Robots-Tag en su propia distribución — doc 01 §5.1—, no desde aquí:
+# un robots.txt solo gobierna su propio host.
+User-agent: *
+Allow: /
+
+Sitemap: https://ondexia.com/sitemap.xml

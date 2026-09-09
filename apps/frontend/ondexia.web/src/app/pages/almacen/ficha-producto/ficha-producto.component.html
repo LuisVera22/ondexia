@@ -1,0 +1,322 @@
+<div>
+  <app-encabezado-pagina [titulo]="titulo" />
+
+  <div class="mb-5">
+    <a routerLink="/almacen/productos"
+      class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+        <path d="m15 6-6 6 6 6" />
+      </svg>
+      Volver a productos
+    </a>
+  </div>
+
+  @if (cargando()) {
+  <div class="rounded-base border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+    <p class="text-sm text-gray-500 dark:text-gray-400">Cargando el producto…</p>
+  </div>
+  } @else if (error()) {
+  <div class="flex items-start gap-3 rounded-base border border-error-500/30 bg-error-500/10 p-4" role="alert">
+    <p class="text-sm text-error-500">{{ error() }}</p>
+  </div>
+  } @else {
+
+  @if (producto() && !producto()!.activo) {
+  <div class="mb-5 flex items-center justify-between gap-4 rounded-base border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-white/[0.03]">
+    <p class="text-sm text-gray-600 dark:text-gray-400">
+      Este producto está inactivo: no se ofrece en ningún local. Los comprobantes que lo mencionan no cambian.
+    </p>
+    @if (puedeEditar()) {
+    <app-boton variante="secundario" (accion)="cambiarEstado(true)">Reactivar</app-boton>
+    }
+  </div>
+  }
+
+  <div class="rounded-base border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+    @if (!esNuevo()) {
+    <div class="border-b border-gray-200 px-5 dark:border-gray-800">
+      <nav class="-mb-px flex gap-6 overflow-x-auto">
+        @for (item of [
+          { clave: 'general', nombre: 'Datos generales' },
+          { clave: 'locales', nombre: 'Disponibilidad por local' },
+          { clave: 'existencias', nombre: 'Existencias' }
+        ]; track item.clave) {
+        <button type="button" (click)="pestana.set($any(item.clave))"
+          class="whitespace-nowrap border-b-2 py-4 text-sm font-medium transition"
+          [class]="pestana() === item.clave ? 'border-brand-500 text-brand-500' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'">
+          {{ item.nombre }}
+        </button>
+        }
+      </nav>
+    </div>
+    }
+
+    <div class="p-5 xl:p-6">
+      <!-- Datos generales -->
+      @if (pestana() === 'general') {
+      <form [formGroup]="formulario" (ngSubmit)="guardar.ejecutar()" novalidate class="space-y-5">
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div>
+            <label for="codigo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+              Código <span class="text-error-500">*</span>
+            </label>
+            <input id="codigo" type="text" formControlName="codigo" maxlength="30" placeholder="CEM-001"
+              class="h-11 w-full rounded-base border bg-transparent px-4 text-sm uppercase text-gray-800 placeholder:normal-case placeholder:text-gray-400 focus:outline-hidden focus:ring-3 disabled:bg-gray-50 disabled:text-gray-500 dark:text-white/90 dark:disabled:bg-white/[0.03]"
+              [class]="controles.codigo.touched && controles.codigo.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'" />
+            @if (controles.codigo.touched && controles.codigo.invalid) {
+            <app-error-campo [control]="controles.codigo" mensaje="Letras, números y guiones, hasta 30 caracteres." />
+            } @else {
+            <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+              {{ esNuevo() ? 'No se podrá cambiar después: identifica al producto en cada comprobante.' : 'No se cambia: ya está en los comprobantes emitidos.' }}
+            </p>
+            }
+          </div>
+
+          <div>
+            <label for="unidad" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+              Unidad de medida <span class="text-error-500">*</span>
+            </label>
+            <app-desplegable idCampo="unidad" formControlName="unidad" [opciones]="opcionesUnidad()" alto="formulario" />
+            <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Catálogo 03 de SUNAT. Es la que viaja en el comprobante.</p>
+          </div>
+
+          <div class="sm:col-span-2">
+            <label for="nombre" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+              Nombre <span class="text-error-500">*</span>
+            </label>
+            <input id="nombre" type="text" formControlName="nombre" maxlength="300"
+              class="h-11 w-full rounded-base border bg-transparent px-4 text-sm text-gray-800 focus:outline-hidden focus:ring-3 dark:text-white/90"
+              [class]="controles.nombre.touched && controles.nombre.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'" />
+            @if (controles.nombre.touched && controles.nombre.invalid) {
+            <app-error-campo [control]="controles.nombre" mensaje="El nombre es obligatorio." />
+            } @else {
+            <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Es la descripción que se imprime en cada línea del comprobante.</p>
+            }
+          </div>
+
+          <div class="sm:col-span-2">
+            <label for="descripcion" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Descripción</label>
+            <textarea id="descripcion" formControlName="descripcion" rows="2" maxlength="2000"
+              class="w-full rounded-base border border-gray-300 bg-transparent px-4 py-2.5 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90"></textarea>
+          </div>
+
+          <div>
+            <label for="afectacion" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+              Afectación al IGV <span class="text-error-500">*</span>
+            </label>
+            <app-desplegable idCampo="afectacion" formControlName="afectacion" [opciones]="opcionesAfectacion()" alto="formulario" />
+            <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Catálogo 07 de SUNAT. Decide si al venderlo se cobra IGV.</p>
+          </div>
+
+          <div>
+            <label for="precioLista" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+              Precio de lista <span class="text-error-500">*</span>
+            </label>
+            <input id="precioLista" type="number" inputmode="decimal" min="0" step="0.01" formControlName="precioLista"
+              class="h-11 w-full rounded-base border bg-transparent px-4 text-sm tabular-nums text-gray-800 focus:outline-hidden focus:ring-3 dark:text-white/90"
+              [class]="controles.precioLista.touched && controles.precioLista.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'" />
+            @if (controles.precioLista.touched && controles.precioLista.invalid) {
+            <app-error-campo [control]="controles.precioLista" mensaje="El precio no puede ser negativo." />
+            } @else {
+            <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Con IGV incluido. Cada local puede tener el suyo.</p>
+            }
+          </div>
+
+          <div class="sm:col-span-2">
+            <label class="flex items-start gap-3">
+              <input type="checkbox" formControlName="controlaStock" class="mt-1 size-4 rounded-base border-gray-300 text-brand-500 focus:ring-brand-500/20" />
+              <span>
+                <span class="block text-sm font-medium text-gray-700 dark:text-gray-400">Controla existencias</span>
+                <span class="block text-xs text-gray-500 dark:text-gray-400">Un servicio no tiene existencias y venderlo no descarga nada.</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        @if (esNuevo()) {
+        <div class="flex justify-end gap-3">
+          <app-boton variante="secundario" ruta="/almacen/productos">Cancelar</app-boton>
+          <app-boton tipo="submit" [estado]="guardar.estado()">Registrar producto</app-boton>
+        </div>
+        } @else if (puedeEditar()) {
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          @if (producto()?.activo) {
+          <app-boton variante="secundario" (accion)="cambiarEstado(false)">Desactivar producto</app-boton>
+          } @else {
+          <span></span>
+          }
+          <app-acciones-guardado
+            [hayCambios]="cambios.hayCambios()"
+            [estado]="guardar.estado()"
+            [procesando]="guardar.estado() === 'cargando'"
+            (descartar)="cambios.descartarConConfirmacion()"
+          />
+        </div>
+        }
+      </form>
+      }
+
+      <!-- Disponibilidad por local -->
+      @if (pestana() === 'locales') {
+      <p class="mb-4 text-sm text-gray-600 dark:text-gray-400">
+        El catálogo es de la empresa; en qué local se vende y a qué precio es de cada local. Sin precio propio rige el de lista.
+      </p>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 text-left text-xs uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
+              <th class="py-2 pr-3 font-medium">Establecimiento</th>
+              <th class="py-2 pr-3 font-medium">Se vende</th>
+              <th class="py-2 pr-3 text-right font-medium">Precio del local</th>
+              <th class="py-2 text-right font-medium"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (local of locales(); track local.sucursalId) {
+            <tr class="border-b border-gray-100 dark:border-gray-800/60">
+              <td class="py-3 pr-3 text-gray-800 dark:text-white/90">{{ local.codigo }} · {{ local.nombre }}</td>
+              <td class="py-3 pr-3">
+                <span class="rounded-full px-2.5 py-0.5 text-xs font-medium"
+                  [class]="local.disponible ? 'bg-success-500/10 text-success-700 dark:text-success-400' : 'bg-gray-100 text-gray-600 dark:bg-white/[0.06] dark:text-gray-400'">
+                  {{ local.disponible ? 'Sí' : 'No' }}
+                </span>
+              </td>
+              <td class="py-3 pr-3 text-right tabular-nums text-gray-700 dark:text-gray-300">
+                {{ local.precio === null ? 'El de lista' : importe(local.precio) }}
+              </td>
+              <td class="py-3 text-right">
+                @if (puedeEditar()) {
+                <button type="button" (click)="editarLocal(local)" class="text-sm font-medium text-brand-500 hover:text-brand-600">Cambiar</button>
+                }
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      }
+
+      <!-- Existencias -->
+      @if (pestana() === 'existencias') {
+      @if (!producto()?.controlaStock) {
+      <p class="text-sm text-gray-600 dark:text-gray-400">Este producto no controla existencias: es un servicio o un bien que no se cuenta.</p>
+      } @else {
+      <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <p class="text-sm text-gray-600 dark:text-gray-400">
+          Total en todos los almacenes: <span class="font-medium tabular-nums text-gray-800 dark:text-white/90">{{ cantidad(stockTotal()) }} {{ producto()?.unidadNombre }}</span>
+        </p>
+        @if (puedeAjustar() && opcionesAlmacen().length > 0) {
+        <app-boton variante="secundario" (accion)="abrirAjuste()">Ajustar por conteo</app-boton>
+        }
+      </div>
+
+      @if (existencias().length === 0) {
+      <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">Sin existencias registradas todavía. El primer conteo las crea.</p>
+      } @else {
+      <div class="mb-6 overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 text-left text-xs uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
+              <th class="py-2 pr-3 font-medium">Almacén</th>
+              <th class="py-2 text-right font-medium">Cantidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of existencias(); track e.almacenId) {
+            <tr class="border-b border-gray-100 dark:border-gray-800/60">
+              <td class="py-2.5 pr-3 text-gray-800 dark:text-white/90">{{ nombreDeAlmacen(e.almacenId) }}</td>
+              <td class="py-2.5 text-right tabular-nums text-gray-700 dark:text-gray-300">{{ cantidad(e.cantidad) }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      }
+
+      <h3 class="mb-2 font-medium text-gray-800 dark:text-white/90">Movimientos</h3>
+      @if (movimientos().length === 0) {
+      <p class="text-sm text-gray-500 dark:text-gray-400">Ninguno todavía.</p>
+      } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-gray-200 text-left text-xs uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
+              <th class="py-2 pr-3 font-medium">Fecha</th>
+              <th class="py-2 pr-3 font-medium">Tipo</th>
+              <th class="py-2 pr-3 font-medium">Almacén</th>
+              <th class="py-2 pr-3 font-medium">Motivo</th>
+              <th class="py-2 text-right font-medium">Cantidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of movimientos(); track m.id) {
+            <tr class="border-b border-gray-100 dark:border-gray-800/60">
+              <td class="py-2.5 pr-3 whitespace-nowrap text-gray-700 dark:text-gray-300">{{ fecha(m.creadoEn) }}</td>
+              <td class="py-2.5 pr-3 text-gray-800 dark:text-white/90">{{ tipoDeMovimiento(m.tipo) }}</td>
+              <td class="py-2.5 pr-3 text-gray-700 dark:text-gray-300">{{ nombreDeAlmacen(m.almacenId) }}</td>
+              <td class="py-2.5 pr-3 text-gray-500 dark:text-gray-400">{{ m.motivo || '—' }}</td>
+              <td class="py-2.5 text-right tabular-nums font-medium" [class]="m.cantidad < 0 ? 'text-error-500' : 'text-success-700 dark:text-success-400'">
+                {{ m.cantidad > 0 ? '+' : '' }}{{ cantidad(m.cantidad) }}
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      }
+      }
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Disponibilidad en un local -->
+  <app-modal [abierto]="modalLocal()" titulo="Disponibilidad en el local" [subtitulo]="(localEnEdicion()?.codigo ?? '') + ' · ' + (localEnEdicion()?.nombre ?? '')" ancho="estrecho"
+    [procesando]="guardarLocal.estado() === 'cargando'" (cerrar)="modalLocal.set(false)">
+    <form [formGroup]="formularioLocal" (ngSubmit)="guardarLocal.ejecutar()" novalidate id="formulario-local" class="space-y-5">
+      <label class="flex items-start gap-3">
+        <input type="checkbox" formControlName="disponible" class="mt-1 size-4 rounded-base border-gray-300 text-brand-500 focus:ring-brand-500/20" />
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-400">Se vende en este establecimiento</span>
+      </label>
+      <div>
+        <label for="precioLocal" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Precio propio</label>
+        <input id="precioLocal" type="number" inputmode="decimal" min="0" step="0.01" formControlName="precio" placeholder="El de lista"
+          class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm tabular-nums text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+        <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Vacío: rige el precio de lista del catálogo.</p>
+      </div>
+    </form>
+    <ng-container acciones>
+      <app-boton variante="secundario" [deshabilitado]="guardarLocal.estado() === 'cargando'" (accion)="modalLocal.set(false)">Cancelar</app-boton>
+      <app-boton tipo="submit" [estado]="guardarLocal.estado()" formulario="formulario-local">Guardar</app-boton>
+    </ng-container>
+  </app-modal>
+
+  <!-- Ajuste por conteo -->
+  <app-modal [abierto]="modalAjuste()" titulo="Ajustar por conteo" subtitulo="Lo contado manda: la diferencia con lo que había queda anotada como movimiento." ancho="estrecho"
+    [procesando]="ajustar.estado() === 'cargando'" (cerrar)="modalAjuste.set(false)">
+    <form [formGroup]="formularioAjuste" (ngSubmit)="ajustar.ejecutar()" novalidate id="formulario-ajuste" class="space-y-5">
+      <div>
+        <label for="almacenId" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Almacén <span class="text-error-500">*</span></label>
+        <app-desplegable idCampo="almacenId" formControlName="almacenId" [opciones]="opcionesAlmacen()" alto="formulario" />
+      </div>
+      <div>
+        <label for="cantidadContada" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Cantidad contada <span class="text-error-500">*</span></label>
+        <input id="cantidadContada" type="number" inputmode="decimal" min="0" step="any" formControlName="cantidad"
+          class="h-11 w-full rounded-base border bg-transparent px-4 text-sm tabular-nums text-gray-800 focus:outline-hidden focus:ring-3 dark:text-white/90"
+          [class]="formularioAjuste.controls.cantidad.touched && formularioAjuste.controls.cantidad.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'" />
+        @if (formularioAjuste.controls.cantidad.touched && formularioAjuste.controls.cantidad.invalid) {
+        <app-error-campo [control]="formularioAjuste.controls.cantidad" mensaje="Lo contado no puede ser negativo." />
+        }
+      </div>
+      <div>
+        <label for="motivo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Motivo</label>
+        <input id="motivo" type="text" formControlName="motivo" maxlength="500" placeholder="Inventario inicial, merma, rotura…"
+          class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+      </div>
+    </form>
+    <ng-container acciones>
+      <app-boton variante="secundario" [deshabilitado]="ajustar.estado() === 'cargando'" (accion)="modalAjuste.set(false)">Cancelar</app-boton>
+      <app-boton tipo="submit" [estado]="ajustar.estado()" formulario="formulario-ajuste">Registrar conteo</app-boton>
+    </ng-container>
+  </app-modal>
+</div>

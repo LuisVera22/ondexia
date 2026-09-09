@@ -1,0 +1,35 @@
+<div>
+  <app-encabezado-pagina
+    titulo="Marcas"
+    descripcion="Catálogo interno para organizar el inventario. No se envía a SUNAT en el
+    comprobante."
+  />
+
+  <div class="mb-5 flex justify-end">
+    <app-boton icono="mas" class="shrink-0">Agregar marca</app-boton>
+  </div>
+
+  <app-tabla-datos
+    nombrePlural="marcas"
+    nombreSingular="marca"
+    [acciones]="accionesDeFila"
+    campoDescripcion="nombre"
+    (accionElegida)="ejecutarAccion($event)"
+    [columnas]="columnas"
+    [registros]="registros"
+    [totalRegistros]="registros.length"
+    vacioTitulo="Aún no hay marcas"
+    vacioDescripcion="Las marcas ayudan a filtrar y agrupar productos en los listados."
+    vacioAccion="Agregar marca"
+   />
+
+  <app-confirmacion
+    [abierto]="confirmacionAbierta"
+    [peligrosa]="true"
+    titulo="¿Eliminar la marca?"
+    mensaje="Los productos asociados quedarán sin marca. No se pierde ningún producto."
+    textoConfirmar="Confirmar"
+    (confirmar)="eliminar()"
+    (cancelar)="confirmacionAbierta = false"
+  />
+</div>

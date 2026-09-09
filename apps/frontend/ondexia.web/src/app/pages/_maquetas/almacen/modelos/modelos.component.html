@@ -1,0 +1,35 @@
+<div>
+  <app-encabezado-pagina
+    titulo="Modelos"
+    descripcion="Cada modelo pertenece a una marca. Es un catálogo interno que no se envía a
+    SUNAT."
+  />
+
+  <div class="mb-5 flex justify-end">
+    <app-boton icono="mas" class="shrink-0">Agregar modelo</app-boton>
+  </div>
+
+  <app-tabla-datos
+    nombrePlural="modelos"
+    nombreSingular="modelo"
+    [acciones]="accionesDeFila"
+    campoDescripcion="nombre"
+    (accionElegida)="ejecutarAccion($event)"
+    [columnas]="columnas"
+    [registros]="registros"
+    [totalRegistros]="registros.length"
+    vacioTitulo="Aún no hay modelos"
+    vacioDescripcion="Registre primero las marcas y luego los modelos que pertenecen a cada una."
+    vacioAccion="Agregar modelo"
+   />
+
+  <app-confirmacion
+    [abierto]="confirmacionAbierta"
+    [peligrosa]="true"
+    titulo="¿Eliminar el modelo?"
+    mensaje="Los productos asociados quedarán sin modelo. No se pierde ningún producto."
+    textoConfirmar="Confirmar"
+    (confirmar)="eliminar()"
+    (cancelar)="confirmacionAbierta = false"
+  />
+</div>

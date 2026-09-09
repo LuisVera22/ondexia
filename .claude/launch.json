@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ondexia-web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "apps/frontend/ondexia.web", "start"],
+      "port": 4200,
+      "autoPort": true
+    },
+    {
+      "name": "ondexia-landing",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "apps/frontend/ondexia.landing", "dev", "--port", "4321"],
+      "port": 4321
+    }
+  ]
+}

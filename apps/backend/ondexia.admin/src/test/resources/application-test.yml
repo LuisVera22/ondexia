@@ -1,0 +1,30 @@
+spring:
+  flyway:
+    # El esquema real, tomado de ondexia.api que es su dueno. Sin los datos de
+    # ejemplo de db/local: cada prueba siembra lo suyo y asi se ve en la prueba
+    # que se esta contando.
+    enabled: true
+    locations: classpath:db/migration
+
+# Emisor y cliente de mentira, y SOLO en pruebas.
+#
+# Estos valores no se consultan por red: el decodificador del panel lee el token
+# sin salir a ningun sitio. Las pruebas de integracion ni siquiera pasan por el
+# —ponen la autenticacion con el postprocesador jwt()— y se declaran aqui para
+# que el contexto arranque, porque en produccion son obligatorios a proposito.
+# Quien si ejercita el decodificador de verdad son TokenDeLaPasarelaTest y
+# FirmaDelTokenIT.
+ondexia:
+  panel:
+    emisor: https://cognito-idp.us-east-1.amazonaws.com/us-east-1_solodepruebas
+    cliente: cliente-de-pruebas
+
+    # Una clave PUBLICA de mentira, para que el decodificador se pueda
+    # construir (hallazgo A2: sin JWKS no arranca, a proposito). Su privada se
+    # genero y se tiro: no firma nada en ninguna parte, y por eso ningun token
+    # de estas pruebas la usa — la autenticacion se pone con el postprocesador
+    # jwt(), que no pasa por aqui.
+    #
+    # Quien SI ejercita la verificacion de firma es FirmaDelTokenIT, que genera
+    # su propio par en cada ejecucion.
+    jwks: '{"keys":[{"kty":"RSA","alg":"RS256","use":"sig","kid":"clave-de-pruebas","n":"lyelEEt9EUlqTWqaQuc6e9vI7ntS7cglu0HVyHpO03JtbJrLOc2F6voUVy4fbVZFosRVG253eDVMedMvlEvE-3DYFu-ooUZo5tLHsbfpVbdAN-BAQKwmleOhUvo22QIKpD2CVz9Cg1rhgtD_v__qccFWZCcS3reIgvCq0D65UDvO-olE25D6V9X_QC0HF2_QJ7kc6K3gV2wpfAUszm6bb9yKZnPvftdGoM40ifrMvQi-SduvxKII-mr04Us4KxhLzFlO6zQZ_ASmNTsBvl-cbBhT3FUBaB6FQi0qBTr9BKNnSq4GJYTJDrBrlD-H9VJ97AQV5WbVto-qkRmtycyL8Q","e":"AQAB"}]}'

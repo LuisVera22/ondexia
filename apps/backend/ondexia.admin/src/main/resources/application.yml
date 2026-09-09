@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: ondexia-admin
+
+# Sin configuracion de emisor aqui, y es deliberado.
+#
+# Estuvo un jwk-set-uri de marcador de posicion y costo un despliegue: cuando
+# estan declarados los dos, Spring da prioridad a jwk-set-uri sobre issuer-uri,
+# asi que el perfil `aws` ponia el emisor real y el marcador seguia ganando. En
+# la nube el panel intentaba validar los tokens contra localhost y respondia 502:
+#
+#   AuthenticationServiceException: An error occurred while attempting to decode
+#   the Jwt: I/O error on GET request for
+#   "http://localhost:1/sin-emisor-configurado": Connection refused
+#
+# El emisor real vive solo en application-aws.yml, y las pruebas declaran el suyo
+# en application-test.yml. Fuera de esos dos perfiles la aplicacion no arranca, y
+# eso es correcto: una consola sin emisor configurado no deberia levantarse.
+
+server:
+  port: 8081
+
+# Solo salud. Un actuator abierto en una consola que ve todas las cuentas seria
+# regalar el mapa.
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health

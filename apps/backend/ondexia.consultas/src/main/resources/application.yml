@@ -1,0 +1,86 @@
+spring:
+  application:
+    name: ondexia-consultas
+
+  # Sin `autoconfigure.exclude` de las autoconfiguraciones de datos, al contrario
+  # que ondexia.api: este desplegable no toca la base de datos y tampoco tiene el
+  # starter en el classpath —el dominio es Java a secas—, asi que no hay ninguna
+  # autoconfiguracion de JDBC que apagar. Excluir una clase que no existe no falla,
+  # pero deja escrito que aqui hay una base de datos de la que protegerse.
+
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: ${CONSULTAS_PUERTO:8081}
+
+  # Detras de API Gateway. Sin esto, una respuesta de error generada por el
+  # contenedor delataria la version de Tomcat.
+  error:
+    whitelabel:
+      enabled: false
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+# Sin actuator, y por eso no hay bloque `management`. Un desplegable que sirve una
+# sola ruta no tiene estado que vigilar, y anadirlo traeria justo los puntos que
+# habria que apagar: 'configprops' expone los NOMBRES de los parametros de SSM y
+# 'heapdump' entrega la memoria del proceso, con la clave privada de firma dentro.
+
+ondexia:
+  consultas:
+    # ── Firma de las atestaciones ─────────────────────────────────────────────
+    #
+    # La privada. La API solo tiene la publica, que no es un secreto: por eso la
+    # firma es Ed25519 y no un HMAC — la API no puede leer SSM desde su subred
+    # privada sin pagar un endpoint de interfaz, y con un secreto compartido
+    # acabaria en el estado de Terraform.
+    #
+    # Desplegado: firma-parametro con el NOMBRE del parametro SecureString.
+    # En local: firma-privada con el valor. El par se genera una vez:
+    #
+    #   openssl genpkey -algorithm ed25519 -out firma.pem
+    #   openssl pkey -in firma.pem -pubout -out firma.pub
+    firma-parametro: ${CONSULTAS_FIRMA_PARAMETRO:}
+    firma-privada: ${CONSULTAS_FIRMA_PRIVADA:}
+
+    # ── Proveedores ───────────────────────────────────────────────────────────
+    #
+    # Sin valor por omision para las claves, a proposito: un defecto de relleno
+    # haria que se llamara al proveedor con un Bearer invalido y el error seria un
+    # 401 en vez de «no esta configurado».
+    #
+    # Con Decolecta basta. Si apiperu.dev no esta configurado, la cascada queda
+    # con un eslabon y se dice en el log al arrancar.
+    decolecta-url: ${CONSULTAS_DECOLECTA_URL:https://api.decolecta.com/v1}
+    decolecta-parametro: ${CONSULTAS_DECOLECTA_PARAMETRO:}
+    decolecta-token: ${CONSULTAS_DECOLECTA_TOKEN:}
+
+    apiperu-url: ${CONSULTAS_APIPERU_URL:https://api.apiperu.dev}
+    apiperu-parametro: ${CONSULTAS_APIPERU_PARAMETRO:}
+    apiperu-token: ${CONSULTAS_APIPERU_TOKEN:}
+
+    # Por proveedor, no total. API Gateway corta a los 29 s.
+    tiempo-de-espera: ${CONSULTAS_TIEMPO_ESPERA:6s}
+
+  # Origenes autorizados a llamar desde un navegador.
+  #
+  # En local hace falta porque el SPA vive en el 4200 y esto en el 8081: dos
+  # origenes.
+  #
+  # Y DESPLEGADO TAMBIEN, aunque la ruta cuelgue de la misma pasarela que la API.
+  # Lo que la pasarela resuelve es el preflight; el GET que viene despues lo
+  # atiende esta aplicacion, y Spring comprueba la cabecera Origin en cada
+  # peticion. Con el valor por omision no reconoce el origen del SPA y responde
+  # 403 «Invalid CORS request» antes de llegar al controlador — sin escribir nada
+  # en el registro, porque para Spring no es un error sino una peticion rechazada.
+  # Terraform lo pone desde local.origen_app (ondexia.infra/consultas.tf).
+  cors:
+    origenes: ${CORS_ORIGENES:http://localhost:4200}
+
+logging:
+  level:
+    com.ondexia: INFO

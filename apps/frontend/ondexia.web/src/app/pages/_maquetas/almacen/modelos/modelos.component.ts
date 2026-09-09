@@ -1,0 +1,69 @@
+import { Component } from '@angular/core';
+import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
+import { TablaDatosComponent, AccionDeFila,
+  ColumnaTabla } from '../../../shared/components/comunes/tabla-datos/tabla-datos.component';
+import { ConfirmacionComponent } from '../../../shared/components/comunes/confirmacion/confirmacion.component';
+import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
+
+/**
+ * Modelos, subordinados a una marca.
+ *
+ * Catalogo interno, como las marcas: no viaja al comprobante.
+ */
+@Component({
+  selector: 'app-modelos',
+  imports: [
+    EncabezadoPaginaComponent,
+    TablaDatosComponent,
+    ConfirmacionComponent,
+    BotonComponent,
+  ],
+  templateUrl: './modelos.component.html',
+})
+export class ModelosComponent {
+  readonly accionesDeFila: AccionDeFila[] = [
+    { id: 'editar', etiqueta: 'Editar', icono: 'editar' },
+    { id: 'eliminar', etiqueta: 'Eliminar', icono: 'eliminar', peligrosa: true },
+  ];
+
+  columnas: ColumnaTabla[] = [
+    { campo: 'nombre', titulo: 'Modelo', ordenable: true, principal: true },
+    { campo: 'marca', titulo: 'Marca', ordenable: true },
+    { campo: 'productos', titulo: 'Productos', formato: 'cantidad', ancho: 'w-28' },
+    {
+      campo: 'estado',
+      titulo: 'Estado',
+      ancho: 'w-32',
+      formato: 'insignia',
+      tono: (registro) => (registro['estado'] === 'Activo' ? 'exito' : 'neutro'),
+    },
+  ];
+
+  registros = [
+    { id: 1, nombre: 'Portland Tipo I', marca: 'Pacasmayo', productos: 8, estado: 'Activo' },
+    { id: 2, nombre: 'Portland Tipo V', marca: 'Pacasmayo', productos: 5, estado: 'Activo' },
+    { id: 3, nombre: 'Corrugado ASTM A615', marca: 'Aceros Arequipa', productos: 24, estado: 'Activo' },
+    { id: 4, nombre: 'Alambre negro', marca: 'Aceros Arequipa', productos: 6, estado: 'Activo' },
+  ];
+
+  confirmacionAbierta = false;
+  aEliminar: Record<string, unknown> | null = null;
+
+  pedirEliminacion(registro: Record<string, unknown>): void {
+    this.aEliminar = registro;
+    this.confirmacionAbierta = true;
+  }
+
+  eliminar(): void {
+    this.registros = this.registros.filter((r) => r.id !== this.aEliminar?.['id']);
+    this.confirmacionAbierta = false;
+    this.aEliminar = null;
+  }
+
+  ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {
+    if (evento.accion === 'eliminar') {
+      this.pedirEliminacion(evento.registro);
+    }
+    // «Editar» todavia no hace nada: esta pantalla trabaja con datos de ejemplo.
+  }
+}

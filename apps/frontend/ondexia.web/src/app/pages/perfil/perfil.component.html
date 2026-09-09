@@ -1,0 +1,218 @@
+<div>
+  <app-encabezado-pagina titulo="Mi perfil" />
+
+  @if (error()) {
+  <div
+    class="mb-5 rounded-base border border-error-500/30 bg-error-500/10 px-4 py-3 text-sm text-error-500"
+    role="alert"
+  >
+    {{ error() }}
+  </div>
+  }
+
+  @if (cargando()) {
+  <div class="rounded-base border border-gray-200 bg-white p-8 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+    <p class="text-sm text-gray-500 dark:text-gray-400">Cargando los datos…</p>
+  </div>
+  } @else {
+  <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
+    <!-- Identidad y permisos. Todo de aquí es de solo lectura: lo define el
+         administrador de la cuenta, y editarlo sería darse permisos a uno mismo. -->
+    <div class="lg:col-span-1">
+      <div class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <div class="mb-5 flex items-center gap-4">
+          <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-500 text-lg font-semibold text-white">
+            {{ iniciales() }}
+          </span>
+          <div class="min-w-0">
+            <p class="truncate font-medium text-gray-800 dark:text-white/90">{{ nombreGuardado() }}</p>
+            <p class="truncate text-sm text-gray-500 dark:text-gray-400">{{ correo() }}</p>
+          </div>
+        </div>
+
+        <dl class="space-y-4 border-t border-gray-200 pt-5 text-sm dark:border-gray-800">
+          @if (rolActivo()) {
+          <div>
+            <dt class="text-gray-500 dark:text-gray-400">Rol en la empresa activa</dt>
+            <dd class="mt-0.5 text-gray-800 dark:text-white/90">{{ rolActivo() }}</dd>
+          </div>
+          }
+
+          @if (administraLaCuenta()) {
+          <!-- Administrar la cuenta no es un rol de la matriz de permisos: gobierna
+               la suscripción y el alta de empresas. Se dice aparte a propósito. -->
+          <div>
+            <dt class="text-gray-500 dark:text-gray-400">Cuenta</dt>
+            <dd class="mt-0.5 text-gray-800 dark:text-white/90">
+              Administras la suscripción y el alta de empresas.
+            </dd>
+          </div>
+          }
+
+          <div>
+            <dt class="text-gray-500 dark:text-gray-400">Empresas asignadas</dt>
+            <dd class="mt-1 space-y-2">
+              @for (empresa of empresas(); track empresa.id) {
+              <span class="block">
+                <span class="block text-gray-800 dark:text-white/90">{{ empresa.nombre }}</span>
+                <span class="block text-xs text-gray-500 dark:text-gray-400">
+                  {{ empresa.rol }}@if (empresa.establecimiento) { · {{ empresa.establecimiento }} }
+                </span>
+              </span>
+              } @empty {
+              <span class="block text-gray-500 dark:text-gray-400">Ninguna todavía.</span>
+              }
+            </dd>
+          </div>
+        </dl>
+
+        <p class="mt-5 border-t border-gray-200 pt-4 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">
+          El rol y las empresas asignadas los define el administrador de la
+          cuenta. Si necesitas acceso a otra empresa, solicítalo.
+        </p>
+      </div>
+    </div>
+
+    <div class="space-y-5 lg:col-span-2">
+      <!-- Datos personales -->
+      <div class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <h2 class="mb-5 text-lg font-semibold text-gray-800 dark:text-white/90">Datos personales</h2>
+
+        @if (faltaPartirElNombre()) {
+        <!--
+          Solo para las cuentas creadas antes de que el apellido existiera. Su
+          nombre completo está entero en el primer campo y hay que repartirlo a
+          mano: hacerlo por código partiendo por el espacio daría «María» y «del
+          Carmen Rojas», que es peor que pedirlo.
+        -->
+        <div
+          class="mb-5 rounded-base border border-warning-500/30 bg-warning-500/10 px-4 py-3 text-sm text-warning-600 dark:text-warning-400"
+          role="status"
+        >
+          Esta cuenta se creó antes de que el nombre y los apellidos fueran dos
+          campos, así que están juntos en el primero. Conviene repartirlos y
+          guardar.
+        </div>
+        }
+
+        <form [formGroup]="formulario" (ngSubmit)="guardar()" novalidate class="space-y-5">
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div>
+              <label for="nombre" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Nombres <span class="text-error-500">*</span>
+              </label>
+              <input
+                id="nombre"
+                type="text"
+                formControlName="nombre"
+                autocomplete="name"
+                maxlength="150"
+                class="h-11 w-full rounded-base border bg-transparent px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90 dark:placeholder:text-white/30"
+                [class]="controles.nombre.touched && controles.nombre.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+              />
+              @if (controles.nombre.touched && controles.nombre.invalid) {
+              <app-error-campo [control]="controles.nombre" mensaje="El nombre es obligatorio." />
+              } @else {
+              <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                Como apareces en el sistema y en la bitácora.
+              </p>
+              }
+            </div>
+
+            <div>
+              <label for="apellido" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Apellidos <span class="text-error-500">*</span>
+              </label>
+              <input
+                id="apellido"
+                type="text"
+                formControlName="apellido"
+                autocomplete="family-name"
+                maxlength="150"
+                class="h-11 w-full rounded-base border bg-transparent px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90 dark:placeholder:text-white/30"
+                [class]="controles.apellido.touched && controles.apellido.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+              />
+              @if (controles.apellido.touched && controles.apellido.invalid) {
+              <app-error-campo [control]="controles.apellido" mensaje="El apellido es obligatorio." />
+              }
+            </div>
+
+            <div>
+              <label for="telefono" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Teléfono
+              </label>
+              <input
+                id="telefono"
+                type="tel"
+                formControlName="telefono"
+                autocomplete="tel"
+                maxlength="30"
+                placeholder="987 654 321"
+                class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90 dark:placeholder:text-white/30"
+              />
+              <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+                Opcional, para que podamos localizarte. No sirve para entrar.
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <label for="correo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+              Correo electrónico
+            </label>
+            <!-- Deshabilitado y fuera del formulario: es la credencial de Cognito.
+                 Cambiarlo aquí dejaría la fila apuntando a un buzón con el que ya
+                 no se puede iniciar sesión. -->
+            <input
+              id="correo"
+              type="email"
+              [value]="correo()"
+              disabled
+              class="h-11 w-full rounded-base border border-gray-300 bg-gray-50 px-4 text-sm text-gray-500 dark:border-gray-700 dark:bg-white/[0.02] dark:text-gray-400"
+            />
+            <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+              Es la credencial de acceso, así que no se cambia desde aquí.
+            </p>
+          </div>
+
+          <div class="flex items-center justify-end gap-4">
+            @if (guardado()) {
+            <p class="text-sm text-success-500" role="status">Cambios guardados.</p>
+            }
+            <button
+              type="submit"
+              [disabled]="guardando()"
+              class="flex h-11 items-center justify-center rounded-base bg-brand-500 px-5 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
+            >
+              {{ guardando() ? 'Guardando…' : 'Guardar cambios' }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Contraseña -->
+      <div class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <h2 class="mb-2 text-lg font-semibold text-gray-800 dark:text-white/90">Contraseña</h2>
+        <!--
+          Aquí había tres campos que no enviaban nada. No se sustituyen por tres
+          que sí envíen: la contraseña no pasa por nuestro servidor ni debe. Quien
+          sabe si el correo existe, manda el código y valida la nueva es Cognito.
+        -->
+        <p class="mb-5 max-w-prose text-sm text-gray-500 dark:text-gray-400">
+          La contraseña la guarda y la comprueba el proveedor de acceso, no
+          Ondexia: aquí no se ve ni se puede cambiar. Al pulsar el botón te
+          llevamos a su pantalla, que te enviará un código a
+          <span class="font-medium text-gray-700 dark:text-gray-300">{{ correo() }}</span>.
+        </p>
+        <button
+          type="button"
+          (click)="cambiarContrasena()"
+          class="flex h-11 items-center justify-center rounded-base border border-gray-300 px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]"
+        >
+          Cambiar mi contraseña
+        </button>
+      </div>
+    </div>
+  </div>
+  }
+</div>

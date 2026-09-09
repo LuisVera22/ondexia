@@ -1,0 +1,147 @@
+<app-marco-acceso>
+  @if (comprobando()) {
+  <!--
+    Mientras se comprueba si a esta persona la invitaron. Dura una llamada, pero
+    sin este bloque se vería el formulario de empresa nueva y desaparecería —
+    justo lo que no debe ver quien viene invitado.
+  -->
+  <div class="flex w-full max-w-md flex-col items-center gap-4 text-center">
+    <svg class="h-6 w-6 animate-spin text-brand-500" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25" />
+      <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+    </svg>
+    <p class="text-sm text-gray-500 dark:text-gray-400">Comprobando el acceso…</p>
+  </div>
+  } @else {
+  <div class="w-full max-w-md">
+    <div class="mb-8 flex flex-col items-center text-center">
+      <img src="/images/logo/logo-icon.svg" alt="" width="48" height="48" class="mb-5" />
+      <h1 class="mb-2 text-3xl font-semibold text-gray-800 dark:text-white/90">
+        Ya casi está
+      </h1>
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        El correo <span class="font-medium text-gray-700 dark:text-gray-300">{{ correo }}</span>
+        quedó verificado. Faltan los datos de la empresa.
+      </p>
+    </div>
+
+    @if (error()) {
+    <div
+      class="mb-5 rounded-base border border-error-500/30 bg-error-500/10 px-4 py-3 text-sm text-error-500"
+      role="alert"
+    >
+      {{ error() }}
+    </div>
+    }
+
+    <form [formGroup]="formulario" (ngSubmit)="registrar()" novalidate class="space-y-5">
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div>
+          <label for="nombreTitular" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Nombres <span class="text-error-500">*</span>
+          </label>
+          <input
+            id="nombreTitular"
+            type="text"
+            formControlName="nombreTitular"
+            autocomplete="given-name"
+            class="h-11 w-full rounded-base border bg-transparent px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90 dark:placeholder:text-white/30"
+            [class]="controles.nombreTitular.touched && controles.nombreTitular.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+          />
+          @if (controles.nombreTitular.touched && controles.nombreTitular.invalid) {
+          <app-error-campo [control]="controles.nombreTitular" mensaje="Falta el nombre." />
+          }
+        </div>
+
+        <div>
+          <label for="apellidoTitular" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+            Apellidos <span class="text-error-500">*</span>
+          </label>
+          <input
+            id="apellidoTitular"
+            type="text"
+            formControlName="apellidoTitular"
+            autocomplete="family-name"
+            class="h-11 w-full rounded-base border bg-transparent px-4 text-sm text-gray-800 placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:text-white/90 dark:placeholder:text-white/30"
+            [class]="controles.apellidoTitular.touched && controles.apellidoTitular.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'"
+          />
+          @if (controles.apellidoTitular.touched && controles.apellidoTitular.invalid) {
+          <app-error-campo [control]="controles.apellidoTitular" mensaje="Falta el apellido." />
+          }
+        </div>
+      </div>
+
+      <p class="-mt-1 text-xs text-gray-500 dark:text-gray-400">
+        Quedarás como administrador de la cuenta.
+      </p>
+
+      <!--
+        El RUC primero, y lo demas lo trae SUNAT.
+
+        Antes habia cuatro campos mas —razon social, domicilio, ubigeo— que nadie
+        comprobaba: se podia crear una cuenta con un contribuyente inexistente.
+        Ahora se consulta, y lo que viaja en la peticion es la firma, no lo que
+        se ve en pantalla.
+      -->
+      <app-consulta-ruc (verificado)="alVerificar($event)" />
+
+      @if (preguntaNuevoRus()) {
+      <!--
+        Solo a una persona natural. El padrón no dice el régimen, y en el Nuevo
+        RUS no se emiten facturas: si no se pregunta aquí, la primera factura la
+        rechaza SUNAT semanas después.
+      -->
+      <label class="flex items-start gap-3 rounded-base border border-gray-200 p-4 text-sm dark:border-gray-800">
+        <input
+          type="checkbox"
+          formControlName="nuevoRus"
+          class="mt-0.5 h-4 w-4 rounded-base border-gray-300 text-brand-500 focus:ring-brand-500/20"
+        />
+        <span>
+          <span class="block font-medium text-gray-800 dark:text-white/90">El negocio está en el Nuevo RUS</span>
+          <span class="block text-gray-500 dark:text-gray-400">
+            En ese régimen solo se emiten boletas de venta. Se puede cambiar después en los datos de la empresa.
+          </span>
+        </span>
+      </label>
+      }
+
+      <!--
+        Lo que el formulario NO pregunta también comunica: el establecimiento
+        matriz (0000) se crea solo, porque SUNAT lo exige siempre.
+      -->
+      <p class="text-xs text-gray-400 dark:text-gray-500">
+        Se creará la casa matriz (código 0000) con el domicilio fiscal que
+        registra SUNAT. Podrás añadir más establecimientos desde Configuración.
+      </p>
+
+      <!--
+        Deshabilitado hasta que haya un RUC comprobado Y apto. Dejarlo activo
+        llevaria a un 400 del servidor despues de rellenar el nombre: el motivo
+        real ya esta escrito en la ficha de arriba, y un error generico encima
+        lo taparia.
+      -->
+      <button
+        type="submit"
+        [disabled]="!puedeEnviar"
+        class="flex h-11 w-full items-center justify-center gap-2 rounded-base bg-brand-500 text-sm font-medium text-white transition hover:bg-brand-600 disabled:opacity-60"
+      >
+        @if (enviando()) {
+        <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25" />
+          <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+        </svg>
+        Creando la cuenta… } @else if (!consulta()) { Consultar el RUC para continuar } @else {
+        Empezar a usar Ondexia }
+      </button>
+    </form>
+
+    <p class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+      ¿No corresponde a esta empresa?
+      <button type="button" (click)="cancelar()" class="font-medium text-brand-500 transition hover:text-brand-600">
+        Salir
+      </button>
+    </p>
+  </div>
+  }
+</app-marco-acceso>

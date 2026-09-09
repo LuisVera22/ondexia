@@ -1,0 +1,93 @@
+<div>
+  <app-encabezado-pagina [titulo]="configuracion.titulo" />
+
+  @if (configuracion.nota) {
+  <div class="mb-5 flex items-start gap-3 rounded-base border border-blue-light-200 bg-blue-light-50 p-4 dark:border-blue-light-500/30 dark:bg-blue-light-500/10">
+    <svg class="mt-0.5 shrink-0 text-blue-light-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" />
+    </svg>
+    <p class="text-sm text-blue-light-700 dark:text-blue-light-400">{{ configuracion.nota }}</p>
+  </div>
+  }
+
+  <div class="mb-5 flex flex-col gap-4 rounded-base border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03] xl:flex-row xl:items-end xl:justify-between">
+    <div class="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div class="sm:col-span-2 lg:col-span-1">
+        <label for="busqueda" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Buscar</label>
+        <div class="relative">
+          <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
+            </svg>
+          </span>
+          <input id="busqueda" type="text" [(ngModel)]="termino" placeholder="Número o nombre"
+            class="h-10 w-full rounded-base border border-gray-300 bg-transparent pl-9 pr-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+        </div>
+      </div>
+
+      <div>
+        <label for="desde" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Desde</label>
+        <input id="desde" type="date" [(ngModel)]="desde"
+          class="h-10 w-full rounded-base border border-gray-300 bg-transparent px-3 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+      </div>
+
+      <div>
+        <label for="hasta" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Hasta</label>
+        <input id="hasta" type="date" [(ngModel)]="hasta"
+          class="h-10 w-full rounded-base border border-gray-300 bg-transparent px-3 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+      </div>
+
+      @if (configuracion.esComprobanteElectronico) {
+      <div>
+        <label for="estado" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Estado</label>
+        <app-desplegable idCampo="estado" [opciones]="opcionesEstado" [(ngModel)]="estadoFiltro" />
+      </div>
+      }
+    </div>
+
+    <div class="flex shrink-0 gap-2">
+      @if (hayFiltrosActivos) {
+      <button type="button" (click)="limpiarFiltros()"
+        class="h-10 rounded-base border border-gray-300 px-4 text-sm text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+        Limpiar
+      </button>
+      } @if (configuracion.rutaNuevo) {
+      <button type="button" (click)="nuevo()"
+        class="h-10 rounded-base bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600">
+        {{ configuracion.textoNuevo }}
+      </button>
+      }
+    </div>
+  </div>
+
+  <app-tabla-datos
+    [columnas]="columnas"
+    [registros]="registros"
+    [orden]="orden"
+    [pagina]="pagina"
+    [tamanoPagina]="tamanoPagina"
+    [totalRegistros]="registros.length"
+    [vacioPorFiltros]="hayFiltrosActivos"
+    [vacioTitulo]="configuracion.vacioTitulo"
+    [vacioDescripcion]="configuracion.vacioDescripcion"
+    [vacioAccion]="configuracion.rutaNuevo ? configuracion.textoNuevo : ''"
+    (ordenarPor)="orden = $event"
+    (cambiarPagina)="pagina = $event"
+    (filaClic)="abrirDetalle($event)"
+    (accionVacio)="nuevo()"
+  >
+    <ng-template #acciones let-registro>
+      <div class="flex items-center justify-end gap-2">
+        @if (configuracion.esComprobanteElectronico) {
+        <app-estado-comprobante [estado]="$any(registro).estado" />
+        }
+        <button type="button" (click)="abrirDetalle(registro)" aria-label="Ver detalle"
+          class="rounded-base p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.05]">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+            <path d="m9 6 6 6-6 6" />
+          </svg>
+        </button>
+      </div>
+    </ng-template>
+  </app-tabla-datos>
+</div>

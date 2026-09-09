@@ -1,0 +1,4 @@
+{
+  "api": "http://localhost:8081",
+  "cognito": { "dominio": "https://ejemplo.auth.us-east-1.amazoncognito.com", "clienteId": "sin-configurar" }
+}

@@ -1,0 +1,137 @@
+---
+/**
+ * La app asomando por el borde inferior de la portada.
+ *
+ * Sigue las convenciones de ondexia.web (doc 10): rayado cebra sin líneas
+ * divisorias, punto de color MÁS palabra en el estado, importes a la derecha
+ * con cifras de ancho fijo, y tabla por encima de 640 px / tarjetas por debajo.
+ * Es una maqueta, pero si no se pareciera a la aplicación de verdad estaría
+ * mintiendo sobre el producto.
+ *
+ * Los datos son de ejemplo y no representan a ninguna empresa real.
+ */
+const comprobantes = [
+  {
+    serie: 'F001-0142',
+    cliente: 'Distribuidora Andina S.A.C.',
+    tipo: 'Factura',
+    estado: 'Aceptado',
+    total: 'S/ 4 820.00',
+  },
+  {
+    serie: 'B001-0871',
+    cliente: 'Cliente varios · DNI 4•••••21',
+    tipo: 'Boleta',
+    estado: 'Aceptado',
+    total: 'S/ 96.50',
+  },
+  {
+    serie: 'RC-20260823',
+    cliente: 'Resumen diario · 31 boletas',
+    tipo: 'Resumen',
+    estado: 'Con ticket',
+    total: 'S/ 2 104.30',
+  },
+];
+
+// El color depende del estado, pero la palabra va siempre: el color solo nunca
+// comunica un estado (doc 10 §4).
+const tonos: Record<string, { punto: string; texto: string }> = {
+  Aceptado: { punto: 'bg-success-500', texto: 'text-success-600' },
+  'Con ticket': { punto: 'bg-warning-500', texto: 'text-warning-700' },
+  Anulado: { punto: 'bg-error-500', texto: 'text-error-600' },
+};
+---
+
+<div
+  class="mt-10 overflow-hidden rounded-t-base border border-b-0 border-brand-400 bg-white md:mt-[52px]"
+>
+  <div
+    class="flex h-[42px] items-center gap-2 border-b border-gray-200 bg-gray-25 px-4"
+    aria-hidden="true"
+  >
+    <span class="size-2.5 rounded-full bg-gray-300"></span>
+    <span class="size-2.5 rounded-full bg-gray-300"></span>
+    <span class="size-2.5 rounded-full bg-gray-300"></span>
+    <span class="ml-2.5 truncate text-menudo text-gray-500">
+      app.ondexia.com · Ventas / Comprobantes
+    </span>
+  </div>
+
+  <div class="p-4 md:px-6 md:pb-6 md:pt-5">
+    {/* Desde 640 px, tabla */}
+    <table class="hidden w-full border-collapse sm:table">
+      <caption class="sr-only">
+        Ejemplo de comprobantes emitidos en Ondexia
+      </caption>
+      <thead>
+        <tr class="border-b border-gray-200">
+          <th class="rotulo w-[118px] px-2.5 pb-2.5 text-left tracking-[0.1em] text-gray-500">
+            Serie
+          </th>
+          <th class="rotulo px-2.5 pb-2.5 text-left tracking-[0.1em] text-gray-500">Cliente</th>
+          <th
+            class="rotulo hidden w-[110px] px-2.5 pb-2.5 text-left tracking-[0.1em] text-gray-500 lg:table-cell"
+          >
+            Tipo
+          </th>
+          <th class="rotulo w-[124px] px-2.5 pb-2.5 text-left tracking-[0.1em] text-gray-500">
+            Estado
+          </th>
+          <th class="rotulo w-[118px] px-2.5 pb-2.5 text-right tracking-[0.1em] text-gray-500">
+            Total
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {
+          comprobantes.map((fila, indice) => (
+            <tr class={indice % 2 === 1 ? 'bg-gray-25' : ''}>
+              <td class="px-2.5 py-3 text-[15px] font-semibold text-gray-900">{fila.serie}</td>
+              <td class="truncate px-2.5 py-3 text-[15px] text-gray-600">{fila.cliente}</td>
+              <td class="hidden px-2.5 py-3 text-[15px] text-gray-500 lg:table-cell">
+                {fila.tipo}
+              </td>
+              <td class={`px-2.5 py-3 text-[15px] font-medium ${tonos[fila.estado].texto}`}>
+                <span class="inline-flex items-center gap-1.5">
+                  <span class={`size-2 shrink-0 rounded-full ${tonos[fila.estado].punto}`} />
+                  {fila.estado}
+                </span>
+              </td>
+              <td class="px-2.5 py-3 text-right text-[15px] font-semibold tabular-nums text-gray-900">
+                {fila.total}
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+
+    {/* Por debajo, tarjetas. Seis columnas apretadas en 375 px son ilegibles. */}
+    <ul class="flex flex-col sm:hidden">
+      {
+        comprobantes.map((fila, indice) => (
+          <li
+            class={`flex flex-col gap-2 py-3 ${indice > 0 ? 'border-t border-gray-100' : 'pt-0'}`}
+          >
+            <div class="flex items-start justify-between gap-3">
+              <span class="text-[15px] font-semibold leading-6 text-gray-900">{fila.cliente}</span>
+              <span
+                class={`inline-flex shrink-0 items-center gap-1.5 text-menudo font-medium ${tonos[fila.estado].texto}`}
+              >
+                <span class={`size-[7px] rounded-full ${tonos[fila.estado].punto}`} />
+                {fila.estado}
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-dato text-gray-500">
+                {fila.tipo} · {fila.serie}
+              </span>
+              <span class="text-[15px] font-semibold tabular-nums text-gray-900">{fila.total}</span>
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</div>

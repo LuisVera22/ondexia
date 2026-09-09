@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="es-PE">
+<head>
+  <meta charset="utf-8">
+  <title>Ondexia · Panel interno</title>
+  <!-- La descripción venía copiada del SPA de clientes y describía otro
+       producto. Esta consola no es pública ni se indexa, pero el texto acaba en
+       la pestaña compartida y en cualquier vista previa de enlace. -->
+  <meta name="description" content="Consola interna de Ondexia. Solo para personal autorizado.">
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="alternate icon" type="image/x-icon" href="favicon.ico">
+
+  <!--
+    La tipografía se precarga porque la descubre el navegador al leer la hoja
+    de estilos, y esperar hasta entonces provoca un salto visible del texto.
+    Solo el subconjunto latino: es el que cubre el español, y el extendido se
+    pide únicamente si algún carácter lo necesita.
+  -->
+  <link rel="preload" href="fonts/outfit-latin.woff2" as="font" type="font/woff2" crossorigin>
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>
