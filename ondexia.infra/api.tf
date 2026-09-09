@@ -322,6 +322,28 @@ resource "aws_lambda_function" "api" {
 
   publish = true
 
+  /**
+   * Publicar una version con SnapStart tarda mas de lo que Terraform espera.
+   *
+   * El proveedor da 10 minutos por omision y con esta funcion no bastan: el
+   * apply del 2026-09-08 murio en 10m20s con «timeout while waiting for state
+   * to become Successful (last state: InProgress)». No era un fallo de AWS
+   * —la publicacion seguia en curso al otro lado— sino Terraform dejando de
+   * mirar.
+   *
+   * Y el reloj no lo marca el tamaño del jar sino la INSTANTANEA: Lambda
+   * arranca la JVM, deja que Spring construya el contexto entero y congela la
+   * memoria. Comparado con `consultas` —37 MB y contexto minimo, 1m36s—, aqui
+   * hay ademas Hibernate validando el esquema y el decodificador de tokens.
+   *
+   * Veinte minutos no es una estimacion del tiempo bueno, es el limite a partir
+   * del cual conviene sospechar de verdad.
+   */
+  timeouts {
+    create = "20m"
+    update = "20m"
+  }
+
   vpc_config {
     subnet_ids         = aws_subnet.privada[*].id
     security_group_ids = [aws_security_group.lambda.id]
