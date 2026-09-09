@@ -16,6 +16,12 @@
 --      Se lee con:
 --        terraform show -json | jq -r '.values.root_module.resources[]
 --          | select(.address=="random_password.bd") | .values.result'
+--      En PowerShell, que no trae jq:
+--        $estado = terraform show -json | Out-String | ConvertFrom-Json
+--        ($estado.values.root_module.resources |
+--           Where-Object address -eq 'random_password.bd').values.result
+--      El Out-String no sobra: sin el, PowerShell 5.1 entrega el JSON partido
+--      en lineas y ConvertFrom-Json falla en cuanto el estado crece.
 --   4. psql "host=<endpoint> dbname=ondexia user=ondexia_admin sslmode=verify-full" -f rol-migraciones.sql
 --   5. acceso_bd_publico = false y volver a aplicar (puede necesitar dos
 --      intentos: quitar la puerta de enlace y liberar la IP publica son dos
