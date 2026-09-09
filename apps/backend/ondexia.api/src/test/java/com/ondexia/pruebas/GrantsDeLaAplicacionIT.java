@@ -92,7 +92,9 @@ class GrantsDeLaAplicacionIT extends PruebaIntegracion {
 
         assertThat(concedidos)
                 .as("si sobra algo, alguien concedió de más; si falta, la aplicación "
-                        + "va a fallar con «permission denied» en producción")
+                        + "va a fallar con «permission denied» en producción. Una tabla "
+                        + "con el conjunto vacío que no sea una excepción es una tabla "
+                        + "nueva que no heredó privilegios: ver la V25")
                 .isEqualTo(esperados);
     }
 
@@ -154,10 +156,27 @@ class GrantsDeLaAplicacionIT extends PruebaIntegracion {
                 },
                 rol);
 
-        // Las tablas sin ninguna concesión no aparecen en la vista, y tienen que
-        // estar en el mapa para que la comparación de igualdad las cubra: si
-        // mañana alguien le concede algo a `auditoria_admin`, esto lo ve.
-        for (String tabla : EXCEPCIONES.keySet()) {
+        /*
+         * TODAS las tablas del esquema entran en el mapa, con conjunto vacío las
+         * que no tienen nada concedido.
+         *
+         * Antes solo se sembraban las de EXCEPCIONES, y ese era el agujero: los
+         * esperados se construyen A PARTIR de las claves de este mapa, así que
+         * una tabla sin ningún privilegio no aparecía en ninguno de los dos
+         * lados y la igualdad se cumplía. La prueba detectaba que sobrara, nunca
+         * que faltara del todo — lo contrario de lo que promete su encabezado.
+         *
+         * Lo pagó dev el 2026-09-08: `caja`, `producto`, `documento_venta` y
+         * `cliente` sin un solo privilegio, el panel y ventas devolviendo 500, y
+         * esta prueba en verde. La causa está contada en la V25.
+         */
+        for (String tabla : jdbc.queryForList("""
+                select c.relname
+                  from pg_class c
+                  join pg_namespace n on n.oid = c.relnamespace
+                 where n.nspname = 'public'
+                   and c.relkind = 'r'
+                """, String.class)) {
             concedidos.putIfAbsent(tabla, new TreeSet<>());
         }
         return concedidos;
