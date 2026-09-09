@@ -323,21 +323,28 @@ resource "aws_lambda_function" "api" {
   publish = true
 
   /**
-   * Publicar una version con SnapStart tarda mas de lo que Terraform espera.
+   * Margen para que Terraform vea el DESENLACE de la publicacion.
    *
-   * El proveedor da 10 minutos por omision y con esta funcion no bastan: el
-   * apply del 2026-09-08 murio en 10m20s con «timeout while waiting for state
-   * to become Successful (last state: InProgress)». No era un fallo de AWS
-   * —la publicacion seguia en curso al otro lado— sino Terraform dejando de
-   * mirar.
+   * El apply del 2026-09-08 murio en 10m20s con «timeout while waiting for
+   * state to become Successful (last state: InProgress)», y la lectura facil
+   * —la instantanea va lenta— era falsa: los registros dicen
+   * `Init Duration: 24278 ms, Status: error`. La inicializacion fallo en 24
+   * SEGUNDOS, porque Hibernate valido el esquema y no encontro la tabla `caja`.
    *
-   * Y el reloj no lo marca el tamaño del jar sino la INSTANTANEA: Lambda
-   * arranca la JVM, deja que Spring construya el contexto entero y congela la
-   * memoria. Comparado con `consultas` —37 MB y contexto minimo, 1m36s—, aqui
-   * hay ademas Hibernate validando el esquema y el decodificador de tokens.
+   * Lo que consume los diez minutos es lo que Lambda hace DESPUES de que la
+   * init falle: mantiene la publicacion en InProgress mientras reintenta, y
+   * solo al final marca la version como Failed. Terraform deja de mirar antes
+   * de ese final.
    *
-   * Veinte minutos no es una estimacion del tiempo bueno, es el limite a partir
-   * del cual conviene sospechar de verdad.
+   * Por eso subir el limite no arregla nada de la funcion —una init rota
+   * seguira rota— pero cambia el mensaje que se recibe, que es lo que importa
+   * a quien despliega: en vez de un tiempo agotado que no dice nada, el error
+   * real, con la version fallida y su motivo. Diez minutos de espera para
+   * acabar sin diagnostico se pagan dos veces.
+   *
+   * SnapStart y `validate` juntos hacen que el ORDEN sea parte del despliegue:
+   * las migraciones van antes de publicar la API, y por eso deploy.yml las
+   * invoca primero. Aplicar a mano descoloca ese orden — asi salio esto.
    */
   timeouts {
     create = "20m"
