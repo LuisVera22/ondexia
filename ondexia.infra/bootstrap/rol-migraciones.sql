@@ -23,6 +23,9 @@
 --      El Out-String no sobra: sin el, PowerShell 5.1 entrega el JSON partido
 --      en lineas y ConvertFrom-Json falla en cuanto el estado crece.
 --   4. psql "host=<endpoint> dbname=ondexia user=ondexia_admin sslmode=verify-full" -f rol-migraciones.sql
+--      Sin psql instalado, con el contenedor que ya levanta el entorno local
+--      (en una sola linea; monta bootstrap/ dentro y lee el script de ahi):
+--        docker run --rm -i -e PGPASSWORD="..." -v "${PWD}/bootstrap:/sql:ro" postgres:17-alpine psql "host=<endpoint> dbname=ondexia user=ondexia_admin sslmode=require" -f /sql/rol-migraciones.sql
 --   5. acceso_bd_publico = false y volver a aplicar (puede necesitar dos
 --      intentos: quitar la puerta de enlace y liberar la IP publica son dos
 --      cambios que Terraform no secuencia entre si)
