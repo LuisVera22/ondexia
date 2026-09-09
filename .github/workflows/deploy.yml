@@ -258,6 +258,46 @@ jobs:
 
           echo "CSS correcto: $(wc -c < "$CSS") bytes."
 
+      - name: Comprobar que la CSP no apaga los estilos
+        if: ${{ !inputs.solo_landing }}
+        # La CSP de las distribuciones lleva `script-src 'self'`, que bloquea
+        # cualquier manejador de eventos EN LINEA. Y Angular, con la
+        # optimizacion por omision, difiere la hoja de estilos asi:
+        #
+        #   <link rel="stylesheet" href="styles-X.css" media="print"
+        #         onload="this.media='all'">
+        #
+        # El navegador bloquea ese onload, la hoja se queda en `media="print"`
+        # —que no se aplica a pantalla— y la aplicacion sale sin estilos. No hay
+        # error visible: el HTML es valido, el CSS existe y devuelve 200. Se
+        # descubre mirando la pagina, igual que el fallo de la comprobacion de
+        # arriba, y paso tal cual en dev el 2026-09-08.
+        #
+        # Lo apaga `optimization.styles.inlineCritical: false` en cada
+        # angular.json. Esto vigila que siga apagado: es una omision del
+        # framework, asi que una actualizacion puede devolverla sin que nadie
+        # toque nuestro codigo.
+        run: |
+          for SPA in apps/frontend/ondexia.web/dist/ondexia-web/browser \
+                     apps/frontend/ondexia.admin/dist/ondexia-admin/browser; do
+            HTML="${SPA}/index.html"
+            echo "Revisando ${HTML}"
+
+            # ` on...=` con el espacio delante: sin el, `content=` casaria.
+            if grep -qE ' on[a-z]+=' "$HTML"; then
+              echo "::error title=Manejador en linea::${HTML} trae un atributo on...= que la CSP va a bloquear. Si es la hoja de estilos diferida, revisa optimization.styles.inlineCritical en angular.json."
+              grep -oE ' on[a-z]+="[^"]*"' "$HTML"
+              exit 1
+            fi
+
+            if grep -qE '<link[^>]*rel="stylesheet"[^>]*media="print"' "$HTML"; then
+              echo "::error title=Hoja de estilos diferida::${HTML} carga el CSS como media=print y depende de un onload que la CSP bloquea."
+              exit 1
+            fi
+          done
+
+          echo "Sin manejadores en linea: la CSP no va a dejar la aplicacion sin estilos."
+
       # ── El paquete que viaja a los dos jobs siguientes ─────────────────────
       #
       # Un tar y no `path:` con varias rutas: `upload-artifact` calcula la raíz
