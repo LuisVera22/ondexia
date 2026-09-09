@@ -230,10 +230,12 @@ resource "aws_cognito_user_pool_client" "panel" {
   # sale como «Incorrect username or password».
   #
   # ALLOW_USER_PASSWORD_AUTH sigue fuera: aceptaría la contraseña en claro.
-  explicit_auth_flows = [
-    "ALLOW_USER_SRP_AUTH",
-    "ALLOW_REFRESH_TOKEN_AUTH",
-  ]
+  #
+  # Y ALLOW_REFRESH_TOKEN_AUTH tampoco va, por lo mismo que en el cliente de
+  # inquilinos: con `refresh_token_rotation` encendida Cognito rechaza el
+  # cliente entero. Canjear un refresco sigue funcionando — con la rotacion es
+  # parte del mecanismo y no se declara aparte.
+  explicit_auth_flows = ["ALLOW_USER_SRP_AUTH"]
 
   supported_identity_providers         = ["COGNITO"]
   allowed_oauth_flows_user_pool_client = true

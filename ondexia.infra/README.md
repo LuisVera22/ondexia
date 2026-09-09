@@ -161,6 +161,33 @@ política se lo deniega explícitamente, ver el statement
 `NoTocarLaPropiaIdentidad` de `despliegue.tf`—, así que el paso 2 se aplica desde
 un equipo o no se aplica.
 
+### Otros dos que salen una sola vez, en un entorno que ya existía
+
+**`ResourceAlreadyExistsException` en el grupo de logs de la base.**
+
+```
+creating CloudWatch Logs Log Group (/aws/rds/instance/ondexia-dev/postgresql):
+ResourceAlreadyExistsException: The specified log group already exists
+```
+
+Lo creó RDS solo, al activar la exportación de logs, antes de que la V-M12
+pusiera el grupo bajo Terraform para fijarle la retención. No se arregla en
+código —el recurso está bien— sino trayéndolo al estado:
+
+```bash
+terraform import "-var-file=entornos/dev.tfvars" aws_cloudwatch_log_group.bd_postgresql "/aws/rds/instance/ondexia-dev/postgresql"
+```
+
+En un entorno nuevo no pasa: ahí Terraform crea el grupo antes de que RDS
+tenga nada que escribir.
+
+**`Unable to validate the following destination configurations` en el bus de
+emisión.** S3 comprueba que puede invocar al Emisor en el momento de guardar la
+notificación, y el permiso que se lo concede se acababa de crear. Hay
+`depends_on`, pero eso ordena las llamadas, no espera a que IAM propague. Se
+resuelve volviendo a aplicar. Si persiste en un segundo intento ya no es la
+carrera y hay que mirar el `qualifier` del permiso contra el ARN del alias.
+
 ### Qué vas a ver, y dónde
 
 Con `gestionar_dns = false` —lo que trae `dev.tfvars`— **no hace falta tener el

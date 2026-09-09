@@ -130,11 +130,19 @@ resource "aws_cognito_user_pool_client" "spa" {
    * Lo que NO se habilita es ALLOW_USER_PASSWORD_AUTH, que aceptaría la
    * contraseña en claro desde cualquier cliente. Con SRP, la contraseña no
    * viaja: viaja una prueba de que se conoce.
+   *
+   * NO se lista ALLOW_REFRESH_TOKEN_AUTH. Con `refresh_token_rotation` en
+   * ENABLED, Cognito RECHAZA el cliente:
+   *
+   *   ALLOW_REFRESH_TOKEN_AUTH is not a permitted ExplicitAuthFlow
+   *   when refresh token rotation is enabled.
+   *
+   * No es que se pierda el refresco: con la rotacion encendida, canjear un
+   * refresco es parte del propio mecanismo y no necesita declararse. Listarlo
+   * ademas seria pedir las dos cosas a la vez —rotar y no rotar—, y por eso la
+   * API se niega en vez de elegir una.
    */
-  explicit_auth_flows = [
-    "ALLOW_USER_SRP_AUTH",
-    "ALLOW_REFRESH_TOKEN_AUTH",
-  ]
+  explicit_auth_flows = ["ALLOW_USER_SRP_AUTH"]
 
   /**
    * Flujo de código de autorización con PKCE.
