@@ -813,6 +813,46 @@ jobs:
           echo "::error::La sonda de vida no respondió 200 tras 10 intentos."
           exit 1
 
+      - name: Comprobar que el preflight responde
+        if: ${{ !inputs.solo_landing }}
+        working-directory: ondexia.infra
+        # La regla 2 de CLAUDE.md: la premisa de seguridad lleva, en el mismo
+        # commit, lo que la verifica. La premisa es esta, de la documentación de
+        # AWS y citada en api.tf:
+        #
+        #   API Gateway responde el preflight por su cuenta cuando NINGUNA ruta
+        #   casa con OPTIONS.
+        #
+        # De ella depende que no haga falta una ruta OPTIONS sin autorizador —el
+        # agujero del hallazgo A2—. Y es fácil de romper sin darse cuenta: basta
+        # que alguien vuelva a poner `ANY /{proxy+}` o `$default`, que casan con
+        # OPTIONS, y entonces contesta el autorizador con un 401.
+        #
+        # Cuando eso pasa, NADA en AWS se pone rojo: el despliegue termina, la
+        # sonda de /salud responde 200 —esa ruta no lleva autorizador— y la
+        # aplicación queda inservible en el navegador. Paso el 2026-09-08 y se
+        # descubrió abriendo la consola.
+        #
+        # Por eso se sondea aquí y no en una prueba: la premisa es sobre el
+        # comportamiento de la pasarela desplegada, y solo se puede comprobar
+        # contra ella.
+        run: |
+          API=$(terraform output -raw url_api)
+          ORIGEN=$(terraform output -raw url_app)
+
+          CODIGO=$(curl -s -o /dev/null -w '%{http_code}' \
+            -X OPTIONS "${API}/api/v1/contexto" \
+            -H "Origin: ${ORIGEN}" \
+            -H "Access-Control-Request-Method: GET" \
+            -H "Access-Control-Request-Headers: authorization,x-empresa-id" || true)
+
+          if [ "$CODIGO" -lt 200 ] || [ "$CODIGO" -ge 300 ]; then
+            echo "::error title=El preflight no responde 2xx::OPTIONS a la API devolvio ${CODIGO}. El navegador rechaza el preflight y el SPA no puede llamar a nada. Si es 401, alguna ruta con autorizador esta casando con OPTIONS: revisa que no haya vuelto un ANY o un \$default en api.tf."
+            exit 1
+          fi
+
+          echo "El preflight responde ${CODIGO}: la pasarela lo contesta sin pasar por el autorizador."
+
       - name: Recordatorios
         working-directory: ondexia.infra
         # Lo que Terraform no puede hacer por ti. Se imprime en cada despliegue

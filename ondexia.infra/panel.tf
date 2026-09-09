@@ -19,6 +19,11 @@
 
 locals {
   hay_panel = var.artefacto_panel != ""
+
+  # Los metodos que el panel usa. Alimentan las rutas y `allow_methods` del
+  # CORS, para que no puedan divergir. Ver el comentario del preflight en
+  # api.tf: OPTIONS NO va aqui, lo contesta la pasarela.
+  metodos_panel = ["GET", "PUT"]
 }
 
 # ── El artefacto ───────────────────────────────────────────────────────────
@@ -307,7 +312,8 @@ resource "aws_apigatewayv2_api" "panel" {
     # Solo el propio panel. Nada de comodines: esta API responde con datos de
     # todas las cuentas cliente.
     allow_origins = [local.origen_panel]
-    allow_methods = ["GET", "PUT", "OPTIONS"]
+    # OPTIONS aparte: es el preflight, no un metodo de la aplicacion.
+    allow_methods = concat(local.metodos_panel, ["OPTIONS"])
     allow_headers = ["authorization", "content-type"]
     max_age       = 3600
   }
@@ -353,11 +359,14 @@ resource "aws_apigatewayv2_route" "panel_salud" {
 # Todo lo demás exige token del grupo de personal. El autorizador de la pasarela
 # rechaza antes de invocar la función, así que un token inválido ni siquiera
 # arranca un contenedor.
+# Mismo motivo que en api.tf, y aqui era peor: `$default` casa con TODO, asi
+# que se tragaba el preflight igual que `ANY`. Ver el comentario largo de
+# api.tf, encima de sus rutas.
 resource "aws_apigatewayv2_route" "panel_todo" {
-  count = local.hay_panel ? 1 : 0
+  for_each = local.hay_panel ? toset(local.metodos_panel) : toset([])
 
   api_id             = aws_apigatewayv2_api.panel[0].id
-  route_key          = "$default"
+  route_key          = "${each.value} /{proxy+}"
   target             = "integrations/${aws_apigatewayv2_integration.panel[0].id}"
   authorization_type = "JWT"
   authorizer_id      = aws_apigatewayv2_authorizer.personal[0].id

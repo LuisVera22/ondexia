@@ -41,6 +41,11 @@ data "archive_file" "relleno" {
 locals {
   ruta_artefacto = var.artefacto_api == "" ? data.archive_file.relleno[0].output_path : var.artefacto_api
   hay_backend    = var.artefacto_api != ""
+
+  # Los metodos que la aplicacion usa. De aqui salen DOS cosas que tienen que
+  # coincidir: las rutas de la pasarela y `allow_methods` del CORS. Ver el
+  # comentario largo sobre el preflight, encima de las rutas.
+  metodos_api = ["GET", "POST", "PUT", "PATCH", "DELETE"]
 }
 
 /**
@@ -636,7 +641,8 @@ resource "aws_apigatewayv2_api" "principal" {
    */
   cors_configuration {
     allow_origins = [local.origen_app]
-    allow_methods = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+    # OPTIONS aparte: es el preflight, no un metodo de la aplicacion.
+    allow_methods = concat(local.metodos_api, ["OPTIONS"])
     /*
      * x-empresa-id va aquí, y no es opcional.
      *
@@ -683,9 +689,40 @@ resource "aws_apigatewayv2_integration" "api" {
  * Lo que sí decide la infraestructura es que **nada** pasa sin token: se
  * deniega por defecto.
  */
+/**
+ * POR QUE NO HAY UNA RUTA `ANY`, NI `$default` (hallazgos A2 y su recaida)
+ *
+ * `ANY` incluye OPTIONS, y `$default` incluye todo. Con cualquiera de las dos,
+ * el preflight del navegador —que viaja SIN credenciales, porque asi lo manda
+ * la norma— cae en una ruta con autorizador y recibe 401. El navegador exige
+ * 2xx en el preflight, asi que TODA llamada desde el SPA falla:
+ *
+ *   Response to preflight request doesn't pass access control check:
+ *   It does not have HTTP ok status.
+ *
+ * Y engana, porque la sesion se abre bien y el token es valido.
+ *
+ * La primera version lo resolvio con una ruta `OPTIONS /{proxy+}` SIN
+ * autorizador: una puerta a la funcion sin presentar token. Eso fue el hallazgo
+ * A2, y se quito apoyandose en que API Gateway responde el preflight por su
+ * cuenta «even if there isn't an OPTIONS route configured». La cita es cierta y
+ * la conclusion no: solo responde el cuando NINGUNA ruta casa, y `ANY /{proxy+}`
+ * casa. El 2026-09-08, desplegado en dev, el preflight devolvia 401 con las
+ * cabeceras CORS correctas al lado.
+ *
+ * La salida que cumple las dos cosas es enumerar los metodos. OPTIONS deja de
+ * casar con ninguna ruta —lo contesta la pasarela, sin invocar la integracion—
+ * y no existe ninguna via de invocacion sin autorizador.
+ *
+ * Los metodos salen de `local.metodos_api`, la MISMA lista que alimenta
+ * `allow_methods` del CORS. Si divergieran, un metodo permitido por CORS y sin
+ * ruta daria 404, o al reves; derivarlos de un sitio lo hace imposible.
+ */
 resource "aws_apigatewayv2_route" "todo" {
+  for_each = toset(local.metodos_api)
+
   api_id             = aws_apigatewayv2_api.principal.id
-  route_key          = "ANY /{proxy+}"
+  route_key          = "${each.value} /{proxy+}"
   target             = "integrations/${aws_apigatewayv2_integration.api.id}"
   authorization_type = "JWT"
   authorizer_id      = aws_apigatewayv2_authorizer.cognito.id
