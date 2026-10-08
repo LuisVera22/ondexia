@@ -92,6 +92,14 @@ public class ExistenciasAdaptador implements ExistenciasRepositorio {
     public Existencia mover(MovimientoStock movimiento) {
         gestor.flush();
         UUID empresaId = contexto.obligatorio().empresaActivaObligatoria();
+        // Comparte el bloqueo con Productos.actualizar: la conversión y el movimiento se serializan.
+        // Ver TiposDeProductoIT y ConcurrenciaDeTiposIT.
+        String tipo = jdbc.sql("select tipo from producto where id = ? for update")
+                .param(movimiento.productoId()).query(String.class).single();
+        if (!tipo.equals("BIEN")) {
+            throw new com.ondexia.domain.comun.error.ReglaDeNegocioViolada(
+                    "producto_sin_existencias", "Un servicio no admite movimientos de stock.");
+        }
 
         jdbc.sql("insert into movimiento_stock (id, empresa_id, almacen_id, producto_id, cantidad, "
                         + "tipo, documento_tipo, documento_id, motivo, usuario_id, creado_en) "

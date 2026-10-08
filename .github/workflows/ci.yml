@@ -220,6 +220,12 @@ jobs:
             ./mvnw -B verify -Ddependency-check.nvdApiKey="$NVD_API_KEY"
           fi
 
+      # El backend regenera el contrato y los modelos después de compilar Angular.
+      # Si alguno difiere de lo confirmado, la web se compiló con otro contrato: falla.
+      - name: Contrato y modelos sincronizados
+        if: hashFiles('apps/backend/pom.xml') != ''
+        run: git diff --exit-code -- ondexia.contracts/openapi.yaml apps/frontend/ondexia.web/src/app/nucleo/almacen.modelos.ts
+
       # La contraparte del `restore` de arriba. `always()` para que la copia
       # sobreviva a un backend en rojo, que es justo cuando hace falta.
       - name: Guardar la base de vulnerabilidades

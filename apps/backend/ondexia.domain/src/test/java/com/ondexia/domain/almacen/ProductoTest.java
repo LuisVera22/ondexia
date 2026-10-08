@@ -14,7 +14,7 @@ class ProductoTest {
 
     private static Producto nuevo(String codigo, String precio) {
         return new Producto(UUID.randomUUID(), UUID.randomUUID(), codigo, "Cemento Portland",
-                null, UnidadDeMedida.BG, AfectacionIgv.GRAVADO, new BigDecimal(precio), true);
+                null, UnidadDeMedida.BG, AfectacionIgv.GRAVADO, new BigDecimal(precio), TipoProducto.BIEN);
     }
 
     @Test

@@ -145,13 +145,13 @@ SELECT set_config('ondexia.empresa_id', '', true);
 -- cliente. Bajo RLS, igual que las cajas.
 SELECT set_config('ondexia.empresa_id', '00000000-0000-4000-8000-000000000010', true);
 INSERT INTO producto (id, empresa_id, codigo, nombre, unidad_medida, afectacion_igv,
-                      precio_lista, controla_stock) VALUES
+                      precio_lista, controla_stock, tipo) VALUES
     ('00000000-0000-4000-8000-000000000060', '00000000-0000-4000-8000-000000000010',
-     'CEM-001', 'Cemento Portland Tipo I 42.5 kg', 'BG', '10', 32.500000, true),
+     'CEM-001', 'Cemento Portland Tipo I 42.5 kg', 'BG', '10', 32.500000, true, 'BIEN'),
     ('00000000-0000-4000-8000-000000000061', '00000000-0000-4000-8000-000000000010',
-     'FIE-012', 'Fierro corrugado 1/2" x 9 m', 'NIU', '10', 48.000000, true),
+     'FIE-012', 'Fierro corrugado 1/2" x 9 m', 'NIU', '10', 48.000000, true, 'BIEN'),
     ('00000000-0000-4000-8000-000000000062', '00000000-0000-4000-8000-000000000010',
-     'SRV-INST', 'Instalacion a domicilio', 'ZZ', '10', 80.000000, false);
+     'SRV-INST', 'Instalacion a domicilio', 'ZZ', '10', 80.000000, false, 'SERVICIO');
 
 INSERT INTO producto_local (id, empresa_id, producto_id, sucursal_id, disponible) VALUES
     ('00000000-0000-4000-8000-000000000070', '00000000-0000-4000-8000-000000000010',

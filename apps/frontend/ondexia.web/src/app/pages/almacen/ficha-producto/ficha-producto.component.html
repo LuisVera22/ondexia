@@ -2,12 +2,12 @@
   <app-encabezado-pagina [titulo]="titulo" />
 
   <div class="mb-5">
-    <a routerLink="/almacen/productos"
+    <a [routerLink]="rutaListado()"
       class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
         <path d="m15 6-6 6 6 6" />
       </svg>
-      Volver a productos
+      Volver a {{ esServicio() ? 'servicios' : 'bienes' }}
     </a>
   </div>
 
@@ -36,11 +36,7 @@
     @if (!esNuevo()) {
     <div class="border-b border-gray-200 px-5 dark:border-gray-800">
       <nav class="-mb-px flex gap-6 overflow-x-auto">
-        @for (item of [
-          { clave: 'general', nombre: 'Datos generales' },
-          { clave: 'locales', nombre: 'Disponibilidad por local' },
-          { clave: 'existencias', nombre: 'Existencias' }
-        ]; track item.clave) {
+        @for (item of pestanas(); track item.clave) {
         <button type="button" (click)="pestana.set($any(item.clave))"
           class="whitespace-nowrap border-b-2 py-4 text-sm font-medium transition"
           [class]="pestana() === item.clave ? 'border-brand-500 text-brand-500' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'">
@@ -54,7 +50,7 @@
     <div class="p-5 xl:p-6">
       <!-- Datos generales -->
       @if (pestana() === 'general') {
-      <form [formGroup]="formulario" (ngSubmit)="guardar.ejecutar()" novalidate class="space-y-5">
+      <form [attr.data-tipo]="tipo()" [formGroup]="formulario" (ngSubmit)="guardar.ejecutar()" novalidate class="space-y-5">
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
           <div>
             <label for="codigo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
@@ -112,31 +108,28 @@
             <label for="precioLista" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
               Precio de lista <span class="text-error-500">*</span>
             </label>
-            <input id="precioLista" type="number" inputmode="decimal" min="0" step="0.01" formControlName="precioLista"
+            <input id="precioLista" type="text" inputmode="decimal" formControlName="precioLista"
               class="h-11 w-full rounded-base border bg-transparent px-4 text-sm tabular-nums text-gray-800 focus:outline-hidden focus:ring-3 dark:text-white/90"
               [class]="controles.precioLista.touched && controles.precioLista.invalid ? 'border-error-500 focus:ring-error-500/20' : 'border-gray-300 focus:border-brand-300 focus:ring-brand-500/20 dark:border-gray-700'" />
             @if (controles.precioLista.touched && controles.precioLista.invalid) {
-            <app-error-campo [control]="controles.precioLista" mensaje="El precio no puede ser negativo." />
+            <app-error-campo [control]="controles.precioLista" mensaje="Importe no negativo, hasta doce enteros y seis decimales." />
             } @else {
             <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Con IGV incluido. Cada local puede tener el suyo.</p>
             }
           </div>
 
           <div class="sm:col-span-2">
-            <label class="flex items-start gap-3">
-              <input type="checkbox" formControlName="controlaStock" class="mt-1 size-4 rounded-base border-gray-300 text-brand-500 focus:ring-brand-500/20" />
-              <span>
-                <span class="block text-sm font-medium text-gray-700 dark:text-gray-400">Controla existencias</span>
-                <span class="block text-xs text-gray-500 dark:text-gray-400">Un servicio no tiene existencias y venderlo no descarga nada.</span>
-              </span>
-            </label>
+            <label for="tipo" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Tipo</label>
+            <app-desplegable idCampo="tipo" formControlName="tipo" [opciones]="opcionesTipo" alto="formulario" />
+            <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Un bien con existencias o movimientos no puede convertirse en servicio.</p>
+            <app-error-campo [control]="controles.tipo" />
           </div>
         </div>
 
         @if (esNuevo()) {
         <div class="flex justify-end gap-3">
-          <app-boton variante="secundario" ruta="/almacen/productos">Cancelar</app-boton>
-          <app-boton tipo="submit" [estado]="guardar.estado()">Registrar producto</app-boton>
+          <app-boton variante="secundario" [ruta]="rutaListado()">Cancelar</app-boton>
+          <app-boton tipo="submit" [estado]="guardar.estado()">Registrar {{ esServicio() ? 'servicio' : 'bien' }}</app-boton>
         </div>
         } @else if (puedeEditar()) {
         <div class="flex flex-wrap items-center justify-between gap-3">
@@ -197,9 +190,9 @@
       }
 
       <!-- Existencias -->
-      @if (pestana() === 'existencias') {
+      @if (!esServicio() && pestana() === 'existencias') {
       @if (!producto()?.controlaStock) {
-      <p class="text-sm text-gray-600 dark:text-gray-400">Este producto no controla existencias: es un servicio o un bien que no se cuenta.</p>
+      <p class="text-sm text-gray-600 dark:text-gray-400">Guarda el cambio a bien antes de ajustar sus existencias.</p>
       } @else {
       <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
         <p class="text-sm text-gray-600 dark:text-gray-400">
@@ -280,8 +273,9 @@
       </label>
       <div>
         <label for="precioLocal" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">Precio propio</label>
-        <input id="precioLocal" type="number" inputmode="decimal" min="0" step="0.01" formControlName="precio" placeholder="El de lista"
+        <input id="precioLocal" type="text" inputmode="decimal" formControlName="precio" placeholder="El de lista"
           class="h-11 w-full rounded-base border border-gray-300 bg-transparent px-4 text-sm tabular-nums text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+        <app-error-campo [control]="formularioLocal.controls.precio" mensaje="Importe no negativo, hasta doce enteros y seis decimales." />
         <p class="mt-1.5 text-xs text-gray-500 dark:text-gray-400">Vacío: rige el precio de lista del catálogo.</p>
       </div>
     </form>
@@ -291,6 +285,7 @@
     </ng-container>
   </app-modal>
 
+  @if (!esServicio()) {
   <!-- Ajuste por conteo -->
   <app-modal [abierto]="modalAjuste()" titulo="Ajustar por conteo" subtitulo="Lo contado manda: la diferencia con lo que había queda anotada como movimiento." ancho="estrecho"
     [procesando]="ajustar.estado() === 'cargando'" (cerrar)="modalAjuste.set(false)">
@@ -319,4 +314,5 @@
       <app-boton tipo="submit" [estado]="ajustar.estado()" formulario="formulario-ajuste">Registrar conteo</app-boton>
     </ng-container>
   </app-modal>
+  }
 </div>

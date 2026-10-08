@@ -1,5 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { validarImporteCatalogo, presentarImporteCatalogo } from '../../../nucleo/importe-catalogo';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import {
@@ -21,6 +23,7 @@ import {
   ExistenciaApi,
   MovimientoApi,
   ProductoApi,
+  TipoProducto,
 } from '../../../nucleo/almacen.api.service';
 import { AlmacenApi, ConfiguracionApiService, Establecimiento } from '../../../nucleo/configuracion.api.service';
 import { mensajeDeError } from '../../../nucleo/errores';
@@ -35,7 +38,7 @@ export interface FilaLocal {
   readonly codigo: string;
   readonly nombre: string;
   readonly disponible: boolean;
-  readonly precio: number | null;
+  readonly precio: string | null;
 }
 
 /**
@@ -87,8 +90,20 @@ export class FichaProductoComponent implements ConCambiosSinGuardar {
   readonly puedeEditar = computed(() => this.contexto.puede('almacen.producto:editar'));
   readonly puedeAjustar = computed(() => this.contexto.puede('almacen.stock:ajustar'));
 
+  readonly tipo = signal<TipoProducto>(this.ruta.snapshot.data?.['tipo'] ?? 'BIEN');
+  readonly esServicio = computed(() => this.tipo() === 'SERVICIO');
+  readonly rutaListado = computed(() => this.esServicio() ? '/almacen/servicios' : '/almacen/bienes');
+  readonly pestanas = computed(() => [
+    { clave: 'general', nombre: 'Datos generales' },
+    { clave: 'locales', nombre: 'Disponibilidad por local' },
+    ...(!this.esServicio() ? [{ clave: 'existencias', nombre: 'Existencias' }] : []),
+  ]);
+  readonly opcionesTipo: OpcionDesplegable[] = [
+    { valor: 'BIEN', etiqueta: 'Bien' }, { valor: 'SERVICIO', etiqueta: 'Servicio' },
+  ];
+
   readonly opcionesUnidad = computed<OpcionDesplegable[]>(() =>
-    this.catalogos().unidades.map((u) => ({ valor: u.codigo, etiqueta: u.nombre, detalle: u.codigo }))
+    this.catalogos().unidades.filter(u => this.esServicio() ? ['ZZ', 'HUR', 'DAY'].includes(u.codigo) : u.codigo !== 'ZZ').map((u) => ({ valor: u.codigo, etiqueta: u.nombre, detalle: u.codigo }))
   );
   readonly opcionesAfectacion = computed<OpcionDesplegable[]>(() =>
     this.catalogos().afectaciones.map((a) => ({ valor: a.codigo, etiqueta: a.nombre }))
@@ -122,10 +137,10 @@ export class FichaProductoComponent implements ConCambiosSinGuardar {
     codigo: ['', [Validators.required, Validators.pattern(/^[A-Za-z0-9-]{1,30}$/)]],
     nombre: ['', [Validators.required, Validators.maxLength(300)]],
     descripcion: [''],
-    unidad: ['NIU', [Validators.required]],
+    tipo: [this.tipo(), [Validators.required]],
+    unidad: [this.esServicio() ? 'ZZ' : 'NIU', [Validators.required]],
     afectacion: ['GRAVADO', [Validators.required]],
-    precioLista: [0, [Validators.required, Validators.min(0)]],
-    controlaStock: [true],
+    precioLista: ['0', [Validators.required, validarImporteCatalogo]],
   });
 
   readonly cambios = seguirCambios(this.formulario);
@@ -135,7 +150,7 @@ export class FichaProductoComponent implements ConCambiosSinGuardar {
   readonly localEnEdicion = signal<FilaLocal | null>(null);
   formularioLocal = this.constructorFormulario.group({
     disponible: [true],
-    precio: [null as number | null, [Validators.min(0)]],
+    precio: [null as string | null, [validarImporteCatalogo]],
   });
 
   // ── Modal de ajuste ────────────────────────────────────────────────────
@@ -147,9 +162,21 @@ export class FichaProductoComponent implements ConCambiosSinGuardar {
   });
 
   constructor() {
+    this.formulario.controls.tipo.valueChanges.pipe(takeUntilDestroyed()).subscribe(tipo => {
+      this.tipo.set(tipo);
+      const unidad = this.formulario.controls.unidad;
+      if (!this.opcionesUnidad().some(opcion => opcion.valor === unidad.value)) {
+        unidad.setValue(tipo === 'SERVICIO' ? 'ZZ' : 'NIU');
+      }
+      if (tipo === 'SERVICIO') {
+        this.pestana.set('general'); this.modalAjuste.set(false);
+      } else if (!this.esNuevo()) {
+        void this.cargarAlmacenes().catch(fallo => this.error.set(mensajeDeError(fallo, 'No se pudieron cargar los almacenes.')));
+      }
+    });
     const id = this.ruta.snapshot.paramMap.get('id');
     if (!id) {
-      void this.router.navigate(['/almacen/productos']);
+      void this.router.navigate([this.rutaListado()]);
       return;
     }
     this.esNuevo.set(id === 'nuevo');
@@ -162,23 +189,22 @@ export class FichaProductoComponent implements ConCambiosSinGuardar {
   }
 
   get titulo(): string {
-    return this.esNuevo() ? 'Nuevo producto' : this.producto()?.nombre || 'Producto';
+    return this.esNuevo() ? (this.esServicio() ? 'Nuevo servicio' : 'Nuevo bien') : this.producto()?.nombre || 'Producto';
   }
 
   private async cargar(): Promise<void> {
     this.cargando.set(true);
     this.error.set(null);
     try {
-      const [catalogos, establecimientos, almacenes] = await Promise.all([
+      const [catalogos, establecimientos] = await Promise.all([
         this.api.catalogos(),
         this.configuracion.establecimientos(),
-        this.configuracion.almacenes(),
       ]);
       this.catalogos.set(catalogos);
       this.establecimientos.set(establecimientos);
-      this.almacenes.set(almacenes);
 
       if (this.esNuevo()) {
+        if (!this.esServicio()) await this.cargarAlmacenes();
         this.formulario.controls.codigo.enable();
         this.cambios.fijarBase();
         return;
@@ -186,6 +212,7 @@ export class FichaProductoComponent implements ConCambiosSinGuardar {
 
       const producto = await this.api.producto(this.id());
       this.aplicar(producto);
+      if (!this.esServicio()) await this.cargarAlmacenes();
       // El código no se cambia: identifica al producto en cada comprobante ya emitido.
       this.formulario.controls.codigo.disable();
       await this.cargarDetalle();
@@ -198,6 +225,7 @@ export class FichaProductoComponent implements ConCambiosSinGuardar {
 
   private aplicar(producto: ProductoApi): void {
     this.producto.set(producto);
+    this.tipo.set(producto.tipo);
     this.formulario.patchValue({
       codigo: producto.codigo,
       nombre: producto.nombre,
@@ -205,16 +233,20 @@ export class FichaProductoComponent implements ConCambiosSinGuardar {
       unidad: producto.unidad,
       afectacion: producto.afectacion,
       precioLista: producto.precioLista,
-      controlaStock: producto.controlaStock,
-    });
+      tipo: producto.tipo,
+    }, { emitEvent: false });
     this.cambios.fijarBase();
+  }
+
+  private async cargarAlmacenes(): Promise<void> {
+    this.almacenes.set(await this.configuracion.almacenes());
   }
 
   private async cargarDetalle(): Promise<void> {
     const [disponibilidad, existencias, movimientos] = await Promise.all([
       this.api.disponibilidad(this.id()),
-      this.contexto.puede('almacen.stock:consultar') ? this.api.existencias(this.id()) : Promise.resolve([]),
-      this.contexto.puede('almacen.stock:consultar') ? this.api.movimientos(this.id()) : Promise.resolve([]),
+      !this.esServicio() && this.contexto.puede('almacen.stock:consultar') ? this.api.existencias(this.id()) : Promise.resolve([]),
+      !this.esServicio() && this.contexto.puede('almacen.stock:consultar') ? this.api.movimientos(this.id()) : Promise.resolve([]),
     ]);
     this.disponibilidad.set(disponibilidad);
     this.existencias.set(existencias);
@@ -232,8 +264,8 @@ export class FichaProductoComponent implements ConCambiosSinGuardar {
       descripcion: valores.descripcion || null,
       unidad: valores.unidad,
       afectacion: valores.afectacion,
-      precioLista: Number(valores.precioLista),
-      controlaStock: valores.controlaStock,
+      precioLista: valores.precioLista,
+      tipo: valores.tipo,
     };
     try {
       if (this.esNuevo()) {
@@ -251,11 +283,14 @@ export class FichaProductoComponent implements ConCambiosSinGuardar {
           'Producto registrado'
         );
         this.cambios.fijarBase();
-        await this.router.navigate(['/almacen/productos', creado.id]);
+        await this.router.navigate([creado.tipo === 'SERVICIO' ? '/almacen/servicios' : '/almacen/bienes', creado.id]);
         return;
       }
       const guardado = await this.api.actualizarProducto(this.id(), datos);
       this.aplicar(guardado);
+      await this.cargarDetalle();
+      this.cambios.fijarBase();
+      await this.router.navigate([this.rutaListado(), guardado.id]);
       this.avisos.exito(`${guardado.codigo} · ${guardado.nombre}`, 'Producto guardado');
     } catch (fallo: unknown) {
       repartirFallo(fallo, this.formulario, this.avisos, 'No se pudieron guardar los cambios.');
@@ -286,7 +321,8 @@ export class FichaProductoComponent implements ConCambiosSinGuardar {
       return;
     }
     const valores = this.formularioLocal.getRawValue();
-    const precio = valores.precio === null || String(valores.precio) === '' ? null : Number(valores.precio);
+    if (this.formularioLocal.invalid) { this.formularioLocal.markAllAsTouched(); throw new Error('Precio inválido'); }
+    const precio = valores.precio === null || valores.precio === '' ? null : valores.precio;
     try {
       await this.api.fijarDisponibilidad(this.id(), fila.sucursalId, {
         disponible: valores.disponible ?? false,
@@ -343,10 +379,8 @@ export class FichaProductoComponent implements ConCambiosSinGuardar {
     return Number(valor).toLocaleString('es-PE', { maximumFractionDigits: 6 });
   }
 
-  importe(valor: number | null): string {
-    return valor === null
-      ? '—'
-      : Number(valor).toLocaleString('es-PE', { style: 'currency', currency: 'PEN', minimumFractionDigits: 2 });
+  importe(valor: string | null): string {
+    return presentarImporteCatalogo(valor);
   }
 
   fecha(instante: string): string {

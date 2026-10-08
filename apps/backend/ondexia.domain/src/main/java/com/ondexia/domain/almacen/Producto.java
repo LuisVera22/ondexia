@@ -13,7 +13,7 @@ import java.util.UUID;
  * se vende en un local, a qué precio y cuánto hay es de
  * {@link DisponibilidadEnLocal} y de {@link Existencia}.
  *
- * <p>{@code controlaStock} distingue el bien del servicio: un servicio no tiene
+ * <p>{@code tipo} distingue el bien del servicio: un servicio no tiene
  * existencias y venderlo no descarga nada.
  */
 public class Producto {
@@ -28,23 +28,23 @@ public class Producto {
     private UnidadDeMedida unidad;
     private AfectacionIgv afectacion;
     private BigDecimal precioLista;
-    private boolean controlaStock;
+    private TipoProducto tipo;
     private boolean activo;
 
     public Producto(UUID id, UUID empresaId, String codigo, String nombre, String descripcion,
             UnidadDeMedida unidad, AfectacionIgv afectacion, BigDecimal precioLista,
-            boolean controlaStock) {
+            TipoProducto tipo) {
         this.id = Objects.requireNonNull(id, "id");
         this.empresaId = Objects.requireNonNull(empresaId, "empresaId");
         this.codigo = normalizarCodigo(codigo);
         this.activo = true;
-        actualizar(nombre, descripcion, unidad, afectacion, precioLista, controlaStock);
+        actualizar(nombre, descripcion, unidad, afectacion, precioLista, tipo);
     }
 
     /** Reconstrucción desde la persistencia: no valida. */
     public Producto(UUID id, UUID empresaId, String codigo, String nombre, String descripcion,
             UnidadDeMedida unidad, AfectacionIgv afectacion, BigDecimal precioLista,
-            boolean controlaStock, boolean activo) {
+            TipoProducto tipo, boolean activo) {
         this.id = id;
         this.empresaId = empresaId;
         this.codigo = codigo;
@@ -53,19 +53,25 @@ public class Producto {
         this.unidad = unidad;
         this.afectacion = afectacion;
         this.precioLista = precioLista;
-        this.controlaStock = controlaStock;
+        this.tipo = Objects.requireNonNull(tipo, "tipo");
         this.activo = activo;
     }
 
     public void actualizar(String nombre, String descripcion, UnidadDeMedida unidad,
-            AfectacionIgv afectacion, BigDecimal precioLista, boolean controlaStock) {
+            AfectacionIgv afectacion, BigDecimal precioLista, TipoProducto tipo) {
         this.nombre = exigirNombre(nombre);
         this.descripcion = descripcion == null || descripcion.isBlank() ? null : descripcion.trim();
-        this.unidad = Objects.requireNonNull(unidad, "unidad");
+        Objects.requireNonNull(tipo, "tipo");
+        Objects.requireNonNull(unidad, "unidad");
+        if (!tipo.admite(unidad)) {
+            throw new ReglaDeNegocioViolada("unidad_incompatible_con_tipo",
+                    "La unidad de medida no corresponde al tipo de producto.", "unidad");
+        }
+        this.unidad = unidad;
         this.afectacion = Objects.requireNonNull(afectacion, "afectacion");
         this.precioLista = exigirPrecio(precioLista, "precio_lista_invalido",
                 "El precio de lista no puede ser negativo ni tener más de seis decimales.");
-        this.controlaStock = controlaStock;
+        this.tipo = Objects.requireNonNull(tipo, "tipo");
     }
 
     public void desactivar() {
@@ -108,8 +114,12 @@ public class Producto {
         return precioLista;
     }
 
+    public TipoProducto tipo() {
+        return tipo;
+    }
+
     public boolean controlaStock() {
-        return controlaStock;
+        return tipo == TipoProducto.BIEN;
     }
 
     public boolean estaActivo() {

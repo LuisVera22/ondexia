@@ -7,6 +7,7 @@ import com.ondexia.domain.almacen.DisponibilidadEnLocal;
 import com.ondexia.domain.almacen.Existencia;
 import com.ondexia.domain.almacen.MovimientoStock;
 import com.ondexia.domain.almacen.Producto;
+import com.ondexia.domain.almacen.TipoProducto;
 import com.ondexia.domain.almacen.UnidadDeMedida;
 import com.ondexia.infrastructure.seguridad.RequierePermiso;
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,8 +51,9 @@ public class ProductoController {
     @Operation(summary = "Lista o busca productos", description = "Sin `q`, todo el catálogo. Con `q`, por código o nombre, hasta 50.")
     @RequierePermiso(modulo = "almacen.producto", accion = "consultar")
     @GetMapping
-    public List<RespuestaProducto> listar(@RequestParam(required = false) String q) {
-        return productos.buscar(q).stream().map(RespuestaProducto::desde).toList();
+    public List<RespuestaProducto> listar(@RequestParam(required = false) String q,
+            @RequestParam(required = false) TipoProducto tipo) {
+        return productos.buscar(q).stream().filter(p -> tipo == null || p.tipo() == tipo).map(RespuestaProducto::desde).toList();
     }
 
     @Operation(
@@ -67,9 +69,10 @@ public class ProductoController {
     @Operation(summary = "Los catálogos de SUNAT que admite el producto: unidades (03) y afectaciones (07)")
     @RequierePermiso(modulo = "almacen.producto", accion = "consultar")
     @GetMapping("/catalogos")
-    public RespuestaCatalogos catalogos() {
+    public RespuestaCatalogos catalogos(@RequestParam(required = false) TipoProducto tipo) {
         return new RespuestaCatalogos(
                 Arrays.stream(UnidadDeMedida.values())
+                        .filter(u -> tipo == null || tipo.admite(u))
                         .map(u -> new Opcion(u.codigo(), u.nombre())).toList(),
                 Arrays.stream(AfectacionIgv.values())
                         .map(a -> new Opcion(a.name(), a.nombre())).toList());
@@ -149,41 +152,45 @@ public class ProductoController {
 
     // ── Cuerpos ─────────────────────────────────────────────────────────────
 
+    @io.swagger.v3.oas.annotations.media.Schema(name = "PeticionNuevoProducto")
     public record PeticionNuevo(
             @NotBlank(message = "El código es obligatorio.")
             @Pattern(regexp = "[A-Za-z0-9-]{1,30}", message = "Letras, números y guiones, hasta 30 caracteres.")
             String codigo,
             @NotBlank(message = "El nombre es obligatorio.") @Size(max = 300) String nombre,
-            @Size(max = 2000) String descripcion,
+            @Size(max = 2000) @io.swagger.v3.oas.annotations.media.Schema(nullable = true) String descripcion,
             @NotNull(message = "Indica la unidad de medida.") UnidadDeMedida unidad,
             @NotNull(message = "Indica la afectación al IGV.") AfectacionIgv afectacion,
             @NotNull(message = "Indica el precio de lista, aunque sea cero.")
             @DecimalMin(value = "0", message = "El precio no puede ser negativo.")
             @Digits(integer = 12, fraction = 6, message = "Hasta seis decimales.")
+            @io.swagger.v3.oas.annotations.media.Schema(type = "string", pattern = "^[0-9]{1,12}([.][0-9]{1,6})?$")
             BigDecimal precioLista,
-            Boolean controlaStock,
+            @NotNull(message = "Indica si es bien o servicio.") TipoProducto tipo,
             @NotNull(message = "Indica el establecimiento en el que se ofrece.") UUID sucursalId) {
 
         Productos.Datos datos() {
             return new Productos.Datos(nombre, descripcion, unidad, afectacion, precioLista,
-                    controlaStock == null || controlaStock);
+                    tipo);
         }
     }
 
+    @io.swagger.v3.oas.annotations.media.Schema(name = "PeticionEdicionProducto")
     public record PeticionEdicion(
             @NotBlank(message = "El nombre es obligatorio.") @Size(max = 300) String nombre,
-            @Size(max = 2000) String descripcion,
+            @Size(max = 2000) @io.swagger.v3.oas.annotations.media.Schema(nullable = true) String descripcion,
             @NotNull(message = "Indica la unidad de medida.") UnidadDeMedida unidad,
             @NotNull(message = "Indica la afectación al IGV.") AfectacionIgv afectacion,
             @NotNull(message = "Indica el precio de lista, aunque sea cero.")
             @DecimalMin(value = "0", message = "El precio no puede ser negativo.")
             @Digits(integer = 12, fraction = 6, message = "Hasta seis decimales.")
+            @io.swagger.v3.oas.annotations.media.Schema(type = "string", pattern = "^[0-9]{1,12}([.][0-9]{1,6})?$")
             BigDecimal precioLista,
-            Boolean controlaStock) {
+            @NotNull(message = "Indica si es bien o servicio.") TipoProducto tipo) {
 
         Productos.Datos datos() {
             return new Productos.Datos(nombre, descripcion, unidad, afectacion, precioLista,
-                    controlaStock == null || controlaStock);
+                    tipo);
         }
     }
 
@@ -194,6 +201,7 @@ public class ProductoController {
             @NotNull(message = "Indica si se ofrece en el establecimiento.") Boolean disponible,
             @DecimalMin(value = "0", message = "El precio no puede ser negativo.")
             @Digits(integer = 12, fraction = 6, message = "Hasta seis decimales.")
+            @io.swagger.v3.oas.annotations.media.Schema(type = "string", nullable = true, pattern = "^[0-9]{1,12}([.][0-9]{1,6})?$")
             BigDecimal precio) {
     }
 
@@ -212,14 +220,15 @@ public class ProductoController {
     public record RespuestaCatalogos(List<Opcion> unidades, List<Opcion> afectaciones) {
     }
 
-    public record RespuestaProducto(UUID id, String codigo, String nombre, String descripcion,
+    public record RespuestaProducto(UUID id, String codigo, String nombre,
+            @io.swagger.v3.oas.annotations.media.Schema(nullable = true) String descripcion,
             String unidad, String unidadNombre, String afectacion, String afectacionNombre,
-            boolean llevaIgv, BigDecimal precioLista, boolean controlaStock, boolean activo) {
+            boolean llevaIgv, String precioLista, TipoProducto tipo, boolean controlaStock, boolean activo) {
 
         static RespuestaProducto desde(Producto p) {
             return new RespuestaProducto(p.id(), p.codigo(), p.nombre(), p.descripcion(),
                     p.unidad().codigo(), p.unidad().nombre(), p.afectacion().name(),
-                    p.afectacion().nombre(), p.afectacion().llevaIgv(), p.precioLista(),
+                    p.afectacion().nombre(), p.afectacion().llevaIgv(), p.precioLista().toPlainString(), p.tipo(),
                     p.controlaStock(), p.estaActivo());
         }
     }
@@ -227,7 +236,7 @@ public class ProductoController {
     /** @param existencia {@code null}: no controla existencias, o el local no tiene almacén */
     public record RespuestaDisponible(UUID id, String codigo, String nombre, String unidad,
             String unidadNombre, String afectacion, boolean llevaIgv, BigDecimal precio,
-            boolean controlaStock, BigDecimal existencia) {
+            boolean controlaStock, @io.swagger.v3.oas.annotations.media.Schema(nullable = true) BigDecimal existencia) {
 
         static RespuestaDisponible desde(Productos.ProductoDisponible d) {
             var p = d.producto();
@@ -237,10 +246,10 @@ public class ProductoController {
         }
     }
 
-    public record RespuestaDisponibilidad(UUID sucursalId, boolean disponible, BigDecimal precio) {
+    public record RespuestaDisponibilidad(UUID sucursalId, boolean disponible, @io.swagger.v3.oas.annotations.media.Schema(nullable = true) String precio) {
 
         static RespuestaDisponibilidad desde(DisponibilidadEnLocal d) {
-            return new RespuestaDisponibilidad(d.sucursalId(), d.estaDisponible(), d.precio());
+            return new RespuestaDisponibilidad(d.sucursalId(), d.estaDisponible(), d.precio() == null ? null : d.precio().toPlainString());
         }
     }
 

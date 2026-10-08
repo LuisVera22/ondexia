@@ -97,11 +97,15 @@ export const routes: Routes = [
        */
 
       // ── Almacén ──────────────────────────────────────────────────────────
-      { path: 'almacen/productos', component: ProductosComponent, title: `Productos | ${TITULO}` },
+      { path: 'almacen/productos', redirectTo: 'almacen/bienes', pathMatch: 'full' },
+      { path: 'almacen/bienes', component: ProductosComponent, data: { tipo: 'BIEN' }, title: `Bienes | ${TITULO}` },
+      { path: 'almacen/servicios', component: ProductosComponent, data: { tipo: 'SERVICIO' }, title: `Servicios | ${TITULO}` },
       // Las existencias por almacén se ven y se ajustan en la ficha del
       // producto, no en un listado propio: son por almacén, y una cifra suelta
       // en una lista de productos no dice de cuál.
       { path: 'almacen/productos/:id', component: FichaProductoComponent, title: `Ficha de producto | ${TITULO}`, canDeactivate: [salidaConCambios] },
+      { path: 'almacen/bienes/:id', component: FichaProductoComponent, data: { tipo: 'BIEN' }, title: `Ficha de bien | ${TITULO}`, canDeactivate: [salidaConCambios] },
+      { path: 'almacen/servicios/:id', component: FichaProductoComponent, data: { tipo: 'SERVICIO' }, title: `Ficha de servicio | ${TITULO}`, canDeactivate: [salidaConCambios] },
       { path: 'almacen/almacenes', component: AlmacenesComponent, title: `Almacenes | ${TITULO}` },
       { path: 'almacen/almacenes/:id', component: FichaAlmacenComponent, title: `Almacén | ${TITULO}`, canDeactivate: [salidaConCambios] },
 

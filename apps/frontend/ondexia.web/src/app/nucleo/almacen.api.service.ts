@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { CONFIGURACION } from './configuracion';
+import { DatosProducto, DisponibilidadApi, ProductoApi, ProductoDisponibleApi, TipoProducto } from './almacen.modelos';
 
 /**
  * Cliente del módulo de almacén: productos, disponibilidad por local y
@@ -21,52 +22,7 @@ export interface CatalogosProducto {
   readonly afectaciones: OpcionCatalogo[];
 }
 
-export interface ProductoApi {
-  readonly id: string;
-  readonly codigo: string;
-  readonly nombre: string;
-  readonly descripcion: string | null;
-  readonly unidad: string;
-  readonly unidadNombre: string;
-  readonly afectacion: string;
-  readonly afectacionNombre: string;
-  readonly llevaIgv: boolean;
-  readonly precioLista: number;
-  readonly controlaStock: boolean;
-  readonly activo: boolean;
-}
-
-export interface DatosProducto {
-  readonly nombre: string;
-  readonly descripcion: string | null;
-  readonly unidad: string;
-  readonly afectacion: string;
-  readonly precioLista: number;
-  readonly controlaStock: boolean;
-}
-
-/** Lo que el mostrador necesita de un producto en el local. */
-export interface ProductoDisponibleApi {
-  readonly id: string;
-  readonly codigo: string;
-  readonly nombre: string;
-  readonly unidad: string;
-  readonly unidadNombre: string;
-  readonly afectacion: string;
-  readonly llevaIgv: boolean;
-  /** El que rige en el local: el propio o el de lista. Con IGV. */
-  readonly precio: number;
-  readonly controlaStock: boolean;
-  /** null: no controla existencias, o el local no tiene almacén. */
-  readonly existencia: number | null;
-}
-
-export interface DisponibilidadApi {
-  readonly sucursalId: string;
-  readonly disponible: boolean;
-  /** null: rige el precio de lista. */
-  readonly precio: number | null;
-}
+export type { DatosProducto, DisponibilidadApi, ProductoApi, ProductoDisponibleApi, TipoProducto } from './almacen.modelos';
 
 export interface ExistenciaApi {
   readonly almacenId: string;
@@ -95,8 +51,10 @@ export class AlmacenApiService {
   }
 
   /** Sin texto, todo el catálogo; con texto, por código o nombre, hasta 50. */
-  productos(texto?: string): Promise<ProductoApi[]> {
-    const params = texto ? new HttpParams().set('q', texto) : undefined;
+  productos(texto?: string, tipo?: TipoProducto): Promise<ProductoApi[]> {
+    let params = new HttpParams();
+    if (texto) params = params.set('q', texto);
+    if (tipo) params = params.set('tipo', tipo);
     return firstValueFrom(this.http.get<ProductoApi[]>(this.base, { params }));
   }
 
@@ -136,7 +94,7 @@ export class AlmacenApiService {
   fijarDisponibilidad(
     id: string,
     sucursalId: string,
-    datos: { disponible: boolean; precio: number | null }
+    datos: { disponible: boolean; precio: string | null }
   ): Promise<DisponibilidadApi> {
     return firstValueFrom(
       this.http.put<DisponibilidadApi>(`${this.base}/${id}/locales/${sucursalId}`, datos)

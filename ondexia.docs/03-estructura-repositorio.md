@@ -201,6 +201,8 @@ Sustantivo del dominio en **español**, sufijo técnico en **inglés**:
 
 `springdoc` deriva el contrato de los controladores y `ExportarContratoIT` lo escribe en `ondexia.contracts/openapi.yaml` en cada ejecución de la suite. De ahí se genera el cliente Angular.
 
+Para el catálogo de bienes y servicios, la misma prueba genera `apps/frontend/ondexia.web/src/app/nucleo/almacen.modelos.ts` desde el YAML exportado. Ese archivo se confirma junto al contrato y lo consume `AlmacenApiService`. El paso «Contrato y modelos sincronizados» de CI falla si la regeneración difiere de los archivos confirmados.
+
 Que lo escriba una prueba es intencionado: **el contrato no puede quedarse atrás**. Se regenera siempre, y si cambia aparece en `git status` junto al cambio que lo provocó. La alternativa —acordarse de regenerarlo— es exactamente el fallo que el contrato existe para evitar (§5).
 
 ## 5. Contratos — el detalle que más rinde con un solo desarrollador

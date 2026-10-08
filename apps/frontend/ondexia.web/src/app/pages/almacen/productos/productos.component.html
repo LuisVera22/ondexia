@@ -1,6 +1,6 @@
 <div>
   <app-encabezado-pagina
-    titulo="Productos"
+    [titulo]="titulo"
     descripcion="El catálogo es de la empresa: código, unidad, afectación al IGV y precio de lista. En qué local se vende, a qué precio y cuánto hay se decide en cada ficha."
   />
 
@@ -23,7 +23,7 @@
       class="w-full sm:w-48"
     />
     @if (puedeRegistrar()) {
-    <app-boton icono="mas" class="shrink-0" (accion)="nuevo()">Nuevo producto</app-boton>
+    <app-boton icono="mas" class="shrink-0" (accion)="nuevo()">Nuevo {{ nombreSingular }}</app-boton>
     }
   </div>
 
@@ -33,8 +33,8 @@
   </div>
   } @else {
   <app-tabla-datos
-    nombrePlural="productos"
-    nombreSingular="producto"
+    [nombrePlural]="nombrePlural"
+    [nombreSingular]="nombreSingular"
     [acciones]="accionesDeFila"
     campoDescripcion="nombre"
     (accionElegida)="ejecutarAccion($event)"
@@ -47,9 +47,9 @@
     [tamanoPagina]="tamanoPagina"
     [totalRegistros]="registros.length"
     [vacioPorFiltros]="hayFiltrosActivos"
-    vacioTitulo="Aún no hay productos"
+    [vacioTitulo]="'Aún no hay ' + nombrePlural"
     vacioDescripcion="Sin productos no hay nada que vender. El primero se ofrece en el establecimiento en el que trabajas."
-    [vacioAccion]="puedeRegistrar() ? 'Nuevo producto' : ''"
+    [vacioAccion]="puedeRegistrar() ? 'Nuevo ' + nombreSingular : ''"
     (ordenarPor)="orden = $event"
     (cambiarPagina)="pagina = $event"
     (filaClic)="abrirFicha($event)"
