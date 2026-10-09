@@ -89,7 +89,7 @@
       por decision de §9.4 — en un sistema que firma comprobantes con valor
       tributario, un CVE conocido es un defecto, no un aviso.
     -->
-    <dependency-check.version>12.1.0</dependency-check.version>
+    <dependency-check.version>13.0.0</dependency-check.version>
     <dependency-check.failBuildOnCVSS>7</dependency-check.failBuildOnCVSS>
     <!-- Se apaga en local con -Ddependency-check.skip=true. -->
     <dependency-check.skip>false</dependency-check.skip>
