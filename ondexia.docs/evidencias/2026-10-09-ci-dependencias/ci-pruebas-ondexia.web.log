@@ -1,0 +1,206 @@
+$ ng test --no-watch --browsers=ChromeHeadless
+❯ Building...
+✔ Building...
+Initial chunk files                                                                      | Names                                                                                 |  Raw size
+chunk-UZ375XWU.js                                                                        | -                                                                                     |   1.11 MB | 
+chunk-IMRU2FKO.js                                                                        | -                                                                                     |   1.09 MB | 
+polyfills.js                                                                             | polyfills                                                                             |   1.02 MB | 
+chunk-BUBQ6Q52.js                                                                        | -                                                                                     | 344.22 kB | 
+chunk-N6ALUT3K.js                                                                        | -                                                                                     | 256.11 kB | 
+chunk-B4BMFKNI.js                                                                        | -                                                                                     | 188.33 kB | 
+chunk-TRGKBHQA.js                                                                        | -                                                                                     | 172.27 kB | 
+chunk-DGTPACL6.js                                                                        | -                                                                                     |  98.03 kB | 
+styles.css                                                                               | styles                                                                                |  83.86 kB | 
+jasmine-cleanup-1.js                                                                     | jasmine-cleanup-1                                                                     |  67.16 kB | 
+chunk-KR35ZZAO.js                                                                        | -                                                                                     |  55.24 kB | 
+chunk-EXENS5PN.js                                                                        | -                                                                                     |  42.95 kB | 
+chunk-H3MPK3NZ.js                                                                        | -                                                                                     |  41.28 kB | 
+chunk-UXLRKLBI.js                                                                        | -                                                                                     |  41.05 kB | 
+chunk-XOUZRATB.js                                                                        | -                                                                                     |  36.93 kB | 
+chunk-AXAJAQUM.js                                                                        | -                                                                                     |  36.74 kB | 
+chunk-UK3AN6O5.js                                                                        | -                                                                                     |  30.53 kB | 
+chunk-UM2PQUIX.js                                                                        | -                                                                                     |  30.26 kB | 
+chunk-3G37EJR2.js                                                                        | -                                                                                     |  21.86 kB | 
+chunk-W6OGT5ST.js                                                                        | -                                                                                     |  21.28 kB | 
+chunk-NVXED3IO.js                                                                        | -                                                                                     |  13.43 kB | 
+spec-app-pages-ventas-punto-de-venta-punto-de-venta.component.spec.js                    | spec-app-pages-ventas-punto-de-venta-punto-de-venta.component.spec                    |  13.41 kB | 
+spec-app-pages-ventas-punto-de-venta-rutas-emision.spec.js                               | spec-app-pages-ventas-punto-de-venta-rutas-emision.spec                               |  13.12 kB | 
+chunk-NLQ3LWOR.js                                                                        | -                                                                                     |  12.91 kB | 
+chunk-VVT7VYYW.js                                                                        | -                                                                                     |  12.65 kB | 
+chunk-VMICRZBA.js                                                                        | -                                                                                     |  12.22 kB | 
+spec-app-shared-components-comunes-tabla-datos-tabla-datos.desborde.spec.js              | spec-app-shared-components-comunes-tabla-datos-tabla-datos.desborde.spec              |  11.35 kB | 
+chunk-ZGYIBUR7.js                                                                        | -                                                                                     |  11.21 kB | 
+spec-app-pages-ventas-clientes-alta-cliente-venta.component.spec.js                      | spec-app-pages-ventas-clientes-alta-cliente-venta.component.spec                      |  11.11 kB | 
+chunk-W5MRQWXA.js                                                                        | -                                                                                     |  10.50 kB | 
+chunk-BQPNHZFO.js                                                                        | -                                                                                     |   9.96 kB | 
+chunk-GTW6D4O6.js                                                                        | -                                                                                     |   9.54 kB | 
+spec-app-pages-ventas-documentos-detalle-documento.component.spec.js                     | spec-app-pages-ventas-documentos-detalle-documento.component.spec                     |   8.56 kB | 
+spec-app-pages-ventas-cajas-cajas.component.spec.js                                      | spec-app-pages-ventas-cajas-cajas.component.spec                                      |   8.48 kB | 
+chunk-UTTUYDDC.js                                                                        | -                                                                                     |   8.23 kB | 
+spec-app-pages-acceso-registro-registro.component.spec.js                                | spec-app-pages-acceso-registro-registro.component.spec                                |   8.17 kB | 
+spec-app-pages-ventas-clientes-ficha-cliente.component.spec.js                           | spec-app-pages-ventas-clientes-ficha-cliente.component.spec                           |   8.09 kB | 
+chunk-45HMI2A3.js                                                                        | -                                                                                     |   7.41 kB | 
+spec-app-pages-almacen-ficha-producto-ficha-producto.component.spec.js                   | spec-app-pages-almacen-ficha-producto-ficha-producto.component.spec                   |   7.26 kB | 
+spec-app-nucleo-autenticacion.interceptor.spec.js                                        | spec-app-nucleo-autenticacion.interceptor.spec                                        |   6.96 kB | 
+spec-app-shared-layout-menu-lateral-menu-lateral.component.spec.js                       | spec-app-shared-layout-menu-lateral-menu-lateral.component.spec                       |   6.59 kB | 
+chunk-XAECAUJO.js                                                                        | -                                                                                     |   6.38 kB | 
+spec-app-pages-configuracion-roles-roles.component.spec.js                               | spec-app-pages-configuracion-roles-roles.component.spec                               |   5.75 kB | 
+chunk-VHZBTS77.js                                                                        | -                                                                                     |   5.58 kB | 
+chunk-CRKHNKMW.js                                                                        | -                                                                                     |   5.08 kB | 
+test_main.js                                                                             | test_main                                                                             |   4.74 kB | 
+spec-app-shared-components-comunes-encabezado-pagina-encabezado-pagina.component.spec.js | spec-app-shared-components-comunes-encabezado-pagina-encabezado-pagina.component.spec |   4.49 kB | 
+chunk-3XZXUG34.js                                                                        | -                                                                                     |   4.10 kB | 
+spec-app-shared-components-comunes-aviso-suscripcion-aviso-suscripcion.component.spec.js | spec-app-shared-components-comunes-aviso-suscripcion-aviso-suscripcion.component.spec |   3.39 kB | 
+spec-app-shared-components-comunes-panel-flotante-posicion-flotante.spec.js              | spec-app-shared-components-comunes-panel-flotante-posicion-flotante.spec              |   3.29 kB | 
+chunk-56XETDED.js                                                                        | -                                                                                     |   3.27 kB | 
+chunk-QIC2MCKV.js                                                                        | -                                                                                     |   3.04 kB | 
+chunk-IYCMK7LC.js                                                                        | -                                                                                     |   2.98 kB | 
+chunk-U7SKXDT7.js                                                                        | -                                                                                     |   2.87 kB | 
+spec-app-nucleo-permiso.guard.spec.js                                                    | spec-app-nucleo-permiso.guard.spec                                                    |   2.81 kB | 
+chunk-7LMK5XWV.js                                                                        | -                                                                                     |   2.52 kB | 
+chunk-HCVFPISK.js                                                                        | -                                                                                     |   2.33 kB | 
+spec-app-shared-foco-visible.spec.js                                                     | spec-app-shared-foco-visible.spec                                                     |   2.18 kB | 
+chunk-ULECGARS.js                                                                        | -                                                                                     |   1.84 kB | 
+chunk-55KPPTAF.js                                                                        | -                                                                                     |   1.70 kB | 
+chunk-RVJLLU2J.js                                                                        | -                                                                                     |   1.35 kB | 
+chunk-DSVQTFV7.js                                                                        | -                                                                                     |   1.20 kB | 
+spec-app-nucleo-importe-catalogo.spec.js                                                 | spec-app-nucleo-importe-catalogo.spec                                                 |   1.16 kB | 
+chunk-PW3UCL4X.js                                                                        | -                                                                                     | 975 bytes | 
+chunk-7LK3OXGE.js                                                                        | -                                                                                     | 795 bytes | 
+chunk-GN2GICKM.js                                                                        | -                                                                                     | 679 bytes | 
+chunk-4PGRGBUO.js                                                                        | -                                                                                     | 672 bytes | 
+jasmine-cleanup-0.js                                                                     | jasmine-cleanup-0                                                                     | 537 bytes | 
+
+                                                                                         | Initial total                                                                         |   5.08 MB
+
+Application bundle generation complete. [3.681 seconds] - 2026-10-09T00:53:55.064Z
+
+09 10 2026 00:53:55.205:INFO [karma-server]: Karma v6.4.4 server started at http://localhost:9876/
+09 10 2026 00:53:55.207:INFO [launcher]: Launching browsers ChromeHeadless with concurrency unlimited
+09 10 2026 00:53:55.210:INFO [launcher]: Starting browser ChromeHeadless
+09 10 2026 00:53:55.536:INFO [Chrome Headless 151.0.0.0 (Linux 0.0.0)]: Connected on socket MTAmmovINzLXPd1WAAAB with id 12212766
+Chrome Headless 151.0.0.0 (Linux 0.0.0): Executed 0 of 119[32m SUCCESS[39m (0 secs / 0 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 1 of 119[32m SUCCESS[39m (0 secs / 0.021 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 2 of 119[32m SUCCESS[39m (0 secs / 0.026 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 3 of 119[32m SUCCESS[39m (0 secs / 0.03 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 4 of 119[32m SUCCESS[39m (0 secs / 0.034 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 5 of 119[32m SUCCESS[39m (0 secs / 0.038 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 6 of 119[32m SUCCESS[39m (0 secs / 0.25 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 7 of 119[32m SUCCESS[39m (0 secs / 0.267 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 8 of 119[32m SUCCESS[39m (0 secs / 0.288 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 9 of 119[32m SUCCESS[39m (0 secs / 0.302 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 10 of 119[32m SUCCESS[39m (0 secs / 0.313 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 11 of 119[32m SUCCESS[39m (0 secs / 0.324 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 12 of 119[32m SUCCESS[39m (0 secs / 0.334 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 13 of 119[32m SUCCESS[39m (0 secs / 0.345 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 14 of 119[32m SUCCESS[39m (0 secs / 0.354 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 15 of 119[32m SUCCESS[39m (0 secs / 0.357 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 16 of 119[32m SUCCESS[39m (0 secs / 0.364 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 17 of 119[32m SUCCESS[39m (0 secs / 0.365 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 18 of 119[32m SUCCESS[39m (0 secs / 0.366 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 19 of 119[32m SUCCESS[39m (0 secs / 0.367 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 20 of 119[32m SUCCESS[39m (0 secs / 0.368 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 21 of 119[32m SUCCESS[39m (0 secs / 0.372 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 22 of 119[32m SUCCESS[39m (0 secs / 0.375 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 23 of 119[32m SUCCESS[39m (0 secs / 0.377 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 24 of 119[32m SUCCESS[39m (0 secs / 0.379 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 25 of 119[32m SUCCESS[39m (0 secs / 0.38 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 26 of 119[32m SUCCESS[39m (0 secs / 0.381 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 27 of 119[32m SUCCESS[39m (0 secs / 0.383 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 28 of 119[32m SUCCESS[39m (0 secs / 0.452 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 29 of 119[32m SUCCESS[39m (0 secs / 0.454 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 30 of 119[32m SUCCESS[39m (0 secs / 0.455 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 31 of 119[32m SUCCESS[39m (0 secs / 0.457 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 32 of 119[32m SUCCESS[39m (0 secs / 0.458 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 33 of 119[32m SUCCESS[39m (0 secs / 0.46 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 34 of 119[32m SUCCESS[39m (0 secs / 0.462 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 35 of 119[32m SUCCESS[39m (0 secs / 0.464 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 36 of 119[32m SUCCESS[39m (0 secs / 0.467 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 37 of 119[32m SUCCESS[39m (0 secs / 0.468 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 38 of 119[32m SUCCESS[39m (0 secs / 0.469 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 39 of 119[32m SUCCESS[39m (0 secs / 0.471 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 40 of 119[32m SUCCESS[39m (0 secs / 0.473 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 41 of 119[32m SUCCESS[39m (0 secs / 0.474 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 42 of 119[32m SUCCESS[39m (0 secs / 0.475 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 43 of 119[32m SUCCESS[39m (0 secs / 0.52 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 44 of 119[32m SUCCESS[39m (0 secs / 0.522 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 45 of 119[32m SUCCESS[39m (0 secs / 0.523 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 46 of 119[32m SUCCESS[39m (0 secs / 0.524 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 47 of 119[32m SUCCESS[39m (0 secs / 0.524 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 48 of 119[32m SUCCESS[39m (0 secs / 0.525 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 49 of 119[32m SUCCESS[39m (0 secs / 0.525 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 50 of 119[32m SUCCESS[39m (0 secs / 0.526 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 51 of 119[32m SUCCESS[39m (0 secs / 0.527 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 52 of 119[32m SUCCESS[39m (0 secs / 0.528 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 53 of 119[32m SUCCESS[39m (0 secs / 0.529 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 54 of 119[32m SUCCESS[39m (0 secs / 0.53 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 55 of 119[32m SUCCESS[39m (0 secs / 0.533 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 56 of 119[32m SUCCESS[39m (0 secs / 0.534 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 57 of 119[32m SUCCESS[39m (0 secs / 0.541 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 58 of 119[32m SUCCESS[39m (0 secs / 0.543 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 59 of 119[32m SUCCESS[39m (0 secs / 0.546 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 60 of 119[32m SUCCESS[39m (0 secs / 0.548 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 61 of 119[32m SUCCESS[39m (0 secs / 0.56 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 62 of 119[32m SUCCESS[39m (0 secs / 0.562 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 63 of 119[32m SUCCESS[39m (0 secs / 0.564 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 64 of 119[32m SUCCESS[39m (0 secs / 0.565 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 65 of 119[32m SUCCESS[39m (0 secs / 0.565 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 66 of 119[32m SUCCESS[39m (0 secs / 0.566 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 67 of 119[32m SUCCESS[39m (0 secs / 0.566 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 68 of 119[32m SUCCESS[39m (0 secs / 0.567 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 69 of 119[32m SUCCESS[39m (0 secs / 0.567 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 70 of 119[32m SUCCESS[39m (0 secs / 0.643 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 71 of 119[32m SUCCESS[39m (0 secs / 0.664 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 72 of 119[32m SUCCESS[39m (0 secs / 0.683 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 73 of 119[32m SUCCESS[39m (0 secs / 0.702 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 74 of 119[32m SUCCESS[39m (0 secs / 0.722 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 75 of 119[32m SUCCESS[39m (0 secs / 0.741 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 76 of 119[32m SUCCESS[39m (0 secs / 0.76 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 77 of 119[32m SUCCESS[39m (0 secs / 0.786 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 78 of 119[32m SUCCESS[39m (0 secs / 0.788 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 79 of 119[32m SUCCESS[39m (0 secs / 0.789 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 80 of 119[32m SUCCESS[39m (0 secs / 0.791 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 81 of 119[32m SUCCESS[39m (0 secs / 0.792 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 82 of 119[32m SUCCESS[39m (0 secs / 0.794 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 83 of 119[32m SUCCESS[39m (0 secs / 0.796 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 84 of 119[32m SUCCESS[39m (0 secs / 0.797 secs)
+[1A[2KWARN: [36m'Spec 'El foco visible con el ratón no se pinta nada' has no expectations.'[39m
+Chrome Headless 151.0.0.0 (Linux 0.0.0): Executed 84 of 119[32m SUCCESS[39m (0 secs / 0.797 secs)
+WARN: 'Spec 'El foco visible con el ratón no se pinta nada' has no expectations.'
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 85 of 119[32m SUCCESS[39m (0 secs / 0.798 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 86 of 119[32m SUCCESS[39m (0 secs / 0.801 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 87 of 119[32m SUCCESS[39m (0 secs / 0.803 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 88 of 119[32m SUCCESS[39m (0 secs / 0.804 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 89 of 119[32m SUCCESS[39m (0 secs / 0.805 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 90 of 119[32m SUCCESS[39m (0 secs / 0.806 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 91 of 119[32m SUCCESS[39m (0 secs / 0.807 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 92 of 119[32m SUCCESS[39m (0 secs / 0.808 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 93 of 119[32m SUCCESS[39m (0 secs / 0.809 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 94 of 119[32m SUCCESS[39m (0 secs / 0.81 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 95 of 119[32m SUCCESS[39m (0 secs / 0.81 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 96 of 119[32m SUCCESS[39m (0 secs / 0.81 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 97 of 119[32m SUCCESS[39m (0 secs / 0.811 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 98 of 119[32m SUCCESS[39m (0 secs / 0.812 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 99 of 119[32m SUCCESS[39m (0 secs / 0.813 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 100 of 119[32m SUCCESS[39m (0 secs / 0.814 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 101 of 119[32m SUCCESS[39m (0 secs / 0.816 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 102 of 119[32m SUCCESS[39m (0 secs / 0.868 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 103 of 119[32m SUCCESS[39m (0 secs / 0.88 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 104 of 119[32m SUCCESS[39m (0 secs / 0.889 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 105 of 119[32m SUCCESS[39m (0 secs / 0.9 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 106 of 119[32m SUCCESS[39m (0 secs / 0.908 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 107 of 119[32m SUCCESS[39m (0 secs / 0.913 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 108 of 119[32m SUCCESS[39m (0 secs / 0.915 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 109 of 119[32m SUCCESS[39m (0 secs / 0.916 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 110 of 119[32m SUCCESS[39m (0 secs / 0.918 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 111 of 119[32m SUCCESS[39m (0 secs / 0.918 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 112 of 119[32m SUCCESS[39m (0 secs / 0.92 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 113 of 119[32m SUCCESS[39m (0 secs / 0.922 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 114 of 119[32m SUCCESS[39m (0 secs / 0.924 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 115 of 119[32m SUCCESS[39m (0 secs / 0.926 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 116 of 119[32m SUCCESS[39m (0 secs / 0.929 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 117 of 119[32m SUCCESS[39m (0 secs / 0.931 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 118 of 119[32m SUCCESS[39m (0 secs / 0.933 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 119 of 119[32m SUCCESS[39m (0 secs / 0.935 secs)
+[1A[2KChrome Headless 151.0.0.0 (Linux 0.0.0): Executed 119 of 119[32m SUCCESS[39m (1.035 secs / 0.935 secs)
+[32mTOTAL: 119 SUCCESS[39m
