@@ -4,6 +4,12 @@
 *.p12
 *.jks
 *.pem
+# Excepción: el paquete PÚBLICO de autoridades certificadoras de RDS. No es un
+# secreto —lo publica AWS para todo el mundo— y la API lo necesita dentro del
+# artefacto para verificar la identidad de la base (verify-full). Sin esta
+# línea el archivo se queda en el disco de quien lo descargó y la nube arranca
+# sin él: es exactamente lo que pasó y detectó la validación del 2026-09-07.
+!apps/backend/certificados/rds-global-bundle.pem
 *.key
 *.crt
 .env
@@ -23,20 +29,53 @@ dist/
 *.tsbuildinfo
 coverage/
 
+# === pnpm ===
+# El lockfile SÍ va al repositorio: es lo que garantiza que tu máquina y el CI
+# instalen exactamente las mismas versiones. Lo mismo pnpm-workspace.yaml, que
+# es configuración del monorepo. Aquí solo se excluye lo regenerable.
+.pnpm-store/
+.pnpm-debug.log*
+
+# Un solo gestor de paquetes. Dos lockfiles conviviendo permiten que el CI
+# instale un árbol de dependencias distinto al local sin que nadie lo note,
+# y eso solo se descubre cuando falla el despliegue.
+package-lock.json
+yarn.lock
+
 # === Java / Maven ===
 target/
 *.class
 !.mvn/wrapper/maven-wrapper.jar
 .mvn/timing.properties
 
-# === AWS CDK ===
-cdk.out/
-cdk.context.json
+# === Terraform ===
+# El lockfile .terraform.lock.hcl SI se versiona: fija las versiones y los
+# hashes de los proveedores, que es lo que hace reproducible un despliegue.
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+.terraformrc
+terraform.rc
+# Variables locales con valores propios de una maquina. Los de entornos/ si van.
+terraform.tfvars
+*.auto.tfvars
+# Artefactos generados al empaquetar la Lambda.
+ondexia.infra/.artefactos/
 
 # === Entornos y herramientas ===
 .venv/
 __pycache__/
 *.pyc
+
+# === draw.io ===
+# Archivos de bloqueo que crea la aplicacion de escritorio mientras el
+# diagrama esta abierto. Son temporales y no describen nada.
+.$*.dtmp
+*.bkp
 
 # === Editores ===
 .vscode/*

@@ -1,0 +1,15 @@
+# Perfil 'aws': lo que cambia por correr dentro de Lambda, no por el entorno.
+# Se activa junto al nombre del entorno (SPRING_PROFILES_ACTIVE=aws,dev), igual
+# que en ondexia.api y ondexia.consultas.
+
+spring:
+  threads:
+    virtual:
+      # Apagados en Lambda: sin esto la aplicacion no arranca. Es la trampa del
+      # JAR multi-release que documenta application-aws.yml de ondexia.api.
+      enabled: false
+
+logging:
+  level:
+    root: WARN
+    com.ondexia: INFO

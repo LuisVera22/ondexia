@@ -1,0 +1,35 @@
+<div>
+  <app-encabezado-pagina
+    titulo="Presentaciones"
+    descripcion="Formas de empaque de un producto. El factor indica cuántas unidades base
+    contiene cada presentación; la base tiene factor 1."
+  />
+
+  <div class="mb-5 flex justify-end">
+    <app-boton icono="mas" class="shrink-0">Agregar presentación</app-boton>
+  </div>
+
+  <app-tabla-datos
+    nombrePlural="presentaciones"
+    nombreSingular="presentación"
+    [acciones]="accionesDeFila"
+    campoDescripcion="nombre"
+    (accionElegida)="ejecutarAccion($event)"
+    [columnas]="columnas"
+    [registros]="registros"
+    [totalRegistros]="registros.length"
+    vacioTitulo="Aún no hay presentaciones"
+    vacioDescripcion="Las presentaciones permiten vender el mismo producto por unidad, por caja o por paquete."
+    vacioAccion="Agregar presentación"
+   />
+
+  <app-confirmacion
+    [abierto]="confirmacionAbierta"
+    [peligrosa]="true"
+    titulo="¿Eliminar la presentación?"
+    mensaje="No se puede eliminar la presentación base ni una con existencias registradas."
+    textoConfirmar="Confirmar"
+    (confirmar)="eliminar()"
+    (cancelar)="confirmacionAbierta = false"
+  />
+</div>

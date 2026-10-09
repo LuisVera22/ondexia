@@ -1,0 +1,28 @@
+$ astro check && astro build
+00:55:25 [vite] Re-optimizing dependencies because lockfile has changed
+00:55:25 [types] Generated 103ms
+00:55:25 [check] Getting diagnostics for Astro files in /workspace/ondexia/apps/frontend/ondexia.landing...
+Result (13 files): 
+- 0 errors
+- 0 warnings
+- 0 hints
+
+00:55:28 [types] Generated 37ms
+00:55:28 [build] output: "static"
+00:55:28 [build] mode: "static"
+00:55:28 [build] directory: /workspace/ondexia/apps/frontend/ondexia.landing/dist/
+00:55:28 [build] Collecting build info...
+00:55:28 [build] ✓ Completed in 77ms.
+00:55:28 [build] Building static entrypoints...
+00:55:28 [vite] ✓ built in 298ms
+00:55:28 [vite] ✓ built in 20ms
+00:55:28 [build] Rearranging server assets...
+
+ generating static routes 
+00:55:28   ├─ /index.html (+13ms) 
+00:55:29 ✓ Completed in 27ms.
+
+00:55:29 [build] ✓ Completed in 380ms.
+00:55:29 [@astrojs/sitemap] `sitemap-index.xml` created at `dist`
+00:55:29 [build] 1 page(s) built in 468ms
+00:55:29 [build] Complete!

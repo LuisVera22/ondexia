@@ -1,0 +1,14 @@
+$ ng build
+❯ Building...
+✔ Building...
+Initial chunk files   | Names         |  Raw size | Estimated transfer size
+main-7YHD63XC.js      | main          | 837.16 kB |               168.62 kB
+styles-T3W7NDHP.css   | styles        |  67.19 kB |                 9.72 kB
+polyfills-7R4CRVNH.js | polyfills     |  34.59 kB |                11.33 kB
+
+                      | Initial total | 938.93 kB |               189.68 kB
+
+Application bundle generation complete. [9.106 seconds] - 2026-10-09T00:53:50.272Z
+
+Output location: /workspace/ondexia/apps/frontend/ondexia.web/dist/ondexia-web
+

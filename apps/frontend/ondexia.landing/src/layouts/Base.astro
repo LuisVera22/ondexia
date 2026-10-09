@@ -1,0 +1,152 @@
+---
+/**
+ * Marco de la landing.
+ *
+ * Aquí vive TODO el SEO de la página. La razón de concentrarlo es la misma por
+ * la que los tokens viven en un solo archivo: repartido entre componentes, el
+ * día que cambie el precio de un plan nadie se acuerda de que también está
+ * escrito en un dato estructurado.
+ *
+ * El plan completo está en ondexia.docs/landing-propuesta/SEO.md.
+ */
+import '../styles/global.css';
+
+interface Props {
+  titulo: string;
+  descripcion: string;
+}
+
+const { titulo, descripcion } = Astro.props;
+
+// Absolutas y derivadas de `site` (astro.config.mjs). Escribirlas a mano es
+// como se acaba con un canonical que apunta a localhost.
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const imagenSocial = new URL('/og-ondexia.png', Astro.site).href;
+
+/**
+ * Los precios en un solo sitio.
+ *
+ * Alimentan el dato estructurado de abajo; las tarjetas visibles los repiten en
+ * Precios.astro. Es una duplicación consciente y acotada: unirlos exigiría pasar
+ * datos entre componentes para ahorrar tres números. Lo que no se puede es
+ * cambiarlos aquí y no allá — de eso avisa el comentario de aquel archivo.
+ */
+const planes = [
+  { nombre: 'Base', precio: '89', descripcion: '1 empresa (RUC) y 2 usuarios' },
+  { nombre: 'Intermedio', precio: '199', descripcion: '2 empresas (RUC) y 5 usuarios' },
+  { nombre: 'A demanda', precio: '390', descripcion: 'Empresas y usuarios negociables' },
+];
+
+/**
+ * Datos estructurados.
+ *
+ * `SoftwareApplication` con una oferta por plan es lo que permite que el
+ * buscador muestre el precio junto al resultado. `PEN` y no `S/`: el esquema
+ * pide el código ISO.
+ *
+ * No se declara `aggregateRating` ni `review`. Sería inventar reseñas que no
+ * existen, y además Google penaliza las valoraciones que no se corresponden con
+ * nada visible en la página.
+ */
+const datosEstructurados = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Ondexia',
+  applicationCategory: 'BusinessApplication',
+  applicationSubCategory: 'Facturación electrónica y gestión de inventario',
+  operatingSystem: 'Web',
+  url: 'https://ondexia.com',
+  inLanguage: 'es-PE',
+  description:
+    'Sistema de gestión comercial con facturación electrónica ante SUNAT para empresas peruanas: almacén, compras y ventas en un solo lugar.',
+  areaServed: { '@type': 'Country', name: 'Perú' },
+  featureList: [
+    'Factura electrónica (01)',
+    'Boleta de venta electrónica (03)',
+    'Resumen diario de boletas (RC)',
+    'Liquidación de compra (04)',
+    'Nota de crédito (07) y nota de débito (08)',
+    'Guía de remisión electrónica (09)',
+    'Comunicación de baja',
+    'Control de inventario por establecimiento',
+  ],
+  offers: planes.map((plan) => ({
+    '@type': 'Offer',
+    name: `Plan ${plan.nombre}`,
+    description: plan.descripcion,
+    price: plan.precio,
+    priceCurrency: 'PEN',
+    availability: 'https://schema.org/PreOrder',
+  })),
+};
+---
+
+<!doctype html>
+<html lang="es-PE">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <title>{titulo}</title>
+    <meta name="description" content={descripcion} />
+    <link rel="canonical" href={canonical} />
+
+    {/*
+      Las fuentes van precargadas porque están en la ruta crítica: el titular es
+      lo primero que se pinta y `swap` haría un salto visible al llegar Outfit.
+      `crossorigin` no es opcional aunque el origen sea el mismo — sin él el
+      navegador descarga el archivo dos veces.
+    */}
+    <link
+      rel="preload"
+      href="/fonts/outfit-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
+    {/*
+      Compartir por WhatsApp es el canal real en Perú, y ahí lo único que se ve
+      es esta tarjeta. `og:image` apunta a un PNG de 1200×630 que hay que
+      generar: ver el pendiente del README.
+    */}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Ondexia" />
+    <meta property="og:locale" content="es_PE" />
+    <meta property="og:title" content={titulo} />
+    <meta property="og:description" content={descripcion} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={imagenSocial} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={titulo} />
+    <meta name="twitter:description" content={descripcion} />
+    <meta name="twitter:image" content={imagenSocial} />
+
+    <meta name="theme-color" content="#4f46e5" />
+
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(datosEstructurados)}
+      is:inline
+    />
+  </head>
+
+  <body>
+    {/*
+      Salto al contenido. Es lo primero que encuentra quien navega con teclado,
+      y sin él hay que tabular por toda la barra en cada carga. Está oculto
+      hasta que recibe el foco.
+    */}
+    <a
+      href="#contenido"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-base focus:bg-gray-900 focus:px-5 focus:py-3 focus:text-white"
+    >
+      Saltar al contenido
+    </a>
+
+    <slot />
+  </body>
+</html>

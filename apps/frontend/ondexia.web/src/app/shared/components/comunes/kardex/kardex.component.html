@@ -1,0 +1,225 @@
+<div>
+  <!-- Filtros -->
+  <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div class="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-3">
+      @if (almacenes.length > 1) {
+      <div>
+        <label for="kardexAlmacen" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">
+          Almacén
+        </label>
+        <app-desplegable idCampo="kardexAlmacen" [opciones]="opcionesAlmacen"
+          [(ngModel)]="almacenFiltro" (ngModelChange)="reiniciarPagina()" />
+      </div>
+      }
+
+      <div>
+        <label for="kardexDesde" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Desde</label>
+        <input id="kardexDesde" type="date" [(ngModel)]="desde" (ngModelChange)="reiniciarPagina()"
+          class="h-10 w-full rounded-base border border-gray-300 bg-transparent px-3 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+      </div>
+
+      <div>
+        <label for="kardexHasta" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Hasta</label>
+        <input id="kardexHasta" type="date" [(ngModel)]="hasta" (ngModelChange)="reiniciarPagina()"
+          class="h-10 w-full rounded-base border border-gray-300 bg-transparent px-3 text-sm text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+      </div>
+    </div>
+
+    <div class="flex shrink-0 gap-2">
+      @if (hayFiltrosActivos) {
+      <button type="button" (click)="limpiarFiltros()"
+        class="h-10 rounded-base border border-gray-300 px-4 text-sm text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+        Limpiar
+      </button>
+      }
+      <button type="button"
+        class="flex h-10 items-center gap-2 rounded-base border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 4v11m0 0 4-4m-4 4-4-4M5 19h14" />
+        </svg>
+        Exportar
+      </button>
+    </div>
+  </div>
+
+  <!-- Método de valuación -->
+  <div class="mb-4 flex items-start gap-3 rounded-base border border-blue-light-200 bg-blue-light-50 p-3.5 dark:border-blue-light-500/30 dark:bg-blue-light-500/10">
+    <svg class="mt-0.5 shrink-0 text-blue-light-500" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" />
+    </svg>
+    <p class="text-sm text-blue-light-700 dark:text-blue-light-400">
+      Las salidas se valorizan por <strong>promedio ponderado</strong>: cada
+      entrada recalcula el costo promedio y las salidas se descargan a ese
+      costo. Las cifras son de <strong>costo</strong> —lo que la existencia
+      costó adquirirla—, no de precio de venta. El kardex es de solo lectura:
+      se construye desde las guías de ingreso, las ventas y los traslados.
+    </p>
+  </div>
+
+  @if (total === 0) {
+  <div class="rounded-base border border-gray-200 px-5 py-14 text-center dark:border-gray-800">
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+      @if (hayFiltrosActivos) {
+      Ningún movimiento coincide con los filtros aplicados.
+      } @else {
+      Este producto todavía no registra movimientos de existencias.
+      }
+    </p>
+  </div>
+  } @else {
+  <!-- Resumen -->
+  <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-4">
+    <div class="rounded-base border border-gray-200 px-4 py-3 dark:border-gray-800">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Total entradas</p>
+      <p class="mt-0.5 text-lg font-semibold tabular-nums text-success-600 dark:text-success-400">
+        {{ cantidad(totalEntradas) }} <span class="text-xs font-normal text-gray-400">{{ unidad }}</span>
+      </p>
+    </div>
+    <div class="rounded-base border border-gray-200 px-4 py-3 dark:border-gray-800">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Total salidas</p>
+      <p class="mt-0.5 text-lg font-semibold tabular-nums text-error-600 dark:text-error-400">
+        {{ cantidad(totalSalidas) }} <span class="text-xs font-normal text-gray-400">{{ unidad }}</span>
+      </p>
+    </div>
+    <div class="rounded-base border border-gray-200 px-4 py-3 dark:border-gray-800">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Costo promedio</p>
+      <p class="mt-0.5 text-lg font-semibold tabular-nums text-gray-800 dark:text-white/90">
+        {{ simboloMoneda }} {{ formato(saldoFinal?.saldoCostoUnitario ?? 0) }}
+      </p>
+    </div>
+    <div class="rounded-base border border-gray-200 px-4 py-3 dark:border-gray-800">
+      <p class="text-xs text-gray-500 dark:text-gray-400">Saldo valorizado</p>
+      <p class="mt-0.5 text-lg font-semibold tabular-nums text-gray-800 dark:text-white/90">
+        {{ simboloMoneda }} {{ formato(saldoFinal?.saldoCostoTotal ?? 0) }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Movimientos -->
+  <div class="overflow-x-auto rounded-base border border-gray-200 dark:border-gray-800">
+    <table class="w-full min-w-[900px]">
+      <thead>
+        <tr class="border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
+          <th rowspan="2" class="px-4 py-3 text-left align-bottom">Fecha</th>
+          <th rowspan="2" class="px-3 py-3 text-left align-bottom">Operación</th>
+          <th rowspan="2" class="px-3 py-3 text-left align-bottom">Documento</th>
+          <th colspan="4" class="border-l border-gray-200 px-3 py-2 text-center dark:border-gray-800">Movimiento</th>
+          <th colspan="3" class="border-l border-gray-200 px-3 py-2 text-center dark:border-gray-800">Saldo</th>
+        </tr>
+        <tr class="border-b border-gray-200 text-[11px] font-medium uppercase text-gray-400 dark:border-gray-800 dark:text-gray-500">
+          <th class="border-l border-gray-200 px-3 py-2 text-left dark:border-gray-800">Tipo</th>
+          <th class="px-3 py-2 text-right">Cantidad</th>
+          <th class="px-3 py-2 text-right">Costo unit.</th>
+          <th class="px-3 py-2 text-right">Costo total</th>
+          <th class="border-l border-gray-200 px-3 py-2 text-right dark:border-gray-800">Cantidad</th>
+          <th class="px-3 py-2 text-right">Costo unit.</th>
+          <th class="px-4 py-2 text-right">Costo total</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+        @if (saldoArrastrado; as arrastre) {
+        <tr class="bg-gray-50 text-sm text-gray-600 dark:bg-white/[0.02] dark:text-gray-400">
+          <td colspan="7" class="px-4 py-3 italic">{{ etiquetaSaldoArrastrado }}</td>
+          <td class="border-l border-gray-100 px-3 py-3 text-right font-medium tabular-nums dark:border-gray-800">
+            {{ cantidad(arrastre.saldoCantidad) }}
+          </td>
+          <td class="px-3 py-3 text-right tabular-nums">{{ formato(arrastre.saldoCostoUnitario) }}</td>
+          <td class="px-4 py-3 text-right font-medium tabular-nums">{{ formato(arrastre.saldoCostoTotal) }}</td>
+        </tr>
+        }
+
+        @for (fila of filas; track $index) {
+        <tr class="text-sm text-gray-700 dark:text-gray-300">
+          <td class="whitespace-nowrap px-4 py-3 tabular-nums">{{ fila.fecha }}</td>
+          <td class="px-3 py-3">
+            <span class="block">{{ fila.operacion }}</span>
+            <span class="block text-xs text-gray-400">{{ fila.codigoOperacion }} · {{ fila.almacen }}</span>
+          </td>
+          <td class="whitespace-nowrap px-3 py-3 tabular-nums text-gray-600 dark:text-gray-400">
+            {{ fila.documento }}
+          </td>
+
+          <td class="border-l border-gray-100 px-3 py-3 dark:border-gray-800">
+            @if (fila.tipo === 'entrada') {
+            <span class="inline-flex items-center gap-1 rounded-full bg-success-50 px-2 py-0.5 text-xs font-medium text-success-700 dark:bg-success-500/15 dark:text-success-400">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 19V5m0 0-6 6m6-6 6 6" />
+              </svg>
+              Entrada
+            </span>
+            } @else {
+            <span class="inline-flex items-center gap-1 rounded-full bg-error-50 px-2 py-0.5 text-xs font-medium text-error-700 dark:bg-error-500/15 dark:text-error-400">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 5v14m0 0 6-6m-6 6-6-6" />
+              </svg>
+              Salida
+            </span>
+            }
+          </td>
+          <td class="px-3 py-3 text-right font-medium tabular-nums"
+            [class]="fila.tipo === 'entrada' ? 'text-success-600 dark:text-success-400' : 'text-error-600 dark:text-error-400'">
+            {{ fila.tipo === 'entrada' ? '+' : '−' }}{{ cantidad(fila.cantidad) }}
+          </td>
+          <td class="px-3 py-3 text-right tabular-nums">{{ formato(fila.costoUnitarioEfectivo) }}</td>
+          <td class="px-3 py-3 text-right tabular-nums">{{ formato(fila.costoTotalEfectivo) }}</td>
+
+          <td class="border-l border-gray-100 px-3 py-3 text-right font-medium tabular-nums dark:border-gray-800">
+            {{ cantidad(fila.saldoCantidad) }}
+          </td>
+          <td class="px-3 py-3 text-right tabular-nums">{{ formato(fila.saldoCostoUnitario) }}</td>
+          <td class="px-4 py-3 text-right font-medium tabular-nums">{{ formato(fila.saldoCostoTotal) }}</td>
+        </tr>
+        }
+      </tbody>
+
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex flex-wrap items-center gap-3">
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Mostrando {{ rangoDesde }} a {{ rangoHasta }} de {{ total }}
+        {{ total === 1 ? 'movimiento' : 'movimientos' }}
+      </p>
+
+      @if (total > tamanosPagina[0]) {
+      <label class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+        <span class="hidden sm:inline">Por página</span>
+        <div class="w-20">
+          <app-desplegable [opciones]="opcionesTamano" [ngModel]="tamanoPaginaTexto"
+            (ngModelChange)="cambiarTamano($event)" alto="compacto"
+            etiquetaAccesible="Movimientos por página" />
+        </div>
+      </label>
+      }
+    </div>
+
+    <!-- Siempre visible: si desaparece al quedar una sola página, el usuario
+         no sabe si la tabla está paginada o si el control se rompió. -->
+    <div class="flex items-center gap-1">
+      <button type="button" (click)="irAPagina(paginaVigente - 1)" [disabled]="paginaVigente === 1"
+        class="rounded-base border border-gray-300 px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+        Anterior
+      </button>
+
+      @for (numero of paginasVisibles; track numero) {
+      <button type="button" (click)="irAPagina(numero)"
+        [attr.aria-current]="numero === paginaVigente ? 'page' : null"
+        class="min-w-9 rounded-base px-3 py-1.5 text-sm tabular-nums transition"
+        [class]="numero === paginaVigente
+          ? 'bg-brand-500 text-white'
+          : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/[0.03]'">
+        {{ numero }}
+      </button>
+      }
+
+      <button type="button" (click)="irAPagina(paginaVigente + 1)" [disabled]="paginaVigente === totalPaginas"
+        class="rounded-base border border-gray-300 px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50 disabled:opacity-40 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+        Siguiente
+      </button>
+    </div>
+  </div>
+  }
+</div>

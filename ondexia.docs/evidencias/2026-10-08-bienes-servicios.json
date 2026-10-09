@@ -1,0 +1,392 @@
+{
+  "fecha_utc": "2026-10-08T21:28:23.868234+00:00",
+  "rama": "develop",
+  "commit_base": "538dffd8eb1f7e84a1bf8b206f3b9ecbc30d122b",
+  "rojo_sobre_base": {
+    "TiposDeProductoIT": {
+      "casos": 5,
+      "fallos": 5,
+      "errores": 0
+    },
+    "web": {
+      "casos": 83,
+      "fallos_nuevos": 3,
+      "anteriores_correctos": 80
+    }
+  },
+  "verde": {
+    "backend": {
+      "ondexia.admin": {
+        "tests": 41,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "ondexia.facturacion": {
+        "tests": 27,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "ondexia.consultas": {
+        "tests": 41,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "ondexia.domain": {
+        "tests": 123,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "ondexia.api": {
+        "tests": 269,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "web": {
+      "casos": 88,
+      "fallos": 0
+    },
+    "compilacion_web": "correcta",
+    "tono_y_forma": "correcto"
+  },
+  "mutaciones": [
+    {
+      "mutacion": "venta-servicio-descarga",
+      "archivo": "apps/backend/ondexia.api/src/main/java/com/ondexia/application/ventas/DocumentosDeVenta.java",
+      "prueba": "PuntoDeVentaIT#notaDeVentaCompleta",
+      "estado": "detectada",
+      "fallos": [
+        {
+          "prueba": "notaDeVentaCompleta",
+          "tipo": "failure",
+          "mensaje": "Status expected:<201> but was:<400>"
+        }
+      ],
+      "sha256_original": "f4030fe51c224522f298e4bc4dfcbd087e14b010d3e2ca0df016e165d88013c6"
+    },
+    {
+      "mutacion": "relleno-sin-superar-force-rls",
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V26__tipo_explicito_de_producto.sql",
+      "prueba": "MigracionDeTiposIT",
+      "estado": "detectada",
+      "fallos": [
+        {
+          "prueba": "rellenoDesdeControlDeStockYRestauracionDelAislamiento",
+          "tipo": "error",
+          "mensaje": "ERROR: column \"tipo\" of relation \"producto\" contains null values"
+        }
+      ],
+      "sha256_original": "fd9b7cbc149ba6c99f2d582128f4aa5a1bb07029ecafee54cbe1777938dab745"
+    },
+    {
+      "mutacion": "conversion-ignora-historia",
+      "archivo": "apps/backend/ondexia.api/src/main/java/com/ondexia/application/almacen/Productos.java",
+      "prueba": "TiposDeProductoIT",
+      "estado": "detectada",
+      "fallos": [
+        {
+          "prueba": "unMovimientoSinProyeccionDeStockImpideConvertir",
+          "tipo": "failure",
+          "mensaje": "Status expected:<400> but was:<500>"
+        },
+        {
+          "prueba": "unaFilaDeStockCeroSinMovimientosImpideConvertir",
+          "tipo": "failure",
+          "mensaje": "Status expected:<400> but was:<500>"
+        },
+        {
+          "prueba": "movimientosAunqueElSaldoSeaCeroImpidenConvertir",
+          "tipo": "failure",
+          "mensaje": "Status expected:<400> but was:<500>"
+        }
+      ],
+      "sha256_original": "2cfbd7815a33216bf5032c9b06387ad75a1822f3ce9a29d945806fa293a40643"
+    },
+    {
+      "mutacion": "conversion-bd-ignora-stock",
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V26__tipo_explicito_de_producto.sql",
+      "prueba": "ConcurrenciaDeTiposIT",
+      "estado": "detectada",
+      "fallos": [
+        {
+          "prueba": "stockConfirmadoImpideConvertirAunqueNoTengaMovimientos",
+          "tipo": "failure",
+          "mensaje": "\nExpecting code to raise a throwable."
+        }
+      ],
+      "sha256_original": "fd9b7cbc149ba6c99f2d582128f4aa5a1bb07029ecafee54cbe1777938dab745"
+    },
+    {
+      "mutacion": "unidad-incompatible-en-dominio",
+      "archivo": "apps/backend/ondexia.domain/src/main/java/com/ondexia/domain/almacen/Producto.java",
+      "estado": "detectada",
+      "grupo": "backend",
+      "sha256_original": "8010afac8ce9f90a826d9ab4cc25c871a877f6cf6938d2b3f36896c8980add56"
+    },
+    {
+      "mutacion": "menu-vuelve-a-mezclar-catalogo",
+      "archivo": "apps/frontend/ondexia.web/src/app/shared/layout/menu-lateral/menu-lateral.component.ts",
+      "estado": "detectada",
+      "grupo": "frontend",
+      "sha256_original": "ad08151a9624d6d0dd0e34073fd6945e8e028e9d203926a6ca88819d0cb7f55f"
+    },
+    {
+      "mutacion": "importe-convertido-a-coma-flotante",
+      "archivo": "apps/frontend/ondexia.web/src/app/pages/almacen/ficha-producto/ficha-producto.component.ts",
+      "estado": "detectada",
+      "grupo": "frontend",
+      "sha256_original": "550ace84c83df907564a861e2325ac34b5b3be677083e03cf4c45f5b62b7d83e"
+    }
+  ],
+  "migraciones_conservadas": [
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V18__productos_existencias_y_clientes.sql",
+      "sha256": "ca5f64e91f5661956a0841ed4fba4d63a1661792c50859583efffb3b202d0d16"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V21__notas_de_credito_y_canje.sql",
+      "sha256": "d19cd90f48c3920a1b1f9f18cd0a8ad5c7280434827e229f0ae47490b601ca9a"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V25__privilegios_de_las_tablas_que_no_los_heredaron.sql",
+      "sha256": "de19ffc9bfa4684f86ecfe884acae196053ea7c8209bd184fcc7b7bbb1be7931"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V9__planes_y_modulos_por_cuenta.sql",
+      "sha256": "6c075cd2f22ff92cc2908402b41ff09cff3de0561137eef8d6da52558ac746b1"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V24__un_propietario_y_un_correo_por_suscripcion.sql",
+      "sha256": "6c441c1c98e269fd8647ef1cb363804e3083e9cfd31d2eb5ae7c2cb8a901ac3f"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V12__datos_de_sunat_y_cuentas_bancarias.sql",
+      "sha256": "f4b6d8071d7c5d8a007b6816fcec8c0b78433db6ca66bb8d2525290bd73d496c"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V5__tipos_de_comprobante_por_empresa.sql",
+      "sha256": "4ecc8ecb4f8900616ae0d1b5019187d943bc3594a339a198166a6464c88b6db6"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V10__telefono_de_usuario.sql",
+      "sha256": "f6344296beecc6a832119400a4f4e101f47fcdb470e0b90d1fdb7e4870f268c6"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V16__dos_roles_por_defecto_y_regimen_tributario.sql",
+      "sha256": "46b5822cdae90e0ee46710d36d9a6088b9e0b35aaef139d640d0e9b742e7bbdf"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V14__revoca_lo_que_la_v9_creia_quitar.sql",
+      "sha256": "8a2b23446ffac73a745f6fea459a8a9303b8e1e572d53e6ed13e684743ac170b"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V1__identidad_auditoria_y_aislamiento.sql",
+      "sha256": "1bf68f54db6d08efbf97ab8c258d14c3ad4a7f0727027e46d84e48a2c53ddb5c"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V19__documentos_de_venta.sql",
+      "sha256": "df8df723c8b7d96a180d7d97202a6b6e4c8a41ff81ecdb1a9fdc931d75776874"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V2__catalogo_permisos_y_roles.sql",
+      "sha256": "c86976cf4ef8cd74119f127d2467c3ab134794a0c12ec1436a49e6d8ed152fab"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V3__almacenes.sql",
+      "sha256": "f233c4eafd62ab55084cb10cf942c37f9789101ab27c369ecea01d0e0216675f"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V22__comunicaciones_de_baja.sql",
+      "sha256": "db8004e39d84a2393deddbbfa1f91c72112e1b582f380ec65d12b1799de68c0b"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V20__comprobantes_electronicos.sql",
+      "sha256": "bb1ad64038f2676d45430ac4e38be51ce35daf9f410509c86f4ad8808d12a549"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V23__vuelto_en_efectivo_y_stock_bloqueado.sql",
+      "sha256": "d8b125aa7a4e0801e72070e6f5b8047d17e77699eda598e29397a2c0a09bec8b"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V17__cajas_y_sesiones_de_caja.sql",
+      "sha256": "451fa8ce2abaf774e69f53622516b60b606b80d62c1a2f6c73c8120bc356a158"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V8__rol_de_aplicacion_con_iam.sql",
+      "sha256": "9d788410a030f5f9fdbceff7347fa07de2040d36bfa4714a23aef86de4b12fa2"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V15__actor_inmutable_en_la_bitacora_del_panel.sql",
+      "sha256": "c2fa1026e874e4fdffe3cfe15b2daac056f6325d3491d3e249f5280a071a4735"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V6__permisos_jerarquicos.sql",
+      "sha256": "20cdee656dbf5c3cd11fdf4dc01c5d90fcb38419db222f71afaa09965745e095"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V7__identidad_visual.sql",
+      "sha256": "ac41adac233758923df40ad625a470b37b11c7e49cbbd57417579c3b9318c49b"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V13__rol_de_migraciones_con_iam.sql",
+      "sha256": "554ee31c2558736e56d65c68886481dfbe25c4e60d61aa2fbb4309aebf05a008"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V4__series_y_correlativos.sql",
+      "sha256": "9a5f1d7e450cf546f0cd79f997096297088d4e9f5d6a7d99b5fe28fcf5b218d1"
+    },
+    {
+      "archivo": "apps/backend/ondexia.api/src/main/resources/db/migration/V11__apellido_de_usuario.sql",
+      "sha256": "6868c0ae1c174b511a19659c4e29765faf3319b62f11ebfafb479a640a9bb9cd"
+    }
+  ],
+  "navegador_local": {
+    "resultado": "correcto",
+    "rutas": [
+      {
+        "ruta": "/almacen/bienes",
+        "titulo": "Bienes | Ondexia",
+        "tipo": null,
+        "correcto": true
+      },
+      {
+        "ruta": "/almacen/servicios",
+        "titulo": "Servicios | Ondexia",
+        "tipo": null,
+        "correcto": true
+      },
+      {
+        "ruta": "/almacen/servicios/nuevo",
+        "titulo": "Ficha de servicio | Ondexia",
+        "tipo": "SERVICIO",
+        "correcto": true
+      },
+      {
+        "ruta": "/almacen/servicios/00000000-0000-4000-8000-000000000062",
+        "titulo": "Ficha de servicio | Ondexia",
+        "tipo": "SERVICIO",
+        "correcto": true
+      },
+      {
+        "ruta": "/almacen/bienes/00000000-0000-4000-8000-000000000060",
+        "titulo": "Ficha de bien | Ondexia",
+        "tipo": "BIEN",
+        "correcto": true
+      }
+    ],
+    "registros_api": 3,
+    "identidad": "token local sintético; Cognito no verificado"
+  },
+  "contrato_modelos_regenerados_identicos": true,
+  "no_verificado": [
+    "NVD/Dependency-Check",
+    "GitHub Actions remoto",
+    "AWS",
+    "Cognito real",
+    "SUNAT real/beta",
+    "auditoría independiente"
+  ],
+  "registros": [
+    {
+      "archivo": "api-local.log",
+      "sha256": "b0d58e1ed419328c84cbe6738cb13d287d37e2e60a3e15aa56ce079bbf564ffb"
+    },
+    {
+      "archivo": "backend-completo.log",
+      "sha256": "9912e4d69f0181604aa01a4b23eaa638a0f56e632dd9c5395e7f375358a094e7"
+    },
+    {
+      "archivo": "backend-final.log",
+      "sha256": "a526095b82eaf405e1b9a782a2624c188a1a0422d393347fa750e48085a219ff"
+    },
+    {
+      "archivo": "backend-rojo.log",
+      "sha256": "1a666f3315023a180f121f6461c260a306eabb750e93bbb9fb40c0d8aa5cacde"
+    },
+    {
+      "archivo": "backend-verde.log",
+      "sha256": "c6f773fe3b51bbbc0214b693848e7513d47b34a793e7b4c51d8e1ff09e7edf0a"
+    },
+    {
+      "archivo": "concurrencia-contrato.log",
+      "sha256": "2930e07f8b5bacd60ff68294afdf51bfb06644acaf762b1e1807c61d21c6f6b6"
+    },
+    {
+      "archivo": "conversion-bd-ignora-stock.log",
+      "sha256": "4b65e93b0abddef4b5b6b4ac804294f58bd1196e66bc5e92a4c5b30e5efe317d"
+    },
+    {
+      "archivo": "conversion-ignora-historia.log",
+      "sha256": "3623585b798bec5cbe7ed3912107f035bbc20053e5faba65be36a6f83299b344"
+    },
+    {
+      "archivo": "frontend-final.log",
+      "sha256": "6272e74144c89de40d538ef194753328337dbc11337ff6f1ba86fd7085273a0f"
+    },
+    {
+      "archivo": "frontend-modelos-verde.log",
+      "sha256": "1088246eba4c43668ab6f3f7eef3331780694b92567c7abf711801ae02d80a81"
+    },
+    {
+      "archivo": "frontend-modelos.log",
+      "sha256": "e4e8b2e159ff337136589595dd1895429bcc34d7b645e2995f1c71c3a1dc7e9b"
+    },
+    {
+      "archivo": "frontend-restaurado.log",
+      "sha256": "f16ebc7c1621a3bdddb1542c436e1bac000806b2421955c1d880c15758d8ae3e"
+    },
+    {
+      "archivo": "frontend-rojo.log",
+      "sha256": "d7d503444bf8ac94021b1552e82a39d3fa67c1ddcedf894b030eb527d9085785"
+    },
+    {
+      "archivo": "frontend-verde.log",
+      "sha256": "5360c15779665f3fa723d5120ff9c149a107f6db8bcba83655d13d4a1796714e"
+    },
+    {
+      "archivo": "importe-convertido-a-coma-flotante.log",
+      "sha256": "2158d917b232ee2660244cb0bcf25dfe6a0d338d98a7940fce9155da048076fd"
+    },
+    {
+      "archivo": "menu-vuelve-a-mezclar-catalogo.log",
+      "sha256": "ed6913e2853f893cc4abcfdf8bd5714db80172d5b428960c7d39dc1332b78e6d"
+    },
+    {
+      "archivo": "migracion-modelos-verde.log",
+      "sha256": "8bc6749b59677b87b778719581c36439b1e0d2cc1b6bbcf0905d17130eb9f12f"
+    },
+    {
+      "archivo": "migracion-modelos.log",
+      "sha256": "694f6c3453d969d238825454c2087558618ef308e8898c9767a8bc09f5423d15"
+    },
+    {
+      "archivo": "relleno-sin-superar-force-rls.log",
+      "sha256": "fa86d9eef76d3e2b498be892b2708d00536b38c59603d03a497a132306ec7c56"
+    },
+    {
+      "archivo": "tono-forma.log",
+      "sha256": "d756fd657fd32705c60a57f8b11d81e84dee21ee9dbcc8ffc77ec19fa8e7796c"
+    },
+    {
+      "archivo": "unidad-incompatible-en-dominio.log",
+      "sha256": "5778cfbd4101af394609a1d3168c8a7efd2bc47cdf2f6d8d52172093897b9b7e"
+    },
+    {
+      "archivo": "venta-servicio-descarga.log",
+      "sha256": "422a2c544ae124c5c51c30525564513dd86cdc67ee14bffe776c15ca25ad9519"
+    },
+    {
+      "archivo": "web-produccion.log",
+      "sha256": "a7aef2778265db1bd409cb30e0807304f8a1d6555c4367263858149fa454bd0c"
+    },
+    {
+      "archivo": "web-restaurada.log",
+      "sha256": "1c91aa02cbf75ff65cb74a707afa66135a1fedc4650f4c0535ade526bf45fe5e"
+    }
+  ]
+}

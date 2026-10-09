@@ -1,0 +1,176 @@
+<!--
+  Tres cifras y una lista. Sin saludo, sin gráfico y sin banda de avisos: el
+  panel se titula por su contenido y no por la hora del día (doc 12 §7.2).
+-->
+<app-encabezado-pagina titulo="Panel" [descripcion]="fechaLarga()">
+  <app-boton
+    variante="secundario"
+    [estado]="actualizar.estado()"
+    (accion)="actualizar.ejecutar()"
+  >
+    Actualizar
+  </app-boton>
+</app-encabezado-pagina>
+
+@if (error(); as fallo) {
+<div
+  role="alert"
+  class="mb-6 rounded-base border border-error-200 bg-error-50 px-4 py-3 text-sm text-error-700 dark:border-error-500/30 dark:bg-error-500/10 dark:text-error-400"
+>
+  {{ fallo }}
+</div>
+}
+
+@if (cargando()) {
+<p class="text-sm text-gray-500 dark:text-gray-400">Cargando las cifras del día…</p>
+} @else if (sinNadaQueVer()) {
+<!--
+  Ni cajas, ni ventas, ni comprobantes: el usuario no consulta ninguno de los
+  tres. Se dice, en vez de dejar la portada en blanco como si algo hubiera
+  fallado.
+-->
+<p class="text-sm text-gray-500 dark:text-gray-400">
+  Esta cuenta no tiene acceso a las cifras de ventas. El menú lateral lleva a lo
+  que sí está disponible.
+</p>
+} @else {
+
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+  <!-- 1 · La caja. Sin caja abierta no se vende (doc 12 §3.4). -->
+  @if (cajas(); as abiertas) {
+  <section
+    class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"
+  >
+    <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400">Caja</h2>
+    @if (abiertas.length === 0) {
+    <p class="mt-2 text-2xl font-medium text-gray-800 dark:text-white/90">Cerrada</p>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      No se puede vender hasta abrir una caja.
+    </p>
+    <a
+      routerLink="/ventas/cajas"
+      class="mt-4 inline-block text-sm font-medium text-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
+    >
+      Abrir caja
+    </a>
+    } @else {
+    <p class="mt-2 text-2xl font-medium text-gray-800 dark:text-white/90">
+      {{ abiertas.length === 1 ? 'Abierta' : abiertas.length + ' abiertas' }}
+    </p>
+    <ul class="mt-2 space-y-1 text-sm text-gray-500 dark:text-gray-400">
+      @for (sesion of abiertas; track sesion.sesionId) {
+      <li>
+        Desde las {{ hora(sesion.abiertaEn) }}, con {{ importe(sesion.montoInicial) }} de fondo
+      </li>
+      }
+    </ul>
+    <a
+      routerLink="/ventas/punto-de-venta"
+      class="mt-4 inline-block text-sm font-medium text-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
+    >
+      Ir al punto de venta
+    </a>
+    }
+  </section>
+  }
+
+  <!-- 2 · Lo vendido hoy, contando la nota de venta junto al comprobante. -->
+  @if (ventas(); as delDia) {
+  <section
+    class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"
+  >
+    <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400">Ventas del día</h2>
+    <p class="mt-2 text-2xl font-medium text-gray-800 dark:text-white/90">
+      {{ importe(delDia.importe) }}
+    </p>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      {{ delDia.documentos }}
+      {{ delDia.documentos === 1 ? 'documento emitido' : 'documentos emitidos' }}
+    </p>
+    <a
+      routerLink="/ventas/notas-venta"
+      class="mt-4 inline-block text-sm font-medium text-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
+    >
+      Ver los documentos
+    </a>
+  </section>
+  }
+
+  <!-- 3 · Lo que espera a alguien ante SUNAT. -->
+  @if (porAtender(); as pendientes) {
+  <section
+    class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]"
+  >
+    <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400">Ante SUNAT</h2>
+    <p class="mt-2 text-2xl font-medium text-gray-800 dark:text-white/90">
+      {{ pendientes.total }}
+    </p>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      {{
+        pendientes.total === 1
+          ? 'comprobante sin aceptar'
+          : 'comprobantes sin aceptar'
+      }}
+    </p>
+  </section>
+  }
+</div>
+
+<!--
+  La lista. Solo aparece cuando hay algo: una tabla vacía con su encabezado
+  ocupa el mismo sitio que una con contenido y se lee como que falta cargar.
+-->
+@if (porAtender(); as pendientes) { @if (pendientes.primeros.length > 0) {
+<section class="mt-8">
+  <h2 class="mb-3 text-base font-medium text-gray-800 dark:text-white/90">
+    Comprobantes sin aceptar
+  </h2>
+  <div class="overflow-x-auto rounded-base border border-gray-200 dark:border-gray-800">
+    <table class="w-full min-w-[36rem] text-left text-sm">
+      <thead class="border-b border-gray-200 text-gray-500 dark:border-gray-800 dark:text-gray-400">
+        <tr>
+          <th scope="col" class="px-4 py-3 font-medium">Comprobante</th>
+          <th scope="col" class="px-4 py-3 font-medium">Estado</th>
+          <th scope="col" class="px-4 py-3 font-medium">Motivo</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (comprobante of pendientes.primeros; track comprobante.documentoId) {
+        <tr class="border-b border-gray-100 last:border-0 dark:border-gray-800/60">
+          <td class="px-4 py-3">
+            <a
+              [routerLink]="rutaDelComprobante(comprobante.tipo, comprobante.documentoId)"
+              class="font-medium text-brand-500 hover:text-brand-600 dark:hover:text-brand-400"
+            >
+              {{ comprobante.tipoNombre }} {{ comprobante.numeroCompleto }}
+            </a>
+          </td>
+          <td
+            class="px-4 py-3"
+            [class.text-error-600]="exigeAtencion(comprobante.estado)"
+            [class.dark:text-error-400]="exigeAtencion(comprobante.estado)"
+            [class.text-gray-500]="!exigeAtencion(comprobante.estado)"
+            [class.dark:text-gray-400]="!exigeAtencion(comprobante.estado)"
+          >
+            {{ nombreDeEstado(comprobante.estado) }}
+          </td>
+          <td class="px-4 py-3 text-gray-500 dark:text-gray-400">
+            @if (comprobante.descripcionSunat) {
+            <span>{{ comprobante.codigoSunat }} · {{ comprobante.descripcionSunat }}</span>
+            } @else {
+            <span aria-hidden="true">—</span>
+            }
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  @if (pendientes.total > pendientes.primeros.length) {
+  <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">
+    Se muestran {{ pendientes.primeros.length }} de {{ pendientes.total }}. El resto está en el
+    listado de cada tipo de comprobante.
+  </p>
+  }
+</section>
+} } }

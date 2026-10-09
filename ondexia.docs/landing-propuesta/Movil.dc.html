@@ -1,0 +1,302 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@700;800&family=Outfit:wght@300;400;500;600;700&display=swap">
+  <style>
+    body { margin: 0; font-family: "Outfit", ui-sans-serif, system-ui, sans-serif; background: #ffffff; color: #171c2d; -webkit-font-smoothing: antialiased; }
+    a { color: #4f46e5; text-decoration: none; }
+    a:hover { color: #4338ca; }
+    .cartel { font-family: "Bricolage Grotesque", "Outfit", ui-sans-serif, system-ui, sans-serif; font-weight: 800; letter-spacing: -0.035em; line-height: 0.92; margin: 0; text-wrap: balance; }
+    .rotulo { font-size: 11px; line-height: 16px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; margin: 0; }
+    .dato { font-size: 15px; line-height: 24px; color: #545b6e; margin: 0; text-wrap: pretty; }
+    .btn { display: flex; align-items: center; justify-content: center; height: 54px; border-radius: 10px; font-size: 16px; font-weight: 600; border: 2px solid transparent; }
+    .tile { border: 2px solid #171c2d; border-radius: 16px; background: #ffffff; }
+  </style>
+</helmet>
+
+<div style="width: 390px; background: #ffffff; overflow: hidden">
+
+  <header style="height: 64px; border-bottom: 2px solid #171c2d; display: flex; align-items: center; justify-content: space-between; padding: 0 20px">
+    <svg width="130" height="27" viewBox="0 0 154 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Ondexia">
+      <path d="M0 8.42105C0 3.77023 3.77023 0 8.42105 0H23.5789C28.2298 0 32 3.77023 32 8.42105V23.5789C32 28.2298 28.2298 32 23.5789 32H8.42105C3.77023 32 0 28.2298 0 23.5789V8.42105Z" fill="#4F46E5"/>
+      <circle cx="16" cy="16" r="7.4" stroke="#FFFFFF" stroke-width="3" fill="none" stroke-dasharray="34 12.5" stroke-linecap="round" transform="rotate(-58 16 16)"/>
+      <circle cx="21.9" cy="10.1" r="2.2" fill="#FFFFFF"/>
+      <g stroke="#101828" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <ellipse cx="48" cy="17" rx="5.4" ry="7"/><path d="M59 24V10L69 24V10"/><path d="M75 24V10h3.5a7 7 0 0 1 0 14H75z"/><path d="M100 10H91V24H100M91 17H98"/><path d="M107 10L117 24M117 10L107 24"/><path d="M125 10V24"/><path d="M135 24L140 10L145 24M137 19H143"/>
+      </g>
+    </svg>
+    <span style="width: 44px; height: 44px; border: 2px solid #171c2d; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#171c2d" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </span>
+  </header>
+
+  <!-- Cartel -->
+  <section style="background: #4f46e5; position: relative; overflow: hidden">
+    <div style="position: absolute; inset: 0; background-image: radial-gradient(#818cf8 2px, transparent 2px); background-size: 20px 20px; opacity: 0.5"></div>
+    <div style="position: relative; padding: 38px 20px 0">
+      <h1 style="margin: 0; font-weight: 400; display: flex; flex-direction: column; gap: 16px">
+        <span class="rotulo" style="color: #d4f43c">Facturación electrónica ante SUNAT · Perú</span>
+        <span class="cartel" style="font-size: 74px; color: #ffffff">Papelito<br>manda.</span>
+        <span style="font-size: 18px; line-height: 28px; color: #ffffff">Sistema de facturación electrónica con control de almacén, para empresas peruanas. Sale firmado <span style="background: #d4f43c; color: #1a1840; font-weight: 700; padding: 0 6px; border-radius: 4px">al toque</span> y descuenta del stock solo.</span>
+      </h1>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 22px">
+        <a href="#acceso" class="btn" style="background: #d4f43c; color: #1a1840">Quiero mi acceso</a>
+        <a href="#precios" class="btn" style="background: transparent; color: #ffffff; border-color: #818cf8">Ver precios</a>
+      </div>
+
+      <div style="display: inline-flex; align-items: center; gap: 12px; transform: rotate(-3deg); background: #ff2d87; border-radius: 12px; padding: 12px 18px; margin-top: 24px">
+        <p class="cartel" style="font-size: 30px; color: #ffffff">30 días</p>
+        <p style="margin: 0; font-size: 12px; line-height: 17px; font-weight: 600; color: #ffffff">gratis · sin tarjeta<br>contra la beta de SUNAT</p>
+      </div>
+
+      <div style="margin-top: 30px; border: 2px solid #171c2d; border-bottom: none; border-radius: 14px 14px 0 0; background: #ffffff; overflow: hidden">
+        <div style="padding: 12px 16px; border-bottom: 2px solid #e8eaf1; background: #f8f9fb">
+          <p style="margin: 0; font-size: 12px; line-height: 18px; color: #697083">app.ondexia.com · 248 documentos</p>
+        </div>
+        <div style="padding: 14px 16px; border-bottom: 1px solid #eef0f4; display: flex; flex-direction: column; gap: 7px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+            <span style="font-size: 15px; line-height: 22px; font-weight: 600; color: #171c2d">Distribuidora Andina</span>
+            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: #15803d; flex-shrink: 0"><span style="width: 7px; height: 7px; border-radius: 999px; background: #16a34a; display: inline-block"></span>Aceptado</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between">
+            <span style="font-size: 13px; color: #697083">F001-0142</span>
+            <span style="font-size: 15px; font-weight: 700; color: #171c2d; font-variant-numeric: tabular-nums">S/ 4 820.00</span>
+          </div>
+        </div>
+        <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 7px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px">
+            <span style="font-size: 15px; line-height: 22px; font-weight: 600; color: #171c2d">Resumen · 31 boletas</span>
+            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: #b45309; flex-shrink: 0"><span style="width: 7px; height: 7px; border-radius: 999px; background: #f59e0b; display: inline-block"></span>Con ticket</span>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between">
+            <span style="font-size: 13px; color: #697083">RC-20260823</span>
+            <span style="font-size: 15px; font-weight: 700; color: #171c2d; font-variant-numeric: tabular-nums">S/ 2 104.30</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cinta -->
+  <div style="background: #171c2d; padding: 14px 0; overflow: hidden">
+    <div style="display: flex; align-items: center; gap: 20px; white-space: nowrap; padding-left: 20px">
+      <span class="rotulo" style="color: #d4f43c">Factura 01</span><span style="color: #4f46e5">◆</span>
+      <span class="rotulo" style="color: #ffffff">Boleta 03</span><span style="color: #4f46e5">◆</span>
+      <span class="rotulo" style="color: #d4f43c">Resumen RC</span><span style="color: #4f46e5">◆</span>
+      <span class="rotulo" style="color: #ffffff">Liquidación 04</span><span style="color: #4f46e5">◆</span>
+      <span class="rotulo" style="color: #d4f43c">Nota 07</span>
+    </div>
+  </div>
+
+  <!-- Bento -->
+  <section id="chamba" style="background: #f4f5f9; padding: 44px 20px">
+    <h2 style="margin: 0 0 22px; font-weight: 400; display: flex; flex-direction: column; gap: 10px">
+      <span class="rotulo" style="color: #4f46e5">Almacén, compras y ventas en un solo sistema</span>
+      <span class="cartel" style="font-size: 40px; color: #171c2d">Toda la chamba,<br>en un solo sitio.</span>
+    </h2>
+
+    <div style="display: flex; flex-direction: column; gap: 14px">
+
+      <div class="tile" style="padding: 22px; display: flex; flex-direction: column; gap: 12px; background: #171c2d">
+        <p class="rotulo" style="color: #d4f43c">01 · Ventas</p>
+        <p class="cartel" style="font-size: 30px; color: #ffffff">Cotiza, vende y emite.</p>
+        <p style="margin: 0; font-size: 14px; line-height: 22px; color: #9aa0b2">El correlativo lo lleva el sistema, no una libreta.</p>
+      </div>
+
+      <div class="tile" style="padding: 22px; display: flex; flex-direction: column; gap: 12px">
+        <p class="rotulo" style="color: #4f46e5">02 · Almacén</p>
+        <p class="cartel" style="font-size: 30px; color: #171c2d">Lo que hay es lo que hay.</p>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span style="width: 104px; font-size: 13px; color: #545b6e">Cemento 42.5</span>
+            <span style="flex-grow: 1; height: 10px; border-radius: 999px; background: #e8eaf1; overflow: hidden"><span style="display: block; width: 78%; height: 10px; background: #16a34a"></span></span>
+            <span style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; width: 30px; text-align: right">312</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px">
+            <span style="width: 104px; font-size: 13px; color: #545b6e">Pintura 4 L</span>
+            <span style="flex-grow: 1; height: 10px; border-radius: 999px; background: #e8eaf1; overflow: hidden"><span style="display: block; width: 9%; height: 10px; background: #d92525"></span></span>
+            <span style="font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; width: 30px; text-align: right; color: #b91c1c">4</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="tile" style="padding: 22px; display: flex; flex-direction: column; gap: 10px">
+        <p class="rotulo" style="color: #4f46e5">03 · Compras</p>
+        <p class="cartel" style="font-size: 30px; color: #171c2d">Del pedido a la factura.</p>
+        <p class="dato" style="font-size: 14px; line-height: 22px">Proveedores, órdenes, guías de ingreso y liquidación.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px">
+        <div class="tile" style="padding: 20px; display: flex; flex-direction: column; gap: 6px; background: #d4f43c">
+          <p class="cartel" style="font-size: 50px; color: #1a1840">∞</p>
+          <p class="cartel" style="font-size: 18px; color: #1a1840">Locales</p>
+          <p style="margin: 0; font-size: 13px; line-height: 20px; color: #26235e; font-weight: 500">No cobramos por tienda.</p>
+        </div>
+        <div class="tile" style="padding: 20px; display: flex; flex-direction: column; gap: 6px">
+          <p class="cartel" style="font-size: 50px; color: #4f46e5">5</p>
+          <p class="cartel" style="font-size: 18px; color: #171c2d">Años</p>
+          <p class="dato" style="font-size: 13px; line-height: 20px">XML y CDR siempre descargables.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- No te paltees -->
+  <section style="background: #ffffff; padding: 44px 20px; border-top: 2px solid #171c2d; border-bottom: 2px solid #171c2d">
+    <h2 style="margin: 0; font-weight: 400; display: flex; flex-direction: column; gap: 12px">
+      <span class="rotulo" style="color: #ff2d87">Nota de crédito y comunicación de baja electrónicas</span>
+      <span class="cartel" style="font-size: 52px; color: #171c2d">No te paltees.</span>
+    </h2>
+    <p class="dato" style="margin-top: 12px">Anular tiene dos caminos legales. Los dos vienen desde el plan más barato.</p>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 20px">
+      <div class="tile" style="padding: 18px; display: flex; gap: 16px; align-items: center; border-color: #ff2d87">
+        <p class="cartel" style="font-size: 34px; color: #ff2d87; width: 60px; flex-shrink: 0">7d</p>
+        <div>
+          <p style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 700; color: #171c2d">Comunicación de baja</p>
+          <p class="dato" style="font-size: 13px; line-height: 20px">El plazo se avisa en pantalla.</p>
+        </div>
+      </div>
+      <div class="tile" style="padding: 18px; display: flex; gap: 16px; align-items: center">
+        <p class="cartel" style="font-size: 34px; color: #4f46e5; width: 60px; flex-shrink: 0">07</p>
+        <div>
+          <p style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 700; color: #171c2d">Nota de crédito</p>
+          <p class="dato" style="font-size: 13px; line-height: 20px">Devoluciones y todo lo fuera de plazo.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Precios -->
+  <section id="precios" style="background: #f4f5f9; padding: 44px 20px">
+    <h2 style="margin: 0; font-weight: 400; display: flex; flex-direction: column; gap: 12px">
+      <span class="rotulo" style="color: #4f46e5">Precios del software de facturación electrónica</span>
+      <span class="cartel" style="font-size: 46px; color: #171c2d">Cuentas claras.</span>
+    </h2>
+    <p class="dato" style="margin-top: 12px">Tus locales no cuentan. Subes de plan solo por RUC o por gente.</p>
+
+    <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 22px">
+
+      <div class="tile" style="padding: 24px; display: flex; flex-direction: column; gap: 14px">
+        <p class="rotulo" style="color: #697083">Base</p>
+        <p class="cartel" style="font-size: 48px; color: #171c2d; font-variant-numeric: tabular-nums">S/ 89</p>
+        <p style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; color: #171c2d">1 empresa · 2 usuarios</p>
+        <p class="dato" style="font-size: 14px; line-height: 22px">Los tres módulos completos, notas de crédito y locales sin límite.</p>
+        <a href="#acceso" class="btn" style="background: #ffffff; color: #171c2d; border-color: #171c2d">Empezar</a>
+      </div>
+
+      <div class="tile" style="padding: 24px; display: flex; flex-direction: column; gap: 14px; background: #4f46e5; position: relative">
+        <span style="position: absolute; top: -13px; right: 20px; transform: rotate(4deg); background: #ff2d87; color: #ffffff; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; border-radius: 999px; padding: 5px 13px">El más pedido</span>
+        <p class="rotulo" style="color: #d4f43c">Intermedio</p>
+        <p class="cartel" style="font-size: 48px; color: #ffffff; font-variant-numeric: tabular-nums">S/ 199</p>
+        <p style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; color: #ffffff">2 empresas · 5 usuarios</p>
+        <p style="margin: 0; font-size: 14px; line-height: 22px; color: #dde1fb">Todo lo del Base, más guías de remisión, roles propios y reportes completos.</p>
+        <a href="#acceso" class="btn" style="background: #d4f43c; color: #1a1840">Empezar</a>
+      </div>
+
+      <div class="tile" style="padding: 24px; display: flex; flex-direction: column; gap: 14px">
+        <p class="rotulo" style="color: #697083">A demanda</p>
+        <p class="cartel" style="font-size: 48px; color: #171c2d; font-variant-numeric: tabular-nums">S/ 390<span style="font-size: 18px; font-weight: 700; color: #697083"> a más</span></p>
+        <p style="margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; color: #171c2d">Empresas y usuarios a medida</p>
+        <p class="dato" style="font-size: 14px; line-height: 22px">Todo lo del Intermedio, más API para integradores y canal directo.</p>
+        <a href="#acceso" class="btn" style="background: #ffffff; color: #171c2d; border-color: #171c2d">Conversemos</a>
+      </div>
+
+      <div class="tile" style="background: #d4f43c; padding: 18px 22px; display: flex; align-items: center; gap: 14px">
+        <p class="cartel" style="font-size: 28px; color: #1a1840">La yapa</p>
+        <p style="margin: 0; font-size: 13px; line-height: 19px; font-weight: 600; color: #26235e">2 meses gratis<br>pagando el año</p>
+      </div>
+    </div>
+
+    <p style="margin: 16px 0 0; font-size: 13px; line-height: 20px; color: #697083">En soles, sin IGV. Usuario extra S/ 29 · empresa extra S/ 69.</p>
+  </section>
+
+  <!-- Estado -->
+  <section id="estado" style="background: #171c2d; padding: 44px 20px">
+    <h2 style="margin: 0; font-weight: 400; display: flex; flex-direction: column; gap: 10px">
+      <span class="rotulo" style="color: #d4f43c">Estado del producto y hoja de ruta</span>
+      <span class="cartel" style="font-size: 40px; color: #ffffff">Vamos por partes.</span>
+    </h2>
+    <p style="margin: 12px 0 20px; font-size: 14px; line-height: 22px; color: #9aa0b2">Cada corte sale cuando funciona de punta a punta.</p>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <div style="border: 2px solid #d4f43c; border-radius: 12px; padding: 16px; background: #26235e; display: flex; align-items: center; gap: 16px">
+        <p class="cartel" style="font-size: 26px; color: #d4f43c; width: 42px; flex-shrink: 0">C1</p>
+        <p style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 700; color: #ffffff; flex-grow: 1">Emitir una boleta</p>
+        <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: #fcd34d; flex-shrink: 0"><span style="width: 7px; height: 7px; border-radius: 999px; background: #f59e0b; display: inline-block"></span>En obra</span>
+      </div>
+      <div style="border: 2px solid #3d4457; border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 16px">
+        <p class="cartel" style="font-size: 26px; color: #697083; width: 42px; flex-shrink: 0">C2</p>
+        <p style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 700; color: #c2c8d4; flex-grow: 1">Ventas completas</p>
+        <span style="font-size: 12px; font-weight: 500; color: #9aa0b2; flex-shrink: 0">Sigue</span>
+      </div>
+      <div style="border: 2px solid #3d4457; border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 16px">
+        <p class="cartel" style="font-size: 26px; color: #697083; width: 42px; flex-shrink: 0">C3</p>
+        <p style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 700; color: #c2c8d4; flex-grow: 1">Catálogo</p>
+        <span style="font-size: 12px; font-weight: 500; color: #9aa0b2; flex-shrink: 0">Planificado</span>
+      </div>
+      <div style="border: 2px solid #3d4457; border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 16px">
+        <p class="cartel" style="font-size: 26px; color: #697083; width: 42px; flex-shrink: 0">C4</p>
+        <p style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 700; color: #c2c8d4; flex-grow: 1">Compras</p>
+        <span style="font-size: 12px; font-weight: 500; color: #9aa0b2; flex-shrink: 0">Planificado</span>
+      </div>
+      <div style="border: 2px solid #3d4457; border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 16px">
+        <p class="cartel" style="font-size: 26px; color: #697083; width: 42px; flex-shrink: 0">C5</p>
+        <p style="margin: 0; font-size: 15px; line-height: 22px; font-weight: 700; color: #c2c8d4; flex-grow: 1">Guías de remisión</p>
+        <span style="font-size: 12px; font-weight: 500; color: #9aa0b2; flex-shrink: 0">Planificado</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cierre -->
+  <section id="acceso" style="background: #d4f43c; padding: 48px 20px; border-bottom: 2px solid #171c2d">
+    <h2 style="margin: 0; font-weight: 400; display: flex; flex-direction: column; gap: 12px">
+      <span class="rotulo" style="color: #26235e">Prueba gratis de 30 días contra la beta de SUNAT</span>
+      <span class="cartel" style="font-size: 54px; color: #1a1840">Entra a la lista corta.</span>
+    </h2>
+    <p style="margin: 14px 0 22px; font-size: 16px; line-height: 26px; color: #26235e; font-weight: 500">Te escribimos cuando C1 esté listo para operar.</p>
+    <div style="display: flex; flex-direction: column; gap: 10px">
+      <span style="display: flex; align-items: center; height: 54px; padding: 0 18px; border: 2px solid #171c2d; border-radius: 10px; background: #ffffff; font-size: 16px; color: #697083">tu@empresa.com</span>
+      <a href="#acceso" class="btn" style="background: #171c2d; color: #ffffff">Avísenme</a>
+    </div>
+  </section>
+
+  <!-- Pie -->
+  <footer style="background: #ffffff; padding: 28px 20px">
+    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px">
+      <div style="display: flex; flex-direction: column">
+        <p class="rotulo" style="color: #171c2d; margin-bottom: 4px">Producto</p>
+        <a href="#chamba" style="display: flex; align-items: center; min-height: 44px; font-size: 14px; color: #545b6e">Qué hace</a>
+        <a href="#precios" style="display: flex; align-items: center; min-height: 44px; font-size: 14px; color: #545b6e">Precios</a>
+        <a href="#estado" style="display: flex; align-items: center; min-height: 44px; font-size: 14px; color: #545b6e">Estado</a>
+      </div>
+      <div style="display: flex; flex-direction: column">
+        <p class="rotulo" style="color: #171c2d; margin-bottom: 4px">Legal</p>
+        <a href="#acceso" style="display: flex; align-items: center; min-height: 44px; font-size: 14px; color: #545b6e">Términos</a>
+        <a href="#acceso" style="display: flex; align-items: center; min-height: 44px; font-size: 14px; color: #545b6e">Privacidad</a>
+        <a href="#acceso" style="display: flex; align-items: center; min-height: 44px; font-size: 14px; color: #545b6e">Libro de reclamaciones</a>
+      </div>
+    </div>
+    <div style="border-top: 2px solid #e8eaf1; margin-top: 16px; padding-top: 14px">
+      <p style="margin: 0; font-size: 13px; line-height: 20px; color: #697083">[RAZÓN SOCIAL] · RUC [TU RUC]<br>© 2026 Ondexia.</p>
+    </div>
+  </footer>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"$preview":{"width":390,"height":3600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

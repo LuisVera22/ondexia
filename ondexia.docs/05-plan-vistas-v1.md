@@ -1,6 +1,6 @@
 # Ondexia — Plan de vistas v1.0
 
-Estado: **propuesta (v3)** · Fecha: 2026-08-06 · Solo frontend · Base: plantilla TailAdmin en `apps/ondexia.web`
+Estado: **propuesta (v3)** · Fecha: 2026-08-06 · Solo frontend · Base: `apps/frontend/ondexia.web` (tema propio; la plantilla de partida se retiró el 2026-08-10)
 
 > **v3** — Se agrega el módulo Configuración con gestión de logos, se incorporan Notas de Crédito y Comunicación de Baja, se resuelve Almacenes, y se desglosan las vistas por submódulo. Las "olas" de versiones previas ahora se llaman "Etapas".
 

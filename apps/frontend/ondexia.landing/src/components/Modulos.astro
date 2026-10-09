@@ -1,0 +1,169 @@
+---
+/**
+ * El bento.
+ *
+ * Seis columnas en escritorio, dos en tableta, una en móvil. Las fichas de dato
+ * —el infinito de locales, los 5 años— no son adorno: son los argumentos que
+ * antes ocupaban cuatro párrafos. Un número grande se lee en dos segundos y un
+ * párrafo no se lee.
+ *
+ * Las existencias de ejemplo son eso, ejemplo. Ilustran la regla del doc 10 §4:
+ * el color dice si conviene, y la cifra dice cuánto hay.
+ */
+const existencias = [
+  { producto: 'Cemento 42.5 kg', porcentaje: 78, cantidad: '312', barra: 'bg-success-500' },
+  { producto: 'Fierro 1/2 pulg.', porcentaje: 41, cantidad: '86', barra: 'bg-brand-500' },
+  {
+    producto: 'Pintura látex 4 L',
+    porcentaje: 9,
+    cantidad: '4',
+    barra: 'bg-error-500',
+    critico: true,
+  },
+];
+---
+
+<section id="funciones" class="scroll-mt-20 bg-gray-50 py-16 md:py-[76px]">
+  <div class="mx-auto max-w-[1240px] px-5 md:px-10">
+    <div
+      class="mb-8 flex flex-col gap-5 md:mb-[34px] md:flex-row md:items-end md:justify-between md:gap-10"
+    >
+      <h2 class="revelar flex max-w-[720px] flex-col gap-3 font-normal">
+        <span class="rotulo text-brand-500">Almacén, compras y ventas en un solo sistema</span>
+        <span class="titular text-[34px] text-gray-900 sm:text-[42px] lg:text-[50px]">
+          Almacén, compras y ventas<br />en el mismo sistema.
+        </span>
+      </h2>
+      <p class="revelar max-w-[300px] text-[15px] leading-6 text-gray-600 md:text-right" style="--retardo: 1">
+        Los tres módulos van completos en todos los planes. Recortar uno rompe los
+        otros dos.
+      </p>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-6 lg:gap-[18px]">
+      {/* Ventas */}
+      <article
+        class="tarjeta-oscura revelar flex flex-col gap-4 p-6 sm:col-span-2 lg:col-span-3 lg:p-7"
+        style="--retardo: 1"
+      >
+        <div class="flex items-center justify-between">
+          <p class="rotulo text-brand-200">01 · Ventas</p>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#a5b4fc"
+            stroke-width="2"
+            class=""
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M6 3h9l4 4v14H6V3Z"></path>
+            <path d="M15 3v4h4M9.5 12h5M9.5 16h5"></path>
+          </svg>
+        </div>
+        <h3 class="titular text-[28px] text-white lg:text-[34px]">Cotizar, vender<br />y emitir.</h3>
+        <p class="text-[15px] leading-6 text-gray-400">
+          El correlativo lo lleva el sistema, no una libreta.
+        </p>
+        <ul class="mt-auto flex flex-wrap gap-2 pt-2">
+          {
+            ['Cotizaciones', 'Preventa', 'Formas de pago'].map((etiqueta) => (
+              <li class="rounded-full border border-gray-700 px-3 py-1 text-[13px] font-medium text-white">
+                {etiqueta}
+              </li>
+            ))
+          }
+        </ul>
+      </article>
+
+      {/* Almacén */}
+      <article
+        class="tarjeta revelar flex flex-col gap-4 p-6 sm:col-span-2 lg:col-span-3 lg:p-7"
+        style="--retardo: 2"
+      >
+        <div class="flex items-center justify-between">
+          <p class="rotulo text-brand-500">02 · Almacén</p>
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#4f46e5"
+            stroke-width="2"
+            class=""
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 8.5 12 4l9 4.5v7L12 20l-9-4.5v-7Z"></path>
+            <path d="m3 8.5 9 4.5 9-4.5M12 13v7"></path>
+          </svg>
+        </div>
+        <h3 class="titular text-[28px] text-gray-900 lg:text-[34px]">
+          Existencias<br />siempre al día.
+        </h3>
+        <p class="text-[15px] leading-6 text-gray-600">
+          La venta descuenta existencias en el mismo acto.
+        </p>
+        <ul class="mt-auto flex flex-col gap-2.5 pt-2">
+          {
+            existencias.map((linea) => (
+              <li class="flex items-center gap-3">
+                <span class="w-[120px] shrink-0 truncate text-[13px] text-gray-600 sm:w-[128px]">
+                  {linea.producto}
+                </span>
+                <span class="h-2.5 grow overflow-hidden rounded-full bg-gray-200">
+                  <span
+                    class={`barra-existencia block h-2.5 rounded-full ${linea.barra}`}
+                    style={`width: ${linea.porcentaje}%`}
+                  />
+                </span>
+                <span
+                  class={`w-9 shrink-0 text-right text-[13px] font-semibold tabular-nums ${linea.critico ? 'text-error-600' : 'text-gray-900'}`}
+                >
+                  {linea.cantidad}
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+      </article>
+
+      {/* Compras */}
+      <article class="tarjeta revelar flex flex-col gap-3 p-6 sm:col-span-2 lg:col-span-2 lg:p-7" style="--retardo: 3">
+        <p class="rotulo text-brand-500">03 · Compras</p>
+        <h3 class="titular text-[26px] text-gray-900 lg:text-[30px]">
+          Del pedido<br />a la factura.
+        </h3>
+        <p class="text-dato leading-[22px] text-gray-600">
+          Proveedores, órdenes, guías de ingreso y liquidación de compra.
+        </p>
+      </article>
+
+      {/* Locales */}
+      <article class="tarjeta revelar flex flex-col gap-2 bg-brand-500 p-6 lg:col-span-2 lg:p-7" style="--retardo: 4">
+        <p class="titular text-[68px] text-brand-950 lg:text-[76px]" aria-hidden="true">∞</p>
+        <h3 class="titular text-[24px] text-brand-950 lg:text-[26px]">
+          <span class="sr-only">Sin límite de </span>Locales y almacenes
+        </h3>
+        <p class="text-dato font-medium leading-[22px] text-brand-900">
+          No cobramos por tienda. Un precio por local te empuja a declarar mal.
+        </p>
+      </article>
+
+      {/* Retención */}
+      <article class="tarjeta revelar flex flex-col gap-2 p-6 lg:col-span-2 lg:p-7" style="--retardo: 5">
+        <p class="titular text-[68px] text-brand-500 lg:text-[76px]" aria-hidden="true">5</p>
+        <h3 class="titular text-[24px] text-gray-900 lg:text-[26px]">
+          <span class="sr-only">5 </span>Años de respaldo
+        </h3>
+        <p class="text-dato leading-[22px] text-gray-600">
+          XML firmado y CDR descargables. En todos los planes, sin recortes.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>

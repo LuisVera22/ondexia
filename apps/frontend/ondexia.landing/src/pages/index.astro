@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+import Barra from '../components/Barra.astro';
+import Cartel from '../components/Cartel.astro';
+import Modulos from '../components/Modulos.astro';
+import Anular from '../components/Anular.astro';
+import Precios from '../components/Precios.astro';
+import Estado from '../components/Estado.astro';
+import Cierre from '../components/Cierre.astro';
+import Pie from '../components/Pie.astro';
+
+/**
+ * El título es lo que decide el clic desde el buscador: la marca primero, el
+ * término después, por debajo de 60 caracteres visibles para que no lo corte.
+ * La descripción no posiciona pero sí convierte, y por eso termina en la oferta.
+ */
+const titulo = 'Ondexia · Facturación electrónica con almacén para empresas peruanas';
+const descripcion =
+  'Facturas y boletas electrónicas ante SUNAT con control de inventario en el mismo sistema. Almacén, compras y ventas. Prueba de 30 días sin tarjeta.';
+---
+
+<Base titulo={titulo} descripcion={descripcion}>
+  <Barra />
+  <main id="contenido">
+    <Cartel />
+    <Modulos />
+    <Anular />
+    <Precios />
+    <Estado />
+    <Cierre />
+  </main>
+  <Pie />
+</Base>

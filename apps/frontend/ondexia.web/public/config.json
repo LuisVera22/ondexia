@@ -1,0 +1,35 @@
+{
+  "_comentario": [
+    "Configuración de DESARROLLO. Apunta al entorno dev en AWS, de modo que",
+    "`pnpm start` en local trabaja contra el backend real sin montar nada más.",
+    "Cognito acepta el retorno a http://localhost:4200/acceso/retorno porque esa",
+    "URL está en callback_urls (ondexia.infra/identidad.tf).",
+    "",
+    "El despliegue SOBRESCRIBE este archivo con `terraform output -json",
+    "configuracion_spa`, así que lo que hay aquí nunca llega a producción.",
+    "",
+    "Ninguno de estos valores es un secreto: un SPA los entrega a cualquiera que",
+    "abra la aplicación. Lo que protege la API es el token, no la ocultación del",
+    "identificador de cliente.",
+    "",
+    "`consultas` apunta al MISMO origen que `api` y no es redundante: desplegado,",
+    "la consulta del padron de SUNAT es una ruta mas de la misma pasarela",
+    "(ondexia.infra/consultas.tf), asi que la URL coincide. En local NO coincide:",
+    "la sirve ondexia.consultas.ServidorLocal en el puerto 8081, porque la API de",
+    "Spring no tiene esa ruta ni debe tenerla — desplegada esta en subred privada",
+    "sin salida a internet.",
+    "",
+    "Con la clave siempre presente, el SPA lee una sola cosa y su codigo no",
+    "distingue los dos casos. Sin ella habria que decidir cuando usar `api` y",
+    "cuando otra cosa: la clase de rama que se prueba en un entorno y falla en el",
+    "otro."
+  ],
+  "_autoservicio": "Si la pantalla de acceso ofrece Crear cuenta. Lo manda Cognito: con el autoservicio cerrado (hallazgo C2 de la auditoria 2026-09-01) la interfaz alojada responde a /signup con un error. En despliegue sale de var.autoservicio_inquilinos.",
+  "autoservicio": false,
+  "api": "https://dow0eru03l.execute-api.us-east-1.amazonaws.com",
+  "consultas": "https://dow0eru03l.execute-api.us-east-1.amazonaws.com",
+  "cognito": {
+    "dominio": "https://ondexia-dev-370930247103.auth.us-east-1.amazoncognito.com",
+    "clienteId": "3sq8a6n59abacg54caoebv91ji"
+  }
+}

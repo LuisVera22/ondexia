@@ -1,0 +1,65 @@
+<div>
+  <app-encabezado-pagina
+    titulo="Empresas"
+    descripcion="Los contribuyentes que emiten con esta cuenta. Abre una para ver sus datos
+    fiscales, que son los que se imprimen en cada comprobante."
+  />
+
+  <!--
+    El botón aparece solo si el plan admite otra empresa.
+    Se consulta al servidor y no se deduce del número de filas: el listado son
+    las empresas que ESTE usuario alcanza, y el límite es de las de la cuenta.
+  -->
+  @if (cupo(); as limites) {
+  <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+      @if (limites.maxEmpresas === null) {
+      El plan no limita el número de empresas.
+      } @else {
+      {{ limites.empresasUsadas }} de {{ limites.maxEmpresas }} empresas del plan.
+      }
+    </p>
+
+    @if (limites.cabeOtra) {
+    <app-boton ruta="/configuracion/empresas/nueva" icono="mas">Agregar empresa</app-boton>
+    } @else {
+    <!--
+      Sin botón, y con el motivo al lado. Un botón deshabilitado sin explicación
+      hace que alguien lo pulse tres veces antes de escribir a soporte.
+    -->
+    <p class="text-sm text-gray-500 dark:text-gray-400">{{ limites.motivo }}</p>
+    }
+  </div>
+  }
+
+  <!--
+    La carga la pinta la propia tabla. Antes se sustituía la tarjeta entera por
+    un recuadro con «Cargando…», y eso se lleva por delante el buscador y el
+    botón de actualizar justo cuando se están usando: pulsar actualizar hacía
+    desaparecer el botón que se acababa de pulsar.
+  -->
+  @if (error()) {
+  <div class="mb-5 flex items-start gap-3 rounded-base border border-error-500/30 bg-error-500/10 p-4" role="alert">
+    <svg class="mt-0.5 shrink-0 text-error-500" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" />
+    </svg>
+    <p class="text-sm text-error-500">{{ error() }}</p>
+  </div>
+  } @else {
+  <app-tabla-datos
+    [acciones]="accionesDeFila"
+    campoDescripcion="razonSocial"
+    (accionElegida)="ejecutarAccion($event)"
+    [cargando]="cargando()"
+    nombrePlural="empresas"
+    nombreSingular="empresa"
+    (actualizar)="recargar()"
+    [columnas]="columnas"
+    [registros]="registros()"
+    [totalRegistros]="registros().length"
+    vacioTitulo="Sin empresas asignadas"
+    vacioDescripcion="Este usuario no tiene ninguna empresa asignada. La asignación la hace quien administra la cuenta."
+    (filaClic)="abrirFicha($event)"
+   />
+  }
+</div>

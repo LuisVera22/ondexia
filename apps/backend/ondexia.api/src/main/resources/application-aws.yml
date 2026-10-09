@@ -1,0 +1,145 @@
+# Perfil 'aws': lo que cambia por correr dentro de Lambda, no por el entorno.
+#
+# Se activa junto al nombre del entorno — SPRING_PROFILES_ACTIVE=aws,dev — para
+# que quede separado lo que depende de la PLATAFORMA (este archivo) de lo que
+# depende del ENTORNO (dev frente a prod). Sin esa separacion, cada ajuste de
+# Lambda habria que copiarlo en los dos.
+
+spring:
+  datasource:
+    # Terraform inyecta el host, el puerto y el nombre por separado
+    # (ondexia.infra/api.tf) porque son atributos distintos de la instancia RDS
+    # y componer la URL alli obligaria a interpolar dentro de una cadena.
+    #
+    # Ojo: application.yml define BD_URL con un valor por omision de localhost.
+    # Si esta linea no existiera, la Lambda arrancaria contra localhost:5432 y
+    # el sintoma seria un tiempo de espera de conexion, no una configuracion que
+    # falta. Es el tipo de error que cuesta media tarde.
+    url: jdbc:postgresql://${BD_HOST}:${BD_PUERTO}/${BD_NOMBRE}
+    username: ${BD_USUARIO}
+
+    # Sin contrasena, y no es un olvido.
+    #
+    # La API se conecta con un token de IAM que genera BaseDeDatosIamConfig
+    # firmando localmente con las credenciales del rol. No hay ningun secreto
+    # en las variables de entorno de esta funcion ni en el estado de Terraform.
+    #
+    # El usuario es `ondexia_app`, no el maestro: conceder rds_iam a un rol le
+    # quita la autenticacion por contrasena, y hacerlo sobre el maestro seria
+    # quedarse sin salida de emergencia si la ruta de IAM fallara (ver V8).
+
+    hikari:
+      # Lo pide el propio arranque, literalmente:
+      #
+      #   HikariDataSource (HikariPool-1) is not configured to allow pool
+      #   suspension. This will cause problems when the application is
+      #   checkpointed. Please configure allow-pool-suspension to fix this!
+      #
+      # Sin esto, la integracion de CRaC no puede vaciar el pool antes de que
+      # SnapStart tome la instantanea, y las conexiones quedan congeladas
+      # dentro. Un socket no sobrevive a una restauracion: al reanudar, el pool
+      # cree tener conexiones vivas contra algo que ya no existe.
+      #
+      # Hikari acabaria descartandolas al validarlas, asi que no es corrupcion
+      # — es latencia y errores intermitentes en la primera peticion de cada
+      # instancia restaurada. Justo el tipo de fallo que no se reproduce.
+      allow-pool-suspension: true
+
+  flyway:
+    # Las migraciones NO corren al arrancar. Las ejecuta una funcion aparte,
+    # invocada tras desplegar — ver ManejadorMigraciones, que explica por que.
+    enabled: false
+
+  threads:
+    virtual:
+      # Apagados en Lambda. Dos razones, y la segunda es la que obliga.
+      #
+      # 1. No sirven de nada aqui. Un contenedor de Lambda atiende UNA peticion
+      #    a la vez; la concurrencia la da Lambda creando mas contenedores. Los
+      #    hilos virtuales existen para meter miles de tareas bloqueantes en un
+      #    proceso, que es justo lo que nunca pasa en este modelo.
+      #
+      # 2. Encendidos, la aplicacion NO ARRANCA:
+      #
+      #      UnsupportedOperationException: Virtual threads not supported on JDK <21
+      #
+      #    Y no es que falte Java 21 —el runtime es java21—. spring-core
+      #    distribuye VirtualThreadDelegate como JAR MULTI-RELEASE: una version
+      #    base que lanza esa excepcion y otra real en META-INF/versions/21/.
+      #    Las dos estan en el artefacto y el manifiesto declara
+      #    Multi-Release: true.
+      #
+      #    Pero esas reglas solo valen para JARs. Lambda descomprime el zip en
+      #    /var/task y pone el DIRECTORIO en el classpath, con lo que
+      #    META-INF/versions/21/ pasa a ser una carpeta cualquiera y la JVM
+      #    carga la version base.
+      #
+      #    Por eso el mismo artefacto arranca en local con `java -cp jar` y
+      #    revienta en Lambda: no es el codigo, es de donde se carga.
+      enabled: false
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # El emisor que se exige. NO se usa para descargar nada: el decodificador
+          # lo construye SeguridadPasarelaConfig sobre el JWKS que Terraform
+          # inyecta, porque esta funcion no tiene salida a internet.
+          #
+          # AWS_REGION la pone el propio runtime de Lambda; COGNITO_POOL_ID la
+          # pone Terraform.
+          issuer-uri: https://cognito-idp.${AWS_REGION}.amazonaws.com/${COGNITO_POOL_ID}
+          # No se declara 'audiences' a proposito, y no es que no se compruebe:
+          # lo hace ExigeUsoYAudiencia dentro de SeguridadPasarelaConfig. El
+          # soporte de Spring mira solo 'aud', y los tokens de ACCESO de Cognito
+          # llevan 'client_id' y ningun 'aud' — declararlo aqui los rechazaria
+          # todos.
+          #
+          # Este comentario decia antes «lo que si se revalida es la firma y el
+          # emisor». Era falso desde que el bean cambio: se revalidaba el emisor
+          # y la firma NO. Es el hallazgo A1 de la auditoria 2026-09-01, y el
+          # motivo de la regla de CLAUDE.md sobre comentarios que describen
+          # controles. Hoy la firma se verifica de verdad y la prueba que lo
+          # ejercita es FirmaDelTokenIT.
+
+
+# Swagger y el contrato, APAGADOS fuera de local.
+#
+# Estaban abiertos a cualquier usuario autenticado de Cognito, y con el
+# autoservicio de alta eso era «a cualquiera». Un contrato de API completo no es
+# un secreto —quien tenga cuenta puede deducirlo llamando— pero le ahorra a quien
+# busca el trabajo de deducirlo: lista los endpoints que no salen en la interfaz,
+# los campos opcionales y los codigos de error, que es por donde se empieza.
+#
+# En local sigue disponible, que es donde sirve. Tabla de bajas de la auditoria
+# 2026-09-01.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+
+# Marca: donde viven los logos que sube el cliente.
+#
+# Las dos variables las pone Terraform desde el primer despliegue (api.tf), asi
+# que no hay nada que anadir alli. BUCKET_MARCA es el destino de la subida
+# firmada; CDN_MARCA es el dominio por el que se sirven, distinto al de la
+# aplicacion a proposito (DTE §5.8).
+ondexia:
+  marca:
+    bucket: ${BUCKET_MARCA}
+    cdn: ${CDN_MARCA}
+  # El bus con el Emisor (doc 14 §2). La pone Terraform (facturacion.tf); sin
+  # ella la aplicacion no arranca, que es preferible a arrancar sin poder emitir.
+  emision:
+    bucket: ${BUCKET_EMISION}
+
+# El arranque en frio se paga una vez por instancia; con SnapStart, casi nunca.
+# Pero el log de arranque de Spring se escribe en cada restauracion y CloudWatch
+# se factura por GB ingerido.
+logging:
+  level:
+    root: WARN
+    com.ondexia: INFO
+    org.springframework.web: WARN

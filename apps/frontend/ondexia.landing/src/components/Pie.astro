@@ -1,0 +1,119 @@
+---
+/**
+ * El pie.
+ *
+ * Los enlaces a `ver`, `docs` y `status` apuntan a subdominios que todavía no
+ * existen (doc 01 §2). Se dejan escritos y desactivados en vez de apuntar al
+ * apex: un enlace que promete una página y lleva a otra es peor que un enlace
+ * que dice «pronto». Cuando el subdominio exista, se cambia `pendiente` por su
+ * URL y se borra la marca.
+ *
+ * El Libro de Reclamaciones es de enlace obligatorio en el Perú para quien
+ * vende a consumidores. Va como enlace, nunca como texto suelto.
+ */
+import Logo from './Logo.astro';
+
+interface Enlace {
+  texto: string;
+  destino?: string;
+  pendiente?: boolean;
+}
+
+const columnas: { titulo: string; enlaces: Enlace[] }[] = [
+  {
+    titulo: 'Producto',
+    enlaces: [
+      { texto: 'Qué hace', destino: '#funciones' },
+      { texto: 'Precios', destino: '#precios' },
+      { texto: 'Estado', destino: '#estado' },
+    ],
+  },
+  {
+    titulo: 'Recursos',
+    enlaces: [
+      { texto: 'Consultar un comprobante', pendiente: true },
+      { texto: 'Documentación de API', pendiente: true },
+      { texto: 'Estado del servicio', pendiente: true },
+    ],
+  },
+  {
+    titulo: 'Legal',
+    enlaces: [
+      { texto: 'Términos', pendiente: true },
+      { texto: 'Privacidad', pendiente: true },
+      { texto: 'Libro de Reclamaciones', pendiente: true },
+    ],
+  },
+];
+---
+
+<footer class="bg-white py-11">
+  <div
+    class="mx-auto flex max-w-[1240px] flex-col justify-between gap-10 px-5 md:px-10 lg:flex-row lg:gap-[60px]"
+  >
+    <div class="flex flex-col gap-3">
+      <Logo ancho={148} />
+      {
+        /*
+          Los datos del titular salen del entorno de build, y si no estan NO SE
+          PINTA NADA. Antes habia un texto literal —«[RAZÓN SOCIAL] · RUC [TU
+          RUC]»— que era un marcador y se habria publicado tal cual (tabla de
+          bajas de la auditoria 2026-09-01). Un pie sin datos es un defecto
+          visible; un pie con corchetes es un defecto visible que ademas parece
+          que nadie leyo la pagina antes de publicarla.
+
+          Se ponen en .env como PUBLIC_TITULAR_RAZON_SOCIAL, PUBLIC_TITULAR_RUC y
+          PUBLIC_TITULAR_DIRECCION. Siguen siendo obligatorios para publicar: lo
+          que cambia es que faltar se nota como ausencia y no como error.
+        */
+      }
+      {
+        import.meta.env.PUBLIC_TITULAR_RAZON_SOCIAL && (
+          <p class="text-[13px] leading-[21px] text-gray-500">
+            {import.meta.env.PUBLIC_TITULAR_RAZON_SOCIAL} · RUC {import.meta.env.PUBLIC_TITULAR_RUC}
+            <br />
+            {import.meta.env.PUBLIC_TITULAR_DIRECCION}
+          </p>
+        )
+      }
+    </div>
+
+    <nav class="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:gap-14" aria-label="Pie de página">
+      {
+        columnas.map((columna) => (
+          <div class="flex flex-col">
+            <h2 class="rotulo mb-1.5 text-gray-900">{columna.titulo}</h2>
+            <ul class="flex flex-col">
+              {columna.enlaces.map((enlace) => (
+                <li>
+                  {/* Los pendientes van en gray-500 y no en gray-400: el 400 da
+                      2,6:1 sobre blanco. Atenuar es bajar el peso de un dato, no
+                      dejarlo a medio leer (doc 10 §3). */}
+                  {enlace.pendiente ? (
+                    <span class="flex min-h-11 items-center text-dato text-gray-500">
+                      {enlace.texto}
+                      <span class="ml-1.5 text-menudo text-gray-500">· pronto</span>
+                    </span>
+                  ) : (
+                    <a
+                      href={enlace.destino}
+                      class="enlace-subrayado flex min-h-11 items-center self-start rounded-base text-dato text-gray-600"
+                    >
+                      {enlace.texto}
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </nav>
+  </div>
+
+  <div class="mx-auto mt-7 max-w-[1240px] border-t border-gray-200 px-5 pt-4 md:px-10">
+    <p class="text-[13px] leading-5 text-gray-500">
+      © {new Date().getFullYear()} Ondexia. Todos los derechos reservados.
+    </p>
+  </div>
+</footer>

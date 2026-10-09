@@ -1,0 +1,71 @@
+<div>
+  <app-encabezado-pagina
+    titulo="Clientes"
+    descripcion="A quién se le emite. Una factura exige RUC; una boleta admite DNI o ningún documento, y el que no tiene documento no se registra aquí."
+  />
+
+  <div class="mb-5 flex flex-col gap-4 rounded-base border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03] lg:flex-row lg:items-end lg:justify-between">
+    <div class="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-3">
+      <div class="sm:col-span-2">
+        <label for="busqueda" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Buscar</label>
+        <div class="relative">
+          <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" />
+            </svg>
+          </span>
+          <input id="busqueda" type="text" [(ngModel)]="termino" placeholder="Nombre o número de documento"
+            class="h-10 w-full rounded-base border border-gray-300 bg-transparent pl-9 pr-3 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
+        </div>
+      </div>
+
+      <div>
+        <label for="tipo" class="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">Tipo de documento</label>
+        <app-desplegable idCampo="tipo" [opciones]="opcionesTipo" [(ngModel)]="tipoFiltro" />
+      </div>
+    </div>
+
+    <div class="flex shrink-0 gap-2">
+      @if (hayFiltrosActivos) {
+      <button type="button" (click)="limpiarFiltros()"
+        class="h-10 rounded-base border border-gray-300 px-4 text-sm text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-white/[0.03]">
+        Limpiar
+      </button>
+      }
+      @if (puedeRegistrar()) {
+      <app-boton icono="mas" class="shrink-0" (accion)="nuevo()">Nuevo cliente</app-boton>
+      }
+    </div>
+  </div>
+
+  @if (error()) {
+  <div class="flex items-start gap-3 rounded-base border border-error-500/30 bg-error-500/10 p-4" role="alert">
+    <p class="text-sm text-error-500">{{ error() }}</p>
+  </div>
+  } @else {
+  <app-tabla-datos
+    nombrePlural="clientes"
+    nombreSingular="cliente"
+    [acciones]="accionesDeFila"
+    campoDescripcion="nombre"
+    (accionElegida)="ejecutarAccion($event)"
+    [cargando]="cargando()"
+    (actualizar)="recargar()"
+    [columnas]="columnas"
+    [registros]="registros"
+    [orden]="orden"
+    [pagina]="pagina"
+    [tamanoPagina]="tamanoPagina"
+    [totalRegistros]="registros.length"
+    [vacioPorFiltros]="hayFiltrosActivos"
+    [buscable]="false"
+    vacioTitulo="Aún no hay clientes"
+    vacioDescripcion="Hace falta un cliente con RUC para emitir una factura. Las boletas y las notas de venta pueden ir sin cliente."
+    [vacioAccion]="puedeRegistrar() ? 'Nuevo cliente' : ''"
+    (ordenarPor)="orden = $event"
+    (cambiarPagina)="pagina = $event"
+    (filaClic)="abrirFicha($event)"
+    (accionVacio)="nuevo()"
+  />
+  }
+</div>

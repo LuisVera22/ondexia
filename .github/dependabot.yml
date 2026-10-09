@@ -1,0 +1,67 @@
+# Actualizaciones de dependencias (hallazgo M11).
+#
+# Los tres frontends no tenian NI analisis NI Dependabot: es donde mas
+# dependencias transitivas hay y donde mas rapido envejecen. El backend tenia
+# Dependency-Check, que AVISA de vulnerabilidades conocidas pero no actualiza
+# nada — son cosas distintas y hacen falta las dos.
+#
+# Semanal y no diario: con un solo desarrollador (R-13), un lunes de PR es
+# revisable y un goteo diario se acumula sin leer.
+version: 2
+
+updates:
+  # ── Acciones de GitHub ───────────────────────────────────────────────────
+  #
+  # Lo que hace sostenible fijar por SHA (hallazgo M13). Sin esto, fijar por SHA
+  # significa quedarse en una version vieja para siempre, que es peor que fijar
+  # por tag; con esto, Dependabot abre la PR con el SHA nuevo y las notas de la
+  # version.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "Actualiza"
+
+  # ── Backend ──────────────────────────────────────────────────────────────
+  - package-ecosystem: maven
+    directory: /apps/backend
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "Actualiza"
+
+  # ── Los tres frontends ───────────────────────────────────────────────────
+  #
+  # Uno por directorio: cada uno tiene su propio pnpm-lock.yaml y Dependabot no
+  # recorre subdirectorios por su cuenta.
+  - package-ecosystem: npm
+    directory: /apps/frontend/ondexia.web
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "Actualiza"
+
+  - package-ecosystem: npm
+    directory: /apps/frontend/ondexia.admin
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "Actualiza"
+
+  - package-ecosystem: npm
+    directory: /apps/frontend/ondexia.landing
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "Actualiza"

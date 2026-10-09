@@ -1,0 +1,119 @@
+---
+/**
+ * La llamada a la acción.
+ *
+ * Aquí hay una decisión que conviene entender antes de tocarla.
+ *
+ * La landing es estática y no habla con la API (doc 03 §3), así que un
+ * formulario de correo necesita un destino externo. Mientras ese destino no
+ * exista, NO se pinta el formulario: se pinta el enlace de correo.
+ *
+ * El motivo es que un formulario que no envía a ninguna parte es peor que no
+ * tener formulario. La persona escribe su correo, pulsa, la página se recarga
+ * y cree que quedó apuntada. Nadie se entera de que se perdió — ni ella ni tú.
+ *
+ * Para activarlo: poner la URL en PUBLIC_ENDPOINT_LISTA (.env) y listo. El
+ * `action` de un formulario admite cualquier servicio que reciba un POST de
+ * formulario; también vale una función Lambda con URL propia el día que exista.
+ */
+const endpoint = import.meta.env.PUBLIC_ENDPOINT_LISTA ?? '';
+const correo = 'hola@ondexia.com';
+---
+
+<section
+  id="acceso"
+  class="scroll-mt-20 bg-brand-500 py-16 md:py-[84px]"
+>
+  <div
+    class="mx-auto flex max-w-[1240px] flex-col items-start justify-between gap-10 px-5 md:px-10 lg:flex-row lg:items-center lg:gap-[60px]"
+  >
+    <div class="revelar flex flex-col gap-4">
+      <h2 class="flex flex-col gap-3.5 font-normal">
+        <span class="rotulo text-brand-900">
+Prueba de 30 días contra el entorno de pruebas de SUNAT
+        </span>
+        <span class="titular text-[52px] text-brand-950 sm:text-[68px] lg:text-[82px]">
+Acceso por lista de espera.
+        </span>
+      </h2>
+      <p class="max-w-[430px] text-[17px] font-medium leading-7 text-brand-900 md:text-lg">
+        Te escribimos cuando el primer corte esté listo para operar. Entran pocos,
+        para atenderlos bien.
+      </p>
+    </div>
+
+    <div class="revelar flex w-full flex-col gap-3 lg:w-[400px]" style="--retardo: 1">
+      {
+        endpoint ? (
+          <form action={endpoint} method="POST" class="flex flex-col gap-3">
+            {/*
+              Trampa para robots (tabla de bajas de la auditoria 2026-09-01). Un
+              humano no ve este campo ni lo rellena; un robot que rellena todo lo
+              que encuentra lo manda con valor, y el destino puede descartar la
+              entrada. No sustituye a un CAPTCHA —tampoco hace falta uno para
+              una lista de espera— y no anade JavaScript, que es la condicion de
+              esta landing.
+            */}
+            <div class="hidden" aria-hidden="true">
+              <label for="sitio_web">No rellenar</label>
+              <input id="sitio_web" type="text" name="sitio_web" tabindex="-1" autocomplete="off" />
+            </div>
+            <label for="correo" class="sr-only">
+              Correo de la empresa
+            </label>
+            <input
+              id="correo"
+              type="email"
+              name="correo"
+              required
+              autocomplete="email"
+              placeholder="correo@empresa.com"
+              class="h-12 rounded-base border border-gray-300 bg-white px-[18px] text-base text-gray-900 placeholder:text-gray-500 focus:outline-2 focus:outline-offset-2 focus:outline-brand-500"
+            />
+            {/*
+              Ley 29733 (proteccion de datos personales) y su reglamento: el
+              correo es un dato personal y hace falta consentimiento expreso e
+              informado ANTES de tratarlo. Sin esto, la lista de espera se
+              recogia sin base legal. El texto dice para que se usa, quien lo
+              trata y como borrarse; el enlace lleva a la politica.
+            */}
+            <label class="flex items-start gap-2.5 text-[13px] leading-5 text-brand-900">
+              <input
+                type="checkbox"
+                name="consentimiento"
+                value="si"
+                required
+                class="mt-0.5 h-4 w-4 shrink-0 accent-brand-900"
+              />
+              <span>
+                Se acepta que Ondexia use este correo solo para avisar del acceso. La
+                baja se pide escribiendo a
+                <a href={`mailto:${correo}`} class="font-semibold underline">{correo}</a>.
+                {/*
+                  Sin enlace a una politica de privacidad: no existe todavia y un
+                  enlace roto en el consentimiento es peor que ninguno. El texto
+                  de arriba ya dice finalidad, responsable y como ejercer el
+                  borrado, que es lo minimo de la Ley 29733. La pagina queda
+                  pendiente, con texto legal de verdad y no inventado aqui.
+                */}
+              </span>
+            </label>
+            <button type="submit" class="btn-primario w-full">
+              Solicitar acceso
+            </button>
+          </form>
+        ) : (
+          <a href={`mailto:${correo}?subject=Acceso%20anticipado%20a%20Ondexia`} class="btn-primario w-full">
+            Escribir para solicitar acceso
+          </a>
+        )
+      }
+
+      <p class="text-[13px] leading-5 text-brand-900">
+        {endpoint ? 'También se puede escribir a ' : 'Directamente a '}
+        <a href={`mailto:${correo}`} class="font-semibold text-brand-950 underline">{correo}</a>
+        {' para exponer un caso concreto.'}
+      </p>
+    </div>
+  </div>
+</section>

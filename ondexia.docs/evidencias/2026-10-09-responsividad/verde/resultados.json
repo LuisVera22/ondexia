@@ -1,0 +1,727 @@
+{
+  "resultados": [
+    {
+      "escenario": "registro",
+      "ancho": 320,
+      "correcto": true,
+      "medidas": {
+        "ventana": 320,
+        "pagina": 320,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 286,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "ticket",
+      "ancho": 320,
+      "correcto": true,
+      "medidas": {
+        "ventana": 320,
+        "pagina": 320,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 262,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "a4",
+      "ancho": 320,
+      "correcto": true,
+      "medidas": {
+        "ventana": 320,
+        "pagina": 320,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 262,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "venta",
+      "ancho": 320,
+      "correcto": true,
+      "medidas": {
+        "ventana": 320,
+        "pagina": 320,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 286,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          }
+        ]
+      }
+    },
+    {
+      "escenario": "alta-cliente",
+      "ancho": 320,
+      "correcto": true,
+      "medidas": {
+        "ventana": 320,
+        "pagina": 320,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 286,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          }
+        ]
+      }
+    },
+    {
+      "escenario": "registro",
+      "ancho": 390,
+      "correcto": true,
+      "medidas": {
+        "ventana": 390,
+        "pagina": 390,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 356,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "ticket",
+      "ancho": 390,
+      "correcto": true,
+      "medidas": {
+        "ventana": 390,
+        "pagina": 390,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 276.359375,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "a4",
+      "ancho": 390,
+      "correcto": true,
+      "medidas": {
+        "ventana": 390,
+        "pagina": 390,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 332,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "venta",
+      "ancho": 390,
+      "correcto": true,
+      "medidas": {
+        "ventana": 390,
+        "pagina": 390,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 356,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          }
+        ]
+      }
+    },
+    {
+      "escenario": "alta-cliente",
+      "ancho": 390,
+      "correcto": true,
+      "medidas": {
+        "ventana": 390,
+        "pagina": 390,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 356,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          }
+        ]
+      }
+    },
+    {
+      "escenario": "alta-altura-reducida",
+      "ancho": 390,
+      "correcto": true,
+      "medidas": {
+        "ventana": 390,
+        "pagina": 390,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 356,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          },
+          {
+            "alto": 44,
+            "fuente": 16
+          }
+        ]
+      }
+    },
+    {
+      "escenario": "registro",
+      "ancho": 768,
+      "correcto": true,
+      "medidas": {
+        "ventana": 768,
+        "pagina": 768,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 718,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "ticket",
+      "ancho": 768,
+      "correcto": true,
+      "medidas": {
+        "ventana": 768,
+        "pagina": 768,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 252.359375,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "a4",
+      "ancho": 768,
+      "correcto": true,
+      "medidas": {
+        "ventana": 768,
+        "pagina": 768,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 670,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "venta",
+      "ancho": 768,
+      "correcto": true,
+      "medidas": {
+        "ventana": 768,
+        "pagina": 768,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 718,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          }
+        ]
+      }
+    },
+    {
+      "escenario": "alta-cliente",
+      "ancho": 768,
+      "correcto": true,
+      "medidas": {
+        "ventana": 768,
+        "pagina": 768,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 718,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          }
+        ]
+      }
+    },
+    {
+      "escenario": "registro",
+      "ancho": 1440,
+      "correcto": true,
+      "medidas": {
+        "ventana": 1440,
+        "pagina": 1440,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 1090,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "ticket",
+      "ancho": 1440,
+      "correcto": true,
+      "medidas": {
+        "ventana": 1440,
+        "pagina": 1440,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 252.359375,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "a4",
+      "ancho": 1440,
+      "correcto": true,
+      "medidas": {
+        "ventana": 1440,
+        "pagina": 1440,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 718,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "venta",
+      "ancho": 1440,
+      "correcto": true,
+      "medidas": {
+        "ventana": 1440,
+        "pagina": 1440,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 719.328125,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          }
+        ]
+      }
+    },
+    {
+      "escenario": "alta-cliente",
+      "ancho": 1440,
+      "correcto": true,
+      "medidas": {
+        "ventana": 1440,
+        "pagina": 1440,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 719.328125,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          }
+        ]
+      }
+    }
+  ],
+  "fallos": [],
+  "impresiones": [
+    {
+      "ancho_ventana": 320,
+      "formato": "ticket",
+      "correcto": true
+    },
+    {
+      "ancho_ventana": 320,
+      "formato": "a4",
+      "correcto": true
+    },
+    {
+      "ancho_ventana": 390,
+      "formato": "ticket",
+      "correcto": true
+    },
+    {
+      "ancho_ventana": 390,
+      "formato": "a4",
+      "correcto": true
+    },
+    {
+      "ancho_ventana": 768,
+      "formato": "ticket",
+      "correcto": true
+    },
+    {
+      "ancho_ventana": 768,
+      "formato": "a4",
+      "correcto": true
+    },
+    {
+      "ancho_ventana": 1440,
+      "formato": "ticket",
+      "correcto": true
+    },
+    {
+      "ancho_ventana": 1440,
+      "formato": "a4",
+      "correcto": true
+    }
+  ],
+  "servicios_simulados": "Todas las API; sesión y datos sintéticos; no se emite ni se registra",
+  "dispositivos_fisicos": "no verificados"
+}

@@ -1,0 +1,121 @@
+<!--
+  Tres puntos verticales. Es el signo consensuado de «aquí hay más», y por eso
+  no lleva texto: una columna de veinte botones que ponen «Acciones» pesa más
+  que las propias filas.
+-->
+<button
+  #disparador
+  type="button"
+  (click)="alternar()"
+  (keydown)="alTeclearEnDisparador($event)"
+  [attr.aria-label]="'Acciones' + (descripcionFila ? ' de ' + descripcionFila : '')"
+  aria-haspopup="menu"
+  [attr.aria-expanded]="abierto()"
+  class="inline-flex h-9 w-9 items-center justify-center rounded-base text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 focus:outline-hidden focus-visible:ring-3 focus-visible:ring-brand-500/25 dark:hover:bg-white/[0.05] dark:hover:text-gray-300"
+  [class.bg-gray-100]="abierto()"
+  [class.dark:bg-white/[0.06]]="abierto()"
+>
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="5" r="1.7" /><circle cx="12" cy="12" r="1.7" /><circle cx="12" cy="19" r="1.7" />
+  </svg>
+</button>
+
+@if (abierto()) {
+<!--
+  `fixed` colocado desde el botón: el panel tiene que poder salir de la tarjeta
+  de la tabla, que se recorta con `overflow-x-auto` para desplazarse en
+  pantallas estrechas. Ver `posicionFlotante`.
+
+  El foco entra en el panel —de eso se encarga `abrir()`— para que las flechas
+  lleguen aquí y no a la página. La opción resaltada se
+  anuncia con `aria-activedescendant` en lugar de moverle el foco a cada una:
+  así el lector de pantalla sabe que sigue dentro del mismo menú.
+-->
+<div
+  role="menu"
+  tabindex="-1"
+  [ngStyle]="posicion()"
+  [attr.aria-activedescendant]="idOpcionResaltada"
+  (keydown)="alTeclearEnPanel($event)"
+  animate.enter="menu-entra"
+  #panel
+  class="z-99999 min-w-48 overflow-y-auto overscroll-contain rounded-base border border-gray-200 bg-white py-1.5 shadow-flotante focus:outline-hidden dark:border-gray-800 dark:bg-gray-900"
+>
+  @for (opcion of ordenadas; track opcion.id; let i = $index) {
+  @if (i === primeraPeligrosa && i > 0) {
+  <div class="my-1.5 border-t border-gray-200 dark:border-gray-800" role="separator"></div>
+  }
+
+  <button
+    type="button"
+    role="menuitem"
+    [id]="idOpcion(i)"
+    (click)="ejecutar(opcion)"
+    (mouseenter)="resaltada.set(i)"
+    [attr.aria-label]="opcion.etiquetaAccesible || null"
+    class="flex w-full items-center gap-2.5 px-3.5 py-2 text-left text-sm transition"
+    [class]="
+      opcion.peligrosa
+        ? 'text-error-500 ' + (resaltada() === i ? 'bg-error-50 dark:bg-error-500/10' : '')
+        : 'text-gray-700 dark:text-gray-300 ' +
+          (resaltada() === i ? 'bg-gray-100 dark:bg-white/[0.06]' : '')
+    "
+  >
+    @if (opcion.icono) {
+    <span class="shrink-0" [class.text-gray-400]="!opcion.peligrosa" aria-hidden="true">
+      @switch (opcion.icono) {
+        @case ('ver') {
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z" />
+          <circle cx="12" cy="12" r="2.6" />
+        </svg>
+        }
+        @case ('editar') {
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z" />
+        </svg>
+        }
+        @case ('desactivar') {
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18.36 6.64A9 9 0 1 1 5.64 6.64M12 3v9" />
+        </svg>
+        }
+        @case ('reactivar') {
+        <!--
+          El mismo interruptor que «desactivar». Llevaba la flecha circular, que
+          es la del boton de actualizar de la barra: el mismo dibujo significaba
+          dos cosas en la misma tabla.
+        -->
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18.36 6.64A9 9 0 1 1 5.64 6.64M12 3v9" />
+        </svg>
+        }
+        @case ('retirar') {
+        <!--
+          Una persona con un menos. La flecha de «salir» decia que quien sale es
+          uno mismo, y aqui se esta quitando a otro.
+        -->
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="9" cy="8" r="3.5" />
+          <path d="M2.5 20a6.5 6.5 0 0 1 13 0M17 12.5h5" />
+        </svg>
+        }
+        @case ('duplicar') {
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+        }
+        @case ('eliminar') {
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 7h16M10 11v6M14 11v6M5 7l1 13h12l1-13M9 7V4h6v3" />
+        </svg>
+        }
+      }
+    </span>
+    }
+
+    <span class="whitespace-nowrap">{{ opcion.etiqueta }}</span>
+  </button>
+  }
+</div>
+}

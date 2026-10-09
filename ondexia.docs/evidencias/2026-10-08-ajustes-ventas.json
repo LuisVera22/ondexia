@@ -1,0 +1,191 @@
+{
+  "fecha_local": "2026-10-08",
+  "zona_horaria": "America/Lima",
+  "rama": "develop",
+  "commit_base": "6cd2f226ece51a871a14261c9a598c38546ba0af",
+  "backend": {
+    "ondexia.admin": {
+      "tests": 41,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "ondexia.api": {
+      "tests": 269,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "ondexia.consultas": {
+      "tests": 41,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "ondexia.domain": {
+      "tests": 123,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "ondexia.facturacion": {
+      "tests": 27,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "web": {
+    "pruebas": 115,
+    "fallos": 0
+  },
+  "rojos_validos": {
+    "tipo_modulo": {
+      "log": "01-tipo-rojo-corregido.log",
+      "fallos": 4
+    },
+    "nota_venta": {
+      "log": "03-nota-rojo.log",
+      "fallos": 3
+    },
+    "alta_contextual": {
+      "log": "04-cliente-rojo.log",
+      "fallos": 1
+    },
+    "cambio_empresa": {
+      "log": "07-contexto-rojo.log",
+      "fallos": 1
+    },
+    "rutas_originales": {
+      "log": "09-rutas-rojo.log",
+      "fallos": 1
+    },
+    "marco_impreso": {
+      "log": "12-impresion-rojo.log",
+      "fallo": "El marco de navegación aparece en la impresión",
+      "verde": "13-impresion-verde.log"
+    }
+  },
+  "mutaciones": [
+    {
+      "mutacion": "atestacion",
+      "detectada": true,
+      "resultado": 1,
+      "restaurada": true
+    },
+    {
+      "mutacion": "resumen_fiscal",
+      "detectada": true,
+      "resultado": 1,
+      "restaurada": true
+    },
+    {
+      "mutacion": "permiso_cliente",
+      "detectada": true,
+      "resultado": 1,
+      "restaurada": true
+    },
+    {
+      "mutacion": "contexto_cliente",
+      "detectada": true,
+      "resultado": 1,
+      "restaurada": true
+    }
+  ],
+  "navegador": {
+    "resultados": [
+      {
+        "modulo": "notas-venta",
+        "tipo_fijo": "Nota de venta"
+      },
+      {
+        "modulo": "boletas",
+        "tipo_fijo": "Boleta de venta"
+      },
+      {
+        "modulo": "facturas",
+        "tipo_fijo": "Factura"
+      },
+      {
+        "alta": "consulta → revisión → registro simulado → selección",
+        "mostrador_general": "selector disponible"
+      },
+      {
+        "formato": "ticket",
+        "importe": "450.00",
+        "igv_visible": false,
+        "leyenda": "pie"
+      },
+      {
+        "formato": "a4",
+        "importe": "450.00",
+        "igv_visible": false,
+        "leyenda": "pie"
+      }
+    ],
+    "servicios_simulados": [
+      "caja abierta",
+      "consulta RUC",
+      "búsqueda/alta de cliente",
+      "nota de venta"
+    ],
+    "api_contexto": "local real con identidad sintética",
+    "escrituras_reales": false,
+    "impresora_fisica": "no verificada"
+  },
+  "compilacion": "correcta",
+  "tono_y_forma": "correcto",
+  "contratos_backend_y_modelos": "sin cambios; comparación byte a byte con commit base",
+  "archivos_codigo_sha256": {
+    "apps/frontend/ondexia.web/src/app/app.routes.ts": "ce467ee1f024d6cd2d8992b0485d99549f6aea6144fd507a64e6314bfa6642d3",
+    "apps/frontend/ondexia.web/src/app/pages/ventas/clientes/alta-cliente-venta.component.html": "02d311c9e180137595bb6f833396d4a3c3fc25046d1f549b6cd920abee062cd5",
+    "apps/frontend/ondexia.web/src/app/pages/ventas/clientes/alta-cliente-venta.component.spec.ts": "9bf76498b0b955aa4e1fa7ece93e560522b5346e0cd47250356852fde118cff9",
+    "apps/frontend/ondexia.web/src/app/pages/ventas/clientes/alta-cliente-venta.component.ts": "7bb50678cedde7971e5bbf21aa516f870d41ac44ad1a1a34d8e33f6db27f7585",
+    "apps/frontend/ondexia.web/src/app/pages/ventas/clientes/datos-alta-cliente.ts": "1cb3ae75b1e7904a292ae676d5bb906b8d5eca553720d9247d8385fd480f8dd2",
+    "apps/frontend/ondexia.web/src/app/pages/ventas/clientes/ficha-cliente.component.ts": "e32d3b2b7ee4fcdbf2c41029e1ce29eaa0375058ff133b91a54b8c1e38fc652f",
+    "apps/frontend/ondexia.web/src/app/pages/ventas/documentos/detalle-documento.component.html": "4ce57f520785a9341bf4b0492f82f282fe67c6b85838410402b93fe31ed1013c",
+    "apps/frontend/ondexia.web/src/app/pages/ventas/documentos/detalle-documento.component.spec.ts": "aeba0d93c9181dc561da3c8a97da100325f3419d4559190880687d5c13d0c347",
+    "apps/frontend/ondexia.web/src/app/pages/ventas/documentos/detalle-documento.component.ts": "b38f98830836b0ccbc3f22ea52d1cf8d74a4cef2c333c4028104b8cf713c9f6f",
+    "apps/frontend/ondexia.web/src/app/pages/ventas/documentos/lista-documentos.component.ts": "b9d9ce55d2b8147d0548cb225b89118bdd551afcfc0ea390983f742be371ab61",
+    "apps/frontend/ondexia.web/src/app/pages/ventas/punto-de-venta/punto-de-venta.component.html": "4643fdbc0b67f487d6b8b34288c7f7347d3ff62fe7010488a99a91030ea60977",
+    "apps/frontend/ondexia.web/src/app/pages/ventas/punto-de-venta/punto-de-venta.component.spec.ts": "b43151a8211502bb7bc689c6a42d841447c1c5f518ef14652ba4e32356d7cfb6",
+    "apps/frontend/ondexia.web/src/app/pages/ventas/punto-de-venta/punto-de-venta.component.ts": "dad8926b02cc6a0619da9337c516fe80a17c72e5ea05c898e1eb37740a76c4cd",
+    "apps/frontend/ondexia.web/src/app/pages/ventas/punto-de-venta/rutas-emision.spec.ts": "f042639af18417851ce05e69ea2351cc4b6a75a0f11c6636cb6e0acb5add75ca",
+    "apps/frontend/ondexia.web/src/styles.css": "e9f5ad6af5e5cd92b1281386521b0f02ef1bd47199d5b67f72621f7c1e528d38"
+  },
+  "registros_sha256": {
+    "01-tipo-rojo-corregido.log": "fd1b2dea61aca1036600320db0421d80e03e9b1c7fe21b03166eed02b688a950",
+    "03-nota-rojo.log": "79afef90358faf47277a16b61422fd5463579bdbf9c67409b61009210f64d2a8",
+    "04-cliente-rojo.log": "fc242073766cf3aeef97cb3494ce3a65b10d3a8bc9d56b91426d55319c7f1ef0",
+    "07-contexto-rojo.log": "0474f28439a8a70a76de819664a296dda253ee992f38ca24333206da9221b9d0",
+    "09-rutas-rojo.log": "d616321d4c77d9bfe8a91ef91f7adeacf09e13b2a2d02cd9cb204b6670ead7ec",
+    "11-final-verde.log": "d3d0fe6b8ae47f3f04480e2cc5983b5828e900c2824f834294991d483cb54366",
+    "backend.log": "2e484afb2e40d2bc5217b640b34430f09f3b54b33a1fcfd7dca350f13d019817",
+    "compilacion-web.log": "83b83539b548363d57a8189d400bae0b37770869ab48b5356ea709b36610e406",
+    "tono-y-forma.log": "d756fd657fd32705c60a57f8b11d81e84dee21ee9dbcc8ffc77ec19fa8e7796c",
+    "comprobacion-navegador.log": "0824d212bc44bcfc59a78a5b23841ccafc1c59d085ca55a9d118d0409ab1d80f",
+    "mutaciones.json": "ef62e52f22f605a51f4343c5edc3f2740687e2a43a83543abce39a1e82d29edc",
+    "navegador.json": "20b342fd03f9d2cc7a76c75a9033e85569e7633ae40bca02a99230563a0d4e76",
+    "mutacion-atestacion.log": "f726dd93f7ffdb6ad73cb78b11bec07135b94e55400af77a242c7c0052c041eb",
+    "mutacion-resumen_fiscal.log": "43e27e5031db6acd77bc4779bc928b43278d08eb4861a03b7363b960bc43c37a",
+    "mutacion-permiso_cliente.log": "ac503705e2a75f809f800dbc3cea36d94b3ace818ca98a207b76a7a30587dad7",
+    "mutacion-contexto_cliente.log": "fea983058c07c8335725eee7b0fcc2db57dc2a758550a5ad5f89028e61598984",
+    "alta-revision.png": "682fe78362b620b2d77c3cb1542e63f83288906817109b5d97c3130a81ddf9c1",
+    "nota-ticket.png": "deebf4dd6a772918a61dac0def0b9db3bf225d8fc3ad9747503dfb113e3b1491",
+    "nota-a4.png": "9b8e7ac1198a8dcdc66071802e1f1eb704d0e92d29a11a44bdea1fe953c946ab",
+    "12-impresion-rojo.log": "eec3fc1969f572044a7b88a079327a1fd1fc63bd9ab9a2ba429410b696e9119e",
+    "13-impresion-verde.log": "0824d212bc44bcfc59a78a5b23841ccafc1c59d085ca55a9d118d0409ab1d80f"
+  },
+  "paquete_evidencia": {
+    "ruta": "/workspace/evidencia-ajustes-ventas.tar.gz",
+    "sha256": "191aaa495fe3b37546b49543155598873181a82fbc7c42d794b6e41bbfe142ce"
+  },
+  "no_verificado": [
+    "auditoría en sesión independiente",
+    "consulta a proveedor real y firma real de su atestación en este flujo",
+    "impresora física y paginación completa",
+    "rentabilidad/adopción real",
+    "precisión decimal general del frontend heredado"
+  ],
+  "sin_escrituras_reales_en_navegador": true
+}

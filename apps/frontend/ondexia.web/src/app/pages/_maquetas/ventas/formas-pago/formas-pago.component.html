@@ -1,0 +1,35 @@
+<div>
+  <app-encabezado-pagina
+    titulo="Formas de pago"
+    descripcion="Determinan si la venta es al contado o genera cuenta por cobrar. Las de
+    crédito calculan la fecha de vencimiento a partir de los días indicados."
+  />
+
+  <div class="mb-5 flex justify-end">
+    <app-boton icono="mas" class="shrink-0">Agregar forma de pago</app-boton>
+  </div>
+
+  <app-tabla-datos
+    nombrePlural="formas de pago"
+    nombreSingular="forma de pago"
+    [acciones]="accionesDeFila"
+    campoDescripcion="nombre"
+    (accionElegida)="ejecutarAccion($event)"
+    [columnas]="columnas"
+    [registros]="registros"
+    [totalRegistros]="registros.length"
+    vacioTitulo="Aún no hay formas de pago"
+    vacioDescripcion="Defina al menos una para poder emitir comprobantes."
+    vacioAccion="Agregar forma de pago"
+   />
+
+  <app-confirmacion
+    [abierto]="confirmacionAbierta"
+    [peligrosa]="true"
+    titulo="¿Eliminar la forma de pago?"
+    mensaje="Dejará de estar disponible al emitir. Los comprobantes ya emitidos conservan la forma con la que se registraron."
+    textoConfirmar="Eliminar"
+    (confirmar)="eliminar()"
+    (cancelar)="confirmacionAbierta = false"
+  />
+</div>

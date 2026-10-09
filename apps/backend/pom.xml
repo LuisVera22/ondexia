@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Padre del backend de Ondexia.
+
+  Hereda de spring-boot-starter-parent solo para tomar su gestion de versiones:
+  fija de una vez las de Hibernate, Jackson, Flyway, el driver de PostgreSQL y
+  un centenar mas. Alinearlas a mano es trabajo permanente y una de las fuentes
+  clasicas de fallos que solo aparecen en tiempo de ejecucion.
+
+  Este pom no produce codigo. Declara los modulos, las versiones de lo que el
+  BOM no cubre, y los plugins comunes.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>4.0.8</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>com.ondexia</groupId>
+  <artifactId>ondexia-parent</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>Ondexia — backend</name>
+  <description>Sistema de gestion comercial con facturacion electronica SUNAT</description>
+
+  <!--
+    La carpeta lleva punto (ondexia.domain) y el artefacto lleva guion
+    (ondexia-domain). Es la traduccion en frontera que fija
+    ondexia.docs/03-estructura-repositorio.md §2: punto en carpeta, guion en
+    identificador tecnico.
+  -->
+  <modules>
+    <module>ondexia.domain</module>
+    <module>ondexia.api</module>
+    <module>ondexia.admin</module>
+    <module>ondexia.consultas</module>
+    <module>ondexia.facturacion</module>
+  </modules>
+
+  <properties>
+    <!--
+      Java 21 y no uno mas nuevo. La restriccion vinculante no es que LTS
+      publico Oracle, sino que runtime ofrece Lambda con SnapStart, que es
+      requisito duro de DT-02. Ver DTE §4.3.
+    -->
+    <java.version>21</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <springdoc.version>3.1.0</springdoc.version>
+    <testcontainers.version>2.0.5</testcontainers.version>
+    <archunit.version>1.5.0</archunit.version>
+
+    <!--
+      Adaptador de Lambda (DT-D17). La serie 3.x es la de Spring Boot 4; la 2.x
+      se quedo en Boot 3 y en Jackson 2.
+    -->
+    <serverless-container.version>3.0.2</serverless-container.version>
+    <lambda-core.version>1.2.3</lambda-core.version>
+    <!--
+      API de CRaC. La implementacion NO se empaqueta: la pone el runtime de
+      Lambda cuando SnapStart toma y restaura la instantanea. En local esta
+      dependencia no hace nada, que es exactamente lo que debe hacer.
+    -->
+    <crac.version>1.5.0</crac.version>
+    <shade.version>3.6.0</shade.version>
+
+    <!--
+      SDK de AWS, solo para S3 (logos de marca).
+
+      Se usa el cliente de URLConnection y NO el de Netty ni el de Apache. Los
+      dos ultimos traen su propia pila de red —Netty pesa varios megabytes y
+      arranca hilos— y aqui las llamadas son dos por subida: firmar es un
+      calculo local sin red, y despues un HeadObject y algun DeleteObject
+      ocasional. El cliente del JDK sobra para eso y no engorda el artefacto,
+      que ya roza los 67 MB.
+    -->
+    <awssdk.version>2.32.14</awssdk.version>
+
+    <!--
+      OWASP Dependency-Check enlazado a la fase verify, no como paso aparte del
+      workflow: asi corre igual en CI y en local (doc 03 §9.0). Es bloqueante
+      por decision de §9.4 — en un sistema que firma comprobantes con valor
+      tributario, un CVE conocido es un defecto, no un aviso.
+    -->
+    <dependency-check.version>12.1.0</dependency-check.version>
+    <dependency-check.failBuildOnCVSS>7</dependency-check.failBuildOnCVSS>
+    <!-- Se apaga en local con -Ddependency-check.skip=true. -->
+    <dependency-check.skip>false</dependency-check.skip>
+
+    <!--
+      Versiones por delante de las que fija Spring Boot, y no por gusto.
+
+      La primera ejecucion del analisis con la clave del NIST —hasta entonces se
+      omitia por falta de clave, ver ci.yml— senalo dos dependencias por encima
+      del umbral de CVSS 7:
+
+        postgresql 42.7.11    CVE-2026-54291 (8.2)  -> corregido en 42.7.13
+        tomcat-embed-core     CVE-2026-55276, 53434, 59083, 59084 (9.1),
+                              CVE-2026-53404 (7.3)   -> corregidos en 11.0.24
+                              CVE-2026-66299 (7.5)   -> sin version corregida,
+                                                        suprimido con motivo
+
+      Segunda vuelta, 2026-09-01: el CI se puso rojo otra vez con cinco CVE mas,
+      todos de Tomcat y todos con el rango terminando justo en la 11.0.24 que se
+      habia fijado arriba:
+
+        CVE-2026-65637 (9.8)  validacion de entrada, arreglo incompleto de
+                              CVE-2026-32990
+        CVE-2026-68525 (9.1)  autorizacion incorrecta en autenticacion FORM
+        CVE-2026-65182 (9.1)  omision de restriccion si una ruta larga se
+                              declara antes que una sub-ruta mas restrictiva
+        CVE-2026-68569 (8.1)
+        CVE-2026-68763 (7.5)
+
+      Corregidos en 11.0.25. Sigue aplicando lo de abajo —el contenedor de
+      servlets de produccion no es Tomcat— y sigue subiendose igual, por el mismo
+      motivo: una verja que se abre «porque en nuestro caso no aplica» deja de
+      ser una verja, y la proxima vez nadie volvera a razonarlo.
+
+      Se sube a la ultima publicada de cada linea. Son parches dentro de la misma
+      version menor, asi que no hay cambio de API; lo que cambia es que el
+      analisis vuelve a pasar, y si no pasara lo dira el mismo build.
+
+      Sobre Tomcat conviene ser exacto para no exagerar el riesgo NI
+      minimizarlo: `tomcat-embed-core` esta EXCLUIDO del artefacto que se
+      despliega —en Lambda el contenedor de servlets lo pone
+      aws-serverless-java-container, ver el shade de ondexia.api— asi que esas
+      seis vulnerabilidades no viajan a produccion. Siguen estando en el
+      classpath de compilacion y de `spring-boot:run`, que es como se levanta en
+      la maquina de desarrollo, y por eso se corrigen igual.
+
+      El driver de PostgreSQL SI se despliega y SI se usa en cada peticion. Ese
+      es el que importaba.
+    -->
+    <postgresql.version>42.7.13</postgresql.version>
+    <tomcat.version>11.0.25</tomcat.version>
+
+    <!--
+      Clave de API del NIST.
+
+      Desde 2023 la NVD limita con dureza a quien consulta sin clave: la primera
+      sincronizacion pasa de minutos a horas, o falla por limite de peticiones.
+      Sin este dato el analisis no es lento, es inviable en un pipeline.
+
+      La clave es gratuita y se pide en:
+        https://nvd.nist.gov/developers/request-an-api-key
+
+      Se declara como propiedad propia y no se confia en el nombre de propiedad
+      de usuario del plugin, que ha cambiado entre versiones. En CI se pasa con
+      -Ddependency-check.nvdApiKey=... desde un secreto.
+    -->
+    <dependency-check.nvdApiKey/>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>com.ondexia</groupId>
+        <artifactId>ondexia-domain</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        <version>${springdoc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.tngtech.archunit</groupId>
+        <artifactId>archunit-junit5</artifactId>
+        <version>${archunit.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-bom</artifactId>
+        <version>${testcontainers.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>${awssdk.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!-- En todos los modulos: las pruebas no son opcionales en ninguno. -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.owasp</groupId>
+          <artifactId>dependency-check-maven</artifactId>
+          <version>${dependency-check.version}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <!--
+            Los nombres de parametro sobreviven a la compilacion. Spring los
+            necesita para resolver @PathVariable y @RequestParam sin repetir el
+            nombre en la anotacion, y sin esto fallan en runtime, no al
+            compilar.
+          -->
+          <parameters>true</parameters>
+          <!--
+            Los avisos del compilador se tratan como errores. Se excluyen tres
+            categorias que no senalan defectos nuestros:
+              serial      — las entidades JPA no son Serializable y no tienen
+                            por que declarar serialVersionUID.
+              processing  — la genera el procesador de anotaciones de Hibernate,
+                            no nuestro codigo.
+              this-escape — se dispara en toda clase con constructor que llama a
+                            un metodo sobreescribible; en las entidades JPA es
+                            ruido constante.
+          -->
+          <compilerArgs>
+            <arg>-Xlint:all,-serial,-processing,-this-escape</arg>
+            <arg>-Werror</arg>
+          </compilerArgs>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!--
+            Surefire por omision solo recoge *Test, *Tests y Test*. Las pruebas
+            de integracion se llaman *IT para distinguirlas de un vistazo —
+            necesitan Docker y tardan mas—, y sin esta linea no se ejecutaria
+            ninguna: el build pasaria en verde habiendo corrido cero pruebas,
+            que es el peor modo de fallo posible en una suite.
+
+            No se usa failsafe, que seria lo canonico, porque separar las
+            pruebas en dos fases obliga a recordar cual comando corre cuales.
+            Con un solo desarrollador, que `./mvnw test` ejecute todo vale mas
+            que la pureza de la separacion.
+          -->
+          <includes>
+            <include>**/*Test.java</include>
+            <include>**/*Tests.java</include>
+            <include>**/*IT.java</include>
+          </includes>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-maven</artifactId>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <failBuildOnCVSS>${dependency-check.failBuildOnCVSS}</failBuildOnCVSS>
+          <!--
+            OSS Index de Sonatype, apagado.
+
+            Es un analizador mas, ademas de la NVD, y se consulta de forma
+            anonima. Desde los runners de GitHub —direcciones compartidas por
+            mucha gente— responde 401 a cada peticion y tumba el build entero:
+
+              DownloadFailedException: https://ossindex.sonatype.org/api/v3/
+              component-report - Server status: 401 - Server reason: Unauthorized
+
+            No se apaga por comodidad. Se comprobo en los informes de las dos
+            ejecuciones anteriores cuantos hallazgos habia aportado cada fuente:
+
+              NVD       24  y  2
+              RetireJS   6  y  2
+              OSS Index  0  y  0
+
+            Cero en ambas. Lo que encontro el analisis —el 8.2 del driver de
+            PostgreSQL, los 9.1 de Tomcat, el XSS de DOMPurify— salio de la NVD y
+            de RetireJS, que siguen activos.
+
+            La alternativa era `failOnError=false`, y es peor: silenciaria
+            CUALQUIER error de analisis, incluidos los que si querriamos ver.
+            Apagar una fuente concreta y decir por que es una decision; tapar
+            todos los errores es perder el detector sin enterarse.
+
+            Se revisa si algun dia aporta algo: con una cuenta de Sonatype se
+            configura `ossIndexServerId` y deja de ir anonimo.
+          -->
+          <ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
+          <!--
+            Hallazgos que no aplican, cada uno con su justificacion escrita.
+            La ruta se ancla a la raiz del proyecto multimodulo para que resuelva
+            igual al construir el reactor entero que un modulo suelto.
+          -->
+          <suppressionFiles>
+            <suppressionFile>${maven.multiModuleProjectDirectory}/dependency-check-suprimidos.xml</suppressionFile>
+          </suppressionFiles>
+          <skip>${dependency-check.skip}</skip>
+          <nvdApiKey>${dependency-check.nvdApiKey}</nvdApiKey>
+          <!--
+            La base de la NVD se descarga una vez y se reutiliza. Vive bajo el
+            repositorio local de Maven, que el CI ya cachea entre ejecuciones,
+            asi que la descarga completa ocurre una sola vez y no en cada push.
+          -->
+          <dataDirectory>${settings.localRepository}/org/owasp/dependency-check-data</dataDirectory>
+          <!-- Analizadores de ecosistemas que este proyecto no usa. -->
+          <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+          <nodeAnalyzerEnabled>false</nodeAnalyzerEnabled>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

@@ -1,0 +1,71 @@
+<div>
+  <app-encabezado-pagina
+    titulo="Comunicaciones de baja"
+    descripcion="Facturas que se comunicaron a SUNAT como no emitidas. Se piden desde la factura; aquí se sigue en qué punto está cada una, porque SUNAT responde con un ticket y el veredicto llega después."
+  />
+
+  <div class="mb-5 flex justify-end">
+    <app-boton variante="secundario" [estado]="actualizar.estado()" (accion)="actualizar.ejecutar()">Actualizar</app-boton>
+  </div>
+
+  @if (cargando()) {
+  <div class="rounded-base border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+    <p class="text-sm text-gray-500 dark:text-gray-400">Cargando…</p>
+  </div>
+  } @else if (error()) {
+  <div class="rounded-base border border-error-500/30 bg-error-500/10 p-4" role="alert"><p class="text-sm text-error-500">{{ error() }}</p></div>
+  } @else if (comunicaciones().length === 0) {
+  <div class="rounded-base border border-gray-200 bg-white p-10 text-center dark:border-gray-800 dark:bg-white/[0.03]">
+    <p class="text-sm font-medium text-gray-800 dark:text-white/90">Aún no hay comunicaciones de baja</p>
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+      Se piden desde la ficha de la factura, cuando el comprobante no debió existir. Para corregir una venta que sí ocurrió está la nota de crédito.
+    </p>
+  </div>
+  } @else {
+  <ul class="grid gap-4">
+    @for (c of comunicaciones(); track c.id) {
+    <li class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="font-mono text-sm font-semibold text-gray-800 dark:text-white/90">{{ c.identificador }}</span>
+            <span class="text-sm font-medium" [class]="tono(c.estado)">
+              @if (c.estado === 'EN_COLA' || c.estado === 'EN_PROCESO') {<span class="mr-1 inline-block h-2 w-2 animate-pulse rounded-full bg-warning-500"></span>}
+              {{ texto(c.estado) }}
+            </span>
+            @if (c.intentos > 1) {<span class="text-xs text-gray-500">intento {{ c.intentos }}</span>}
+          </div>
+
+          <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            Comprobantes del {{ fecha(c.fechaComprobantes) }}
+            @if (c.ticket) { · ticket <span class="font-mono">{{ c.ticket }}</span>}
+          </p>
+
+          @if (c.codigo && c.estado !== 'EN_PROCESO' && c.estado !== 'EN_COLA') {
+          <p class="mt-1 text-sm text-gray-700 dark:text-gray-300"><span class="font-mono text-xs text-gray-500">{{ c.codigo }}</span> {{ c.descripcion }}</p>
+          }
+
+          @if (c.estado !== 'ACEPTADO' && c.diasDePlazo <= 3) {
+          <p class="mt-1 text-xs" [class]="c.diasDePlazo < 0 ? 'text-error-500' : 'text-warning-600'">
+            @if (c.diasDePlazo < 0) { El plazo para comunicar esta baja venció. Lo que queda es una nota de crédito. }
+            @else { Quedan {{ c.diasDePlazo }} día{{ c.diasDePlazo === 1 ? '' : 's' }} de plazo. }
+          </p>
+          }
+
+          <ul class="mt-2 text-sm text-gray-700 dark:text-gray-300">
+            @for (comp of c.comprobantes; track comp.documentoId) {
+            <li class="tabular-nums">{{ comp.numeroCompleto }} · <span class="text-gray-500 dark:text-gray-400">{{ comp.motivo }}</span></li>
+            }
+          </ul>
+        </div>
+
+        @if (puedeEnviar() && c.admiteReintento) {
+        <app-boton class="shrink-0" variante="secundario" [estado]="reintentando() === c.id ? reintentar.estado() : 'reposo'"
+          (accion)="pedirReintento(c.id)">Volver a enviar</app-boton>
+        }
+      </div>
+    </li>
+    }
+  </ul>
+  }
+</div>

@@ -8,9 +8,9 @@
 | Campo | Valor |
 |---|---|
 | Código | DTE-ONX-001 |
-| Versión | 0.7 |
+| Versión | 0.11 |
 | Estado | **Preliminar** |
-| Fecha | 2026-08-06 |
+| Fecha | 2026-08-11 |
 | Producto | Ondexia — Almacén, Compras, Ventas + Facturación Electrónica SUNAT |
 | Fase COE QE | Fase 2 · Etapa 2 · Actividad 1 |
 | Tech Lead | Desarrollador único (R-13) |
@@ -79,6 +79,11 @@ Razón de fondo: **SUNAT se cae, y con frecuencia**. Si la emisión fuera síncr
 
 ### 3.2 Diagrama de componentes
 
+> El diagrama de infraestructura vive en [`arquitectura-aws.drawio`](arquitectura-aws.drawio),
+> con dos páginas: la **v1** que se despliega ahora y la **arquitectura objetivo** con SUNAT.
+> El diagrama de abajo describe componentes lógicos y se mantiene por separado; si divergen,
+> manda el `.drawio`.
+
 ```coeqe-flow
 direction: TB
 node CF "CloudFront" [shape=rounded color=gestion]
@@ -125,6 +130,8 @@ edge VER -> S3 "lee PDF y XML"
 | **S3** | XML firmado, CDR, PDF. Inmutables | — |
 
 El boundary que importa: **el API Core nunca abre una conexión hacia SUNAT**. Toda comunicación con el exterior fiscal pasa por el Emisor. Eso concentra el manejo de certificados, reintentos e IP fija en un solo componente auditable.
+
+El límite se define por el **certificado**, no por la salida a internet: las consultas de solo lectura contra servicios externos van en `ondexia.consultas`, fuera de la VPC y fuera del Emisor (DT-19).
 
 ---
 
@@ -254,7 +261,54 @@ Dos precisiones sobre el criterio:
 | Opciones evaluadas | A) Cognito · B) Keycloak autogestionado · C) Auth0 |
 | Criterio de elección | Costo, multiempresa (R-04), MFA |
 | **Decisión** | **A — Cognito con dominio propio `auth.ondexia.com`** |
-| Consecuencias | Integración nativa con API Gateway (authorizer sin código), MFA incluido, 50 000 usuarios activos gratis. **Contra:** la personalización de la interfaz de login es limitada, y la migración fuera de Cognito es costosa. La pertenencia a empresa y los permisos finos **no** viven en Cognito: viven en la base (ver §5.2) |
+| Consecuencias | Integración nativa con API Gateway (authorizer sin código), MFA incluido. **Contra:** la personalización de la interfaz de login es limitada, y salir de Cognito es costoso — los usuarios se exportan, los hashes de contraseña no, así que migrar obliga a restablecer credenciales a todos. Mitigado porque `cognito_sub` es la única clave foránea y la tabla `usuario` es la fuente de verdad. La pertenencia a empresa y los permisos finos **no** viven en Cognito: viven en la base (ver §5.2 y §8.1) |
+| Corrección 0.8 | La versión 0.7 afirmaba «50 000 usuarios activos gratis». **AWS modificó el modelo de capa gratuita**; ese número ya no aplica. Verificar el nivel vigente antes de usarlo en cualquier proyección. Al volumen previsto el costo sigue siendo despreciable, pero el dato concreto estaba caduco |
+
+**Decisión técnica DT-16: Infraestructura como código — Terraform en vez de CDK**
+
+| Campo | Valor |
+|---|---|
+| Opciones evaluadas | A) AWS CDK en TypeScript · B) Terraform · C) SAM / CloudFormation a mano |
+| Criterio de elección | Legibilidad del cambio antes de aplicarlo, modos de fallo con un solo operador |
+| **Decisión** | **B — Terraform** |
+| Sustituye a | La decisión de las versiones 0.1 a 0.8, que fijaba CDK |
+| Sustento | El `plan` de Terraform enumera exactamente qué se crea, modifica y destruye antes de tocar nada, y eso pesa más cuando no hay un segundo par de ojos. CDK sintetiza CloudFormation, y los fallos de CloudFormation —pilas atascadas en `UPDATE_ROLLBACK_FAILED`, recursos huérfanos tras un rollback fallido— exigen intervención manual que con R-13 no tiene quien la cubra |
+| Consecuencias | **A favor:** estado explícito y auditable; cobertura de recursos que CloudFormation tarda en incorporar. **En contra:** empaquetar el artefacto de Lambda deja de ser automático y pasa a ser un paso del pipeline; se pierde `cdk-nag` y hay que sustituirlo por `tfsec` o `checkov` (§8.3); **el estado pasa a ser un activo crítico** — vive en S3 cifrado y versionado, y perderlo obliga a importar los recursos a mano |
+| Verificación | `fmt`, `init` y `validate` pasan sobre `ondexia.infra/` y su `bootstrap/`. **No se ha ejecutado `plan` ni `apply` contra una cuenta real** |
+
+**Decisión técnica DT-17: Arquitectura interna del backend**
+
+| Campo | Valor |
+|---|---|
+| Opciones evaluadas | A) Monolito modular con hexagonal pragmática · B) Hexagonal estricta con dominio POJO puro · C) Capas clásicas de Spring agrupadas por tipo técnico |
+| Criterio de elección | Que la estructura siga siendo legible a los 23 submódulos del alcance, con un solo desarrollador (R-13) |
+| **Decisión** | **A — paquete por dominio; dentro de cada uno, `dominio` / `aplicacion` / `infraestructura` / `web`** |
+| Sustento | C es lo más rápido de arrancar y no sobrevive al alcance: un paquete `service` con sesenta clases no deja ninguna frontera que impida que Ventas llame directo al repositorio de Almacén. B duplica unas setenta clases de modelo y sus mapeadores a cambio de una independencia del motor que no vamos a ejercer — RLS (§5.1) ya nos ata a PostgreSQL a propósito |
+| Consecuencias | Las entidades llevan anotaciones de JPA y viven en `ondexia-domain`, compartidas con el motor de facturación. **Lo que sí se conserva de hexagonal es que el dominio no conoce HTTP, Spring Web ni seguridad**, y que las dependencias apuntan hacia adentro. **Deuda:** si algún día hiciera falta un modelo de dominio independiente de la persistencia, el cambio es caro |
+| Detalle | Ver `03-estructura-repositorio.md` §4.1 a §4.3 |
+
+**Decisión técnica DT-18: Versión de Spring Boot — la rama 4.0**
+
+| Campo | Valor |
+|---|---|
+| Opciones evaluadas | A) Spring Boot 4.0.7 · B) Spring Boot 4.1.0 · C) Spring Boot 3.5.x |
+| **Decisión** | **A — 4.0.7** |
+| Sustento | C queda fuera del soporte abierto en breve. B se publicó sin ningún parche detrás, y el ecosistema —springdoc, integraciones de pruebas— suele ir semanas por detrás de cada versión menor. 4.0.7 es la misma mayor con siete parches de rodaje |
+| Consecuencias | **Spring Boot 4 reorganizó los módulos y buena parte de los ejemplos publicados ya no compilan.** Lo verificado en este proyecto: `spring-boot-starter-aop` desapareció (ahora `-aspectj`); `flyway-core` a secas **no trae autoconfiguración y no migra nada** — hay que usar `spring-boot-starter-flyway`; `@EntityScan` se movió a `org.springframework.boot.persistence.autoconfigure`; y `@AutoConfigureMockMvc` salió de `spring-boot-starter-test` a `spring-boot-starter-webmvc-test`. Ninguno de los cuatro da un error legible: dos fallan como «símbolo no encontrado» y el de Flyway aparece mucho después, como un `missing table` de la validación de esquema de Hibernate |
+| Verificación | Suite de 15 pruebas de integración contra PostgreSQL 17 real, en verde |
+
+**Decisión técnica DT-19: Las consultas a servicios externos van en su propio despliegue**
+
+| Campo | Valor |
+|---|---|
+| Opciones evaluadas | A) Dentro de `ondexia.api` · B) Dentro de `ondexia.facturacion` · C) Unidad propia, `ondexia.consultas` |
+| **Decisión** | **C — unidad propia** |
+| Sustento | **A es imposible hoy**: la Lambda de la API vive en subred privada sin NAT y no alcanza internet (§4.8). **B se descartó por dos razones.** La primera es de diseño: lo único que comparten firmar un XML con el certificado del cliente y consultar un padrón público es que ambos salen a la red — un rasgo del despliegue, no del dominio, y una frontera derivada de un rasgo técnico acaba siendo un cajón de sastre. La segunda es de seguridad y decide: **los permisos de IAM son por función**, así que un componente compartido necesita la unión de todos ellos, y quien consulta el tipo de cambio terminaría ejecutándose con el mismo rol que lee el certificado digital del cliente. Como daño colateral, cambiar el cliente del tipo de cambio obligaría a redesplegar el componente que guarda certificados |
+| Alcance | **Solo lectura, dato público o semipúblico, sin secretos del cliente, cacheable.** Entra: padrón de contribuyentes (RUC), tipo de cambio, y consultas equivalentes que aparezcan. **No entra**: nada que use el certificado o las credenciales SOL del cliente —eso es `facturacion`—, ni nada que mueva dinero o envíe mensajes en su nombre, que son escrituras con otro riesgo y otro dato personal. La clave de API del proveedor sí vive aquí: es nuestra y es un valor único. **Corrección (v0.13):** no va en variable de entorno cifrada, como decía esta decisión, sino en un parámetro `SecureString` de SSM. El cifrado de una variable de entorno es en reposo y Lambda la descifra antes de ejecutar el código, así que cualquiera con `lambda:GetFunctionConfiguration` la ve en texto plano; un parámetro tiene IAM delante y es gratis, frente a los 0,40 USD por secreto y mes de Secrets Manager |
+| Consecuencias | **Dos patrones de acceso, y son distintos.** (1) *A la carta, iniciada por una persona* —el RUC en el registro—: el SPA llama a `consultas`, que devuelve los datos más una **atestación firmada** con caducidad de minutos que incluye todos los datos devueltos y el `sub` de quien la pidió (hallazgo M17: sin el `sub` era reenviable por cualquiera durante esos minutos); la API valida esa firma **sin red** y exige que el `sub` coincida con el del token, así que la comprobación sigue siendo autoritativa del servidor y un cliente no puede inventar «habido activo» porque no puede firmar. (2) *Programada, necesaria en el servidor* —el tipo de cambio—: un disparador diario ejecuta `consultas`, que **escribe el resultado en S3**; la API lo lee por el endpoint de puerta de enlace de S3, que ya existe y es gratuito. Sin ese puente haría falta NAT Gateway (~32 USD/mes) o un endpoint de interfaz (~7.30), y el ahorro de §4.8 se evaporaría. **Se reformula el invariante de `facturacion`**: pasa de «es el único que habla con SUNAT» a **«es el único que guarda certificados y realiza operaciones fiscales»** — que es lo que de verdad protege, y deja sitio a `consultas` sin ambigüedad. **Y caduca la premisa de §4.8** («nada necesita salir»): sigue sin haber NAT, pero ya no porque nada lo necesite, sino porque lo que lo necesita se despliega fuera de la VPC |
+| No se hace | Una biblioteca compartida para la mecánica de los clientes externos —tiempos de espera, reintentos, cortocircuito—. Con una sola unidad desplegable no hay nada que compartir; se plantea cuando exista un segundo consumidor de la misma mecánica |
+| Verificación | **Implementado.** Módulo `apps/backend/ondexia.consultas` (Spring Boot como el resto, con SnapStart; la primera versión iba sin Spring y se unificó el 2026-08-23 para no tener dos formas de montar un módulo) y `ondexia.infra/consultas.tf`, con 24 pruebas propias más 18 sobre la atestación. Falta la llamada real contra Decolecta: el mapeo de campos viene de su documentación |
+| Correcciones al implementar | **Se firma todo el contenido, no solo la puerta.** Esta decisión decía «el RUC, el estado y la condición», y no basta: la razón social también viene de SUNAT y sin firmar el navegador podría cambiarla — una razón social que no coincide con el padrón hace que SUNAT rechace *todos* los comprobantes de esa empresa, y el fallo aparecería en la primera emisión real. Efecto útil: el «no editable» de esos campos deja de ser una convención de la interfaz y pasa a ser una imposibilidad. · **La firma es Ed25519, no HMAC.** Un HMAC exigiría el mismo secreto en las dos partes, y la API no puede leerlo de SSM desde su subred privada sin un endpoint de interfaz a ~7,30 USD/mes — precisamente el gasto que esta decisión evita. La única alternativa sería pasárselo por variable de entorno, y entonces vive en el estado de Terraform: justo lo que se quitó al pasar la base de datos a IAM. Con firma asimétrica la API solo necesita la clave **pública**, que no es un secreto. · **La ruta cuelga de la pasarela que ya existe** (`GET /consultas/ruc/{ruc}`), no de una Function URL, y por tanto hereda el autorizador JWT de Cognito. Una Function URL habría significado un origen nuevo con su CORS y una segunda implementación de la autenticación |
 
 **Decisión técnica DT-06: Firma digital XAdES**
 
@@ -289,7 +343,7 @@ Dos precisiones sobre el criterio:
 | Identidad | Cognito |
 | Firma | Apache Santuario (XAdES-BES) |
 | PDF | OpenPDF o JasperReports en Lambda dedicada |
-| IaC | AWS CDK en TypeScript |
+| IaC | **Terraform** (ver DT-16) |
 | Observabilidad | CloudWatch Logs · X-Ray · alarmas sobre la DLQ |
 
 ### 4.6 Perfil de costo
@@ -311,12 +365,96 @@ Estimación de orden de magnitud en `us-east-1`, volumen inicial bajo. **Verific
 | SQS | 0 | 0 — 1 M/mes siempre gratis |
 | CloudFront | 0 | 0 — nivel siempre gratuito |
 | Cognito | 0 | 0 al volumen previsto |
-| Secrets Manager (2 secretos) | ~0.8 | ~0.8 |
+| Secrets Manager (**1 secreto por empresa**) | ~0.4 × empresas | ~0.4 × empresas |
+| **WAF** (1 Web ACL + 3 reglas) | ~8 | ~8 |
+| **IP pública IPv4 de la NAT** | ~3.65 | ~3.65 |
 | Route 53 (2 zonas) + dominio | ~1.6 | ~1.6 |
 | CloudWatch | ~0.5 | ~2 |
-| **Total aproximado USD/mes** | **~6** | **~24** |
+| **Total aproximado USD/mes** | **~30** | **~40** |
 
-Contra el diseño original (Aurora Serverless v2 + RDS Proxy + NAT Gateway), el piso baja de ~96 a ~24 USD/mes.
+Contra el diseño original (Aurora Serverless v2 + RDS Proxy + NAT Gateway), el piso baja de ~96 a ~40 USD/mes.
+
+**Tres partidas se corrigieron en la versión 0.8** — la tabla anterior daba ~24 y las omitía:
+
+- **WAF.** Protege el portal público (R-03) y no estaba costeado. Verificado en la tarifa
+  vigente: 5 USD por Web ACL, 1 USD por regla, 0.60 USD por millón de solicitudes. Es la
+  segunda partida fija después de RDS. **Es aplazable**: hasta que el portal tenga tráfico
+  que merezca ser atacado, se puede vivir sin él.
+- **IP pública IPv4.** La tabla contaba solo el cómputo de la instancia NAT. AWS cobra
+  todas las IPv4 públicas a 0.005 USD/hora sin franja gratuita, y la NAT necesita una por
+  definición: su razón de ser es dar una IP estable a SUNAT.
+- **Los secretos escalan por empresa.** `secret_arn_certificado` es por RUC (§5.2), no dos
+  en total. Son 0.40 USD por cada cliente que entra. Con 100 empresas son 40 USD/mes.
+  Alternativa a evaluar cuando pese: Parameter Store avanzado a 0.05 USD por parámetro,
+  a cambio de perder la rotación gestionada — irrelevante para un certificado que se
+  renueva a mano una vez al año.
+
+**La capa gratuita cambió y la columna «Año 1» ya no aplica a cuentas nuevas.** AWS
+sustituyó los 12 meses clásicos por un plan de **créditos: hasta 200 USD a consumir en
+6 meses**, y la cuenta del plan gratuito **se cierra sola** al agotarse los créditos o al
+vencer el periodo. RDS no figura entre los servicios siempre gratuitos. Para un producto
+con clientes de pago hay que **pasar al plan de pago antes del vencimiento**, no cuando
+llegue: una cuenta que se autocierra con datos tributarios dentro no es una opción.
+
+---
+
+### 4.7 Perfil de costo de la v1
+
+La v1 —un cliente, dos usuarios, **sin integración SUNAT**— no despliega la mitad de la
+arquitectura, y con ella desaparece la mitad del costo.
+
+| Concepto | USD/mes |
+|---|---|
+| RDS `db.t4g.micro` + 20 GB, una zona | ~14 |
+| CloudWatch Logs, retención 30 días | ~0.50 |
+| Route 53, 1 zona | ~0.60 |
+| S3, buckets estáticos y de marca | ~0.30 |
+| API Gateway HTTP API | ~0.05 |
+| CloudFront, Lambda, Cognito, ACM, endpoint S3 de puerta de enlace | 0 |
+| **Total aproximado USD/mes** | **~15** |
+
+**RDS es el 90 % de la factura.** Tres palancas, de menor a mayor incomodidad:
+
+1. **Sin RDS en desarrollo.** PostgreSQL en contenedor local; RDS solo en producción.
+   Una segunda instancia duplica la factura exacta. Es el ahorro mayor y no cuesta nada.
+2. **Parada programada fuera de horario.** Baja a ~8 USD, con dos peros: AWS reinicia sola
+   cualquier instancia detenida más de 7 días, y cualquier corte a deshora es un problema
+   de servicio ante un cliente que paga.
+3. **Instancia reservada a un año**, cuando la permanencia esté confirmada.
+
+**Lo que no cambia con el volumen.** El piso es fijo y el costo marginal por comprobante es
+cero. A 5 000 comprobantes/mes son 0.008 USD por comprobante; a 50 000, 0.0008. Es lo que
+hace defendible «comprobantes ilimitados» como argumento comercial — y lo que convierte
+DT-12 en una decisión de margen, no de arquitectura.
+
+**Controles obligatorios antes del primer despliegue** (además de los de §4.6): presupuesto
+de AWS Budgets con alerta al 80 % de un tope de 30 USD.
+
+---
+
+### 4.8 Consecuencias de una Lambda sin salida a internet
+
+En la v1 no hay instancia NAT. Eso no es gratis: **una Lambda en subred privada sin NAT no
+alcanza internet ni las APIs de AWS.** De ahí salen tres decisiones que hay que respetar o el
+ahorro se evapora.
+
+> **Corrección (v0.12).** Esto decía «porque nada necesita salir», y dejó de ser cierto con la
+> validación de RUC contra el padrón. La premisa correcta es otra: **lo que necesita salir se
+> despliega fuera de la VPC** (DT-19), y por eso la Lambda de la API sigue sin necesitar NAT.
+> No es que nada salga; es que no sale desde aquí.
+
+**El endpoint de S3 es obligatorio y es gratuito.** Sin un endpoint de puerta de enlace, la
+Lambda no puede leer ni escribir en S3. Se crea explícitamente y no cuesta nada.
+
+**Las credenciales de la base van como variables de entorno cifradas con KMS**, no en
+Parameter Store ni en Secrets Manager. Lambda las descifra antes de ejecutar el código, sin
+tráfico de red. Llamar a esos servicios desde subred privada exigiría un **endpoint de
+interfaz a ~0.01 USD/hora (~7.30 USD/mes)** — más caro que la instancia NAT que se evitó.
+
+**La administración de usuarios la hace el SPA contra Cognito, no el backend.** Crear o
+desactivar un usuario es una operación de identidad, no de negocio, y hacerla desde la
+Lambda obligaría al mismo endpoint de interfaz. Aplica igual a cualquier servicio externo
+que se sume después: enviar correo por SES desde la Lambda reabre el problema.
 
 Controles para que no se dispare:
 
@@ -343,8 +481,10 @@ Controles para que no se dispare:
 |---|---|---|
 | `empresa` | `id`, `ruc` (UNIQUE), `razon_social`, `nombre_comercial`, `domicilio_fiscal`, `secret_arn_certificado`, `usuario_sol`, `modo_sunat` (beta/prod) | `ruc` único global. `secret_arn_certificado` es una referencia, **nunca el certificado** |
 | `sucursal` | `empresa_id`, `codigo`, `direccion`, `ubigeo` | UNIQUE(`empresa_id`,`codigo`) |
-| `usuario` | `cognito_sub` (UNIQUE), `email`, `nombre`, `activo` | Global, no por empresa |
-| `usuario_empresa` | `usuario_id`, `empresa_id`, `rol_id` | UNIQUE(`usuario_id`,`empresa_id`). Habilita que un contador opere varios RUC |
+| `cuenta` | `id`, `nombre`, `plan`, `estado_suscripcion`, `permisos_version` | La **suscripción cuelga de la cuenta, no de la empresa**: una cuenta puede tener varios RUC. `permisos_version` se incrementa al tocar cualquier rol y permite cachear permisos en memoria del contenedor sin servirlos rancios |
+| `usuario` | `cuenta_id`, `cognito_sub` (UNIQUE), `email`, `nombre`, `activo` | Pertenece a una cuenta. `cognito_sub` es la **única** referencia al proveedor de identidad |
+| `cuenta_administrador` | `cuenta_id`, `usuario_id` | Quien factura, crea empresas, asigna usuarios y gestiona roles. **Constraint: no puede quedar vacía.** No se modela como rol de la matriz por tres razones: existe antes que cualquier empresa, gobierna la facturación —que no es un módulo—, y necesita ese invariante que la matriz no puede expresar |
+| `usuario_empresa` | `usuario_id`, `empresa_id`, `rol_id`, `sucursal_id` (NULL = todas) | UNIQUE(`usuario_id`,`empresa_id`,`sucursal_id`). El alcance por sucursal es lo que permite «Ventas solo en Miraflores»: quien atiende un local no debe poder cambiarse a otro, porque eso decide la serie del comprobante y qué almacén descarga |
 | `rol` / `permiso` / `rol_permiso` | `codigo`, `modulo`, `accion` | Permiso por módulo **y acción**: registrar ≠ aprobar ≠ anular |
 | `auditoria` | `empresa_id`, `usuario_id`, `entidad`, `entidad_id`, `accion`, `datos_antes` (JSONB), `datos_despues`, `ip`, `creado_en` | Índice en (`empresa_id`,`entidad`,`entidad_id`). **Append-only**, sin UPDATE ni DELETE |
 
@@ -428,6 +568,60 @@ edge DET -> MOV "descarga stock"
 edge DOC -> CPE "1 a 1"
 edge SER -> DOC "asigna numero"
 ```
+
+---
+
+### 5.8 Política de almacenamiento
+
+El criterio **no es quién produjo el archivo, sino si se puede reconstruir** y si sus bytes
+exactos tienen valor probatorio. Un PDF de kardex lo produce Ondexia y no vale nada
+guardarlo.
+
+| | Qué es | Qué se hace | Ejemplos |
+|---|---|---|---|
+| **A** | Reproducible sin pérdida desde los datos | **No se almacena** | PDF de cotización, nota de preventa, orden de compra y de servicio, kardex, reportes, listados, y la representación impresa de cualquier comprobante — SUNAT considera auténtico el XML, no el papel |
+| **B** | Su valor está en los bytes exactos | **Inmutable, retención legal** | XML firmado del comprobante, del resumen diario y de la comunicación de baja |
+| **C** | Lo produjo un tercero | **Inmutable, retención legal** | CDR de SUNAT, ticket del resumen diario, y el XML y CDR de comprobantes **recibidos** de proveedores |
+| **D** | Insumo para reproducir la categoría A | **Versionado, nunca sobrescrito** | Logo e imágenes de marca por empresa |
+
+**La prueba, en tres preguntas.** ¿Se reconstruye byte a byte desde los datos? No se guarda.
+¿Su valor está en la firma, o lo produjo alguien ajeno? Inmutable. ¿Sirve para reconstruir
+algo de la categoría A? Versionado. Lo que no cae en ninguna, no entra.
+
+**Por qué B no admite excepción.** La firma XAdES cubre bytes exactos. Volver a serializar
+los mismos datos cambia el orden de los atributos, los espacios en blanco o los prefijos de
+espacios de nombres; la firma deja de validar y lo que queda no es el documento que SUNAT
+aceptó, sino otro parecido. El CDR ni siquiera es nuestro.
+
+**Por qué D tampoco es mutable.** Si un cliente reemplaza su logo y se regenera el PDF de
+una cotización del año pasado, se reescribe la historia en silencio: sale un documento que
+nunca existió así. Cada documento registra **con qué versión de logo se compuso**.
+
+**La consecuencia que alcanza al modelo, no al almacenamiento.** Renunciar a guardar el
+archivo obliga a congelar el registro: si se envía una cotización y después alguien edita
+sus líneas, regenerar produce un papel distinto del que recibió el cliente. **O se congela
+el archivo, o se congela el registro.** Ondexia elige lo segundo, que es más limpio y más
+barato, y eso extiende el principio de §5.1 —los documentos emitidos son inmutables— a
+**todo documento entregado a un tercero**: corregirlo genera una versión nueva, la anterior
+queda como estaba.
+
+**Sin adjuntos.** Ondexia no es un repositorio documental. Aceptar archivos ajenos —el
+escaneo de la factura del proveedor es la petición que aparecerá en Compras— arrastra
+custodia, retención, análisis antivírico y responsabilidad sobre contenido que no
+producimos. Los comprobantes electrónicos recibidos son otra cosa: son documentos
+tributarios con estructura conocida que el sistema valida, y entran por la categoría C.
+
+**El único archivo que se acepta subir es el logo, y trae un riesgo real.** Un SVG puede
+contener JavaScript; servido desde el origen de la aplicación es XSS almacenado, con el
+vector «suba su logo». Tres controles: aceptar solo PNG y JPG **verificando los bytes de
+cabecera**, no la extensión ni el `Content-Type` que pone el cliente; si algún día se admite
+SVG, sanearlo en el servidor eliminando `script`, `foreignObject` y atributos `on*`; y en
+todo caso **servir estos archivos desde `cdn.ondexia.com`**, nunca desde el origen de la
+aplicación ni con el bucket público (dominios §3).
+
+**Optimización para más adelante.** B y C se escriben una vez y se leen casi nunca —solo en
+una fiscalización—. Cuando el volumen lo justifique, una regla de ciclo de vida hacia una
+clase de acceso infrecuente recorta el costo. Hoy son céntimos.
 
 ---
 
@@ -549,7 +743,7 @@ Orden de Compra aprobada → recepción por Guía de Ingreso → `movimiento_sto
 |---|---|---|---|---|
 | I-01 | **SUNAT CPE** (factura, boleta, NC, ND, liquidación, resumen) | SOAP 1.1 con WS-Security | Usuario SOL (`RUC+usuario`/clave) desde Secrets Manager | Backoff exponencial 1/2/4/8/16 min, máx. 5 intentos → DLQ + alarma. Distinguir rechazo definitivo de fallo transitorio |
 | I-02 | **SUNAT GRE** | REST/JSON | OAuth2 client credentials, token con TTL | Igual que I-01, más revalidación de token ante `401` |
-| I-03 | **Consulta RUC/DNI** | REST | API key de proveedor | **Degradación elegante:** si no responde, permitir carga manual. Nunca bloquear una venta por una consulta de padrón |
+| I-03 | **Consulta RUC/DNI** | REST | API key de proveedor | **Degradación elegante en la operación:** si no responde, permitir carga manual. Nunca bloquear una venta por una consulta de padrón. **En el registro es lo contrario y hay que no confundirlo:** dar de alta una empresa exige RUC verificado como habido y activo, así que ahí la consulta sí es puerta. Una venta no puede esperar; un registro sí |
 | I-04 | **Amazon SES** | API AWS | IAM | Cola de reintento. Un fallo de correo no invalida el comprobante |
 
 ### 7.1 DT-12 reabierta por R-13 — emisión propia vs proveedor
@@ -601,10 +795,94 @@ Lo que hace viable esa migración sin castigo es que **la arquitectura ya la con
 
 ### 8.1 Autenticación y autorización
 
-- Cognito emite JWT; API Gateway lo valida antes de invocar la Lambda.
-- El token porta `cognito_sub`; **la empresa activa y los permisos se resuelven en la base**, no en el token. Un token no debe poder ampliar su propio alcance.
-- Autorización por `(modulo, accion)`. Anular un comprobante es un permiso propio, separado de emitirlo.
+**La autenticación se compra; la autorización se construye.** Son problemas distintos y la
+respuesta es opuesta. Autenticar bien —hash de contraseñas, recuperación con token de un
+solo uso, límite de intentos, defensa contra relleno de credenciales, prevención de
+enumeración de cuentas, TOTP, rotación de refresh tokens— es meses de trabajo cuyo modo de
+fallo es **silencioso**: funciona perfectamente hasta el día en que alguien entra. Autorizar
+es lógica de dominio y nadie puede escribirla por nosotros.
+
+> **Lo que se compra también se configura.** Corregido el 2026-09-01, hallazgo C3
+> de la auditoría. Esta lista se leyó como inventario de lo que Cognito hace, y
+> la rotación de refresh tokens es una **opción que estaba apagada**: los tokens
+> duraban treinta días, no rotaban, y `cerrar()` no llamaba a `/oauth2/revoke`.
+> Dos comentarios del código afirmaban que Cognito rotaba.
+>
+> Regla que sale de aquí: por cada control que se delegue en el proveedor, el
+> documento nombra **la línea de configuración que lo activa** y el ítem de
+> checklist que lo verifica. Un control comprado y no activado es peor que uno
+> que no se tiene, porque ya nadie vuelve a mirarlo.
+
+- Cognito emite JWT; **API Gateway lo valida de forma nativa**, sin autorizador Lambda. Un
+  autorizador propio añadiría un arranque en frío a cada petición y código que mantener,
+  y no haría falta: los permisos finos no se resuelven ahí.
+- El token porta **identidad y nada más**. La empresa activa y los permisos se resuelven en
+  la base **en cada petición**. Un JWT es válido hasta que caduca, y revocar «anular
+  comprobante» no puede esperar a la renovación. Además, ~50 submódulos × 3-5 acciones son
+  unos 200 permisos: no caben en una cabecera que viaja en cada llamada.
+- Autorización por `(modulo, accion)`. Anular un comprobante es un permiso propio, separado
+  de emitirlo. **Denegar por defecto**, comprobado en el endpoint. Que el menú del frontend
+  oculte lo que no corresponde es comodidad, no seguridad: la API se puede llamar sin pasar
+  por el SPA.
+- **El contexto que envía el cliente no se cree nunca.** El frontend manda «empresa activa»;
+  el servidor verifica en cada petición que ese usuario tiene asignación a esa empresa. No
+  es celo de manual: la empresa determina **con qué certificado digital se firma**, y un
+  `empresa_id` falsificado no sería solo ver datos ajenos, sería emitir un comprobante
+  firmado con el certificado de otro RUC.
 - Row Level Security de PostgreSQL como segunda barrera del aislamiento multiempresa.
+
+**Quién puede moverse entre empresas.** El administrador de la cuenta es el único que
+**concede** el acceso; cualquier usuario puede **tener** varias empresas si se lo
+asignaron. Separarlo así evita el caso que rompe la regla estricta: un contador en planilla
+que lleva tres RUC del mismo grupo necesita las tres empresas sin heredar la facturación ni
+la gestión de usuarios. El selector de empresa aparece cuando hay más de una asignación, no
+cuando el usuario es administrador.
+
+**Grupos de usuarios separados.** El personal de Ondexia —back-office, soporte— vive en un
+grupo de usuarios de Cognito **distinto** del de los inquilinos. Con un grupo compartido, un
+usuario nuestro y uno de un cliente se diferencian solo por un claim, y un error al
+comprobarlo expone a todos los clientes. Con grupos separados ese error deja de ser
+posible. **Crear el grupo del personal desde el principio**, aunque el back-office no
+exista: migrar identidades en producción es caro.
+
+> **Trampa de RLS con Lambda — la más peligrosa del diseño.**
+> RLS necesita una variable de sesión con el inquilino actual, y Lambda **reutiliza
+> conexiones** entre invocaciones. Si se fija y no se restablece, la petición del cliente B
+> puede ejecutarse bajo el inquilino del cliente A: exactamente la fuga que RLS venía a
+> evitar. Se fija **dentro de la transacción**, siempre, y nunca se asume que quedó limpia.
+
+**Implementado (0.9).** `GestorTransaccionesConAislamiento` sustituye al gestor de transacciones estándar, de modo que **toda** transacción de la aplicación pasa por él: el aislamiento no depende de que nadie recuerde anotar nada. Fija la variable con `set_config(..., true)` —válida solo dentro de la transacción y revertida por el motor al confirmar o deshacer—, así que la limpieza no la hace nuestro código y no se puede olvidar. Las políticas usan `nullif(current_setting(...), '')::uuid`: sin contexto, ninguna fila pasa. **Falla cerrado.**
+
+> **Segunda trampa de RLS, descubierta al probarlo — y peor que la primera.**
+>
+> **Un rol con `SUPERUSER` o `BYPASSRLS` no está sujeto a ninguna política**, y
+> `FORCE ROW LEVEL SECURITY` tampoco le alcanza: `FORCE` solo afecta al *propietario* de la
+> tabla, no al superusuario. El resultado es el peor estado posible de un control de
+> seguridad — las políticas existen, `pg_policies` las lista, el código es correcto, y no
+> filtran absolutamente nada. Sin error y sin aviso.
+>
+> No es hipotético: la imagen oficial de PostgreSQL crea `POSTGRES_USER` como superusuario,
+> así que el entorno de desarrollo por omisión *tiene* el problema. Y no se arregla
+> degradándolo, porque PostgreSQL lo prohíbe: *«the bootstrap superuser must have the
+> SUPERUSER attribute»*.
+>
+> **Consecuencia de diseño:** la aplicación se conecta siempre con un rol propio que es
+> dueño de su base pero no del clúster. En local lo crea un script de `initdb`; en RDS el
+> usuario maestro ya cumple. Y `ComprobacionAislamiento` **aborta el arranque** si detecta
+> un rol que puede saltarse las políticas — un despliegue mal configurado no levanta, en
+> lugar de levantar pareciendo protegido.
+>
+> Esto se detectó porque las pruebas de aislamiento fallaron. Sin ellas habría llegado a
+> producción sin síntoma alguno. Es el argumento más concreto de este documento a favor de
+> probar los controles de seguridad en vez de darlos por implementados.
+
+**Qué queda fuera de RLS, y por qué.** `empresa`, `sucursal` y `usuario_empresa` no llevan
+política: son las tablas que hay que leer **para saber** cuál es la empresa activa, así que
+una política que dependa de esa misma respuesta las dejaría vacías siempre. Su control
+compensatorio es que solo se consultan filtrando por el `usuario_id` que sale del token
+—nunca por un valor que mande el cliente— y esa consulta vive en un único sitio,
+`ResolutorContexto`. La aplicación avisa en cada arranque si aparecen otras tablas con
+`empresa_id` sin política.
 
 ### 8.2 Certificados digitales
 
@@ -624,7 +902,7 @@ Lo que hace viable esa migración sin castigo es que **la arquitectura ya la con
 | Fallas criptográficas | TLS 1.2+ obligatorio, cifrado en reposo con KMS, certificados fuera del código |
 | Inyección | JPA con consultas parametrizadas. Prohibida la concatenación de SQL |
 | Diseño inseguro | Token opaco en el portal público (no enumerable), documentos inmutables |
-| Configuración incorrecta | CDK como fuente única, `cdk-nag` en el pipeline, sin bucket público |
+| Configuración incorrecta | Terraform como fuente única, análisis estático (`tfsec` o `checkov`) en el pipeline, sin bucket público |
 | Componentes vulnerables | Dependabot + OWASP Dependency-Check bloqueante en CI |
 | Fallas de identificación | MFA disponible, política de contraseñas de Cognito, bloqueo por intentos |
 | Integridad de datos | **Firma XAdES es la integridad del comprobante.** S3 con versionado y Object Lock |
@@ -653,7 +931,7 @@ Ley 29733 y su reglamento aplican: se tratan nombre, documento de identidad y do
 | NFR-04 `[PROPUESTO]` | Cero correlativos duplicados o con salto | `SELECT FOR UPDATE` transaccional (F-02) + constraint UNIQUE como última defensa |
 | NFR-05 `[PROPUESTO]` | Una caída de SUNAT no interrumpe la venta | Desacople por SQS (DT-13). El sistema acumula y drena al restablecerse |
 | NFR-06 `[PROPUESTO]` | Aislamiento total entre empresas | RLS + `empresa_id` obligatorio + prueba automatizada de fuga entre inquilinos en CI |
-| NFR-07 `[PROPUESTO]` | RPO ≤ 5 min · RTO ≤ 4 h | RDS con PITR (respaldo continuo); S3 con versionado; infraestructura reproducible por CDK. **Sin Multi-AZ por R-12:** el RTO depende de restaurar, no de conmutar |
+| NFR-07 `[PROPUESTO]` | RPO ≤ 5 min · RTO ≤ 4 h | RDS con PITR (respaldo continuo); S3 con versionado; infraestructura reproducible por Terraform. **Sin Multi-AZ por R-12:** el RTO depende de restaurar, no de conmutar |
 | NFR-08 `[PROPUESTO]` | Portal público resiste escaneo automatizado | Token de 128 bits + WAF con límite por IP + `noindex` |
 | NFR-09 `[PROPUESTO]` | Trazabilidad completa de todo comprobante | Bitácora append-only + CloudTrail + correlation-id propagado por X-Ray |
 
@@ -672,13 +950,19 @@ Ley 29733 y su reglamento aplican: se tratan nombre, documento de identidad y do
 
 ### 10.2 Pipeline
 
-`push` → build Maven + pruebas unitarias → análisis estático + Dependency-Check → `cdk synth` + `cdk-nag` → despliegue a `dev` → pruebas de integración contra beta de SUNAT → **aprobación manual** → despliegue a `prod`.
+**CI** (automático, en cada push): build de pnpm y pruebas del frontend → build de Maven, pruebas de integración contra PostgreSQL real y Dependency-Check → `terraform fmt`, `init` y `validate`.
+
+**Despliegue** (manual, eligiendo entorno): verificar backend → construir frontend → `terraform plan` a un archivo → **aprobación manual del entorno `prod`** → `terraform apply` sobre ese plan → publicar la SPA en S3 e invalidar CloudFront → sondear `/salud`.
+
+> La versión 0.9 de este documento describía aquí `cdk synth` + `cdk-nag`. DT-16 retiró CDK y la línea quedó atrás. Corregido en 0.11.
+
+Dos detalles del orden que no son arbitrarios: **se construye y se prueba antes de tocar AWS**, para que un fallo de compilación no deje medio despliegue hecho; y **el `apply` se hace sobre el plan guardado**, no recalculándolo, porque entre el plan y el apply hay una aprobación humana y lo aplicado tiene que ser exactamente lo revisado.
 
 La aprobación manual antes de producción no es burocracia: un despliegue defectuoso del Emisor genera comprobantes inválidos con consecuencias fiscales para el cliente.
 
 ### 10.3 Plan de despliegue por fases (R-12)
 
-**Principio: la arquitectura no cambia entre fases, solo cambia dónde corre.** Como toda la infraestructura se define en CDK, pasar de una fase a la siguiente es cambiar parámetros de configuración, no reescribir. Eso es lo que hace seguro empezar en la fase más barata.
+**Principio: la arquitectura no cambia entre fases, solo cambia dónde corre.** Como toda la infraestructura se define en Terraform, pasar de una fase a la siguiente es cambiar parámetros de configuración, no reescribir. Eso es lo que hace seguro empezar en la fase más barata.
 
 #### Fase 0 — Desarrollo local · **USD 0/mes**
 
@@ -723,7 +1007,7 @@ La arquitectura descrita en §3 y §4.6: VPC, RDS `db.t4g.micro`, instancia NAT 
 | Métrica | Objetivo | Mecanismo |
 |---|---|---|
 | RPO | ≤ 5 min | RDS PITR (respaldo continuo, retención 7 días) |
-| RTO | ≤ 4 h | Infraestructura reproducible por CDK + restauración de snapshot. Sin conmutación automática (R-12) |
+| RTO | ≤ 4 h | Infraestructura reproducible por Terraform + restauración de snapshot. Sin conmutación automática (R-12) |
 | Retención fiscal | 5 años | S3 Object Lock sobre XML y CDR |
 | Bus factor | **1 (R-13)** | **Riesgo aceptado y no mitigable con tecnología.** Los paliativos son documentales: este DTE, la IaC versionada, decisiones con sustento escrito y `README` de arranque reproducible. Si el proyecto adquiere valor comercial, la mitigación real es incorporar una segunda persona |
 
@@ -746,6 +1030,12 @@ Lo que **no** se diseña ahora, con su razón:
 | DT-D9 | **Base de datos sin Multi-AZ ni réplica** | R-12: Multi-AZ duplica el costo de la instancia | Al primer cliente con compromiso contractual de disponibilidad |
 | DT-D10 | **Instancia NAT como punto único de falla** | R-12: ahorra ~29 USD/mes frente al NAT Gateway | Cuando la facturación detenida por caída del NAT tenga costo mayor que el ahorro |
 | DT-D11 | Sin RDS Proxy; pool controlado por concurrencia reservada | R-12: ~22 USD/mes que a este volumen no se justifican | Si el agotamiento de conexiones aparece en producción |
+| DT-D12 | **El contexto de la petición cuesta ~4 consultas** (usuario, cuenta, administrador, asignaciones) | Escribir una consulta única acopla cuatro conceptos antes de saber cómo evolucionan | Cuando el p95 de la API se acerque al NFR-01. Se resuelve con una vista o una consulta con `join`, sin tocar nada más |
+| DT-D13 | **La clave del rol de aplicación de PostgreSQL no rota sola** | El rol se crea en el aprovisionamiento; rotar exige un `ALTER ROLE` fuera de las migraciones | Antes del primer cliente real. La salida limpia es autenticación IAM de RDS, que elimina la clave |
+| DT-D14 | El emisor de tokens del perfil `local` es código de producción condicionado | Sin él la Fase 0 (§10.3) no es viable: no hay forma de autenticar sin Cognito desplegado | Cuando exista el pool de `dev`. Mitigado: la clave se genera en cada arranque y nunca sale de memoria, y el arranque se aborta si detecta ejecución en Lambda |
+| DT-D15 | **Sin análisis estático de seguridad sobre la infraestructura** | DT-16 retiró `cdk-nag` y no se ha sustituido por `tfsec` ni `checkov`. El CI comprueba sintaxis y coherencia de referencias, no configuraciones inseguras | Antes del primer `apply` contra producción |
+| DT-D16 | **El CI no ejecuta `terraform plan`** | Un `plan` en cada push exigiría credenciales de AWS y un rol de solo lectura adicional. `validate` no comprueba que AWS acepte cada combinación de argumentos ni que las cuotas den | Si un `apply` falla por algo que un `plan` habría anticipado |
+| DT-D17 | **`ondexia.api` no produce un artefacto desplegable en Lambda** | Es una aplicación web de Spring Boot; falta el adaptador que traduce el evento de API Gateway a una petición HTTP, y el empaquetado con SnapStart (DT-02). El despliegue deja entretanto una función de relleno que responde `501` | Es el siguiente trabajo si se quiere una API desplegada, y no solo desplegable |
 
 ---
 
@@ -766,7 +1056,7 @@ Sustitutos admisibles, en orden de valor:
 | Mecanismo | Qué cubre | Qué **no** cubre |
 |---|---|---|
 | **Revisor externo puntual** (contador o desarrollador de confianza, una sesión por artefacto) | Errores de dominio tributario y supuestos falsos | Requiere agenda de un tercero |
-| **Revisión asistida por IA con la checklist doctrinal** aplicada en sesión separada de la de redacción | Inconsistencias, omisiones, criterios de cierre sin cumplir | **No detecta un supuesto de negocio equivocado si el autor y el revisor comparten el error** |
+| **Revisión asistida por IA con la checklist doctrinal** ([`CLAUDE.md`](../CLAUDE.md) en la raíz, más las skills de `ondexia.auditoria/skills/`) aplicada en sesión separada de la de redacción | Inconsistencias, omisiones, criterios de cierre sin cumplir | **No detecta un supuesto de negocio equivocado si el autor y el revisor comparten el error** |
 | **Revisión diferida** — releer el artefacto a los N días con la checklist | Errores de redacción y saltos lógicos | Sesgo del autor intacto |
 | **Pruebas automatizadas como red de seguridad** | Regresiones de código | Nada del diseño |
 
@@ -802,6 +1092,11 @@ Sustitutos admisibles, en orden de valor:
 | 0.5 | 2026-08-06 | R-13 (equipo unipersonal). §7.1 reabre DT-12 con recomendación de proveedor de emisión. §12.1 sustitutos del peer review. Bus factor 1 asumido | — |
 | 0.6 | 2026-08-06 | Corrección de versiones desactualizadas (Angular 19→22, PostgreSQL 16→17/18, Java y Spring Boot despinneados). §4.3 nueva: política de versiones por criterio, no por número | — |
 | 0.7 | 2026-08-06 | Versiones confirmadas: Angular 22, Java 21 LTS, Spring Boot sobre Java 21, PostgreSQL en RDS | — |
+| 0.12 | 2026-08-22 | **DT-19 nueva**: las consultas a servicios externos —padrón de RUC, tipo de cambio— van en `ondexia.consultas`, unidad propia fuera de la VPC, y no dentro de `facturacion`. Se reformula el invariante de `facturacion` (certificados y operaciones fiscales, no «hablar con SUNAT»). §4.8 corregido: caduca la premisa «nada necesita salir». I-03 aclarado: la degradación elegante vale para una venta, no para el registro, donde la consulta sí es puerta | — |
+| 0.11 | 2026-08-11 | §10.2 corregido: describía el pipeline con `cdk synth` + `cdk-nag`, que DT-16 había retirado. Se sustituye por el pipeline real, con el orden de pasos y su porqué. DT-D15 acotada a lo que sigue pendiente (análisis estático de infraestructura) tras arreglarse los tres pasos rotos del CI; DT-D16 y DT-D17 nuevas | — |
+| 0.10 | 2026-08-11 | Esqueleto del backend construido y verificado. DT-17 nueva (arquitectura interna: monolito modular con hexagonal pragmática) y DT-18 nueva (Spring Boot 4.0.7, con las cuatro reorganizaciones de módulos que rompen los ejemplos publicados). §8.1: **segunda trampa de RLS** — un rol superusuario se salta todas las políticas y `FORCE` no le alcanza; detectada porque las pruebas de aislamiento fallaron, mitigada con un rol dedicado y una comprobación que aborta el arranque. Se documenta qué tablas quedan fuera de RLS y por qué. Deudas DT-D12 a DT-D15 | — |
+| 0.9 | 2026-08-10 | DT-16 nueva: Terraform sustituye a AWS CDK. Se escribe la v1 completa en `ondexia.infra/`. Referencias a CDK actualizadas en §4.5, §8.3, §9 y §10.3 | — |
+| 0.8 | 2026-08-10 | §4.6 corregido: faltaban WAF, IP pública IPv4 y el escalado de secretos por empresa; el piso pasa de ~24 a ~40 USD/mes. La capa gratuita cambió a créditos. §4.7 nueva: costo de la v1 (~15). §4.8 nueva: consecuencias de la Lambda sin NAT. §5.2 ampliado con `cuenta`, `cuenta_administrador`, alcance por sucursal y `permisos_version`. §5.8 nueva: política de almacenamiento por reproducibilidad. §8.1 reescrito: contexto no confiable, grupos de usuarios separados, trampa de RLS con Lambda. DT-05 corregida (dato de capa gratuita caduco) | — |
 
 ---
 
