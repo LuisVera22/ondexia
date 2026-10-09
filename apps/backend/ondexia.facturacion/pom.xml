@@ -69,7 +69,7 @@
       ConstructorDeComprobanteTest y ConstructorDeBaja: comparan el XML generado
       contra lo que SUNAT espera, nodo a nodo.
     -->
-    <qute.version>3.39.2</qute.version>
+    <qute.version>3.40.1</qute.version>
   </properties>
 
   <dependencyManagement>
