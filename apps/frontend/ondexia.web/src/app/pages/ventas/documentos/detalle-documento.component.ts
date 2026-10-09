@@ -30,7 +30,7 @@ import { mensajeDeError } from '../../../nucleo/errores';
  * <p>El PDF lo produce el navegador (doc 12 §5.4): la misma vista tiene una
  * hoja de estilos de impresión para ticket de 80 mm y para A4, y
  * {@code window.print()} hace el resto. La leyenda de la nota de venta
- * —«Documento interno, no válido como comprobante de pago»— va en pantalla y en
+ * —«Documento interno de venta. No constituye comprobante de pago ni se envía a SUNAT»— va al pie, en pantalla y en
  * papel, y es la distinción más importante de la interfaz (doc 12 §3.2).
  *
  * <h2>Lo que SUNAT dijo, al lado</h2>
@@ -395,6 +395,11 @@ export class DetalleDocumentoComponent implements OnDestroy {
     if (this.sondeo) {
       clearTimeout(this.sondeo);
     }
+  }
+
+  get rutaNuevaVenta(): string {
+    const tipo = this.documento()?.tipo;
+    return tipo === 'NV' ? '/ventas/notas-venta/nueva' : tipo === '01' ? '/ventas/facturas/nueva' : tipo === '03' ? '/ventas/boletas/nueva' : '/ventas/punto-de-venta';
   }
 
   get rutaListado(): string {

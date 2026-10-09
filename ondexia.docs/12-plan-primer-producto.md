@@ -134,8 +134,10 @@ Tres consecuencias que el código tiene que hacer cumplir, con prueba cada una:
   mensaje dice el motivo y la cifra.
 - Una factura a un cliente sin RUC no se emite. Y un RUC en una factura se valida
   con dígito verificador antes de consultar el padrón.
-- La nota de venta **lleva impresa la leyenda «Documento interno, no válido como
-  comprobante de pago»** y no se parece a una boleta. Es la distinción más
+- La nota de venta lleva al pie **«Documento interno de venta. No constituye
+  comprobante de pago ni se envía a SUNAT»**, legible en ticket y A4, y conserva
+  su título y serie propios. Es la presentación acordada por el propietario el
+  2026-10-08; no modifica su carácter interno. Es la distinción más
   importante de toda la interfaz ([05 §9.6](05-plan-vistas-v1.md)), y en el caso
   de la nota de venta también es una protección legal para el cliente y para
   Ondexia.
@@ -145,8 +147,10 @@ Tres consecuencias que el código tiene que hacer cumplir, con prueba cada una:
 No entra al catálogo 01 ni a `comprobante_electronico`. Es un `documento_venta`
 con `tipo_documento = 'NV'` y `fiscal = false`, con serie propia y correlativo
 propio por establecimiento. Lo que sí comparte con la boleta: cliente opcional,
-líneas, totales con IGV desglosado, pago, sesión de caja, descarga de
-existencias.
+líneas, cálculo interno de totales e IGV, pago, sesión de caja y descarga de
+existencias. La representación de la nota muestra «Importe de venta» y «Total»,
+ambos con el total pagadero, sin desglose tributario. No cambia los cálculos
+guardados ni el canje; boleta y factura conservan su desglose fiscal.
 
 Lo que la hace útil en un punto de venta real es el **canje**: convertir una
 nota de venta en boleta o factura sin volver a teclear. Se implementa como

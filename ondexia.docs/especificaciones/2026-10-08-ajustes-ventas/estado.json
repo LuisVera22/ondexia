@@ -1,0 +1,35 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-08",
+  "rama": "develop",
+  "commit_base": "6cd2f226ece51a871a14261c9a598c38546ba0af",
+  "estado": "implementado_verificado_localmente_pendiente_de_auditoria_independiente",
+  "implementacion_iniciada": true,
+  "decisiones_pendientes": [],
+  "verificaciones_actuales": [
+    "inspeccion_de_contrato_documentacion_y_codigo",
+    "115_pruebas_web",
+    "501_casos_backend",
+    "4_mutaciones_detectadas_y_restauradas",
+    "compilacion_web_y_tono_forma",
+    "navegador_con_fixtures_y_emulacion_print"
+  ],
+  "no_verificado": [
+    "proveedor_real_de_consulta",
+    "normativa_externa_nueva",
+    "auditoria_independiente_de_los_ajustes",
+    "impresora_fisica_y_paginacion_completa",
+    "rentabilidad_y_adopcion_real",
+    "cumplimiento_general_de_precision_decimal_del_frontend_heredado"
+  ],
+  "archivo_excluido_por_el_propietario": "ondexia.auditoria.zip",
+  "decisiones_confirmadas": {
+    "DEC-01": "Revisar datos y pulsar Registrar y usar",
+    "DEC-02": "Solo presentación; Importe de venta y leyenda propuesta, con cálculos internos y canje conservados",
+    "DEC-03": "Mantener mostrador general mixto"
+  },
+  "fuente_decisiones": "Respuestas explícitas de Luis en este chat el 2026-10-08",
+  "implementacion_terminada": true,
+  "fuente_autorizacion": "Luis: comienza a implementar siguiendo todo lo definido",
+  "evidencia": "../../evidencias/2026-10-08-ajustes-ventas.md"
+}

@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { Router, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, provideRouter } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 import { signal } from '@angular/core';
 
 import { PuntoDeVentaComponent, totalDeLinea } from './punto-de-venta.component';
@@ -26,6 +27,8 @@ describe('PuntoDeVentaComponent · totales, cobro y reglas', () => {
     llevaIgv: true, precio: 80, controlaStock: false, existencia: null,
   };
 
+  let empresaContexto: ReturnType<typeof signal<{ id: string }>>;
+  let datosRuta: BehaviorSubject<Record<string, string>>;
   let ventas: jasmine.SpyObj<VentasApiService>;
   let almacen: jasmine.SpyObj<AlmacenApiService>;
   let caja: ReturnType<typeof signal<CajaApi | null>>;
@@ -49,6 +52,8 @@ describe('PuntoDeVentaComponent · totales, cobro y reglas', () => {
   }
 
   beforeEach(() => {
+    empresaContexto = signal({ id: 'empresa-1' });
+    datosRuta = new BehaviorSubject<Record<string, string>>({});
     ventas = jasmine.createSpyObj<VentasApiService>('VentasApiService', [
       'emitirNotaDeVenta', 'emitirComprobante', 'clientes', 'seriesDisponibles',
     ]);
@@ -63,12 +68,13 @@ describe('PuntoDeVentaComponent · totales, cobro y reglas', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
+        { provide: ActivatedRoute, useValue: { data: datosRuta, snapshot: { data: {} } } },
         { provide: VentasApiService, useValue: ventas },
         { provide: AlmacenApiService, useValue: almacen },
         { provide: ConfiguracionApiService, useValue: configuracion },
         { provide: CajaActivaService, useValue: { enUso: caja } },
         { provide: AvisosService, useValue: jasmine.createSpyObj<AvisosService>('AvisosService', ['exito', 'error']) },
-        { provide: ContextoService, useValue: { puede: () => true } },
+        { provide: ContextoService, useValue: { puede: () => true, empresaActiva: empresaContexto, establecimientoActivo: signal({ id: 'suc-1' }) } },
       ],
     });
     spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
@@ -184,4 +190,63 @@ describe('PuntoDeVentaComponent · totales, cobro y reglas', () => {
     await asentar();
     expect(componente.impedimento()).toContain('caja abierta');
   });
+  for (const tipo of ['NV', 'BOLETA', 'FACTURA'] as const) {
+    it(`respeta el tipo fijo ${tipo} del módulo incluso ante un cambio programático`, async () => {
+      datosRuta.next({ tipoFijo: tipo });
+      const componente = crear();
+      await asentar();
+      expect(componente.tipo()).toBe(tipo);
+      componente.cambiarTipo(tipo === 'FACTURA' ? 'NV' : 'FACTURA');
+      expect(componente.tipo()).toBe(tipo);
+      expect(ventas.seriesDisponibles).toHaveBeenCalledWith(tipo === 'NV' ? 'NOTA_VENTA' : tipo, 'suc-1');
+    });
+  }
+
+  it('no sustituye por nota una factura deshabilitada', async () => {
+    datosRuta.next({ tipoFijo: 'FACTURA' });
+    TestBed.inject(ConfiguracionApiService).empresa = async () => ({ emiteFacturas: false } as Empresa);
+    const componente = crear();
+    await asentar();
+    expect(componente.tipo()).toBe('FACTURA');
+    expect(componente.impedimento()).toContain('facturas');
+  });
+
+  it('ofrece Nuevo cliente en la venta y oculta el aviso de IGV para la nota', async () => {
+    const vista = TestBed.createComponent(PuntoDeVentaComponent);
+    vista.detectChanges();
+    await asentar();
+    vista.detectChanges();
+    const botones = Array.from((vista.nativeElement as HTMLElement).querySelectorAll('button'));
+    expect(botones.some((boton) => boton.textContent?.includes('Nuevo cliente'))).toBeTrue();
+    expect(vista.nativeElement.textContent).not.toContain('Incluye IGV');
+  });
+
+  it('usar al cliente registrado conserva líneas, pagos, observaciones y tipo de venta', async () => {
+    const c = crear(); await asentar(); await c.buscarProducto('cem');
+    c.agregarProducto({ id: 'p-cem', titulo: 'Cemento' }); c.completarPago(c.pagos()[0]);
+    c.observaciones.set('Entregar por la tarde'); c.cambiarTipo('BOLETA');
+    const preparado = { lineas: c.lineas(), pagos: c.pagos(), observaciones: c.observaciones(), tipo: c.tipo() };
+    c.abrirAltaCliente(); c.usarClienteRegistrado({ id: 'c-1', tipoDocumento: 'RUC', activo: true } as import('../../../nucleo/ventas.api.service').ClienteApi);
+    expect(c.cliente()?.id).toBe('c-1'); expect(c.altaClienteAbierta()).toBeFalse();
+    expect({ lineas: c.lineas(), pagos: c.pagos(), observaciones: c.observaciones(), tipo: c.tipo() }).toEqual(preparado);
+  });
+
+  it('al cambiar de empresa descarta la venta y el alta del contexto anterior', async () => {
+    const c = crear(); await asentar(); await c.buscarProducto('cem'); c.agregarProducto({ id: 'p-cem', titulo: 'Cemento' });
+    c.abrirAltaCliente(); c.observaciones.set('Empresa anterior');
+    empresaContexto.set({ id: 'empresa-2' }); await asentar();
+    expect(c.lineas()).toEqual([]); expect(c.altaClienteAbierta()).toBeFalse();
+    expect(c.cliente()).toBeNull(); expect(c.observaciones()).toBe('');
+  });
+
+  it('una serie tardía de nota no reemplaza la serie de factura', async () => {
+    let resolver!: (valor: import('../../../nucleo/ventas.api.service').SerieDisponibleApi[]) => void;
+    ventas.seriesDisponibles.and.callFake((tipo) => tipo === 'NOTA_VENTA'
+      ? new Promise((resolucion) => { resolver = resolucion; })
+      : Promise.resolve([{ id: 'serie-factura', serie: 'F001', siguienteNumero: 'F001-00000001' }]));
+    const c = crear(); await asentar(); c.cambiarTipo('FACTURA'); await asentar();
+    resolver([{ id: 'serie-nota', serie: 'N001', siguienteNumero: 'N001-00000001' }]); await asentar();
+    expect(c.serieId()).toBe('serie-factura');
+  });
+
 });

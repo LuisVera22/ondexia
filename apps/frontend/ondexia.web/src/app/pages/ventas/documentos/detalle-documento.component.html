@@ -22,7 +22,7 @@
         @if (sePuedeCanjear()) {
         <app-boton (accion)="pedirCanje()">Canjear</app-boton>
         }
-        <app-boton variante="secundario" ruta="/ventas/punto-de-venta">Nueva venta</app-boton>
+        <app-boton variante="secundario" [ruta]="rutaNuevaVenta">Nueva venta</app-boton>
       </div>
       }
     </div>
@@ -117,12 +117,7 @@
       <p class="text-sm font-semibold tabular-nums">{{ d.numeroCompleto }}</p>
     </header>
 
-    @if (d.tipo === 'NV') {
-    <!-- La distinción que protege al cliente y a Ondexia (doc 12 §3.2). -->
-    <p class="my-3 border-y border-dashed border-gray-400 py-1.5 text-center text-xs font-semibold uppercase tracking-wide">
-      Documento interno · No válido como comprobante de pago
-    </p>
-    } @else {
+    @if (d.tipo !== 'NV') {
     <p class="my-3 border-y border-dashed border-gray-400 py-1.5 text-center text-xs uppercase tracking-wide">
       {{ estadoTexto(d.estado) }}
     </p>
@@ -169,11 +164,15 @@
     </table>
 
     <dl class="mt-3 ml-auto grid w-full max-w-xs grid-cols-[1fr_auto] gap-x-4 gap-y-0.5 text-xs tabular-nums">
+      @if (d.tipo === 'NV') {
+      <dt>Importe de venta</dt><dd class="text-right">S/ {{ importe(d.total) }}</dd>
+      } @else {
       @if (d.totalGravado > 0) {<dt>Op. gravada</dt><dd class="text-right">S/ {{ importe(d.totalGravado) }}</dd>}
       @if (d.totalExonerado > 0) {<dt>Op. exonerada</dt><dd class="text-right">S/ {{ importe(d.totalExonerado) }}</dd>}
       @if (d.totalInafecto > 0) {<dt>Op. inafecta</dt><dd class="text-right">S/ {{ importe(d.totalInafecto) }}</dd>}
       @if (d.totalDescuento > 0) {<dt>Descuentos</dt><dd class="text-right">S/ {{ importe(d.totalDescuento) }}</dd>}
       <dt>IGV 18 %</dt><dd class="text-right">S/ {{ importe(d.totalIgv) }}</dd>
+      }
       <dt class="text-sm font-semibold">Total</dt><dd class="text-right text-sm font-semibold">S/ {{ importe(d.total) }}</dd>
     </dl>
 
@@ -183,7 +182,7 @@
 
     <footer class="mt-4 text-center text-[10px] text-gray-600">
       @if (d.tipo === 'NV') {
-      Este documento no otorga derecho a crédito fiscal ni sustenta gasto o costo. Puede canjearse por boleta o factura.
+      Documento interno de venta. No constituye comprobante de pago ni se envía a SUNAT. Puede canjearse por boleta o factura.
       } @else if (d.tipo === '07' && d.origen) {
       Nota de crédito de {{ d.origen.numeroCompleto }}@if (d.motivoNombre) { · {{ d.motivoNombre }}}.
       @if (sunat()?.estado === 'ACEPTADO') { Aceptada por SUNAT. } @else { Pendiente de aceptación por SUNAT. }

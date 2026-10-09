@@ -129,8 +129,9 @@ export const routes: Routes = [
        * guardó un enlace es un fallo que se ve como si el producto se hubiera
        * roto. Cada una apunta a la pantalla que hace hoy ese trabajo.
        */
-      { path: 'ventas/facturas/nueva', redirectTo: 'ventas/punto-de-venta' },
-      { path: 'ventas/boletas/nueva', redirectTo: 'ventas/punto-de-venta' },
+      { path: 'ventas/notas-venta/nueva', component: PuntoDeVentaComponent, data: { tipoFijo: 'NV' }, title: `Nueva nota de venta | ${TITULO}` },
+      { path: 'ventas/facturas/nueva', component: PuntoDeVentaComponent, data: { tipoFijo: 'FACTURA' }, title: `Nueva factura | ${TITULO}` },
+      { path: 'ventas/boletas/nueva', component: PuntoDeVentaComponent, data: { tipoFijo: 'BOLETA' }, title: `Nueva boleta | ${TITULO}` },
       // Una nota de crédito nace de un comprobante concreto: se emite desde su
       // ficha, no desde un formulario en blanco que obligue a referenciar el
       // documento de origen a mano.

@@ -1,5 +1,7 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AltaClienteVentaComponent } from '../clientes/alta-cliente-venta.component';
 import { FormsModule } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
@@ -86,7 +88,7 @@ export function totalDeLinea(linea: { cantidad: number; precio: number; descuent
  */
 @Component({
   selector: 'app-punto-de-venta',
-  imports: [EncabezadoPaginaComponent, BotonComponent, BuscadorEntidadComponent, DesplegableComponent, FormsModule],
+  imports: [EncabezadoPaginaComponent, BotonComponent, BuscadorEntidadComponent, DesplegableComponent, FormsModule, AltaClienteVentaComponent],
   templateUrl: './punto-de-venta.component.html',
 })
 export class PuntoDeVentaComponent {
@@ -97,18 +99,27 @@ export class PuntoDeVentaComponent {
   private readonly contexto = inject(ContextoService);
   private readonly avisos = inject(AvisosService);
   private readonly router = inject(Router);
+  private readonly ruta = inject(ActivatedRoute);
 
   readonly formasDePago = FORMAS_DE_PAGO;
   readonly TOPE_BOLETA_SIN_DOCUMENTO = 700;
 
+  readonly tipoFijo = signal<TipoVenta | null>(null);
   readonly tipo = signal<TipoVenta>('NV');
+  readonly nombreTipo = computed(() => this.tipo() === 'NV' ? 'Nota de venta' : this.tipo() === 'BOLETA' ? 'Boleta de venta' : 'Factura');
+  readonly titulo = computed(() => this.tipoFijo() ? this.nombreTipo() : 'Punto de venta');
+  private cargaSeries = 0;
+  private cargaEmpresa = 0;
+  private ultimoContexto = this.claveContexto();
   readonly lineas = signal<LineaPos[]>([]);
   readonly pagos = signal<PagoPos[]>([{ forma: 'EFECTIVO', monto: null, referencia: '' }]);
   readonly cliente = signal<ClienteApi | null>(null);
+  readonly altaClienteAbierta = signal(false);
+  readonly puedeRegistrarCliente = computed(() => this.contexto.puede('ventas.cliente:registrar') && this.contexto.puede('ventas.cliente:consultar'));
   readonly observaciones = signal('');
   readonly series = signal<SerieDisponibleApi[]>([]);
   readonly serieId = signal<string>('');
-  readonly emiteFacturas = signal(true);
+  readonly emiteFacturas = signal(false);
 
   readonly opcionesProducto = signal<OpcionEntidad[]>([]);
   readonly opcionesCliente = signal<OpcionEntidad[]>([]);
@@ -182,6 +193,11 @@ export class PuntoDeVentaComponent {
 
   /** Lo que el servidor va a decir, dicho antes. */
   readonly impedimento = computed<string | null>(() => {
+    if (!this.opcionesTipo().some((opcion) => opcion.valor === this.tipo())) {
+      return this.tipo() === 'FACTURA' && !this.emiteFacturas()
+        ? 'Esta empresa no tiene habilitada la emisión de facturas.'
+        : 'No tienes permiso para emitir este tipo de documento.';
+    }
     if (!this.caja()) {
       return 'No hay una caja abierta en este establecimiento.';
     }
@@ -207,41 +223,75 @@ export class PuntoDeVentaComponent {
   });
 
   constructor() {
+    this.ruta.data.pipe(takeUntilDestroyed()).subscribe((datos) => {
+      const fijo = datos['tipoFijo'] as TipoVenta | undefined;
+      if (this.tipoFijo() !== (fijo ?? null)) {
+        this.limpiar();
+        this.tipoFijo.set(fijo ?? null);
+        this.tipo.set(fijo ?? 'NV');
+      }
+    });
     void this.cargarEmpresa();
+    effect(() => {
+      const clave = this.claveContexto();
+      if (clave !== this.ultimoContexto) {
+        this.ultimoContexto = clave;
+        this.limpiar();
+        this.productosEncontrados = [];
+        this.clientesEncontrados = [];
+        this.emiteFacturas.set(false);
+        void this.cargarEmpresa();
+      }
+    });
     // Las series dependen del tipo y del local de la caja abierta.
     effect(() => {
       const tipo = this.tipo();
       const sucursal = this.sucursalId();
       if (!sucursal) {
+        this.cargaSeries++;
         this.series.set([]);
+        this.serieId.set('');
         return;
       }
       void this.cargarSeries(tipo, sucursal);
     });
   }
 
+  private claveContexto(): string {
+    return `${this.contexto.empresaActiva()?.id ?? ''}/${this.contexto.establecimientoActivo()?.id ?? ''}`;
+  }
+
   private async cargarEmpresa(): Promise<void> {
+    const carga = ++this.cargaEmpresa;
+    const clave = this.claveContexto();
     try {
       const empresa = await this.configuracion.empresa();
-      this.emiteFacturas.set(empresa.emiteFacturas);
+      if (carga === this.cargaEmpresa && clave === this.claveContexto()) this.emiteFacturas.set(empresa.emiteFacturas);
     } catch {
-      // Sin la ficha, se asume que factura: el servidor tiene la última palabra.
+      if (carga === this.cargaEmpresa && clave === this.claveContexto()) this.emiteFacturas.set(false);
     }
   }
 
   private async cargarSeries(tipo: TipoVenta, sucursalId: string): Promise<void> {
+    const carga = ++this.cargaSeries;
+    this.series.set([]);
+    this.serieId.set('');
     try {
       const series = await this.ventas.seriesDisponibles(tipo === 'NV' ? 'NOTA_VENTA' : tipo, sucursalId);
+      if (carga !== this.cargaSeries) return;
       this.series.set(series);
       this.serieId.set(series.length === 1 ? series[0].id : '');
     } catch (fallo: unknown) {
+      if (carga !== this.cargaSeries) return;
       this.series.set([]);
       this.avisos.error(mensajeDeError(fallo, 'No se pudieron cargar las series.'));
     }
   }
 
   cambiarTipo(valor: string): void {
-    this.tipo.set(valor as TipoVenta);
+    if (!this.tipoFijo() && this.opcionesTipo().some((opcion) => opcion.valor === valor)) {
+      this.tipo.set(valor as TipoVenta);
+    }
   }
 
   // ── Productos ──────────────────────────────────────────────────────────
@@ -253,8 +303,11 @@ export class PuntoDeVentaComponent {
       return;
     }
     this.buscandoProducto.set(true);
+    const clave = this.claveContexto();
     try {
-      this.productosEncontrados = await this.almacen.disponibles(sucursal, termino.trim());
+      const productos = await this.almacen.disponibles(sucursal, termino.trim());
+      if (clave !== this.claveContexto()) return;
+      this.productosEncontrados = productos;
       this.opcionesProducto.set(
         this.productosEncontrados.map((p) => ({
           id: p.id,
@@ -327,8 +380,11 @@ export class PuntoDeVentaComponent {
       this.opcionesCliente.set([]);
       return;
     }
+    const clave = this.claveContexto();
     try {
-      this.clientesEncontrados = (await this.ventas.clientes(termino.trim())).filter((c) => c.activo);
+      const clientes = await this.ventas.clientes(termino.trim());
+      if (clave !== this.claveContexto()) return;
+      this.clientesEncontrados = clientes.filter((c) => c.activo);
       this.opcionesCliente.set(
         this.clientesEncontrados.map((c) => ({
           id: c.id,
@@ -344,6 +400,16 @@ export class PuntoDeVentaComponent {
 
   elegirCliente(opcion: OpcionEntidad): void {
     this.cliente.set(this.clientesEncontrados.find((c) => c.id === opcion.id) ?? null);
+  }
+
+  abrirAltaCliente(): void {
+    if (this.puedeRegistrarCliente()) this.altaClienteAbierta.set(true);
+  }
+
+  usarClienteRegistrado(cliente: ClienteApi): void {
+    if (!this.puedeRegistrarCliente() || !cliente.activo || cliente.tipoDocumento !== 'RUC') return;
+    this.cliente.set(cliente);
+    this.altaClienteAbierta.set(false);
   }
 
   quitarCliente(): void {
@@ -447,6 +513,7 @@ export class PuntoDeVentaComponent {
   });
 
   limpiar(): void {
+    this.altaClienteAbierta.set(false);
     this.lineas.set([]);
     this.pagos.set([{ forma: 'EFECTIVO', monto: null, referencia: '' }]);
     this.cliente.set(null);

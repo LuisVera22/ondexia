@@ -1,3 +1,4 @@
+import { datosAltaCliente } from './datos-alta-cliente';
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -245,16 +246,11 @@ export class FichaClienteComponent implements ConCambiosSinGuardar {
     };
     try {
       if (this.esNuevo()) {
-        const creado = await this.api.crearCliente({
+        const creado = await this.api.crearCliente(datosAltaCliente({
           ...datos,
           tipoDocumento: valores.tipoDocumento,
-          numeroDocumento: valores.numeroDocumento.trim(),
-          // Solo si la consulta fue de ESTE número; de otro, el servidor la rechaza.
-          atestacion:
-            this.esRuc && this.consultaRuc()?.datos.ruc === valores.numeroDocumento.trim()
-              ? this.consultaRuc()!.atestacion
-              : null,
-        });
+          numeroDocumento: valores.numeroDocumento,
+        }, this.consultaRuc()));
         this.cambios.fijarBase();
         this.avisos.exito(`${creado.numeroDocumento} · ${creado.nombre}`, 'Cliente registrado');
         await this.router.navigate(['/ventas/clientes', creado.id]);

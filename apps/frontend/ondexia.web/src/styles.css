@@ -920,3 +920,31 @@ input[type="search"]::-webkit-search-decoration {
     }
   }
 }
+
+/* La hoja del comprobante se imprime sin el marco de navegación ni avisos. */
+@media print {
+  app-menu-lateral,
+  app-barra-superior,
+  app-aviso-suscripcion,
+  app-avisos,
+  app-confirmacion-global {
+    display: none !important;
+  }
+
+  .marco-contenido {
+    margin: 0 !important;
+    transition: none !important;
+  }
+
+  .marco-contenido > main {
+    padding: 0 !important;
+    max-width: none !important;
+  }
+
+  body,
+  .marco,
+  .marco-contenido {
+    min-height: 0 !important;
+    background: white !important;
+  }
+}
