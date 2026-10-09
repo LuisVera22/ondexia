@@ -81,7 +81,7 @@
       ocasional. El cliente del JDK sobra para eso y no engorda el artefacto,
       que ya roza los 67 MB.
     -->
-    <awssdk.version>2.32.14</awssdk.version>
+    <awssdk.version>2.55.11</awssdk.version>
 
     <!--
       OWASP Dependency-Check enlazado a la fase verify, no como paso aparte del
