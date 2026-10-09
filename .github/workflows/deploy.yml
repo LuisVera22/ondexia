@@ -159,6 +159,13 @@ jobs:
             nvd-completa-
             nvd-
 
+      # Solo al restaurar y antes de Maven, en el runner nuevo: no retirar un
+      # bloqueo de un análisis activo. La base permanece intacta.
+      # Regresión y orden cubiertos por test_cache_nvd.py.
+      - name: Limpiar el bloqueo NVD restaurado
+        if: ${{ !inputs.solo_landing }}
+        run: rm -f -- "$HOME/.m2/repository/org/owasp/dependency-check-data/odc.update.lock"
+
       - name: Verificar el backend
         if: ${{ !inputs.solo_landing }}
         working-directory: apps/backend

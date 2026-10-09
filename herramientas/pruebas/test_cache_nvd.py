@@ -1,6 +1,8 @@
 """Contrasta ambos workflows con una caché inmutable y datos independientes."""
 import ast
 import re
+import subprocess
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -46,6 +48,51 @@ def permite_guardar(condicion, informe):
 
 
 class CacheNvd(unittest.TestCase):
+    def limpieza(self, nombre):
+        texto = (RAIZ / '.github/workflows' / nombre).read_text()
+        coincidencia = re.search(
+            r'^      - name: Limpiar el bloqueo NVD restaurado\n(.*?)(?=^      - (?:name:|uses:)|\Z)',
+            texto, re.M | re.S)
+        return texto, coincidencia
+
+    def test_bloqueo_restaurado_se_retira_sin_tocar_la_base(self):
+        for nombre in ['ci.yml', 'deploy.yml']:
+            with self.subTest(workflow=nombre), tempfile.TemporaryDirectory(prefix='nvd prueba ') as temporal:
+                _, paso = self.limpieza(nombre)
+                # Sin paso de limpieza, la restauración deja intacto el bloqueo.
+                comando = re.search(r'^        run: (.+)$', paso.group(1), re.M).group(1) if paso else ':'
+                # Solo sustituimos el directorio de datos por una fixture aislada.
+                ruta_datos = '$HOME/.m2/repository/org/owasp/dependency-check-data'
+                if paso:
+                    self.assertEqual(comando.count(ruta_datos), 1)
+                comando = comando.replace(ruta_datos, temporal)
+                directorio = Path(temporal)
+                bloqueo = directorio / 'odc.update.lock'
+                base = directorio / 'odc.mv.db'
+                datos = b'base NVD de prueba\x00\xff'
+                base.write_bytes(datos)
+                bloqueo.write_text('bloqueo de otro runner')
+                subprocess.run(['bash', '-e', '-c', comando], check=True)
+                self.assertFalse(bloqueo.exists(), 'El bloqueo heredado impediría actualizar NVD')
+                self.assertEqual(base.read_bytes(), datos)
+                # Ausencia de bloqueo (caché sana) y de directorio (caché fría).
+                subprocess.run(['bash', '-e', '-c', comando], check=True)
+                self.assertEqual(base.read_bytes(), datos)
+                base.unlink()
+                directorio.rmdir()
+                subprocess.run(['bash', '-e', '-c', comando], check=True)
+
+    def test_limpieza_solo_tras_restaurar_y_antes_de_maven(self):
+        for nombre in ['ci.yml', 'deploy.yml']:
+            with self.subTest(workflow=nombre):
+                texto, paso = self.limpieza(nombre)
+                self.assertIsNotNone(paso, 'Falta limpiar el bloqueo del runner anterior')
+                self.assertLess(texto.index('- name: Restaurar la base de vulnerabilidades'), paso.start())
+                self.assertLess(paso.end(), texto.index('./mvnw'))
+                condicion = re.search(r'^        if: (.+)$', paso.group(1), re.M).group(1)
+                self.assertEqual(condicion, pasos(RAIZ / '.github/workflows' / nombre)[
+                    'Restaurar la base de vulnerabilidades']['condicion'])
+
     def configuraciones(self):
         for nombre in ['ci.yml', 'deploy.yml']:
             yield nombre, pasos(RAIZ / '.github/workflows' / nombre)

@@ -120,6 +120,13 @@ jobs:
             nvd-completa-
             nvd-
 
+      # Una caché de un job interrumpido puede traer odc.update.lock. Aquí aún
+      # no corre Maven: el bloqueo pertenece al runner anterior, no a este.
+      # Conservamos la base; test_cache_nvd.py verifica limpieza, orden y datos.
+      - name: Limpiar el bloqueo NVD restaurado
+        if: hashFiles('apps/backend/pom.xml') != ''
+        run: rm -f -- "$HOME/.m2/repository/org/owasp/dependency-check-data/odc.update.lock"
+
       # La landing no comparte nada con los otros dos: es Astro, no Angular, y
       # no tiene cache que envenenar ni pruebas todavia. `astro check` corre
       # dentro de `build` y valida los tipos de las plantillas, que es lo unico
