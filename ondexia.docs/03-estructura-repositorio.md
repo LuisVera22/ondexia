@@ -415,7 +415,20 @@ OWASP Dependency-Check se configura en el `pom.xml` enlazado a `verify`, de modo
 
 Mientras el secreto no exista, el paso **se omite con un aviso visible** en lugar de dejar el build colgado hasta agotar el tiempo. Es una concesión deliberada: un control que nadie puede ejecutar acaba desactivado de todas formas, y es preferible que conste que está desactivado a que el pipeline entero se vuelva ruido que se aprende a ignorar.
 
-La base de vulnerabilidades se guarda bajo el repositorio local de Maven, que el CI ya cachea, así que la descarga completa ocurre una vez y no en cada push.
+La base de vulnerabilidades tiene caché separada del resto de Maven, compartida
+por CI y CD. La clave `nvd-completa-<ejecución>-<intento>` permite conservar una
+copia nueva en cada reintento: GitHub no sobrescribe claves existentes. Solo se
+guarda cuando el backend genera el informe raíz de Dependency-Check; una
+descarga interrumpida o un análisis omitido no se publica como base completa.
+Se prioriza `nvd-completa-`; el respaldo `nvd-` permite aprovechar cachés antiguas,
+pero no acredita que estén completas.
+
+Esto conserva el análisis de seguridad y la actualización de NVD. No promete
+cero descargas: una rama sin caché accesible, la eliminación/expiración de cachés
+o cambios incompatibles de formato pueden requerir otra sincronización inicial.
+Las cachés mantienen el alcance por rama que impone GitHub. La prueba
+`herramientas/pruebas/test_cache_nvd.py` contrasta ambos workflows; la reutilización
+real entre ejecuciones se verifica en los registros de Actions.
 
 ### 9.5 Qué NO valida el pipeline
 

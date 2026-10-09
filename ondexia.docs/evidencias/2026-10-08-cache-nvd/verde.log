@@ -1,0 +1,9 @@
+test_descarga_fallida_no_se_publica_como_base_completa (test_cache_nvd.CacheNvd.test_descarga_fallida_no_se_publica_como_base_completa) ... ok
+test_misma_clave_al_restaurar_y_guardar_y_respaldo_heredado (test_cache_nvd.CacheNvd.test_misma_clave_al_restaurar_y_guardar_y_respaldo_heredado) ... ok
+test_reintentar_no_colisiona_con_la_copia_anterior (test_cache_nvd.CacheNvd.test_reintentar_no_colisiona_con_la_copia_anterior) ... ok
+test_restaura_base_completa_antes_de_una_copia_antigua_incompleta (test_cache_nvd.CacheNvd.test_restaura_base_completa_antes_de_una_copia_antigua_incompleta) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.010s
+
+OK

@@ -1,0 +1,23 @@
+test_descarga_fallida_no_se_publica_como_base_completa (test_cache_nvd.CacheNvd.test_descarga_fallida_no_se_publica_como_base_completa) ... ok
+test_misma_clave_al_restaurar_y_guardar_y_respaldo_heredado (test_cache_nvd.CacheNvd.test_misma_clave_al_restaurar_y_guardar_y_respaldo_heredado) ... 
+  test_misma_clave_al_restaurar_y_guardar_y_respaldo_heredado (test_cache_nvd.CacheNvd.test_misma_clave_al_restaurar_y_guardar_y_respaldo_heredado) (workflow='ci.yml') ... FAIL
+test_reintentar_no_colisiona_con_la_copia_anterior (test_cache_nvd.CacheNvd.test_reintentar_no_colisiona_con_la_copia_anterior) ... ok
+test_restaura_base_completa_antes_de_una_copia_antigua_incompleta (test_cache_nvd.CacheNvd.test_restaura_base_completa_antes_de_una_copia_antigua_incompleta) ... ok
+
+======================================================================
+FAIL: test_misma_clave_al_restaurar_y_guardar_y_respaldo_heredado (test_cache_nvd.CacheNvd.test_misma_clave_al_restaurar_y_guardar_y_respaldo_heredado) (workflow='ci.yml')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/ondexia/herramientas/pruebas/test_cache_nvd.py", line 89, in test_misma_clave_al_restaurar_y_guardar_y_respaldo_heredado
+    self.assertEqual(restaurar['clave'], guardar['clave'])
+AssertionError: 'nvd-completa-${{ github.run_id }}-${{ github.run_attempt }}' != 'nvd-distinta-${{ github.run_id }}-${{ github.run_attempt }}'
+- nvd-completa-${{ github.run_id }}-${{ github.run_attempt }}
+?     ^^^^^^
++ nvd-distinta-${{ github.run_id }}-${{ github.run_attempt }}
+?     ^^^^^^
+
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.007s
+
+FAILED (failures=1)

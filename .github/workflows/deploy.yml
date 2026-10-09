@@ -134,16 +134,17 @@ jobs:
       # publicacion acabaria divergiendo del original en el primer arreglo que
       # se hiciera en uno solo.
 
-      # Partida en `restore` y `save`, como en ci.yml: con `actions/cache`
-      # entero el guardado ocurre en un paso `Post`, y al morir el job por
-      # tiempo GitHub los omite — la descarga a medias se tiraba a la basura y
-      # la ejecución siguiente empezaba de cero.
+      # Mismo contrato de caché que CI: copia completa antes que respaldo,
+      # y clave nueva por intento. Ver herramientas/pruebas/test_cache_nvd.py.
+      - name: Comprobar la caché NVD
+        run: python3 -m unittest discover -s herramientas/pruebas -v
+
       - name: Restaurar la base de vulnerabilidades
         if: ${{ !inputs.solo_landing }}
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
-          key: nvd-${{ github.run_id }}
+          key: nvd-completa-${{ github.run_id }}-${{ github.run_attempt }}
           # `restore-keys` sin acotar restaura la copia mas reciente que la rama
           # pueda ver (hallazgo M15). GitHub ya aisla por rama —una rama solo lee
           # sus propias caches y las de la rama por omision—, asi que una rama de
@@ -154,7 +155,9 @@ jobs:
           # que acota el riesgo de verdad es desplegar prod solo desde `main`,
           # que es la proteccion de rama del entorno; queda pendiente de que el
           # repositorio tenga plan de pago.
-          restore-keys: nvd-
+          restore-keys: |
+            nvd-completa-
+            nvd-
 
       - name: Verificar el backend
         if: ${{ !inputs.solo_landing }}
@@ -189,19 +192,14 @@ jobs:
             ./mvnw -B verify -Ddependency-check.nvdApiKey="$NVD_API_KEY"
           fi
 
-      # La contraparte del `restore`. `always()` para que la copia sobreviva a
-      # un backend en rojo o a un job cancelado, que es justo cuando hace
-      # falta: sin esto, ochenta mil registros ya descargados se pierden y la
-      # ejecucion siguiente vuelve a empezar de cero.
-      #
-      # No se usa `save-always` de `actions/cache`: esta obsoleto desde la v4.2
-      # justamente porque no cubria este caso.
+      # Un informe generado acredita que el análisis terminó con datos.
+      # No se publica como completa una descarga interrumpida ni un análisis omitido.
       - name: Guardar la base de vulnerabilidades
-        if: ${{ always() && !inputs.solo_landing }}
+        if: ${{ always() && !inputs.solo_landing && hashFiles('apps/backend/target/dependency-check-report.html') != '' }}
         uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830  # v4
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
-          key: nvd-${{ github.run_id }}
+          key: nvd-completa-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Construir el frontend
         if: ${{ !inputs.solo_landing }}
