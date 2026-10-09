@@ -35,18 +35,75 @@ describe('Detalle del documento · presentación interna y fiscal', () => {
     vista.componentInstance.error.set(null);
     vista.componentInstance.formato.set(formato);
     vista.detectChanges();
+    const boton = Array.from(vista.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>).find((b) => b.textContent?.includes('Previsualizar comprobante'));
+    boton?.click();
+    vista.detectChanges();
     return vista.nativeElement.querySelector('article') as HTMLElement;
   }
 
+  it('abre como registro y permite previsualizar y volver sin modificar el documento', () => {
+    const vista = TestBed.createComponent(DetalleDocumentoComponent);
+    vista.componentInstance.documento.set(nota);
+    vista.componentInstance.cargando.set(false);
+    vista.componentInstance.error.set(null);
+    vista.detectChanges();
+    const raiz = vista.nativeElement as HTMLElement;
+    const hoja = raiz.querySelector('article')!;
+    const registro = () => raiz.querySelector('[aria-label="Registro de venta"]');
+    const pulsar = (texto: string) => {
+      const boton = Array.from(raiz.querySelectorAll('button')).find((b) => b.textContent?.includes(texto));
+      expect(boton).withContext(texto).toBeDefined();
+      boton?.click();
+      vista.detectChanges();
+    };
+    expect(registro()?.textContent).toContain('NV01-00000002');
+    expect(registro()?.textContent).toContain('Emitido');
+    expect(registro()?.textContent).toContain('Cajas');
+    expect(registro()?.textContent).toContain('450.00');
+    expect(registro()?.textContent).not.toContain('IGV');
+    expect(hoja.style.display).toBe('none');
+    expect(raiz.querySelector('[aria-label="Formato de impresión"]')).toBeNull();
+    pulsar('Previsualizar comprobante');
+    expect(hoja.style.display).toBe('');
+    expect(registro()).toBeNull();
+    expect(raiz.querySelector('[aria-label="Formato de impresión"]')).not.toBeNull();
+    pulsar('A4');
+    expect(hoja.classList.contains('hoja--ticket')).toBeFalse();
+    pulsar('Volver al registro');
+    expect(hoja.style.display).toBe('none');
+    expect(registro()).not.toBeNull();
+    expect(vista.componentInstance.documento()).toBe(nota);
+  });
+
+  for (const tipo of ['01', '03', '07'] as const) {
+    it(`el registro fiscal ${tipo} conserva base, IGV, total y leyenda en la previsualización`, () => {
+      const vista = TestBed.createComponent(DetalleDocumentoComponent);
+      vista.componentInstance.documento.set({ ...nota, tipo, fiscal: true });
+      vista.componentInstance.cargando.set(false);
+      vista.componentInstance.error.set(null);
+      vista.detectChanges();
+      const raiz = vista.nativeElement as HTMLElement;
+      const resumen = raiz.querySelector('[aria-label="Registro de venta"] section:last-child dl')!;
+      expect(Array.from(resumen.querySelectorAll('dd')).map((celda) => celda.textContent?.trim())).toEqual(['S/ 381.36', 'S/ 68.64', 'S/ 450.00']);
+      expect(resumen.textContent).toContain('IGV 18 %');
+      expect(raiz.querySelector('article')?.style.display).toBe('none');
+      const boton = Array.from(raiz.querySelectorAll('button')).find((b) => b.textContent?.includes('Previsualizar comprobante'))!;
+      boton.click();
+      vista.detectChanges();
+      expect(raiz.querySelector('article footer')?.textContent).toContain('Representación impresa del comprobante electrónico');
+    });
+  }
+
   for (const formato of ['ticket', 'a4'] as const) {
-    it(`la nota en ${formato} muestra 450 sin IGV y su naturaleza solo al pie`, () => {
+    it(`la nota en ${formato} muestra 450 sin IGV ni leyenda interna al pie`, () => {
       const hoja = mostrar(nota, formato);
       const resumen = hoja.querySelector('dl:last-of-type')!;
       expect(resumen.textContent).toContain('Importe de venta');
       expect(resumen.textContent).not.toContain('IGV');
       expect(resumen.textContent).not.toContain('Op. gravada');
       expect(Array.from(resumen.querySelectorAll('dd')).map((celda) => celda.textContent?.trim())).toEqual(['S/ 450.00', 'S/ 450.00']);
-      expect(hoja.querySelector('footer')?.textContent).toContain('Documento interno de venta. No constituye comprobante de pago ni se envía a SUNAT');
+      expect(hoja.querySelector('footer')).toBeNull();
+      expect(hoja.textContent).not.toContain('Documento interno de venta');
       expect(hoja.textContent).not.toContain('No válido');
       expect(hoja.querySelector('header')?.textContent).not.toContain('Documento interno');
     });

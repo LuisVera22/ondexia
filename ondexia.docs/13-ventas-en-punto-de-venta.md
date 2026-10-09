@@ -288,7 +288,7 @@ hasta la iteración 5.
 |---|---|---|
 | Una factura exige cliente con RUC | `DocumentoVenta.exigirAdquirente` | `DocumentoVentaTest.unaFacturaSinRucNoSeEmite`, `PuntoDeVentaIT.facturaExigeRuc` |
 | Una boleta de más de S/ 700 identifica al adquirente; el mensaje dice el motivo y la cifra | ídem | `DocumentoVentaTest.unaBoletaDe701SolesSinDniNoSeEmite`, `PuntoDeVentaIT.boletaDeMasDe700` |
-| La nota de venta conserva su título/serie y lleva al pie «Documento interno de venta. No constituye comprobante de pago ni se envía a SUNAT» | `DetalleDocumentoComponent`, en pantalla y en papel | `detalle-documento.component.spec.ts` y evidencia visual de ticket/A4 |
+| La nota de venta conserva su título/serie y no lleva leyenda interna al pie (decisión del propietario, 2026-10-09) | `DetalleDocumentoComponent`, en pantalla y en papel | `detalle-documento.component.spec.ts` y evidencia visual de ticket/A4 |
 | Los pagos suman exactamente el total; varios es pago mixto | `DocumentoVenta.exigirPagosCuadrados` | `DocumentoVentaTest.pagosCuadrados`, `PuntoDeVentaIT.cajaCerradaYPagos` |
 | No se vende con la caja cerrada | `DocumentosDeVenta.emitir` exige la sesión abierta de la caja; el local es el de la caja | `PuntoDeVentaIT.cajaCerradaYPagos` |
 | El correlativo se reserva bajo bloqueo en la misma transacción; un intento fallido no lo gasta | `AsignadorDeCorrelativo` (F-02 del DTE) | `PuntoDeVentaIT.cajaCerradaYPagos` |
@@ -337,9 +337,11 @@ cliente opcional u obligatorio según el tipo, cobro por una o varias formas con
 emitir lleva al documento.
 
 `Ventas → Notas de venta`, `Boletas` y `Facturas` son el mismo listado con la
-ruta diciendo el tipo. El detalle imprime desde el navegador (doc 12 §5.4) en
-ticket de 80 mm o A4; la nota de venta muestra «Importe de venta» y «Total», sin
-fila de IGV, y su leyenda interna al pie. Sus importes guardados no se modifican.
+ruta diciendo el tipo. El detalle muestra primero el registro, con datos, líneas,
+pagos y totales. «Previsualizar comprobante» abre ticket de 80 mm o A4 y permite
+imprimir desde el navegador (doc 12 §5.4) o volver al registro. La nota de venta
+muestra «Importe de venta» y «Total», sin fila de IGV ni leyenda interna al pie.
+Sus importes guardados no se modifican. Las leyendas fiscales se conservan.
 Desde cada listado se abre el formulario compartido con tipo fijo: nueva nota,
 boleta o factura solo emite ese tipo. El mostrador general conserva su selector
 según permisos/régimen. `rutas-emision.spec.ts` contrasta las rutas reales y

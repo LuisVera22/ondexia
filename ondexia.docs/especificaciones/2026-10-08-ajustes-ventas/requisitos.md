@@ -79,3 +79,11 @@ Los escenarios se vinculan a la [evidencia de implementación](../../evidencias/
 ## Criterios de preparación y salida
 
 Antes de codificar: DEC-01/02/03 ya resueltas; presentar el [plan](tareas.md) y contrastar cualquier nueva decisión de negocio que surja. Luis amplió la autorización a implementar todo lo definido. Para entregar: evidencia roja/verde por corrección, mutaciones aisladas para invariantes vigentes, revisión visual de los dos formatos, contratos sincronizados si cambian APIs y auditoría independiente. No se cuentan pruebas históricas como validación de estos ajustes.
+
+## Decisión posterior sobre detalle y leyenda
+
+El 2026-10-09 el propietario retiró la leyenda del pie NV y pidió un detalle
+como registro con previsualización bajo demanda. La parte de DEC-02/REQ-05/ESC-06
+que exige esa leyenda queda sustituida por
+[la nueva especificación](../2026-10-09-vista-registro/requisitos.md). El resultado
+y las capturas de 2026-10-08 son evidencia histórica, no el criterio vigente.
