@@ -1,0 +1,17 @@
+{"escenarios": 21, "fallos": ["registro 320", "ticket 320", "a4 320", "venta 320", "alta-cliente 320", "registro 390", "ticket 390", "a4 390", "venta 390", "alta-cliente 390", "alta-altura-reducida 390", "registro 768", "ticket 768", "a4 768", "venta 768", "alta-cliente 768", "registro 1440", "ticket 1440", "a4 1440", "venta 1440", "alta-cliente 1440"]}
+Traceback (most recent call last):
+  File "/workspace/ondexia/herramientas/comprobar-responsividad-ventas.py", line 156, in <module>
+    asyncio.run(comprobar())
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/workspace/ondexia/herramientas/comprobar-responsividad-ventas.py", line 150, in comprobar
+    assert not fallos,fallos
+           ^^^^^^^^^^
+AssertionError: ['registro 320', 'ticket 320', 'a4 320', 'venta 320', 'alta-cliente 320', 'registro 390', 'ticket 390', 'a4 390', 'venta 390', 'alta-cliente 390', 'alta-altura-reducida 390', 'registro 768', 'ticket 768', 'a4 768', 'venta 768', 'alta-cliente 768', 'registro 1440', 'ticket 1440', 'a4 1440', 'venta 1440', 'alta-cliente 1440']

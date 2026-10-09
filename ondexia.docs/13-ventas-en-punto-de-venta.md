@@ -348,6 +348,15 @@ según permisos/régimen. `rutas-emision.spec.ts` contrasta las rutas reales y
 `punto-de-venta.component.spec.ts` el tipo, la serie y el bloqueo de factura no
 habilitada. Son controles de interfaz; la API mantiene la autorización efectiva.
 
+La emisión y el registro adaptan las líneas a tarjetas en móvil, con cantidad,
+descuento y acciones accesibles sin desplazar tablas horizontalmente. En
+escritorio conservan tablas. El alta contextual permite desplazar su contenido
+con altura reducida. El ticket se limita al ancho de pantalla y conserva 80 mm
+al imprimir. Criterios: `especificaciones/2026-10-09-responsividad-ventas.md`;
+comprobación: `herramientas/comprobar-responsividad-ventas.py`, con servicios
+sintéticos y anchos de 320, 390, 768 y 1440 px. Dispositivos físicos y teclado
+real pendientes de verificación.
+
 ### 4.6 Lo que queda para las iteraciones 5 y 6
 
 - QR, hash y estado ante SUNAT en la representación impresa de boleta y factura.

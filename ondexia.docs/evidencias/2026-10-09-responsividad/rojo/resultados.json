@@ -1,0 +1,785 @@
+{
+  "resultados": [
+    {
+      "escenario": "registro",
+      "ancho": 320,
+      "correcto": false,
+      "medidas": {
+        "ventana": 1280,
+        "pagina": 1505,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 1596.140625,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "ticket",
+      "ancho": 320,
+      "correcto": false,
+      "medidas": {
+        "ventana": 1280,
+        "pagina": 1282,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 1130.546875,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "a4",
+      "ancho": 320,
+      "correcto": false,
+      "medidas": {
+        "ventana": 1280,
+        "pagina": 1282,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 1130.546875,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "venta",
+      "ancho": 320,
+      "correcto": false,
+      "medidas": {
+        "ventana": 320,
+        "pagina": 320,
+        "fuera": [
+          "Cantidad de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Descuento de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Quitar Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO"
+        ],
+        "tablas": [
+          {
+            "ancho": 1656.015625,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          }
+        ]
+      }
+    },
+    {
+      "escenario": "alta-cliente",
+      "ancho": 320,
+      "correcto": false,
+      "medidas": {
+        "ventana": 320,
+        "pagina": 320,
+        "fuera": [
+          "Cantidad de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Descuento de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Quitar Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO"
+        ],
+        "tablas": [
+          {
+            "ancho": 1656.015625,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          }
+        ]
+      }
+    },
+    {
+      "escenario": "registro",
+      "ancho": 390,
+      "correcto": false,
+      "medidas": {
+        "ventana": 1505,
+        "pagina": 1505,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 1596.140625,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "ticket",
+      "ancho": 390,
+      "correcto": false,
+      "medidas": {
+        "ventana": 1309,
+        "pagina": 1309,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 1130.546875,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "a4",
+      "ancho": 390,
+      "correcto": false,
+      "medidas": {
+        "ventana": 1282,
+        "pagina": 1282,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 1130.546875,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "venta",
+      "ancho": 390,
+      "correcto": false,
+      "medidas": {
+        "ventana": 390,
+        "pagina": 390,
+        "fuera": [
+          "Cantidad de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Descuento de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Quitar Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO"
+        ],
+        "tablas": [
+          {
+            "ancho": 1656.015625,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          }
+        ]
+      }
+    },
+    {
+      "escenario": "alta-cliente",
+      "ancho": 390,
+      "correcto": false,
+      "medidas": {
+        "ventana": 390,
+        "pagina": 390,
+        "fuera": [
+          "Cantidad de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Descuento de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Quitar Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO"
+        ],
+        "tablas": [
+          {
+            "ancho": 1656.015625,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          }
+        ]
+      }
+    },
+    {
+      "escenario": "alta-altura-reducida",
+      "ancho": 390,
+      "correcto": false,
+      "medidas": {
+        "ventana": 390,
+        "pagina": 390,
+        "fuera": [
+          "Cantidad de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Descuento de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Quitar Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO"
+        ],
+        "tablas": [
+          {
+            "ancho": 1656.015625,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          }
+        ]
+      }
+    },
+    {
+      "escenario": "registro",
+      "ancho": 768,
+      "correcto": false,
+      "medidas": {
+        "ventana": 1513,
+        "pagina": 1513,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 1596.140625,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "ticket",
+      "ancho": 768,
+      "correcto": false,
+      "medidas": {
+        "ventana": 1498,
+        "pagina": 1498,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 1130.546875,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "a4",
+      "ancho": 768,
+      "correcto": false,
+      "medidas": {
+        "ventana": 1290,
+        "pagina": 1290,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 1130.546875,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "venta",
+      "ancho": 768,
+      "correcto": false,
+      "medidas": {
+        "ventana": 768,
+        "pagina": 768,
+        "fuera": [
+          "Cantidad de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Descuento de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Quitar Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO"
+        ],
+        "tablas": [
+          {
+            "ancho": 1656.015625,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          }
+        ]
+      }
+    },
+    {
+      "escenario": "alta-cliente",
+      "ancho": 768,
+      "correcto": false,
+      "medidas": {
+        "ventana": 768,
+        "pagina": 768,
+        "fuera": [
+          "Cantidad de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Descuento de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Quitar Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO"
+        ],
+        "tablas": [
+          {
+            "ancho": 1656.015625,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          }
+        ]
+      }
+    },
+    {
+      "escenario": "registro",
+      "ancho": 1440,
+      "correcto": false,
+      "medidas": {
+        "ventana": 2145,
+        "pagina": 2145,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 1596.140625,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "ticket",
+      "ancho": 1440,
+      "correcto": false,
+      "medidas": {
+        "ventana": 1984,
+        "pagina": 1984,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 1130.546875,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "a4",
+      "ancho": 1440,
+      "correcto": false,
+      "medidas": {
+        "ventana": 1752,
+        "pagina": 1752,
+        "fuera": [],
+        "tablas": [
+          {
+            "ancho": 1130.546875,
+            "desborde": false
+          }
+        ],
+        "campos": []
+      }
+    },
+    {
+      "escenario": "venta",
+      "ancho": 1440,
+      "correcto": false,
+      "medidas": {
+        "ventana": 1440,
+        "pagina": 1440,
+        "fuera": [
+          "Cantidad de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Descuento de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Quitar Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO"
+        ],
+        "tablas": [
+          {
+            "ancho": 1656.015625,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          }
+        ]
+      }
+    },
+    {
+      "escenario": "alta-cliente",
+      "ancho": 1440,
+      "correcto": false,
+      "medidas": {
+        "ventana": 1440,
+        "pagina": 1440,
+        "fuera": [
+          "Cantidad de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Descuento de Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO",
+          "Quitar Cajas de envío CODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSOCODIGOEXTENSO"
+        ],
+        "tablas": [
+          {
+            "ancho": 1656.015625,
+            "desborde": false
+          }
+        ],
+        "campos": [
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 36,
+            "fuente": 14
+          },
+          {
+            "alto": 44,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 40,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          },
+          {
+            "alto": 38,
+            "fuente": 14
+          }
+        ]
+      }
+    }
+  ],
+  "fallos": [
+    "registro 320",
+    "ticket 320",
+    "a4 320",
+    "venta 320",
+    "alta-cliente 320",
+    "registro 390",
+    "ticket 390",
+    "a4 390",
+    "venta 390",
+    "alta-cliente 390",
+    "alta-altura-reducida 390",
+    "registro 768",
+    "ticket 768",
+    "a4 768",
+    "venta 768",
+    "alta-cliente 768",
+    "registro 1440",
+    "ticket 1440",
+    "a4 1440",
+    "venta 1440",
+    "alta-cliente 1440"
+  ],
+  "impresiones": [
+    {
+      "ancho_ventana": 320,
+      "formato": "ticket",
+      "correcto": true
+    },
+    {
+      "ancho_ventana": 320,
+      "formato": "a4",
+      "correcto": true
+    },
+    {
+      "ancho_ventana": 390,
+      "formato": "ticket",
+      "correcto": true
+    },
+    {
+      "ancho_ventana": 390,
+      "formato": "a4",
+      "correcto": true
+    },
+    {
+      "ancho_ventana": 768,
+      "formato": "ticket",
+      "correcto": true
+    },
+    {
+      "ancho_ventana": 768,
+      "formato": "a4",
+      "correcto": true
+    },
+    {
+      "ancho_ventana": 1440,
+      "formato": "ticket",
+      "correcto": true
+    },
+    {
+      "ancho_ventana": 1440,
+      "formato": "a4",
+      "correcto": true
+    }
+  ],
+  "servicios_simulados": "Todas las API; sesión y datos sintéticos; no se emite ni se registra",
+  "dispositivos_fisicos": "no verificados"
+}
