@@ -1,0 +1,63 @@
+{
+  "advisories": {
+    "1240618": {
+      "findings": [
+        {
+          "version": "21.2.20",
+          "paths": [
+            ".>@angular/router"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1240618,
+      "title": "Angular Server-Side Rendering (SSR): Denial of Service via Numeric URL Matrix Parameters",
+      "module_name": "@angular/router",
+      "vulnerable_versions": ">=21.0.0 <21.2.24",
+      "patched_versions": ">=21.2.24",
+      "severity": "high",
+      "cwe": "CWE-400, CWE-770",
+      "github_advisory_id": "GHSA-ff3f-86qr-9cv3",
+      "url": "https://github.com/advisories/GHSA-ff3f-86qr-9cv3"
+    },
+    "1241209": {
+      "findings": [
+        {
+          "version": "1.2.1",
+          "paths": [
+            ".>@tailwindcss/postcss>@tailwindcss/node>source-map-js",
+            ".>@tailwindcss/postcss>postcss>source-map-js",
+            ".>postcss>source-map-js"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1241209,
+      "title": "source-map-js allows event-loop denial of service through indexed source-map section offsets",
+      "module_name": "source-map-js",
+      "vulnerable_versions": ">=1.0.0 <1.2.2",
+      "patched_versions": ">=1.2.2",
+      "severity": "high",
+      "cwe": "CWE-1284",
+      "github_advisory_id": "GHSA-68fv-2mgg-jv7q",
+      "url": "https://github.com/advisories/GHSA-68fv-2mgg-jv7q"
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 2,
+      "critical": 0
+    },
+    "dependencies": 31,
+    "devDependencies": 0,
+    "optionalDependencies": 23,
+    "totalDependencies": 54
+  }
+}

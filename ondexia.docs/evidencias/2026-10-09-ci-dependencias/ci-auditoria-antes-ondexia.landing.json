@@ -1,0 +1,220 @@
+{
+  "advisories": {
+    "1240040": {
+      "findings": [
+        {
+          "version": "8.10.0",
+          "paths": [
+            ".>astro>unifont>undici"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1240040,
+      "title": "undici vulnerable to Denial of Service via unrequested WebSocket subprotocol",
+      "module_name": "undici",
+      "vulnerable_versions": ">=8.0.0 <8.10.2",
+      "patched_versions": ">=8.10.2",
+      "severity": "high",
+      "cwe": "CWE-248, CWE-252",
+      "github_advisory_id": "GHSA-rfgv-xxqx-mfg5",
+      "url": "https://github.com/advisories/GHSA-rfgv-xxqx-mfg5"
+    },
+    "1240049": {
+      "findings": [
+        {
+          "version": "8.10.0",
+          "paths": [
+            ".>astro>unifont>undici"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1240049,
+      "title": "undici vulnerable to TLS certificate validation bypass via dropped connect options in BalancedPool",
+      "module_name": "undici",
+      "vulnerable_versions": ">=8.0.0 <8.10.2",
+      "patched_versions": ">=8.10.2",
+      "severity": "high",
+      "cwe": "CWE-295",
+      "github_advisory_id": "GHSA-w293-vg96-wgc3",
+      "url": "https://github.com/advisories/GHSA-w293-vg96-wgc3"
+    },
+    "1240053": {
+      "findings": [
+        {
+          "version": "8.10.0",
+          "paths": [
+            ".>astro>unifont>undici"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1240053,
+      "title": "undici vulnerable to cross-origin cache poisoning via missing origin isolation in interceptors",
+      "module_name": "undici",
+      "vulnerable_versions": ">=8.10.0 <8.10.2",
+      "patched_versions": ">=8.10.2",
+      "severity": "high",
+      "cwe": "CWE-346",
+      "github_advisory_id": "GHSA-vp8m-p9jh-q5pm",
+      "url": "https://github.com/advisories/GHSA-vp8m-p9jh-q5pm"
+    },
+    "1240870": {
+      "findings": [
+        {
+          "version": "5.9.1",
+          "paths": [
+            ".>astro>devalue"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1240870,
+      "title": "devalue: `stringify`/`uneval` serialize shared memory",
+      "module_name": "devalue",
+      "vulnerable_versions": ">=5.1.0 <=5.9.2",
+      "patched_versions": ">=5.9.3",
+      "severity": "high",
+      "cwe": "CWE-200, CWE-226",
+      "github_advisory_id": "GHSA-j22f-vq7h-c4qm",
+      "url": "https://github.com/advisories/GHSA-j22f-vq7h-c4qm"
+    },
+    "1240872": {
+      "findings": [
+        {
+          "version": "5.9.1",
+          "paths": [
+            ".>astro>devalue"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1240872,
+      "title": "devalue: Repeated primitive strings cause quadratic expansion in uneval",
+      "module_name": "devalue",
+      "vulnerable_versions": "<=5.9.2",
+      "patched_versions": ">=5.9.3",
+      "severity": "high",
+      "cwe": "CWE-400, CWE-409",
+      "github_advisory_id": "GHSA-mcm9-63f2-9j32",
+      "url": "https://github.com/advisories/GHSA-mcm9-63f2-9j32"
+    },
+    "1240874": {
+      "findings": [
+        {
+          "version": "5.9.1",
+          "paths": [
+            ".>astro>devalue"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1240874,
+      "title": "devalue: stringifyAsync can cause an unhandled rejection despite a caught returned promise",
+      "module_name": "devalue",
+      "vulnerable_versions": ">=5.8.0 <=5.9.2",
+      "patched_versions": ">=5.9.3",
+      "severity": "high",
+      "cwe": "CWE-248, CWE-755",
+      "github_advisory_id": "GHSA-x5rw-q4pp-hg5g",
+      "url": "https://github.com/advisories/GHSA-x5rw-q4pp-hg5g"
+    },
+    "1240991": {
+      "findings": [
+        {
+          "version": "4.2.0",
+          "paths": [
+            ".>astro>http-cache-semantics"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1240991,
+      "title": "http-cache-semantics max-stale handling can disclose cross-user cached responses",
+      "module_name": "http-cache-semantics",
+      "vulnerable_versions": "<=4.2.0",
+      "patched_versions": ">=4.2.1",
+      "severity": "high",
+      "cwe": "CWE-524",
+      "github_advisory_id": "GHSA-ch52-4w7c-c8xp",
+      "url": "https://github.com/advisories/GHSA-ch52-4w7c-c8xp"
+    },
+    "1241209": {
+      "findings": [
+        {
+          "version": "1.2.1",
+          "paths": [
+            ".>astro>magicast>source-map-js",
+            ".>astro>svgo>css-tree>source-map-js",
+            ".>astro>svgo>csso>css-tree>source-map-js",
+            ".>astro>unifont>css-tree>source-map-js",
+            ".>astro>vite>postcss>source-map-js",
+            ".>astro>vitefu>vite>postcss>source-map-js"
+          ],
+          "dev": false,
+          "optional": false,
+          "bundled": false
+        }
+      ],
+      "id": 1241209,
+      "title": "source-map-js allows event-loop denial of service through indexed source-map section offsets",
+      "module_name": "source-map-js",
+      "vulnerable_versions": ">=1.0.0 <1.2.2",
+      "patched_versions": ">=1.2.2",
+      "severity": "high",
+      "cwe": "CWE-1284",
+      "github_advisory_id": "GHSA-68fv-2mgg-jv7q",
+      "url": "https://github.com/advisories/GHSA-68fv-2mgg-jv7q"
+    },
+    "1241331": {
+      "findings": [
+        {
+          "version": "0.35.4",
+          "paths": [
+            ".>astro>sharp"
+          ],
+          "dev": false,
+          "optional": true,
+          "bundled": false
+        }
+      ],
+      "id": 1241331,
+      "title": "sharp : Vulnerability in librsvg dependency CVE-2026-96889",
+      "module_name": "sharp",
+      "vulnerable_versions": "<0.35.5",
+      "patched_versions": ">=0.35.5",
+      "severity": "high",
+      "cwe": "CWE-416, CWE-1395",
+      "github_advisory_id": "GHSA-wq5f-xc86-pv6w",
+      "url": "https://github.com/advisories/GHSA-wq5f-xc86-pv6w"
+    }
+  },
+  "metadata": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 4,
+      "moderate": 8,
+      "high": 9,
+      "critical": 0
+    },
+    "dependencies": 184,
+    "devDependencies": 0,
+    "optionalDependencies": 108,
+    "totalDependencies": 292
+  }
+}

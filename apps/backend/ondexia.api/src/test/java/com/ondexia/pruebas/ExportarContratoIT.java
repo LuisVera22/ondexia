@@ -74,5 +74,8 @@ class ExportarContratoIT extends PruebaIntegracion {
                 """;
 
         Files.writeString(destino, encabezado + contrato, StandardCharsets.UTF_8);
+        GeneradorDeModelosCatalogo.generar(destino,
+                destino.getParent().getParent().resolve(
+                        "apps/frontend/ondexia.web/src/app/nucleo/almacen.modelos.ts"));
     }
 }

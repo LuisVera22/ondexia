@@ -59,9 +59,9 @@ class ProductosIT extends PruebaIntegracion {
     private JsonNode crear(String codigo, String nombre, String precio, boolean controlaStock)
             throws Exception {
         String cuerpo = mockMvc.perform(comoAdministrador(post(PRODUCTOS)).content("""
-                        {"codigo": "%s", "nombre": "%s", "unidad": "NIU", "afectacion": "GRAVADO",
-                         "precioLista": %s, "controlaStock": %s, "sucursalId": "%s"}
-                        """.formatted(codigo, nombre, precio, controlaStock, MATRIZ)))
+                        {"codigo": "%s", "nombre": "%s", "unidad": "%s", "afectacion": "GRAVADO",
+                         "precioLista": %s, "tipo": "%s", "sucursalId": "%s"}
+                        """.formatted(codigo, nombre, controlaStock ? "NIU" : "ZZ", precio, controlaStock ? "BIEN" : "SERVICIO", MATRIZ)))
                 .andExpect(status().isCreated())
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         return json.readTree(cuerpo);
@@ -86,11 +86,11 @@ class ProductosIT extends PruebaIntegracion {
         assertThat(creado.path("unidad").asString()).isEqualTo("NIU");
         assertThat(creado.path("afectacion").asString()).isEqualTo("GRAVADO");
         assertThat(creado.path("llevaIgv").asBoolean()).isTrue();
-        assertThat(creado.path("precioLista").decimalValue()).isEqualByComparingTo("32.5");
+        assertThat(new java.math.BigDecimal(creado.path("precioLista").asString())).isEqualByComparingTo("32.5");
 
         mockMvc.perform(comoAdministrador(put(PRODUCTOS + "/" + id)).content("""
                         {"nombre": "Cemento Portland Tipo I 42.5 kg", "unidad": "BG",
-                         "afectacion": "EXONERADO", "precioLista": 33, "controlaStock": true}
+                         "afectacion": "EXONERADO", "precioLista": 33, "tipo": "BIEN"}
                         """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.codigo").value("CEM-T01"))
@@ -120,7 +120,7 @@ class ProductosIT extends PruebaIntegracion {
 
         mockMvc.perform(comoAdministrador(post(PRODUCTOS)).content("""
                         {"codigo": "dup-p", "nombre": "Otro", "unidad": "NIU", "afectacion": "GRAVADO",
-                         "precioLista": 1, "sucursalId": "%s"}
+                         "precioLista": 1, "tipo": "BIEN", "sucursalId": "%s"}
                         """.formatted(MATRIZ)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.codigo").value("codigo_duplicado"))
@@ -128,14 +128,14 @@ class ProductosIT extends PruebaIntegracion {
 
         mockMvc.perform(comoAdministrador(post(PRODUCTOS)).content("""
                         {"codigo": "X-1", "nombre": "Otro", "unidad": "XYZ", "afectacion": "GRAVADO",
-                         "precioLista": 1, "sucursalId": "%s"}
+                         "precioLista": 1, "tipo": "BIEN", "sucursalId": "%s"}
                         """.formatted(MATRIZ)))
                 .andExpect(status().isBadRequest());
 
         // Sin establecimiento no hay producto: sería un borrador que nadie ve.
         mockMvc.perform(comoAdministrador(post(PRODUCTOS)).content("""
                         {"codigo": "X-2", "nombre": "Otro", "unidad": "NIU", "afectacion": "GRAVADO",
-                         "precioLista": 1}
+                         "precioLista": 1, "tipo": "BIEN"}
                         """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.campos.sucursalId").exists());
@@ -157,7 +157,7 @@ class ProductosIT extends PruebaIntegracion {
                         .content("{\"disponible\": true, \"precio\": 9.5}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.sucursalId").value(MIRAFLORES))
-                .andExpect(jsonPath("$.precio").value(9.5));
+                .andExpect(jsonPath("$.precio").value("9.5"));
 
         // Y se puede retirar de un local sin borrar nada.
         mockMvc.perform(comoAdministrador(put(PRODUCTOS + "/" + id + "/locales/" + MATRIZ))

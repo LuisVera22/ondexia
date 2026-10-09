@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import {
@@ -13,7 +13,8 @@ import {
   OpcionDesplegable,
 } from '../../../shared/components/comunes/desplegable/desplegable.component';
 import { BotonComponent } from '../../../shared/components/comunes/boton/boton.component';
-import { AlmacenApiService, ProductoApi } from '../../../nucleo/almacen.api.service';
+import { presentarImporteCatalogo } from '../../../nucleo/importe-catalogo';
+import { AlmacenApiService, ProductoApi, TipoProducto } from '../../../nucleo/almacen.api.service';
 import { mensajeDeError } from '../../../nucleo/errores';
 import { ContextoService } from '../../../shared/services/contexto.service';
 
@@ -39,6 +40,12 @@ export class ProductosComponent {
   private readonly contexto = inject(ContextoService);
   private readonly router = inject(Router);
 
+  readonly tipo: TipoProducto = inject(ActivatedRoute).snapshot.data['tipo'] ?? 'BIEN';
+  readonly nombrePlural = this.tipo === 'SERVICIO' ? 'servicios' : 'bienes';
+  readonly nombreSingular = this.tipo === 'SERVICIO' ? 'servicio' : 'bien';
+  readonly titulo = this.tipo === 'SERVICIO' ? 'Servicios' : 'Bienes';
+  readonly rutaListado = `/almacen/${this.nombrePlural}`;
+
   /**
    * El estado es el único filtro propio de la pantalla.
    *
@@ -62,10 +69,10 @@ export class ProductosComponent {
 
   readonly columnas: ColumnaTabla[] = [
     { campo: 'codigo', titulo: 'Código', ordenable: true, ancho: 'w-36' },
-    { campo: 'nombre', titulo: 'Producto', ordenable: true, principal: true },
+    { campo: 'nombre', titulo: this.titulo, ordenable: true, principal: true },
     { campo: 'unidad', titulo: 'Unidad', ancho: 'w-32' },
     { campo: 'igv', titulo: 'IGV', ancho: 'w-28' },
-    { campo: 'precioLista', titulo: 'Precio de lista', formato: 'importe', ordenable: true, ancho: 'w-36' },
+    { campo: 'precioLista', titulo: 'Precio de lista',  ancho: 'w-36' },
     {
       campo: 'estado',
       titulo: 'Estado',
@@ -89,7 +96,7 @@ export class ProductosComponent {
     this.cargando.set(true);
     this.error.set(null);
     try {
-      this.todos.set(await this.api.productos());
+      this.todos.set(await this.api.productos(undefined, this.tipo));
     } catch (fallo: unknown) {
       this.error.set(mensajeDeError(fallo, 'No se pudo cargar el catálogo.'));
     } finally {
@@ -103,6 +110,7 @@ export class ProductosComponent {
 
   get registros(): Record<string, unknown>[] {
     return this.todos()
+      .filter((p) => p.tipo === this.tipo)
       .filter((p) => !this.estadoFiltro || (this.estadoFiltro === 'activo' ? p.activo : !p.activo))
       .map((p) => ({
         id: p.id,
@@ -110,7 +118,7 @@ export class ProductosComponent {
         nombre: p.nombre,
         unidad: p.unidadNombre,
         igv: p.afectacionNombre,
-        precioLista: p.precioLista,
+        precioLista: presentarImporteCatalogo(p.precioLista),
         estado: p.activo ? 'Activo' : 'Inactivo',
         activo: p.activo,
       }));
@@ -125,11 +133,11 @@ export class ProductosComponent {
   }
 
   abrirFicha(registro: Record<string, unknown>): void {
-    void this.router.navigate(['/almacen/productos', registro['id']]);
+    void this.router.navigate([this.rutaListado, registro['id']]);
   }
 
   nuevo(): void {
-    void this.router.navigate(['/almacen/productos', 'nuevo']);
+    void this.router.navigate([this.rutaListado, 'nuevo']);
   }
 
   ejecutarAccion(evento: { accion: string; registro: Record<string, unknown> }): void {

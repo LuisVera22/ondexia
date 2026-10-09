@@ -254,7 +254,13 @@ alta con atestación opcional, edición de nombre y contacto,
 La ficha consulta SUNAT o RENIEC según el tipo, rellena lo que el servicio sabe y
 guarda la atestación solo si la consulta fue de ese mismo número: cambiar el
 número después de consultar la descarta, porque era de otro RUC
-(`FichaClienteComponent`, con su prueba). El listado marca «RUC sin verificar»
+(`FichaClienteComponent`, con su prueba). El alta desde la venta reutiliza el
+contrato de atestación de la ficha mediante `datosAltaCliente`: el RUC consultado
+se revisa antes de pulsar «Registrar y usar», sin abandonar ni vaciar la venta.
+`AltaClienteVentaComponent` permite seleccionar un cliente propio existente,
+no reactiva inactivos y descarta respuestas del número/contexto anterior. Estos
+casos se verifican en `alta-cliente-venta.component.spec.ts`; la conservación de
+la venta se comprueba en `punto-de-venta.component.spec.ts`. El listado marca «RUC sin verificar»
 para que no sorprenda al facturar.
 
 ## 4. Punto de venta: nota de venta, boleta y factura
@@ -282,7 +288,7 @@ hasta la iteración 5.
 |---|---|---|
 | Una factura exige cliente con RUC | `DocumentoVenta.exigirAdquirente` | `DocumentoVentaTest.unaFacturaSinRucNoSeEmite`, `PuntoDeVentaIT.facturaExigeRuc` |
 | Una boleta de más de S/ 700 identifica al adquirente; el mensaje dice el motivo y la cifra | ídem | `DocumentoVentaTest.unaBoletaDe701SolesSinDniNoSeEmite`, `PuntoDeVentaIT.boletaDeMasDe700` |
-| La nota de venta lleva la leyenda «Documento interno, no válido como comprobante de pago» y no se parece a una boleta | `DetalleDocumentoComponent`, en pantalla y en papel | Revisión visual; la leyenda está en la plantilla |
+| La nota de venta conserva su título/serie y no lleva leyenda interna al pie (decisión del propietario, 2026-10-09) | `DetalleDocumentoComponent`, en pantalla y en papel | `detalle-documento.component.spec.ts` y evidencia visual de ticket/A4 |
 | Los pagos suman exactamente el total; varios es pago mixto | `DocumentoVenta.exigirPagosCuadrados` | `DocumentoVentaTest.pagosCuadrados`, `PuntoDeVentaIT.cajaCerradaYPagos` |
 | No se vende con la caja cerrada | `DocumentosDeVenta.emitir` exige la sesión abierta de la caja; el local es el de la caja | `PuntoDeVentaIT.cajaCerradaYPagos` |
 | El correlativo se reserva bajo bloqueo en la misma transacción; un intento fallido no lo gasta | `AsignadorDeCorrelativo` (F-02 del DTE) | `PuntoDeVentaIT.cajaCerradaYPagos` |
@@ -331,10 +337,16 @@ cliente opcional u obligatorio según el tipo, cobro por una o varias formas con
 emitir lleva al documento.
 
 `Ventas → Notas de venta`, `Boletas` y `Facturas` son el mismo listado con la
-ruta diciendo el tipo. El detalle imprime desde el navegador (doc 12 §5.4) en
-ticket de 80 mm o A4; la nota de venta lleva la leyenda arriba y una nota al pie
-de que no otorga crédito fiscal. Las maquetas de emitir boleta y factura quedan
-sin ruta: se emite desde el punto de venta.
+ruta diciendo el tipo. El detalle muestra primero el registro, con datos, líneas,
+pagos y totales. «Previsualizar comprobante» abre ticket de 80 mm o A4 y permite
+imprimir desde el navegador (doc 12 §5.4) o volver al registro. La nota de venta
+muestra «Importe de venta» y «Total», sin fila de IGV ni leyenda interna al pie.
+Sus importes guardados no se modifican. Las leyendas fiscales se conservan.
+Desde cada listado se abre el formulario compartido con tipo fijo: nueva nota,
+boleta o factura solo emite ese tipo. El mostrador general conserva su selector
+según permisos/régimen. `rutas-emision.spec.ts` contrasta las rutas reales y
+`punto-de-venta.component.spec.ts` el tipo, la serie y el bloqueo de factura no
+habilitada. Son controles de interfaz; la API mantiene la autorización efectiva.
 
 ### 4.6 Lo que queda para las iteraciones 5 y 6
 

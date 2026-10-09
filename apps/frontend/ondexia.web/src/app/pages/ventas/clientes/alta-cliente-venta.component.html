@@ -1,0 +1,31 @@
+<app-modal [abierto]="true" titulo="Nuevo cliente" subtitulo="Consulta el RUC, revisa los datos y registra al cliente sin salir de la venta." [procesando]="guardando()" (cerrar)="cerrar.emit()">
+  <form [formGroup]="formulario" (ngSubmit)="registrar()" class="grid gap-4">
+    <label class="block text-sm">RUC
+      <input formControlName="ruc" inputmode="numeric" maxlength="11" [readonly]="guardando()" class="mt-1 block w-full rounded-base border border-gray-300 bg-transparent p-2" />
+    </label>
+    @if (formulario.controls.ruc.touched && formulario.controls.ruc.invalid) {
+    <p role="alert" class="text-sm text-error-500">Indica un RUC de once dígitos que empiece por 10, 15, 17 o 20.</p>
+    }
+    <app-boton variante="secundario" [deshabilitado]="consultando() || guardando() || !puedeRegistrar()" (accion)="consultar()">{{ consultando() ? 'Consultando…' : 'Consultar RUC' }}</app-boton>
+    @if (fallo()) { <p role="alert" class="text-sm text-error-500">{{ fallo() }}</p> }
+    @if (aviso()) { <p role="status" class="text-sm text-gray-600 dark:text-gray-400">{{ aviso() }}</p> }
+    @if (permiteManual() && !revisando()) {
+    <app-boton variante="secundario" (accion)="ingresarManualmente()">Ingresar datos manualmente</app-boton>
+    }
+    @if (existente(); as cliente) {
+    <p class="text-sm">El cliente ya está registrado: {{ cliente.nombre }}.</p>
+    <app-boton [deshabilitado]="!cliente.activo || !puedeRegistrar()" (accion)="usarExistente()">Usar cliente existente</app-boton>
+    }
+    @if (revisando()) {
+    <label class="block text-sm">Razón social
+      <input formControlName="nombre" maxlength="300" [readonly]="consulta() !== null || guardando()" class="mt-1 block w-full rounded-base border border-gray-300 bg-transparent p-2" />
+    </label>
+    @if (formulario.controls.nombre.touched && formulario.controls.nombre.invalid) { <p role="alert" class="text-sm text-error-500">Indica la razón social.</p> }
+    <label class="block text-sm">Domicilio
+      <input formControlName="direccion" maxlength="500" [readonly]="consulta() !== null || guardando()" class="mt-1 block w-full rounded-base border border-gray-300 bg-transparent p-2" />
+    </label>
+    <app-boton [deshabilitado]="guardando() || consultando() || !puedeRegistrar()" (accion)="registrar()">{{ guardando() ? 'Registrando…' : 'Registrar y usar' }}</app-boton>
+    }
+    <app-boton variante="secundario" [deshabilitado]="guardando()" (accion)="cerrar.emit()">Cancelar</app-boton>
+  </form>
+</app-modal>

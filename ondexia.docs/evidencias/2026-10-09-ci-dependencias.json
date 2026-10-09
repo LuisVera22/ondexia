@@ -1,0 +1,76 @@
+{
+  "base": "8b3713fcfd846a99625914aa846c6e115a6b810a",
+  "pr": 10,
+  "ejecucion_fallida": 37866690107,
+  "paso_fallido": "Frontend: pnpm audit --prod --audit-level=high",
+  "auditorias_antes_y_despues": {
+    "ci-auditoria-antes.json": {
+      "info": 0,
+      "low": 0,
+      "moderate": 3,
+      "high": 2,
+      "critical": 0
+    },
+    "ci-auditoria-despues-ondexia.admin.json": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0
+    },
+    "ci-auditoria-antes-ondexia.landing.json": {
+      "info": 0,
+      "low": 4,
+      "moderate": 8,
+      "high": 9,
+      "critical": 0
+    },
+    "ci-auditoria-despues-ondexia.landing.json": {
+      "info": 0,
+      "low": 0,
+      "moderate": 1,
+      "high": 0,
+      "critical": 0
+    },
+    "ci-auditoria-antes-ondexia.admin.json": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 2,
+      "critical": 0
+    },
+    "ci-auditoria-despues-ondexia.web.json": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0
+    }
+  },
+  "pruebas_web": 119,
+  "pruebas_panel": 5,
+  "compilaciones": [
+    "web",
+    "panel",
+    "landing"
+  ],
+  "umbral_ci": "high, sin excepciones ni relajación",
+  "pendiente": "Comprobación completa en GitHub después del push; una vulnerabilidad moderada permanece en landing",
+  "huellas": {
+    "ci-auditoria-antes.json": "c798c7e575d6a987f539b05024df0d6738bb989ce788d75ac83150466a2ab349",
+    "ci-auditoria-despues-ondexia.admin.json": "96b71a398f99a7ec95bd98d11af0866d7609d651722a76ac4cc9abe82d0d7e0a",
+    "ci-compilacion-ondexia.landing.log": "39f76df494976d7c8657aaea1b516402493573c595403f727301b07fe12682fb",
+    "ci-compilacion-ondexia.admin.log": "5b0548439e68de6539e6a7db89f0d09dd1b85a15dc4c10d46aadd548666c05ea",
+    "ci-compilacion-ondexia.web.log": "4ccddf4dd6409a624bb0d5e2bba2896de0e8744667dcd8b6118e4b8e7848b2b7",
+    "ci-registro-fallo-github.log": "dac6775bd728a5c7975c48edfd8b65e69e0b964878b45355a9787b7878eaf717",
+    "ci-instalacion-ondexia.web.log": "1b431ec67632a7ba9151c64cb395e1dd9603a928b603d603aedb97ae961bdde1",
+    "ci-auditoria-antes-ondexia.landing.json": "04f8d1c416e1ec01282c4532d17e61052fa60ed4b8ee44c33d380af4edf8940a",
+    "ci-auditoria-despues-ondexia.landing.json": "eada7768f8b22d6495f53fb59e07835cb01ca65765437a1db6593947bcd7ce2d",
+    "ci-instalacion-ondexia.admin.log": "931291ea410ef57a7043c57592f13c906dd2f9bad266c52ee36834bb8bbb850e",
+    "ci-pruebas-ondexia.admin.log": "4136a5a3aa13656c176be36d08c9bb50b0aa24f1eba7d92941af89ebf0b1428e",
+    "ci-instalacion-ondexia.landing.log": "974206d0495538e9fcd7d410519243e7c4ee5f4d36f93ffd187881843b7a41d0",
+    "ci-auditoria-antes-ondexia.admin.json": "c8b98810af9b597922a1d78adac09ecb8b46b0a8881cce2bf43e062df5e4a649",
+    "ci-auditoria-despues-ondexia.web.json": "96b71a398f99a7ec95bd98d11af0866d7609d651722a76ac4cc9abe82d0d7e0a",
+    "ci-pruebas-ondexia.web.log": "440ff8405121168b65214ad98318493acf4718a98d736a04913b63dd1829cf65"
+  }
+}

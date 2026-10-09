@@ -142,6 +142,10 @@ class PuntoDeVentaIT extends PruebaIntegracion {
 
         // Descargó las dos bolsas; la instalación no controla existencias.
         assertThat(existencia(CEMENTO)).isEqualTo("8");
+        mockMvc.perform(comoAdministrador(get("/api/v1/almacen/productos/" + INSTALACION + "/existencias")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        mockMvc.perform(comoAdministrador(get("/api/v1/almacen/productos/" + INSTALACION + "/movimientos")))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
         JsonNode movimientos = leer(mockMvc.perform(comoAdministrador(
                         get("/api/v1/almacen/productos/" + CEMENTO + "/movimientos")))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8));

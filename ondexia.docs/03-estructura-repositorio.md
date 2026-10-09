@@ -201,6 +201,8 @@ Sustantivo del dominio en **español**, sufijo técnico en **inglés**:
 
 `springdoc` deriva el contrato de los controladores y `ExportarContratoIT` lo escribe en `ondexia.contracts/openapi.yaml` en cada ejecución de la suite. De ahí se genera el cliente Angular.
 
+Para el catálogo de bienes y servicios, la misma prueba genera `apps/frontend/ondexia.web/src/app/nucleo/almacen.modelos.ts` desde el YAML exportado. Ese archivo se confirma junto al contrato y lo consume `AlmacenApiService`. El paso «Contrato y modelos sincronizados» de CI falla si la regeneración difiere de los archivos confirmados.
+
 Que lo escriba una prueba es intencionado: **el contrato no puede quedarse atrás**. Se regenera siempre, y si cambia aparece en `git status` junto al cambio que lo provocó. La alternativa —acordarse de regenerarlo— es exactamente el fallo que el contrato existe para evitar (§5).
 
 ## 5. Contratos — el detalle que más rinde con un solo desarrollador
@@ -280,6 +282,41 @@ Con un solo desarrollador (R-13), el valor no se reparte parejo:
 - **`feature/*` por tarea** — valor bajo en lo mecánico, alto como disciplina de historial. Mantenerlas cortas evita que se conviertan en ramas de larga vida que luego cuesta integrar.
 
 Lo que **no** conviene relajar es la regla de que `main` nunca recibe un commit directo. Es la única barrera entre un cambio a medio terminar y un comprobante inválido.
+
+### 6.7 Mensajes — Conventional Commits
+
+Decisión del propietario del 2026-10-08: **todos los commits nuevos utilizan
+Conventional Commits**. El formato es `tipo(ámbito opcional)!: descripción`,
+con ámbito y `!` opcionales. Los tipos conservan su sintaxis estándar; ámbito,
+descripción, cuerpo y explicación de incompatibilidades van en español.
+
+| Tipo | Uso |
+|---|---|
+| `feat` | Funcionalidad nueva |
+| `fix` | Corrección de un defecto |
+| `docs` | Documentación y lineamientos |
+| `test` | Pruebas |
+| `refactor` | Reorganización sin cambiar el comportamiento |
+| `perf` | Mejora de rendimiento |
+| `build` | Construcción y dependencias |
+| `ci` | Integración y entrega continuas |
+| `chore` | Mantenimiento que no encaja en los anteriores |
+| `revert` | Reversión de un cambio |
+
+Ejemplos: `feat(catálogo): separa bienes y servicios` y
+`docs(harness): registra GitFlow y Conventional Commits`.
+Para cambios incompatibles usar `!` o el pie `BREAKING CHANGE:`, seguido de una
+explicación en español. No añadir marcas de herramientas ni `Co-Authored-By`.
+La convención se aplica desde esta decisión; no exige reescribir el historial.
+
+GitFlow continúa vigente para desarrollo, publicación y soporte. En la sesión
+actual el propietario indicó trabajar directamente sobre `develop` y reservar
+`main` para publicar; no crear `feature/*` por defecto en esta sesión. Antes de
+confirmar revisar rama, cambios pendientes, diff y verificaciones pertinentes.
+Los cambios de API, OpenAPI y modelos Angular se confirman juntos.
+
+Estas son reglas de trabajo. No se afirma que existan hooks o controles de CI
+que validen automáticamente los mensajes.
 
 ## 7. Lo que NO va en el repositorio
 

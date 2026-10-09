@@ -8,11 +8,16 @@
       </a>
       @if (documento()) {
       <div class="flex items-center gap-2">
+        @if (visualizandoComprobante()) {
+        <app-boton variante="secundario" (accion)="visualizandoComprobante.set(false)">Volver al registro</app-boton>
         <div class="flex rounded-base border border-gray-300 p-0.5 text-xs dark:border-gray-700" role="group" aria-label="Formato de impresión">
           <button type="button" (click)="formato.set('ticket')" class="rounded-base px-3 py-1.5 font-medium" [class]="formato() === 'ticket' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">Ticket 80 mm</button>
           <button type="button" (click)="formato.set('a4')" class="rounded-base px-3 py-1.5 font-medium" [class]="formato() === 'a4' ? 'bg-gray-100 text-gray-800 dark:bg-white/[0.08] dark:text-white/90' : 'text-gray-500 dark:text-gray-400'">A4</button>
         </div>
         <app-boton (accion)="imprimir()">Imprimir</app-boton>
+        } @else {
+        <app-boton (accion)="visualizandoComprobante.set(true)">Previsualizar comprobante</app-boton>
+        }
         @if (sePuedeAnular()) {
         <app-boton variante="peligro" (accion)="pedirAnulacion()">Anular</app-boton>
         }
@@ -22,7 +27,7 @@
         @if (sePuedeCanjear()) {
         <app-boton (accion)="pedirCanje()">Canjear</app-boton>
         }
-        <app-boton variante="secundario" ruta="/ventas/punto-de-venta">Nueva venta</app-boton>
+        <app-boton variante="secundario" [ruta]="rutaNuevaVenta">Nueva venta</app-boton>
       </div>
       }
     </div>
@@ -36,7 +41,7 @@
 
   @if (d.fiscal && sunat(); as s) {
   <!-- Lo que SUNAT dijo (doc 14 §3). No se imprime: la hoja lleva su propia leyenda. -->
-  <section class="no-imprimir mx-auto mb-5 rounded-base border p-4" [class]="formato() === 'ticket' ? 'max-w-md' : 'max-w-3xl'"
+  <section class="no-imprimir mx-auto mb-5 rounded-base border p-4"
     [class.border-success-500/40]="s.estado === 'ACEPTADO'" [class.bg-success-500/5]="s.estado === 'ACEPTADO'"
     [class.border-warning-500/40]="s.estado === 'EN_COLA'" [class.bg-warning-500/5]="s.estado === 'EN_COLA'"
     [class.border-error-500/40]="s.estado === 'RECHAZADO' || s.estado === 'ERROR_ENVIO'" [class.bg-error-500/5]="s.estado === 'RECHAZADO' || s.estado === 'ERROR_ENVIO'"
@@ -81,7 +86,7 @@
 
   @if (documento()?.origen; as origen) {
   <!-- De dónde viene: el comprobante corregido, o la nota de venta canjeada. -->
-  <p class="no-imprimir mx-auto mb-3 text-sm text-gray-600 dark:text-gray-400" [class]="formato() === 'ticket' ? 'max-w-md' : 'max-w-3xl'">
+  <p class="no-imprimir mx-auto mb-3 text-sm text-gray-600 dark:text-gray-400" >
     @if (documento()?.tipo === '07') { Corrige a }
     @else { Sale del canje de }
     <a [routerLink]="rutaDe(origen)" class="font-medium text-brand-500 hover:underline">{{ origen.numeroCompleto }}</a>@if (documento()?.motivoNombre) { · {{ documento()?.motivoNombre }}}.
@@ -90,7 +95,7 @@
 
   @if (relacionados().length > 0) {
   <section class="no-imprimir mx-auto mb-5 rounded-base border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-white/[0.03]"
-    [class]="formato() === 'ticket' ? 'max-w-md' : 'max-w-3xl'">
+    >
     <h2 class="mb-2 text-sm font-semibold text-gray-800 dark:text-white/90">Lo que salió de este documento</h2>
     <ul class="divide-y divide-gray-100 text-sm dark:divide-gray-800">
       @for (r of relacionados(); track r.id) {
@@ -103,8 +108,83 @@
   </section>
   }
 
+  @if (!visualizandoComprobante()) {
+  <section aria-label="Registro de venta" class="no-imprimir grid gap-5">
+    <div class="grid gap-5 lg:grid-cols-2">
+      <section class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white/90">Datos del documento</h2>
+        <dl class="grid grid-cols-[auto_1fr] gap-x-5 gap-y-3 text-sm text-gray-700 dark:text-gray-300">
+          <dt>Tipo</dt><dd>{{ d.tipoNombre }}</dd>
+          <dt>Número</dt><dd class="font-semibold">{{ d.numeroCompleto }}</dd>
+          <dt>Estado</dt><dd>{{ estadoTexto(d.estado) }}</dd>
+          <dt>Fecha</dt><dd>{{ fecha(d.emitidoEn) }}</dd>
+          <dt>Local</dt><dd>{{ establecimiento()?.nombre || 'Sin local disponible' }}</dd>
+          <dt>Moneda</dt><dd>{{ d.moneda }}</dd>
+        </dl>
+      </section>
+      <section class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white/90">Cliente</h2>
+        @if (d.cliente; as c) {
+        <p class="text-sm font-medium text-gray-800 dark:text-white/90">{{ c.nombre }}</p>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ c.tipoDocumento }} {{ c.numeroDocumento }}</p>
+        @if (c.direccion) {<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ c.direccion }}</p>}
+        } @else {
+        <p class="text-sm text-gray-600 dark:text-gray-400">Cliente varios</p>
+        }
+      </section>
+    </div>
+    <section class="overflow-hidden rounded-base border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+      <h2 class="p-5 text-base font-semibold text-gray-800 dark:text-white/90">Detalle de la venta</h2>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-gray-700 dark:text-gray-300">
+          <thead class="border-y border-gray-200 bg-gray-50 text-left dark:border-gray-800 dark:bg-white/[0.03]">
+            <tr><th class="px-5 py-3">Descripción</th><th class="px-5 py-3">Unidad</th><th class="px-5 py-3 text-right">Cantidad</th><th class="px-5 py-3 text-right">Precio unitario</th><th class="px-5 py-3 text-right">Total</th></tr>
+          </thead>
+          <tbody>
+            @for (l of d.lineas; track l.orden) {
+            <tr class="border-b border-gray-100 dark:border-gray-800">
+              <td class="px-5 py-3">{{ l.descripcion }}<span class="block text-xs text-gray-500">{{ l.codigo }}@if (l.descuento > 0) { · Descuento: S/ {{ importe(l.descuento) }}}</span></td>
+              <td class="px-5 py-3">{{ l.unidad }}</td>
+              <td class="px-5 py-3 text-right tabular-nums">{{ cantidad(l.cantidad) }}</td>
+              <td class="px-5 py-3 text-right tabular-nums">S/ {{ importe(l.precioUnitario) }}</td>
+              <td class="px-5 py-3 text-right tabular-nums">S/ {{ importe(l.total) }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <div class="grid gap-5 lg:grid-cols-2">
+      <section class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white/90">Pagos</h2>
+        <dl class="grid grid-cols-[1fr_auto] gap-3 text-sm text-gray-700 dark:text-gray-300">
+          @for (p of d.pagos; track $index) {
+          <dt>{{ formaDePago(p.forma) }}@if (p.referencia) { · {{ p.referencia }}}</dt><dd class="tabular-nums">S/ {{ importe(p.monto) }}</dd>
+          } @empty {<dt>Sin pagos registrados</dt>}
+        </dl>
+        @if (d.observaciones) {<h3 class="mb-2 mt-5 text-sm font-semibold text-gray-800 dark:text-white/90">Observaciones</h3><p class="text-sm text-gray-600 dark:text-gray-400">{{ d.observaciones }}</p>}
+      </section>
+      <section class="rounded-base border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+        <h2 class="mb-4 text-base font-semibold text-gray-800 dark:text-white/90">Resumen de la venta</h2>
+        <dl class="grid grid-cols-[1fr_auto] gap-3 text-sm text-gray-700 dark:text-gray-300">
+          @if (d.tipo === 'NV') {
+          <dt>Importe de venta</dt><dd class="tabular-nums">S/ {{ importe(d.total) }}</dd>
+          } @else {
+          @if (d.totalGravado > 0) {<dt>Op. gravada</dt><dd class="tabular-nums">S/ {{ importe(d.totalGravado) }}</dd>}
+          @if (d.totalExonerado > 0) {<dt>Op. exonerada</dt><dd class="tabular-nums">S/ {{ importe(d.totalExonerado) }}</dd>}
+          @if (d.totalInafecto > 0) {<dt>Op. inafecta</dt><dd class="tabular-nums">S/ {{ importe(d.totalInafecto) }}</dd>}
+          @if (d.totalDescuento > 0) {<dt>Descuentos</dt><dd class="tabular-nums">S/ {{ importe(d.totalDescuento) }}</dd>}
+          <dt>IGV 18 %</dt><dd class="tabular-nums">S/ {{ importe(d.totalIgv) }}</dd>
+          }
+          <dt class="font-semibold">Total</dt><dd class="font-semibold tabular-nums">S/ {{ importe(d.total) }}</dd>
+        </dl>
+      </section>
+    </div>
+  </section>
+  }
+
   <!-- La hoja: lo que se imprime. -->
-  <article class="hoja mx-auto rounded-base border border-gray-200 bg-white p-6 text-gray-900 print:text-black"
+  <article [style.display]="visualizandoComprobante() ? null : 'none'" class="hoja mx-auto rounded-base border border-gray-200 bg-white p-6 text-gray-900 print:text-black"
     [class]="formato() === 'ticket' ? 'hoja--ticket' : 'max-w-3xl'">
     <header class="text-center">
       <p class="text-base font-semibold uppercase">{{ empresa()?.nombreComercial || empresa()?.razonSocial }}</p>
@@ -117,12 +197,7 @@
       <p class="text-sm font-semibold tabular-nums">{{ d.numeroCompleto }}</p>
     </header>
 
-    @if (d.tipo === 'NV') {
-    <!-- La distinción que protege al cliente y a Ondexia (doc 12 §3.2). -->
-    <p class="my-3 border-y border-dashed border-gray-400 py-1.5 text-center text-xs font-semibold uppercase tracking-wide">
-      Documento interno · No válido como comprobante de pago
-    </p>
-    } @else {
+    @if (d.tipo !== 'NV') {
     <p class="my-3 border-y border-dashed border-gray-400 py-1.5 text-center text-xs uppercase tracking-wide">
       {{ estadoTexto(d.estado) }}
     </p>
@@ -169,11 +244,15 @@
     </table>
 
     <dl class="mt-3 ml-auto grid w-full max-w-xs grid-cols-[1fr_auto] gap-x-4 gap-y-0.5 text-xs tabular-nums">
+      @if (d.tipo === 'NV') {
+      <dt>Importe de venta</dt><dd class="text-right">S/ {{ importe(d.total) }}</dd>
+      } @else {
       @if (d.totalGravado > 0) {<dt>Op. gravada</dt><dd class="text-right">S/ {{ importe(d.totalGravado) }}</dd>}
       @if (d.totalExonerado > 0) {<dt>Op. exonerada</dt><dd class="text-right">S/ {{ importe(d.totalExonerado) }}</dd>}
       @if (d.totalInafecto > 0) {<dt>Op. inafecta</dt><dd class="text-right">S/ {{ importe(d.totalInafecto) }}</dd>}
       @if (d.totalDescuento > 0) {<dt>Descuentos</dt><dd class="text-right">S/ {{ importe(d.totalDescuento) }}</dd>}
       <dt>IGV 18 %</dt><dd class="text-right">S/ {{ importe(d.totalIgv) }}</dd>
+      }
       <dt class="text-sm font-semibold">Total</dt><dd class="text-right text-sm font-semibold">S/ {{ importe(d.total) }}</dd>
     </dl>
 
@@ -181,10 +260,9 @@
     <p class="mt-3 text-xs"><span class="text-gray-600">Obs.:</span> {{ d.observaciones }}</p>
     }
 
+    @if (d.tipo !== 'NV') {
     <footer class="mt-4 text-center text-[10px] text-gray-600">
-      @if (d.tipo === 'NV') {
-      Este documento no otorga derecho a crédito fiscal ni sustenta gasto o costo. Puede canjearse por boleta o factura.
-      } @else if (d.tipo === '07' && d.origen) {
+      @if (d.tipo === '07' && d.origen) {
       Nota de crédito de {{ d.origen.numeroCompleto }}@if (d.motivoNombre) { · {{ d.motivoNombre }}}.
       @if (sunat()?.estado === 'ACEPTADO') { Aceptada por SUNAT. } @else { Pendiente de aceptación por SUNAT. }
       } @else if (sunat()?.estado === 'ACEPTADO') {
@@ -194,6 +272,7 @@
       Representación impresa del comprobante electrónico. Pendiente de aceptación por SUNAT.
       }
     </footer>
+    }
   </article>
   }
 </div>

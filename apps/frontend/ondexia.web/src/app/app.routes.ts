@@ -97,11 +97,15 @@ export const routes: Routes = [
        */
 
       // ── Almacén ──────────────────────────────────────────────────────────
-      { path: 'almacen/productos', component: ProductosComponent, title: `Productos | ${TITULO}` },
+      { path: 'almacen/productos', redirectTo: 'almacen/bienes', pathMatch: 'full' },
+      { path: 'almacen/bienes', component: ProductosComponent, data: { tipo: 'BIEN' }, title: `Bienes | ${TITULO}` },
+      { path: 'almacen/servicios', component: ProductosComponent, data: { tipo: 'SERVICIO' }, title: `Servicios | ${TITULO}` },
       // Las existencias por almacén se ven y se ajustan en la ficha del
       // producto, no en un listado propio: son por almacén, y una cifra suelta
       // en una lista de productos no dice de cuál.
       { path: 'almacen/productos/:id', component: FichaProductoComponent, title: `Ficha de producto | ${TITULO}`, canDeactivate: [salidaConCambios] },
+      { path: 'almacen/bienes/:id', component: FichaProductoComponent, data: { tipo: 'BIEN' }, title: `Ficha de bien | ${TITULO}`, canDeactivate: [salidaConCambios] },
+      { path: 'almacen/servicios/:id', component: FichaProductoComponent, data: { tipo: 'SERVICIO' }, title: `Ficha de servicio | ${TITULO}`, canDeactivate: [salidaConCambios] },
       { path: 'almacen/almacenes', component: AlmacenesComponent, title: `Almacenes | ${TITULO}` },
       { path: 'almacen/almacenes/:id', component: FichaAlmacenComponent, title: `Almacén | ${TITULO}`, canDeactivate: [salidaConCambios] },
 
@@ -125,8 +129,9 @@ export const routes: Routes = [
        * guardó un enlace es un fallo que se ve como si el producto se hubiera
        * roto. Cada una apunta a la pantalla que hace hoy ese trabajo.
        */
-      { path: 'ventas/facturas/nueva', redirectTo: 'ventas/punto-de-venta' },
-      { path: 'ventas/boletas/nueva', redirectTo: 'ventas/punto-de-venta' },
+      { path: 'ventas/notas-venta/nueva', component: PuntoDeVentaComponent, data: { tipoFijo: 'NV' }, title: `Nueva nota de venta | ${TITULO}` },
+      { path: 'ventas/facturas/nueva', component: PuntoDeVentaComponent, data: { tipoFijo: 'FACTURA' }, title: `Nueva factura | ${TITULO}` },
+      { path: 'ventas/boletas/nueva', component: PuntoDeVentaComponent, data: { tipoFijo: 'BOLETA' }, title: `Nueva boleta | ${TITULO}` },
       // Una nota de crédito nace de un comprobante concreto: se emite desde su
       // ficha, no desde un formulario en blanco que obligue a referenciar el
       // documento de origen a mano.

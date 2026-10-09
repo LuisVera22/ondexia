@@ -17,10 +17,35 @@ comenta el motivo, no el mecanismo.
 ## Idioma
 
 Todo en español: código, identificadores, comentarios, mensajes de error,
-commits, documentación. Sin excepciones y sin mezclar.
+commits, documentación. Los tipos y marcadores de Conventional Commits conservan
+su sintaxis estándar; el ámbito, la descripción y el cuerpo se escriben en español.
 
 Los commits no llevan marca de herramienta: nada de `Co-Authored-By` ni
 «Generated with».
+
+## Git y mensajes de commit
+
+**GitFlow** es el flujo del proyecto: `feature/*` parte de `develop` y vuelve a
+`develop`; `release/*` parte de `develop` y se integra en `main` y `develop`;
+`hotfix/*` parte de `main` y se integra en ambas. `main` se reserva para publicar
+y no recibe commits directos. En esta sesión, por instrucción del propietario,
+se trabaja directamente sobre `develop`; no se crea otra rama por defecto.
+
+**Conventional Commits es obligatorio para los commits nuevos.** Formato:
+`tipo(ámbito opcional)!: descripción`. El ámbito y `!` son opcionales; `!` indica
+un cambio incompatible. Usar `feat` para funcionalidades y `fix` para
+correcciones; según el trabajo, `docs`, `test`, `refactor`, `perf`, `build`, `ci`,
+`chore` o `revert`. Un cambio incompatible se señala con `!` o con el pie
+`BREAKING CHANGE:`, cuya explicación va en español.
+
+Ejemplos: `feat(catálogo): separa bienes y servicios`,
+`fix(existencias): rechaza convertir bienes con historial de stock` y
+`docs(harness): registra GitFlow y Conventional Commits`.
+
+No reescribir commits históricos para adaptar sus mensajes. Antes de confirmar,
+revisar rama, estado, diff y verificaciones pertinentes; conservar cambios
+ajenos y confirmar juntos los cambios de API, OpenAPI y modelos Angular.
+El detalle del flujo está en `ondexia.docs/03-estructura-repositorio.md`, §6.
 
 ## Las cuatro reglas que salieron de la auditoría
 

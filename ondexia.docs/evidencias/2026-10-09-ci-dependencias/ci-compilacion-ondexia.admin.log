@@ -1,0 +1,20 @@
+$ ng build
+❯ Building...
+✔ Building...
+Initial chunk files   | Names             |  Raw size | Estimated transfer size
+chunk-IV3MSZ2H.js     | -                 | 251.20 kB |                68.10 kB
+polyfills-7R4CRVNH.js | polyfills         |  34.59 kB |                11.33 kB
+styles-XCL6FSQG.css   | styles            |  23.96 kB |                 4.72 kB
+main-MQ7U4E6N.js      | main              |   6.72 kB |                 2.57 kB
+
+                      | Initial total     | 316.47 kB |                86.73 kB
+
+Lazy chunk files      | Names             |  Raw size | Estimated transfer size
+chunk-7C57YWK6.js     | cuenta-component  |  34.17 kB |                 8.33 kB
+chunk-SFOWIZPV.js     | cuentas-component |   4.81 kB |                 1.74 kB
+chunk-5IMTWVJO.js     | -                 | 696 bytes |               696 bytes
+
+Application bundle generation complete. [4.724 seconds] - 2026-10-09T00:53:41.563Z
+
+Output location: /workspace/ondexia/apps/frontend/ondexia.admin/dist/ondexia-admin
+

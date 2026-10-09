@@ -134,19 +134,21 @@ Tres consecuencias que el código tiene que hacer cumplir, con prueba cada una:
   mensaje dice el motivo y la cifra.
 - Una factura a un cliente sin RUC no se emite. Y un RUC en una factura se valida
   con dígito verificador antes de consultar el padrón.
-- La nota de venta **lleva impresa la leyenda «Documento interno, no válido como
-  comprobante de pago»** y no se parece a una boleta. Es la distinción más
-  importante de toda la interfaz ([05 §9.6](05-plan-vistas-v1.md)), y en el caso
-  de la nota de venta también es una protección legal para el cliente y para
-  Ondexia.
+- La nota de venta conserva su título **NOTA DE VENTA** y su serie NV propia.
+  El propietario retiró la leyenda interna del pie el 2026-10-09, sustituyendo
+  la presentación acordada el 2026-10-08. Sigue siendo un documento interno,
+  fuera del catálogo fiscal y del envío a SUNAT. Esta decisión de presentación
+  no afirma una verificación normativa externa nueva.
 
 ### 3.3 La nota de venta
 
 No entra al catálogo 01 ni a `comprobante_electronico`. Es un `documento_venta`
 con `tipo_documento = 'NV'` y `fiscal = false`, con serie propia y correlativo
 propio por establecimiento. Lo que sí comparte con la boleta: cliente opcional,
-líneas, totales con IGV desglosado, pago, sesión de caja, descarga de
-existencias.
+líneas, cálculo interno de totales e IGV, pago, sesión de caja y descarga de
+existencias. La representación de la nota muestra «Importe de venta» y «Total»,
+ambos con el total pagadero, sin desglose tributario. No cambia los cálculos
+guardados ni el canje; boleta y factura conservan su desglose fiscal.
 
 Lo que la hace útil en un punto de venta real es el **canje**: convertir una
 nota de venta en boleta o factura sin volver a teclear. Se implementa como
@@ -312,7 +314,8 @@ sus claves. El bucket tiene versionado y bloqueo de acceso público, y el rol de
 
 Generar PDF en la Lambda añade una biblioteca pesada al arranque en frío, que ya
 es el riesgo técnico principal. En el primer producto **el PDF lo produce el
-navegador**: la pantalla del comprobante tiene una hoja de estilos de impresión
+navegador**: el detalle se abre como registro y «Previsualizar comprobante»
+permite ver la hoja, elegir formato y volver al registro. La hoja tiene estilos de impresión
 para ticket de 80 mm y para A4, con el QR normativo generado en el cliente, y
 `window.print()` produce el PDF en cualquier equipo. El XML firmado y el CDR se
 descargan desde S3 con URL prefirmada. El PDF en servidor, el correo al cliente
@@ -554,7 +557,7 @@ decide».
 | 3 | Emisor fuera de la VPC con bus por S3, o instancia NAT | Bus por S3 (§5.1) | Bus por S3 |
 | 4 | Prefijo `25` del RUC: ¿de dónde sale? | Confirmar con un RUC real. Hasta entonces se rechaza con mensaje | Se admiten `10` y `20` |
 | 5 | Catálogo por empresa con disponibilidad por local, o catálogo independiente por local | Por empresa (§3.5) | Por empresa |
-| 6 | ¿La nota de venta puede emitirse sin cliente y sin límite de importe? | Sí: no es comprobante de pago. Lleva la leyenda y se canjea | Sí |
+| 6 | ¿La nota de venta puede emitirse sin cliente y sin límite de importe? | Sí: no es comprobante de pago. Tiene título/serie propios y se canjea | Sí |
 | 7 | ¿Existencias desde el primer producto, con venta bajo cero permitida y avisada? | Sí, con `controla_stock` por producto y la prohibición como opción de la empresa | Sí |
 | 8 | Formas de pago: ¿efectivo, tarjeta, transferencia y billetera digital, como catálogo cerrado? | Sí. Una tabla llega cuando un cliente pida una quinta | Sí |
 | 9 | `VENDEDOR`, `ALMACENERO`, `CONTADOR`: ¿se eliminan de la semilla o quedan como plantillas sugeridas? | Se eliminan. Las plantillas vuelven desde la pantalla de roles si alguien las pide | Se eliminan |
@@ -573,7 +576,7 @@ lo decidido, con la fuente que lo sostiene. Lo que sigue abierto se dice.
 | 3 | **Emisor fuera de la VPC con bus por S3** | Es el mismo patrón que `ondexia.consultas` ya usa para salir a internet sin NAT (DT-19), y el endpoint de puerta de enlace de S3 es gratuito. La NAT queda como alternativa escrita en §5.1 para el día que un OSE exija IP fija |
 | 4 | **El alta admite RUC `10` y `20`; `15` y `17` se rechazan con mensaje; `25` no existe** | Los prefijos vigentes son `10` (persona natural), `15` y `17` (otros documentos de identidad: sucesiones, entidades, extranjeros) y `20` (persona jurídica) ([registrounicotributario.com](https://www.registrounicotributario.com/tipos-de-ruc-10-15-17-y-20-guia-completa-y-clara/), [Bsale](https://www.bsale.com.pe/article/ruc-10-vs-ruc-20-que-puede-emitir-cada-uno)). El `25` del encargo se toma como errata del `20` o del `15`. La lista de prefijos admitidos es una tabla en el dominio, no una condición: si aparece un caso `15` real, es una fila |
 | 5 | **Catálogo por empresa con disponibilidad por local** | §3.5. Sin fuente externa: es diseño, no normativa |
-| 6 | **Nota de venta sin cliente y sin tope**, con leyenda y canje | No es comprobante de pago, así que el Reglamento de Comprobantes de Pago no la alcanza. El riesgo que sí existe es que se use para no declarar; la leyenda y el canje son la respuesta del producto, y lo demás es responsabilidad del contribuyente |
+| 6 | **Nota de venta sin cliente y sin tope**, con título/serie propios y canje | No es comprobante de pago, así que el Reglamento de Comprobantes de Pago no la alcanza. El riesgo que sí existe es que se use para no declarar; el título/serie propios y el canje distinguen el documento, y lo demás es responsabilidad del contribuyente |
 | 7 | **Existencias desde el primer producto**, venta bajo cero permitida y avisada | §3.5. Sin fuente externa |
 | 8 | **Formas de pago como catálogo cerrado** | §3.4. Sin fuente externa |
 | 9 | **`VENDEDOR`, `ALMACENERO` y `CONTADOR` salen de la semilla** | §6.1. Sin fuente externa |
@@ -701,10 +704,11 @@ ningún sitio no es un producto, es un borrador que nadie ve). El índice GIN de
   Nota de venta `EMITIDO`; boleta y factura `PENDIENTE` sin enviar. Todo en
   [13 §4](13-ventas-en-punto-de-venta.md).
 - **Las tres reglas de §3.2 con su prueba**: `unaBoletaDe701SolesSinDniNoSeEmite`
-  y `unaFacturaSinRucNoSeEmite` en `DocumentoVentaTest`, y la leyenda de la nota
+  y `unaFacturaSinRucNoSeEmite` en `DocumentoVentaTest`, y el título/serie propios de la nota
   de venta en pantalla y en papel.
 - **Pantallas**: punto de venta, listados de notas de venta, boletas y facturas,
-  y el detalle imprimible en ticket de 80 mm o A4 desde el navegador. La ficha
+  y el detalle como registro con previsualización imprimible en ticket de 80 mm
+  o A4 desde el navegador. La ficha
   de la empresa gana la casilla de venta sin existencias.
 
 **Diferencias con lo planeado.** La aritmética parte del total con IGV y no del

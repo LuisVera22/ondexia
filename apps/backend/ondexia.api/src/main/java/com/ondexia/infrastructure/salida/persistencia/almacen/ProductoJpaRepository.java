@@ -9,6 +9,10 @@ import org.springframework.data.repository.query.Param;
 
 public interface ProductoJpaRepository extends JpaRepository<ProductoJpa, UUID> {
 
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from ProductoJpa p where p.id = :id")
+    Optional<ProductoJpa> buscarParaActualizar(@Param("id") UUID id);
+
     Optional<ProductoJpa> findByCodigo(String codigo);
 
     List<ProductoJpa> findAllByOrderByCodigoAsc();

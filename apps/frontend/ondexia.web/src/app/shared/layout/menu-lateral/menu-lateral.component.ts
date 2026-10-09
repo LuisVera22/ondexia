@@ -116,7 +116,8 @@ export class MenuLateralComponent {
           icono: 'almacen',
           nombre: 'Almacén',
           submenu: [
-            { nombre: 'Productos', ruta: '/almacen/productos', permiso: 'almacen.producto' },
+            { nombre: 'Bienes', ruta: '/almacen/bienes', permiso: 'almacen.producto' },
+            { nombre: 'Servicios', ruta: '/almacen/servicios', permiso: 'almacen.producto' },
             { nombre: 'Almacenes', ruta: '/almacen/almacenes', permiso: 'almacen.almacen' },
           ],
         },

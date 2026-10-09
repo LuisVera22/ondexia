@@ -7,6 +7,7 @@ import com.ondexia.domain.almacen.ExistenciasRepositorio;
 import com.ondexia.domain.almacen.DisponibilidadEnLocal;
 import com.ondexia.domain.almacen.DisponibilidadRepositorio;
 import com.ondexia.domain.almacen.Producto;
+import com.ondexia.domain.almacen.TipoProducto;
 import com.ondexia.domain.almacen.ProductoRepositorio;
 import com.ondexia.domain.almacen.UnidadDeMedida;
 import com.ondexia.domain.auditoria.RegistroDeAuditoria;
@@ -104,7 +105,7 @@ public class Productos {
     }
 
     public record Datos(String nombre, String descripcion, UnidadDeMedida unidad,
-            AfectacionIgv afectacion, BigDecimal precioLista, boolean controlaStock) {
+            AfectacionIgv afectacion, BigDecimal precioLista, TipoProducto tipo) {
     }
 
     public List<Producto> listar() {
@@ -132,7 +133,7 @@ public class Productos {
     public Producto registrar(String codigo, Datos datos, UUID sucursalId) {
         var producto = new Producto(UUID.randomUUID(), empresaActiva(), codigo, datos.nombre(),
                 datos.descripcion(), datos.unidad(), datos.afectacion(), datos.precioLista(),
-                datos.controlaStock());
+                datos.tipo());
 
         // Cortesía: el índice único da la garantía, esto da el mensaje.
         productos.buscarPorCodigo(producto.codigo()).ifPresent(existente -> {
@@ -152,10 +153,16 @@ public class Productos {
 
     @Transactional
     public Producto actualizar(UUID id, Datos datos) {
-        var producto = exigir(id);
+        var producto = productos.buscarParaActualizar(id).orElseThrow(() ->
+                RecursoNoEncontrado.con("producto_no_encontrado", "El producto no existe."));
+        if (producto.tipo() == TipoProducto.BIEN && datos.tipo() == TipoProducto.SERVICIO
+                && (!existencias.existenciasDe(id).isEmpty() || !existencias.movimientosDe(id, 1).isEmpty())) {
+            throw new ReglaDeNegocioViolada("bien_con_historia_de_stock",
+                    "El bien tiene existencias o movimientos de stock y no puede convertirse en servicio.", "tipo");
+        }
         var antes = Instantanea.de(producto);
         producto.actualizar(datos.nombre(), datos.descripcion(), datos.unidad(),
-                datos.afectacion(), datos.precioLista(), datos.controlaStock());
+                datos.afectacion(), datos.precioLista(), datos.tipo());
         var guardado = productos.guardar(producto);
         auditoria.registrarActualizacion("producto", id, antes, Instantanea.de(guardado));
         return guardado;
@@ -228,11 +235,11 @@ public class Productos {
     }
 
     private record Instantanea(String codigo, String nombre, String unidad, String afectacion,
-            BigDecimal precioLista, boolean controlaStock, boolean activo) {
+            BigDecimal precioLista, TipoProducto tipo, boolean controlaStock, boolean activo) {
 
         static Instantanea de(Producto p) {
             return new Instantanea(p.codigo(), p.nombre(), p.unidad().codigo(),
-                    p.afectacion().codigo(), p.precioLista(), p.controlaStock(), p.estaActivo());
+                    p.afectacion().codigo(), p.precioLista(), p.tipo(), p.controlaStock(), p.estaActivo());
         }
     }
 

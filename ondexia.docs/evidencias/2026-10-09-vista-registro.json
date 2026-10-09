@@ -1,0 +1,66 @@
+{
+  "base": "20ac39eafc002356fdd7ccb5845e34590a6dff2a",
+  "rama": "develop",
+  "decision": "Detalle como registro, previsualización bajo demanda y retirada del pie interno NV",
+  "pruebas": {
+    "fallo_previo": "3 fallos y 3 pasos: registro ausente y leyenda presente",
+    "web_final": 119,
+    "mutacion": "Resumen NV aplicado a documentos fiscales: 9 fallos; restaurada"
+  },
+  "compilacion": "correcta",
+  "navegador": {
+    "resultados": [
+      {
+        "formato": "ticket",
+        "importe": "450.00",
+        "igv_visible": false,
+        "leyenda_interna": false
+      },
+      {
+        "formato": "a4",
+        "importe": "450.00",
+        "igv_visible": false,
+        "leyenda_interna": false
+      },
+      {
+        "registro_inicial": true,
+        "volver_al_registro": true,
+        "impresion_directa_desde_registro": true
+      }
+    ],
+    "servicios_simulados": [
+      "caja abierta",
+      "consulta RUC",
+      "búsqueda/alta de cliente",
+      "nota de venta"
+    ],
+    "api_contexto": "local real con identidad sintética",
+    "escrituras_reales": false,
+    "impresora_fisica": "no verificada"
+  },
+  "incidencias_de_verificacion": [
+    "Primer intento de suite completa fuera de la carpeta web: no produjo evidencia funcional; sustituido por ejecución desde la carpeta correcta.",
+    "Primera revisión de impresión con atributo hidden: la hoja permanecía oculta; corregido con estilo de pantalla y regla print explícita.",
+    "Una inspección durante recompilación leyó una versión anterior; repetida una vez terminada."
+  ],
+  "no_verificado": [
+    "Auditoría independiente",
+    "Impresora física y paginación multipágina",
+    "Normativa tributaria externa sobre retirada de leyenda",
+    "Nueva ejecución backend: no hubo cambios backend/API/migraciones",
+    "Precisión monetaria general frontend: number preexistente; sin aritmética nueva"
+  ],
+  "huellas_registros": {
+    "rojo.log": "a5a074f46abf0819c4ca61793efaf5549b2d6b0ad7d4b78bc5f2789726a00680",
+    "compilacion.log": "9ed10de3dcba9753c27c435b7e2079b2e458f70bea1263cf721556b71f7a749d",
+    "navegador-ejecucion.log": "b06b4b5f8b89efe2ba81b37c99c61f3666541b5b9594442a7aafdb9e3cac085c",
+    "mutacion-resumen-fiscal.log": "c5c71f254d08a1ea71af04fa732a38fccc5096a748dd725cae8c45a6e97d85d9",
+    "verde-completo.log": "10874a86351406c4c40ba0815eceb4102511d6c78f3b8a9b3544374b821882de",
+    "verde-detalle.log": "7ce7ee411cd8d2e79cc354e881d1343eacd59c3cf63254b0b40a6b410f04be90"
+  },
+  "huellas_fuentes": {
+    "detalle-documento.component.html": "7e0a813041f011e6cd5d41f60e6f18d2fd72a291bd10dec5fae3c2649a53f2ce",
+    "detalle-documento.component.ts": "c6a279800b8d1a52571ad02fcdaff496adafbd7d553c9bd156314ee8faaa0ab0",
+    "detalle-documento.component.spec.ts": "096dad981a1c3e66e347c61f79ac61a067bc275c3874813c564c9538b0612242"
+  }
+}

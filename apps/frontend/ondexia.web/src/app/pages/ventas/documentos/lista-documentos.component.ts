@@ -150,6 +150,7 @@ export class ListaDocumentosComponent {
   }
 
   nuevaVenta(): void {
-    void this.router.navigate(['/ventas/punto-de-venta']);
+    const modulo = this.vista === 'NV' ? 'notas-venta' : this.vista === 'BOLETA' ? 'boletas' : 'facturas';
+    if (this.vista !== 'NOTA_CREDITO') void this.router.navigate(['/ventas', modulo, 'nueva']);
   }
 }

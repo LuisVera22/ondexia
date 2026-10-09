@@ -718,7 +718,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PeticionEdicion"
+              $ref: "#/components/schemas/PeticionEdicionProducto"
         required: true
       responses:
         "200":
@@ -1543,6 +1543,14 @@ paths:
         required: false
         schema:
           type: string
+      - name: tipo
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - BIEN
+          - SERVICIO
       responses:
         "200":
           description: OK
@@ -1561,7 +1569,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PeticionNuevo"
+              $ref: "#/components/schemas/PeticionNuevoProducto"
         required: true
       responses:
         "201":
@@ -2284,6 +2292,15 @@ paths:
       summary: "Los catálogos de SUNAT que admite el producto: unidades (03) y afectaciones\
         \ (07)"
       operationId: catalogos
+      parameters:
+      - name: tipo
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - BIEN
+          - SERVICIO
       responses:
         "200":
           description: OK
@@ -2694,6 +2711,63 @@ components:
         seriesActivas:
           type: integer
           format: int64
+    PeticionEdicionProducto:
+      required:
+      - afectacion
+      - nombre
+      - precioLista
+      - tipo
+      - unidad
+      type: object
+      properties:
+        nombre:
+          maxLength: 300
+          minLength: 0
+          type: string
+        descripcion:
+          maxLength: 2000
+          minLength: 0
+          type: string
+          nullable: true
+        unidad:
+          type: string
+          enum:
+          - NIU
+          - ZZ
+          - KGM
+          - GRM
+          - LTR
+          - MLT
+          - MTR
+          - CMT
+          - MTK
+          - MTQ
+          - GLL
+          - TNE
+          - BX
+          - BG
+          - PK
+          - PR
+          - DZN
+          - SET
+          - CEN
+          - MIL
+          - HUR
+          - DAY
+        afectacion:
+          type: string
+          enum:
+          - GRAVADO
+          - EXONERADO
+          - INAFECTO
+        precioLista:
+          pattern: "^[0-9]{1,12}([.][0-9]{1,6})?$"
+          type: string
+        tipo:
+          type: string
+          enum:
+          - BIEN
+          - SERVICIO
     RespuestaProducto:
       type: object
       properties:
@@ -2706,6 +2780,7 @@ components:
           type: string
         descripcion:
           type: string
+          nullable: true
         unidad:
           type: string
         unidadNombre:
@@ -2717,7 +2792,12 @@ components:
         llevaIgv:
           type: boolean
         precioLista:
-          type: number
+          type: string
+        tipo:
+          type: string
+          enum:
+          - BIEN
+          - SERVICIO
         controlaStock:
           type: boolean
         activo:
@@ -2730,9 +2810,9 @@ components:
         disponible:
           type: boolean
         precio:
-          minimum: 0
-          exclusiveMinimum: false
-          type: number
+          pattern: "^[0-9]{1,12}([.][0-9]{1,6})?$"
+          type: string
+          nullable: true
     RespuestaDisponibilidad:
       type: object
       properties:
@@ -2742,7 +2822,8 @@ components:
         disponible:
           type: boolean
         precio:
-          type: number
+          type: string
+          nullable: true
     RespuestaAlmacen:
       type: object
       properties:
@@ -3362,6 +3443,72 @@ components:
           type: string
         nuevoRus:
           type: boolean
+    PeticionNuevoProducto:
+      required:
+      - afectacion
+      - codigo
+      - nombre
+      - precioLista
+      - sucursalId
+      - tipo
+      - unidad
+      type: object
+      properties:
+        codigo:
+          minLength: 1
+          pattern: "[A-Za-z0-9-]{1,30}"
+          type: string
+        nombre:
+          maxLength: 300
+          minLength: 0
+          type: string
+        descripcion:
+          maxLength: 2000
+          minLength: 0
+          type: string
+          nullable: true
+        unidad:
+          type: string
+          enum:
+          - NIU
+          - ZZ
+          - KGM
+          - GRM
+          - LTR
+          - MLT
+          - MTR
+          - CMT
+          - MTK
+          - MTQ
+          - GLL
+          - TNE
+          - BX
+          - BG
+          - PK
+          - PR
+          - DZN
+          - SET
+          - CEN
+          - MIL
+          - HUR
+          - DAY
+        afectacion:
+          type: string
+          enum:
+          - GRAVADO
+          - EXONERADO
+          - INAFECTO
+        precioLista:
+          pattern: "^[0-9]{1,12}([.][0-9]{1,6})?$"
+          type: string
+        tipo:
+          type: string
+          enum:
+          - BIEN
+          - SERVICIO
+        sucursalId:
+          type: string
+          format: uuid
     PeticionAjuste:
       required:
       - almacenId
@@ -3681,6 +3828,7 @@ components:
           type: boolean
         existencia:
           type: number
+          nullable: true
     RespuestaCatalogos:
       type: object
       properties:

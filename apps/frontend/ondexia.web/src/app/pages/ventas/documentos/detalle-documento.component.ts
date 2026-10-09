@@ -25,23 +25,9 @@ import { ConfiguracionApiService, Empresa, Establecimiento } from '../../../nucl
 import { mensajeDeError } from '../../../nucleo/errores';
 
 /**
- * Un documento emitido, tal como se imprime.
- *
- * <p>El PDF lo produce el navegador (doc 12 §5.4): la misma vista tiene una
- * hoja de estilos de impresión para ticket de 80 mm y para A4, y
- * {@code window.print()} hace el resto. La leyenda de la nota de venta
- * —«Documento interno, no válido como comprobante de pago»— va en pantalla y en
- * papel, y es la distinción más importante de la interfaz (doc 12 §3.2).
- *
- * <h2>Lo que SUNAT dijo, al lado</h2>
- *
- * <p>Una boleta o factura trae además su estado ante SUNAT (doc 14 §3): en cola,
- * aceptada con su CDR, rechazada con el código y la descripción de SUNAT, o con
- * error de envío. Mientras está en cola la pantalla vuelve a preguntar cada
- * pocos segundos, porque el resultado se lee cuando alguien pregunta, no llega
- * solo. El XML firmado y el CDR se descargan del bus por URL temporal. El
- * resumen de la firma se imprime; el QR normativo queda para cuando el PDF se
- * genere en servidor (doc 12 §5.4).
+ * El registro es la vista inicial; la hoja de emisión se abre a petición.
+ * El navegador imprime la misma hoja en ticket o A4 (doc 12 §5.4).
+ * La respuesta de SUNAT, el XML y el CDR se consultan por separado (doc 14 §3).
  */
 @Component({
   selector: 'app-detalle-documento',
@@ -51,7 +37,7 @@ import { mensajeDeError } from '../../../nucleo/errores';
     @media print {
       :host { display: block; }
       .no-imprimir { display: none !important; }
-      .hoja { box-shadow: none !important; border: none !important; margin: 0 !important; }
+      .hoja { display: block !important; box-shadow: none !important; border: none !important; margin: 0 !important; }
     }
     @page { margin: 8mm; }
     .hoja--ticket { width: 80mm; font-size: 12px; }
@@ -72,6 +58,7 @@ export class DetalleDocumentoComponent implements OnDestroy {
   readonly establecimiento = signal<Establecimiento | null>(null);
   readonly cargando = signal(true);
   readonly error = signal<string | null>(null);
+  readonly visualizandoComprobante = signal(false);
   /** Ticket de 80 mm o A4. La elección vive solo en esta pestaña. */
   readonly formato = signal<'ticket' | 'a4'>('ticket');
 
@@ -395,6 +382,11 @@ export class DetalleDocumentoComponent implements OnDestroy {
     if (this.sondeo) {
       clearTimeout(this.sondeo);
     }
+  }
+
+  get rutaNuevaVenta(): string {
+    const tipo = this.documento()?.tipo;
+    return tipo === 'NV' ? '/ventas/notas-venta/nueva' : tipo === '01' ? '/ventas/facturas/nueva' : tipo === '03' ? '/ventas/boletas/nueva' : '/ventas/punto-de-venta';
   }
 
   get rutaListado(): string {

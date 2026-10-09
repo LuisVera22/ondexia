@@ -131,6 +131,16 @@ describe('MenuLateralComponent · lo que se ve segun los permisos', () => {
     expect(sinAnotar).toEqual([]);
   });
 
+  it('el catálogo tiene entradas separadas para bienes y servicios con el mismo permiso', () => {
+    permisos = ['almacen:acceder', 'almacen.producto:acceder'];
+    const visibles = nombres(componente.grupos());
+    expect(visibles).toContain('Bienes'); expect(visibles).toContain('Servicios');
+    expect(visibles).not.toContain('Productos');
+    const destinos = componente.todosParaPruebas.flatMap(grupo => grupo.entradas.flatMap(entrada => entrada.submenu ?? []));
+    expect(destinos.find(entrada => entrada.nombre === 'Bienes')?.ruta).toBe('/almacen/bienes');
+    expect(destinos.find(entrada => entrada.nombre === 'Servicios')?.ruta).toBe('/almacen/servicios');
+  });
+
   it('sin ningun permiso solo queda lo que no exige modulo', () => {
     const visibles = nombres(componente.grupos());
 

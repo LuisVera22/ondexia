@@ -32,6 +32,9 @@ public class ProductoJpa extends EntidadJpaBase {
     @Column(name = "precio_lista", nullable = false, precision = 18, scale = 6)
     private BigDecimal precioLista;
 
+    @Column(name = "tipo", nullable = false, length = 8)
+    private String tipo;
+
     @Column(name = "controla_stock", nullable = false)
     private boolean controlaStock;
 
@@ -48,12 +51,13 @@ public class ProductoJpa extends EntidadJpaBase {
     }
 
     public final void actualizarDesde(String nombre, String descripcion, String unidadMedida,
-            String afectacionIgv, BigDecimal precioLista, boolean controlaStock, boolean activo) {
+            String afectacionIgv, BigDecimal precioLista, String tipo, boolean controlaStock, boolean activo) {
         this.nombre = nombre;
         this.descripcion = descripcion;
         this.unidadMedida = unidadMedida;
         this.afectacionIgv = afectacionIgv;
         this.precioLista = precioLista;
+        this.tipo = tipo;
         this.controlaStock = controlaStock;
         this.activo = activo;
     }
@@ -84,6 +88,10 @@ public class ProductoJpa extends EntidadJpaBase {
 
     public BigDecimal getPrecioLista() {
         return precioLista;
+    }
+
+    public String getTipo() {
+        return tipo;
     }
 
     public boolean isControlaStock() {

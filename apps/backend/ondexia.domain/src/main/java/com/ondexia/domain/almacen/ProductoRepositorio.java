@@ -8,6 +8,9 @@ public interface ProductoRepositorio {
 
     Optional<Producto> buscarPorId(UUID id);
 
+    /** Bloquea el producto hasta terminar la transacción que cambia su tipo. */
+    Optional<Producto> buscarParaActualizar(UUID id);
+
     Optional<Producto> buscarPorCodigo(String codigo);
 
     /** Todos los de la empresa activa, activos e inactivos, por código. */
