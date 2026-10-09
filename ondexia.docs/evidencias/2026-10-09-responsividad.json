@@ -1,0 +1,35 @@
+{
+  "fecha": "2026-10-09",
+  "base": "bab4c20",
+  "rama_local": "develop",
+  "especificacion": "ondexia.docs/especificaciones/2026-10-09-responsividad-ventas.md",
+  "sin_arreglo": {
+    "escenarios": 21,
+    "fallidos": 21,
+    "codigo_salida": 1
+  },
+  "con_arreglo": {
+    "escenarios": 21,
+    "fallidos": 0,
+    "impresiones": 8,
+    "codigo_salida": 0
+  },
+  "mutacion": {
+    "cambio": "La clase no-imprimir pasa a display:block en impresión",
+    "resultado": "La aserción detecta que el registro aparece en papel",
+    "codigo_salida": 1,
+    "restaurada": true
+  },
+  "regresion_web": 119,
+  "compilacion": "correcta",
+  "datos": "sintéticos; las API se interceptan; no hay escrituras reales",
+  "no_verificado": [
+    "dispositivos físicos",
+    "Safari/iOS y Android reales",
+    "teclado real",
+    "impresora física",
+    "API real y consulta de RUC",
+    "CI de estos cambios",
+    "auditoría independiente"
+  ]
+}

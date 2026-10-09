@@ -40,7 +40,16 @@ import { mensajeDeError } from '../../../nucleo/errores';
       .hoja { display: block !important; box-shadow: none !important; border: none !important; margin: 0 !important; }
     }
     @page { margin: 8mm; }
+    .hoja { overflow-wrap: anywhere; }
+    .hoja table { table-layout: fixed; }
+    .hoja th:first-child { width: 44%; }
     .hoja--ticket { width: 80mm; font-size: 12px; }
+    @media screen {
+      .hoja--ticket { max-width: 100%; }
+    }
+    @media screen and (max-width: 639px) {
+      .hoja { padding: 12px; }
+    }
     .hoja--ticket th, .hoja--ticket td { padding: 2px 0; }
   `,
 })

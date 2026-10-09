@@ -1,5 +1,5 @@
 <app-modal [abierto]="true" titulo="Nuevo cliente" subtitulo="Consulta el RUC, revisa los datos y registra al cliente sin salir de la venta." [procesando]="guardando()" (cerrar)="cerrar.emit()">
-  <form [formGroup]="formulario" (ngSubmit)="registrar()" class="grid gap-4">
+  <form [formGroup]="formulario" (ngSubmit)="registrar()" class="alta-cliente-venta grid min-w-0 gap-4">
     <label class="block text-sm">RUC
       <input formControlName="ruc" inputmode="numeric" maxlength="11" [readonly]="guardando()" class="mt-1 block w-full rounded-base border border-gray-300 bg-transparent p-2" />
     </label>
