@@ -55,7 +55,7 @@
 
     <springdoc.version>3.1.0</springdoc.version>
     <testcontainers.version>2.0.5</testcontainers.version>
-    <archunit.version>1.5.0</archunit.version>
+    <archunit.version>1.5.1</archunit.version>
 
     <!--
       Adaptador de Lambda (DT-D17). La serie 3.x es la de Spring Boot 4; la 2.x
