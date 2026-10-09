@@ -1,0 +1,17 @@
+{
+  "base": "b0fc4a5d0c07860da0f033a2db901b86aec74379",
+  "ejecucion_observada": 37867279154,
+  "trabajo_observado": 113624905075,
+  "descarga_completa": 403375,
+  "clave_que_colisiono": "nvd-37867279154",
+  "pruebas": 4,
+  "fallos_antes": 6,
+  "mutacion_detectada": true,
+  "yaml_valido": true,
+  "gitHub_con_nuevas_claves": "pendiente",
+  "huellas": {
+    "rojo.log": "908839daaff062c036ced16d9ce55c002f1152f250606cc02408dd3f2da25007",
+    "mutacion.log": "828ece75fb8fd531e1860d741e87c1a6c0b9d24c04229532f69080720d4e7377",
+    "verde.log": "797071b7e9e2acde236b949dd82e9481c19d9496c44564c84bc257331f7de6ed"
+  }
+}
