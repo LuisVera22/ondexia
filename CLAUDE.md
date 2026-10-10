@@ -47,6 +47,35 @@ revisar rama, estado, diff y verificaciones pertinentes; conservar cambios
 ajenos y confirmar juntos los cambios de API, OpenAPI y modelos Angular.
 El detalle del flujo está en `ondexia.docs/03-estructura-repositorio.md`, §6.
 
+## Desarrollo guiado por negocio y evidencia
+
+Las [reglas del harness](ondexia.docs/harness/README.md), aprobadas por el
+propietario el 2026-10-10, forman parte del contrato de desarrollo y soporte.
+Aplicar su profundidad según alcance y riesgo, reutilizando decisiones vigentes.
+
+Antes de una funcionalidad, presentar el plan y resolver con el propietario las
+decisiones de negocio pendientes. Evaluar problema, proceso, alternativas,
+impacto y rentabilidad; no confundir viabilidad técnica con retorno demostrado.
+Especificar casos de uso con flujo y extensiones: cada validación tiene regla,
+autoridad, momento y respuestas de aceptación, rechazo e incertidumbre.
+Vincular aceptación, casos de prueba y evidencia mediante SDD/BDD/TDD según la tarea.
+
+Cada corrección demuestra fallo sin arreglo y éxito con él. Para controles ya
+correctos, comprobar sensibilidad con una mutación aislada y restaurada. Los
+esperados provienen de reglas y datos independientes de los resultados observados.
+Declarar explícitamente lo no verificado; no inventar pruebas para cambios documentales.
+
+En UX/UI, verificar las tareas afectadas en móvil/escritorio, estados, recuperación,
+teclado y foco; WCAG 2.2 AA es el objetivo, no una conformidad ya demostrada.
+En seguridad, seleccionar controles versionados de OWASP ASVS 5.0.0 según activos
+y amenazas, apoyados en Top 10:2025 y API Top 10:2023. Verificar configuración y
+pruebas efectivas, con costo proporcional al riesgo y sin relajar invariantes.
+La auditoría requiere una sesión independiente sin narrativa del implementador.
+
+Estas reglas no dan por resuelto el backlog, no convierten ejemplos en políticas
+y no autorizan despliegues. El harness versionado distingue reglas de trabajo,
+capacidades operativas y propuestas pendientes.
+
 ## Las cuatro reglas que salieron de la auditoría
 
 Cada una tiene detrás un hallazgo concreto. No son principios generales.

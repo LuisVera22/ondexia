@@ -1,5 +1,10 @@
 # Ondexia — Convenciones de interfaz
 
+> **Reglas de trabajo aprobadas el 2026-10-10:** aplicar el
+> [harness versionado](harness/README.md) para requisitos, diseño, pruebas,
+> UX/UI y seguridad. Los objetivos nuevos requieren verificación; esta aprobación
+> no afirma que toda la implementación existente los cumpla.
+
 Lo que la aplicación ya hace y por qué. No es una guía de estilo aspiracional:
 cada regla de aquí está implementada, y la mayoría tiene una prueba detrás.
 

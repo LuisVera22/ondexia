@@ -1,5 +1,10 @@
 # Ondexia — Estructura de repositorio y convenciones de nombres
 
+> **Reglas de trabajo aprobadas el 2026-10-10:** aplicar el
+> [harness versionado](harness/README.md) para requisitos, diseño, pruebas,
+> UX/UI y seguridad. Los objetivos nuevos requieren verificación; esta aprobación
+> no afirma que toda la implementación existente los cumpla.
+
 Estado: **implementado (v3)** · Fecha: 2026-08-11 · Deriva de [DTE-ONX-001](DTE-ONX-001_sistema_gestion_comercial.md) §3
 
 > **v2 — actualizado a la estructura real creada.** Se adoptó la convención con punto (`ondexia.api`) en lugar de la propuesta con guion. Decisión del propietario; este documento la registra como vigente y se rige por ella.
