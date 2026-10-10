@@ -1,3 +1,4 @@
+import { CabeceraComprobanteComponent } from '../../../shared/components/comunes/cabecera-comprobante/cabecera-comprobante.component';
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
@@ -31,7 +32,7 @@ import { mensajeDeError } from '../../../nucleo/errores';
  */
 @Component({
   selector: 'app-detalle-documento',
-  imports: [EncabezadoPaginaComponent, BotonComponent, RouterModule, ModalComponent, DesplegableComponent, FormsModule],
+  imports: [CabeceraComprobanteComponent, EncabezadoPaginaComponent, BotonComponent, RouterModule, ModalComponent, DesplegableComponent, FormsModule],
   templateUrl: './detalle-documento.component.html',
   styles: `
     @media print {

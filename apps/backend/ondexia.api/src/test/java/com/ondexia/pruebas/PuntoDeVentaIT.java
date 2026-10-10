@@ -103,6 +103,114 @@ class PuntoDeVentaIT extends PruebaIntegracion {
         return "0";
     }
 
+    @Autowired
+    private com.ondexia.application.configuracion.Identidad identidad;
+
+    @Autowired
+    private com.ondexia.infrastructure.salida.marca.AlmacenDeMarcaEnMemoria almacenMarca;
+
+    private void contextoMarca() {
+        com.ondexia.infrastructure.seguridad.ContextoDePrueba.comoUsuarioDe(
+                java.util.UUID.fromString(USUARIO_DEMO),
+                java.util.UUID.fromString("00000000-0000-4000-8000-000000000001"),
+                java.util.UUID.fromString(EMPRESA_ADMINISTRADA));
+    }
+
+    private String cargarLogo(String tipo) {
+        contextoMarca();
+        try {
+            var subida = identidad.autorizarSubida(tipo, "image/png", 1000L);
+            almacenMarca.simularSubida(subida.clave(), "image/png", 1000L);
+            identidad.confirmarSubida(tipo, subida.clave());
+            return "http://cdn-de-desarrollo.local/" + subida.clave();
+        } finally {
+            com.ondexia.infrastructure.seguridad.ContextoDePrueba.limpiar();
+        }
+    }
+
+    private void retirarLogos() {
+        contextoMarca();
+        try {
+            identidad.quitar("logo_principal");
+            identidad.quitar("logo_ticket");
+        } finally {
+            com.ondexia.infrastructure.seguridad.ContextoDePrueba.limpiar();
+        }
+    }
+
+    private JsonNode emitirConLogos(String caja) throws Exception {
+        return leer(mockMvc.perform(comoAdministrador(post("/api/v1/ventas/notas-de-venta"))
+                .content("""
+                        {"cajaId":"%s","serieId":"%s",
+                         "lineas":[{"productoId":"%s","cantidad":1}],
+                         "pagos":[{"forma":"EFECTIVO","monto":80}]}
+                        """.formatted(caja, SERIE_NV, INSTALACION)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString())
+                .path("documento");
+    }
+
+    private void comprobarConsultaComoVendedor(String documentoId, String principal) throws Exception {
+        contextoMarca();
+        var anterior = transaccion.execute(estado -> jdbc.sql(
+                "select rol_id from usuario_empresa where usuario_id = ?::uuid and empresa_id = ?::uuid")
+                .param(USUARIO_DEMO).param(EMPRESA_ADMINISTRADA).query(java.util.UUID.class).single());
+        try {
+            cambiarRol(java.util.UUID.fromString("00000000-0000-4000-8000-000000000040"));
+            mockMvc.perform(comoAdministrador(get("/api/v1/configuracion/identidad")))
+                    .andExpect(status().isForbidden());
+            mockMvc.perform(comoAdministrador(get("/api/v1/ventas/notas-de-venta/" + documentoId)))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.logoPrincipal").value(principal));
+            mockMvc.perform(get("/api/v1/ventas/notas-de-venta/" + documentoId)
+                    .header("Authorization", autorizacionDemo()).header("X-Empresa-Id", EMPRESA_COMO_VENDEDOR))
+                    .andExpect(status().isNotFound());
+        } finally {
+            cambiarRol(anterior);
+            com.ondexia.infrastructure.seguridad.ContextoDePrueba.limpiar();
+        }
+    }
+
+    private void cambiarRol(java.util.UUID rol) {
+        contextoMarca();
+        transaccion.executeWithoutResult(estado -> {
+            jdbc.sql("update usuario_empresa set rol_id = ? where usuario_id = ?::uuid and empresa_id = ?::uuid")
+                    .param(rol).param(USUARIO_DEMO).param(EMPRESA_ADMINISTRADA).update();
+            jdbc.sql("update cuenta set permisos_version = permisos_version + 1 where id = ?")
+                    .param(CUENTA_DEMO).update();
+        });
+        com.ondexia.infrastructure.seguridad.ContextoDePrueba.limpiar();
+    }
+
+    @Test
+    @DisplayName("Las nuevas emisiones fijan ambos logos; reemplazar o quitar conserva el historial")
+    void versionesDeLogoEnLaEmision() throws Exception {
+        String caja = cajaAbierta("0");
+        retirarLogos();
+        var sinLogo = emitirConLogos(caja);
+        String principal = cargarLogo("logo_principal");
+        String ticket = cargarLogo("logo_ticket");
+        var primero = emitirConLogos(caja);
+        assertThat(primero.path("logoPrincipal").asString()).isEqualTo(principal);
+        assertThat(primero.path("logoTicket").asString()).isEqualTo(ticket);
+        comprobarConsultaComoVendedor(primero.path("id").asString(), principal);
+        String nuevoPrincipal = cargarLogo("logo_principal");
+        String nuevoTicket = cargarLogo("logo_ticket");
+        var segundo = emitirConLogos(caja);
+        assertThat(segundo.path("logoPrincipal").asString()).isEqualTo(nuevoPrincipal);
+        assertThat(segundo.path("logoTicket").asString()).isEqualTo(nuevoTicket);
+        retirarLogos();
+        mockMvc.perform(comoAdministrador(get("/api/v1/ventas/notas-de-venta/" + primero.path("id").asString())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.logoPrincipal").value(principal))
+                .andExpect(jsonPath("$.logoTicket").value(ticket));
+        mockMvc.perform(comoAdministrador(get("/api/v1/ventas/notas-de-venta/" + sinLogo.path("id").asString())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.logoPrincipal").doesNotExist())
+                .andExpect(jsonPath("$.logoTicket").doesNotExist());
+        var tercero = emitirConLogos(caja);
+        assertThat(tercero.path("logoPrincipal").isNull()).isTrue();
+        assertThat(tercero.path("logoTicket").isNull()).isTrue();
+    }
+
     @Test
     @DisplayName("Nota de venta completa: correlativo, IGV, pago mixto, descarga y arqueo")
     void notaDeVentaCompleta() throws Exception {
@@ -453,6 +561,16 @@ class PuntoDeVentaIT extends PruebaIntegracion {
                     transaccion.executeWithoutResult(estado ->
                             jdbc.sql("delete from documento_venta where id = ?::uuid").param(id).update()))
                     .hasMessageContaining("no se borra");
+            org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                    transaccion.executeWithoutResult(estado ->
+                            jdbc.sql("update documento_venta set logo_principal = 'inventado' where id = ?::uuid")
+                                    .param(id).update()))
+                    .hasMessageContaining("no se modifica");
+            org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                    transaccion.executeWithoutResult(estado ->
+                            jdbc.sql("update documento_venta set logo_ticket = 'inventado' where id = ?::uuid")
+                                    .param(id).update()))
+                    .hasMessageContaining("no se modifica");
             // El estado sí: es lo único que cambia después.
             transaccion.executeWithoutResult(estado ->
                     jdbc.sql("update documento_venta set estado = 'ANULADO' where id = ?::uuid").param(id).update());

@@ -250,10 +250,9 @@ class IdentidadVisualIT extends PruebaIntegracion {
     }
 
     @Test
-    @DisplayName("Quitar sí borra el archivo")
-    void quitarBorra() throws Exception {
-        // «Quitar» significa «no quiero logo», no «cambié de logo». Dejar el
-        // objeto huérfano sería acumular archivos que nadie referencia.
+    @DisplayName("Quitar conserva el archivo para los documentos históricos")
+    void quitarConservaHistoria() throws Exception {
+        // Retirar de nuevas emisiones no debe romper las referencias históricas.
         comoDemo();
         String clave = subirYConfirmar("logo_principal", PNG, UN_PNG_RAZONABLE);
         ContextoDePrueba.limpiar();
@@ -268,7 +267,7 @@ class IdentidadVisualIT extends PruebaIntegracion {
                         .value(org.hamcrest.Matchers.everyItem(
                                 org.hamcrest.Matchers.nullValue())));
 
-        assertThat(almacen.describir(clave)).isEmpty();
+        assertThat(almacen.describir(clave)).isPresent();
     }
 
     @Test

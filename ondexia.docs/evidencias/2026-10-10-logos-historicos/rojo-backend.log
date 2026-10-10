@@ -1,0 +1,14 @@
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 8.599 s <<< FAILURE! -- in com.ondexia.pruebas.IdentidadVisualIT
+Expecting Optional to contain a value but it was empty.
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.579 s <<< FAILURE! -- in com.ondexia.pruebas.PuntoDeVentaIT
+expected: "http://cdn-de-desarrollo.local/empresas/00000000-0000-4000-8000-000000000010/logo_principal/9dc58a76-57f8-4f7f-ab2f-0f3316a5cd7f.png"
+ but was: ""
+Expecting Optional to contain a value but it was empty.
+expected: "http://cdn-de-desarrollo.local/empresas/00000000-0000-4000-8000-000000000010/logo_principal/9dc58a76-57f8-4f7f-ab2f-0f3316a5cd7f.png"
+ but was: ""
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0
+[INFO] Reactor Summary for Ondexia — backend 0.1.0-SNAPSHOT:
+[INFO] Ondexia — backend .................................. SUCCESS [  0.001 s]
+[INFO] Ondexia — dominio .................................. SUCCESS [  0.503 s]
+[INFO] Ondexia — API Core ................................. FAILURE [ 10.504 s]
+[INFO] BUILD FAILURE

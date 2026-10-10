@@ -2982,6 +2982,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RespuestaPago"
+        logoPrincipal:
+          type: string
+        logoTicket:
+          type: string
     RespuestaLinea:
       type: object
       properties:

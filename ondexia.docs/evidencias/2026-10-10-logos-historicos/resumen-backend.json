@@ -1,0 +1,520 @@
+[
+  {
+    "suite": "com.ondexia.admin.configuracion.CertificadoRaizRdsTest",
+    "pruebas": 2,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.admin.configuracion.FuenteDeDatosIamTest",
+    "pruebas": 4,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.admin.cuentas.BitacoraDelPanelIT",
+    "pruebas": 4,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.admin.cuentas.ConsultaDeCuentasIT",
+    "pruebas": 6,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.admin.cuentas.GestionDeCuentasIT",
+    "pruebas": 8,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.admin.seguridad.FirmaDelTokenIT",
+    "pruebas": 7,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.admin.seguridad.GruposDelPersonalTest",
+    "pruebas": 3,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.admin.seguridad.TokenDeLaPasarelaTest",
+    "pruebas": 7,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.application.panel.PanelDelDiaTest",
+    "pruebas": 3,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.infrastructure.configuration.CertificadoRaizRdsTest",
+    "pruebas": 2,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.infrastructure.configuration.FuenteDeDatosIamTest",
+    "pruebas": 4,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.AdministradorDeCuentaIT",
+    "pruebas": 2,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.AislamientoEmpresaIT",
+    "pruebas": 3,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.AlmacenesIT",
+    "pruebas": 5,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.AnulacionYCanjeIT",
+    "pruebas": 7,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.ArquitecturaTest",
+    "pruebas": 9,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.AuditoriaIT",
+    "pruebas": 4,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.BitacoraSoloInstantaneasIT",
+    "pruebas": 2,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.CajasIT",
+    "pruebas": 9,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.ClientesIT",
+    "pruebas": 6,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.ComprobantesIT",
+    "pruebas": 4,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.ComunicacionDeBajaIT",
+    "pruebas": 5,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.ConcurrenciaDeTiposIT",
+    "pruebas": 2,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.ConfiguracionEmpresaIT",
+    "pruebas": 17,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.ContextoIT",
+    "pruebas": 8,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.CorsIT",
+    "pruebas": 2,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.EmisionElectronicaIT",
+    "pruebas": 6,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.ExportarContratoIT",
+    "pruebas": 1,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.FirmaDelTokenIT",
+    "pruebas": 10,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.GrantsDeLaAplicacionIT",
+    "pruebas": 3,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.IdentidadVisualIT",
+    "pruebas": 11,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.MigracionDeTiposIT",
+    "pruebas": 1,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.ModulosContratadosIT",
+    "pruebas": 8,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.PanelIT",
+    "pruebas": 3,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.PerfilIT",
+    "pruebas": 10,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.PermisosAnotacionIT",
+    "pruebas": 3,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.ProductosIT",
+    "pruebas": 7,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.PuntoDeVentaIT",
+    "pruebas": 11,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.RegistroDeEmpresaIT",
+    "pruebas": 19,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.RegistroIT",
+    "pruebas": 15,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.RolesIT",
+    "pruebas": 17,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.SaludIT",
+    "pruebas": 2,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.SeriesIT",
+    "pruebas": 11,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.SuscripcionCaidaIT",
+    "pruebas": 5,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.TiposDeProductoIT",
+    "pruebas": 7,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.TokenDesarrolloIT",
+    "pruebas": 2,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.TraduccionRestriccionesIT",
+    "pruebas": 2,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.UsuariosIT",
+    "pruebas": 16,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.pruebas.VinculacionIT",
+    "pruebas": 6,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.consultas.CascadaDeProveedoresTest",
+    "pruebas": 8,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.consultas.VocabularioDeSunatTest",
+    "pruebas": 16,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.consultas.web.ConsultaDeDniControllerTest",
+    "pruebas": 5,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.consultas.web.ConsultaDeRucControllerTest",
+    "pruebas": 8,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.consultas.web.CuotaDeConsultasTest",
+    "pruebas": 1,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.consultas.web.CuotaPorSolicitanteTest",
+    "pruebas": 3,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.domain.almacen.ProductoTest",
+    "pruebas": 5,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.domain.comprobante.ComprobanteElectronicoTest",
+    "pruebas": 8,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.domain.comprobante.ComunicacionDeBajaTest",
+    "pruebas": 12,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.domain.comun.TipoDeContribuyenteTest",
+    "pruebas": 4,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.domain.consultas.AtestacionTest",
+    "pruebas": 21,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.domain.consultas.DatosDeRucTest",
+    "pruebas": 27,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.domain.identidad.EmpresaEmisionTest",
+    "pruebas": 4,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.domain.identidad.EmpresaRegimenTest",
+    "pruebas": 4,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.domain.identidad.PermisosCubreTest",
+    "pruebas": 2,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.domain.ventas.ClienteTest",
+    "pruebas": 5,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.domain.ventas.DocumentoVentaTest",
+    "pruebas": 6,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.domain.ventas.NotaDeCreditoTest",
+    "pruebas": 13,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.domain.ventas.PagoTest",
+    "pruebas": 6,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.domain.ventas.SesionCajaTest",
+    "pruebas": 6,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.facturacion.ProcesadorDeOrdenesTest",
+    "pruebas": 8,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.facturacion.lambda.ManejadorDeOrdenesTest",
+    "pruebas": 1,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.facturacion.sunat.ConstructorDeComprobanteTest",
+    "pruebas": 4,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.facturacion.sunat.FirmadorDeComprobanteTest",
+    "pruebas": 3,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  {
+    "suite": "com.ondexia.facturacion.sunat.LectorDeRespuestaSunatTest",
+    "pruebas": 11,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  }
+]

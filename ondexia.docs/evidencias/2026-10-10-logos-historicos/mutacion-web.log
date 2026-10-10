@@ -1,0 +1,15 @@
+Application bundle generation complete. [6.728 seconds] - 2026-10-10T00:10:07.368Z
+Chrome Headless 151.0.0.0 (Linux 0.0.0) Detalle del documento · presentación interna y fiscal un documento sin versión no añade logo en ticket FAILED
+	Expected <img _ngcontent-a-c2038564350 alt="Logo del emisor" src="/logo-inventado.png"> to be null.
+Chrome Headless 151.0.0.0 (Linux 0.0.0): Executed 6 of 13 (1 FAILED) (0 secs / 0.365 secs)
+Chrome Headless 151.0.0.0 (Linux 0.0.0) Detalle del documento · presentación interna y fiscal un documento sin versión no añade logo en a4 FAILED
+	Expected <img _ngcontent-a-c2038564350 alt="Logo del emisor" src="/logo-inventado.png"> to be null.
+Chrome Headless 151.0.0.0 (Linux 0.0.0): Executed 7 of 13 (2 FAILED) (0 secs / 0.379 secs)
+Chrome Headless 151.0.0.0 (Linux 0.0.0): Executed 8 of 13 (2 FAILED) (0 secs / 0.394 secs)
+Chrome Headless 151.0.0.0 (Linux 0.0.0): Executed 9 of 13 (2 FAILED) (0 secs / 0.411 secs)
+Chrome Headless 151.0.0.0 (Linux 0.0.0): Executed 10 of 13 (2 FAILED) (0 secs / 0.422 secs)
+Chrome Headless 151.0.0.0 (Linux 0.0.0): Executed 11 of 13 (2 FAILED) (0 secs / 0.432 secs)
+Chrome Headless 151.0.0.0 (Linux 0.0.0): Executed 12 of 13 (2 FAILED) (0 secs / 0.442 secs)
+Chrome Headless 151.0.0.0 (Linux 0.0.0): Executed 13 of 13 (2 FAILED) (0 secs / 0.452 secs)
+Chrome Headless 151.0.0.0 (Linux 0.0.0): Executed 13 of 13 (2 FAILED) (0.5 secs / 0.452 secs)
+TOTAL: 2 FAILED, 11 SUCCESS
