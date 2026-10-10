@@ -1,0 +1,55 @@
+{
+  "base": "f004f2a44f8d1fb22c71dd330ad8469132c14c15",
+  "alcance": "F03 parcial; cálculo real de línea en interfaz y dominio",
+  "oraculos": "Siete totales literales fijados antes y contrastados con Python Decimal/HALF_UP, sin observados",
+  "interfaz": {
+    "ejecutados": 7,
+    "divergencias": 4,
+    "salida": 1,
+    "archivo": "2026-10-10-precision-monetaria/interfaz.json"
+  },
+  "dominio": {
+    "verde": {
+      "pruebas": 13,
+      "fallos": 0,
+      "errores": 0,
+      "omitidas": 0,
+      "archivo": "verde.log.gz",
+      "sha256_comprimido": "94f2d8b9ca31efeacf81b5ce28598ff78dfa583da751ac13f720a561532e2cd7"
+    },
+    "mutacion": {
+      "pruebas": 7,
+      "fallos": 4,
+      "errores": 0,
+      "omitidas": 0,
+      "archivo": "mutacion.log.gz",
+      "sha256_comprimido": "00946d682a8e19d08a2a9c148fc4cf4559e57767b2cd9a0ee03f6c7df93be098"
+    },
+    "restaurado": {
+      "pruebas": 13,
+      "fallos": 0,
+      "errores": 0,
+      "omitidas": 0,
+      "archivo": "restaurado.log.gz",
+      "sha256_comprimido": "3bf8cc9c17898545ad052aa32be87e9832f4c13cafaa1923d546aba0c010c345"
+    }
+  },
+  "mutacion": "Solo setScale(2, HALF_UP) del total cambia a HALF_DOWN; archivo original restaurado byte por byte",
+  "archivos_sha256": {
+    "herramientas/caracterizar-precision-monetaria.mjs": "f0d10a0de6943571bead5ba81a2e8c1e3ba0cb6bea4dc95500a02a578edc860a",
+    "apps/backend/ondexia.domain/src/test/java/com/ondexia/domain/ventas/PrecisionMonetariaTest.java": "967ac1ec719aedea6eb733da89ed166f4b9772c9cf79fcedec8b5c79976aa20b",
+    "apps/backend/ondexia.domain/src/main/java/com/ondexia/domain/ventas/LineaDeVenta.java": "6db7ab15b25f387aed9a1928c3f034b7842da20c7a32a735bd4a4a28d30ee1e4",
+    "apps/frontend/ondexia.web/src/app/pages/ventas/punto-de-venta/punto-de-venta.component.ts": "dad8926b02cc6a0619da9337c516fe80a17c72e5ea05c898e1eb37740a76c4cd"
+  },
+  "no_verificado": [
+    "Pagos mixtos/vuelto",
+    "API/JSON/formulario",
+    "Persistencia y límites completos",
+    "UX/navegador",
+    "Otras pantallas",
+    "SCA local (omitido)",
+    "AWS",
+    "Auditoría independiente",
+    "F04 (sin corrección)"
+  ]
+}
