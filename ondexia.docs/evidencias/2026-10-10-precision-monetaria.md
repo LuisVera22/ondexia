@@ -44,4 +44,7 @@ No se integra la mutación. Las cuentas verificadas y hashes se registran en JSO
 F03 parcial, F04 abierto: recepción y envío decimales, pagos mixtos, vuelto,
 acumulación, límites API/BD y compatibilidad contractual. Sin conformidad fiscal,
 revisión independiente, pruebas UX/navegador ni análisis SCA local demostrado.
+El control local de tono/forma no pudo evaluar los sitios: faltan los directorios
+dist de web y landing en este worktree. Su mensaje «no cumple» no se registra
+como validación correcta; el CI ejecutará construcción y control completos.
 CI del PR e integración de este lote pendientes al registrar la evidencia.
