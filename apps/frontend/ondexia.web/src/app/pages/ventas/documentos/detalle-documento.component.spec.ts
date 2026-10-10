@@ -10,7 +10,7 @@ import { AvisosService } from '../../../shared/services/avisos.service';
 
 describe('Detalle del documento · presentación interna y fiscal', () => {
   const nota: DocumentoVentaApi = {
-    id: 'nota-1', tipoNombre: 'Nota de venta', serie: 'NV01', numero: 2, sucursalId: 'suc-1', sesionCajaId: 'ses-1', fechaEmision: '2026-10-08', emitidoPor: 'vendedor', moneda: 'PEN', documentoOrigenId: null, motivo: null, motivoNombre: null, tipo: 'NV', fiscal: false, numeroCompleto: 'NV01-00000002', estado: 'EMITIDO',
+    logoPrincipal: null, logoTicket: null, id: 'nota-1', tipoNombre: 'Nota de venta', serie: 'NV01', numero: 2, sucursalId: 'suc-1', sesionCajaId: 'ses-1', fechaEmision: '2026-10-08', emitidoPor: 'vendedor', moneda: 'PEN', documentoOrigenId: null, motivo: null, motivoNombre: null, tipo: 'NV', fiscal: false, numeroCompleto: 'NV01-00000002', estado: 'EMITIDO',
     emitidoEn: '2026-10-08T18:00:00Z', cliente: null, pagos: [], origen: null, observaciones: 'PRUEBA',
     totalGravado: 381.36, totalIgv: 68.64, totalExonerado: 0, totalInafecto: 0,
     totalDescuento: 0, total: 450, lineas: [{ orden: 1, descripcion: 'Cajas', codigo: 'CAJ', unidad: 'NIU',
@@ -116,6 +116,22 @@ describe('Detalle del documento · presentación interna y fiscal', () => {
       expect(Array.from(resumen.querySelectorAll('dd')).map((celda) => celda.textContent?.trim())).toEqual(['S/ 381.36', 'S/ 68.64', 'S/ 450.00']);
       expect(resumen.textContent).toContain('IGV 18 %');
       expect(resumen.textContent).not.toContain('Importe de venta');
+    });
+  }
+
+  for (const formato of ['ticket', 'a4'] as const) {
+    it(`muestra exclusivamente la versión guardada para ${formato}`, () => {
+      const documento = { ...nota, logoPrincipal: '/logos/principal-A.png', logoTicket: '/logos/ticket-A.png' };
+      const hoja = mostrar(documento, formato);
+      const imagen = hoja.querySelector('header img') as HTMLImageElement;
+      expect(imagen).not.toBeNull();
+      expect(imagen?.getAttribute('src')).toBe(formato === 'a4' ? '/logos/principal-A.png' : '/logos/ticket-A.png');
+      expect(hoja.querySelector('header')?.classList.contains('cabecera--a4')).toBe(formato === 'a4');
+    });
+
+    it(`un documento sin versión no añade logo en ${formato}`, () => {
+      const hoja = mostrar(nota, formato);
+      expect(hoja.querySelector('header img')).toBeNull();
     });
   }
 

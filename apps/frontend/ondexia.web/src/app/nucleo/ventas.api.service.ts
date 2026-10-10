@@ -156,6 +156,9 @@ export interface ClienteDocumentoApi {
 }
 
 export interface DocumentoVentaApi {
+  /** Versiones guardadas al emitir; null en documentos sin logo histórico. */
+  readonly logoPrincipal: string | null;
+  readonly logoTicket: string | null;
   readonly id: string;
   readonly tipo: TipoDocumentoVenta;
   readonly tipoNombre: string;

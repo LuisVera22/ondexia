@@ -32,6 +32,11 @@ async def comprobar():
         'pagos': [{'forma': 'EFECTIVO', 'monto': 450, 'referencia': None, 'entregado': None, 'vuelto': 0}],
         'lineas': [{'orden': 1, 'productoId': 'p-simulado', 'codigo': 'CAJ', 'descripcion': 'Cajas de envío '+ 'CODIGOEXTENSO'*10, 'unidad': 'NIU', 'cantidad': 3,
             'precioUnitario': 150, 'valorUnitario': Decimal('127.118644'), 'descuento': 0, 'afectacion': 'GRAVADO', 'valorVenta': Decimal('381.36'), 'igv': Decimal('68.64'), 'total': 450}]}
+    comprobar_logos = os.environ.get('LOGOS_PRUEBA') == '1'
+    if comprobar_logos:
+        nota['logoPrincipal'] = '/apple-touch-icon.png?version=principal-A'
+        nota['logoTicket'] = '/apple-touch-icon.png?version=ticket-A'
+        contexto['permisos'] += ['configuracion:acceder', 'configuracion.identidad:acceder', 'configuracion.identidad:consultar']
     consulta = {'datos': {'ruc': '20512345671', 'razonSocial': 'CLIENTE SINTÉTICO', 'domicilioFiscal': 'LIMA', 'aptaParaRegistro': True}, 'atestacion': 'atestacion-simulada'}
     sesion = {'acceso': credencial['accessToken'], 'refresco': None, 'expiraEn': int(time.time()*1000)+int(credencial['expiresIn'])*1000, 'correo': 'demo@ondexia.com', 'nombre': 'Demostración'}
     with tempfile.TemporaryDirectory(prefix='ondexia-ventas-', ignore_cleanup_errors=True) as perfil:
@@ -59,6 +64,9 @@ async def comprobar():
                         elif '/ventas/cajas' in url: contenido=cajas
                         elif '/relacionados' in url: contenido=[]
                         elif '/notas-de-venta/00000000-0000-4000-8000-000000009901' in url: contenido=nota
+                        elif '/configuracion/identidad' in url:
+                            contenido=[{'logo': 'logo_principal', 'nombre': 'Logo principal', 'url': '/apple-touch-icon.png?version=principal-B', 'maximoBytes': 1048576},
+                                {'logo': 'logo_ticket', 'nombre': 'Logo para ticket', 'url': '/apple-touch-icon.png?version=ticket-B', 'maximoBytes': 262144}]
                         elif '/configuracion/empresa' in url: contenido=empresa
                         elif '/configuracion/establecimientos' in url: contenido=establecimientos
                         elif '/ventas/series' in url: contenido=[{'id': 'serie-simulada', 'serie': 'NV01', 'siguienteNumero': 'NV01-00000003'}]
@@ -115,6 +123,12 @@ async def comprobar():
                         for formato in ['ticket','a4']:
                             etiqueta='Ticket 80 mm' if formato=='ticket' else 'A4'
                             await evaluar("Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()==="+json.dumps(etiqueta)+").click()")
+                            if comprobar_logos:
+                                esperado = '/apple-touch-icon.png?version=' + ('principal-A' if formato=='a4' else 'ticket-A')
+                                await esperar("document.querySelector('article header img')?.naturalWidth > 0")
+                                assert await evaluar("document.querySelector('article header img').getAttribute('src')") == esperado
+                                assert await evaluar("getComputedStyle(document.querySelector('article header')).display") == ('grid' if formato=='a4' else 'block')
+                                if formato=='ticket': assert 'grayscale(1)' in await evaluar("getComputedStyle(document.querySelector('article header img')).filter")
                             await llamar('Emulation.setEmulatedMedia',{'media':'print'})
                             impresion=await evaluar("(()=>{const hoja=document.querySelector('article');return {ancho:hoja.getBoundingClientRect().width,hoja:getComputedStyle(hoja).display,marco:getComputedStyle(document.querySelector('app-barra-superior')).display,texto:hoja.innerText,tarjetas:document.querySelectorAll('[aria-label=\"Registro de venta\"]').length};})()")
                             assert impresion['hoja']=='block' and impresion['marco']=='none' and impresion['tarjetas']==0, impresion
@@ -144,7 +158,22 @@ async def comprobar():
                             await evaluar("document.querySelector('[role=dialog]').scrollTop=10000")
                             await revisar('alta-altura-reducida',390)
                             assert await evaluar("(()=>{const boton=Array.from(document.querySelectorAll('button')).find(b=>b.textContent.includes('Registrar y usar'));const r=boton.getBoundingClientRect();return r.top>=0 && r.bottom<=400;})()"), 'Registrar y usar queda fuera del área disponible'
-                    (EVIDENCIA/'resultados.json').write_text(json.dumps({'resultados':resultados,'fallos':fallos,'impresiones':impresiones,'servicios_simulados':'Todas las API; sesión y datos sintéticos; no se emite ni se registra', 'dispositivos_fisicos':'no verificados'},ensure_ascii=False,indent=2)+'\n')
+                    if comprobar_logos:
+                        for ancho in [320,390,768,1440]:
+                            await llamar('Emulation.setDeviceMetricsOverride',{'width':ancho,'height':844,'deviceScaleFactor':1,'mobile':True})
+                            await llamar('Page.navigate',{'url':'http://localhost:9100/configuracion/identidad'})
+                            await esperar("!!document.querySelector('app-identidad app-cabecera-comprobante')")
+                            for formato in ['a4','ticket']:
+                                etiqueta = 'A4' if formato=='a4' else 'Ticket 80 mm'
+                                await evaluar("Array.from(document.querySelectorAll('button')).find(b=>b.textContent.trim()==="+json.dumps(etiqueta)+").click()")
+                                await esperar("document.querySelector('app-identidad header img')?.naturalWidth > 0")
+                                esperado = '/apple-touch-icon.png?version=' + ('principal-B' if formato=='a4' else 'ticket-B')
+                                assert await evaluar("document.querySelector('app-identidad header img').getAttribute('src')") == esperado
+                                medidas = await evaluar("({ventana:innerWidth,pagina:document.documentElement.scrollWidth})")
+                                assert medidas['pagina']<=ancho+1, medidas
+                                imagen=await llamar('Page.captureScreenshot',{'format':'png','captureBeyondViewport':False})
+                                (EVIDENCIA/('configuracion-'+formato+'-'+str(ancho)+'.png')).write_bytes(base64.b64decode(imagen['data']))
+                    (EVIDENCIA/'resultados.json').write_text(json.dumps({'resultados':resultados,'fallos':fallos,'impresiones':impresiones,'servicios_simulados':'Todas las API; sesión y datos sintéticos; no se emite ni se registra', 'dispositivos_fisicos':'no verificados', 'logos_historicos_y_configuracion':comprobar_logos},ensure_ascii=False,indent=2)+'\n')
                     print(json.dumps({'escenarios':len(resultados),'fallos':fallos},ensure_ascii=False),flush=True)
                     assert not errores,errores
                     assert not fallos,fallos

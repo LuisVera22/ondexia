@@ -38,8 +38,8 @@ import org.springframework.transaction.annotation.Transactional;
  * el logo — reescribir la historia en silencio es justo lo que el versionado del
  * bucket pretende evitar (DTE §5.8).
  *
- * <p>«Quitar» sí borra: significa «no quiero logo», no «cambié de logo», y en ese
- * caso lo que hay que retirar es el archivo.
+ * <p>«Quitar» retira la referencia actual y conserva el archivo histórico
+ * (IdentidadVisualIT.quitarConservaHistoria).
  */
 @Service
 public class Identidad {
@@ -137,13 +137,7 @@ public class Identidad {
         return consultar();
     }
 
-    /**
-     * Retira el logo y <strong>sí</strong> borra el archivo.
-     *
-     * <p>A diferencia de reemplazar, esto significa «no quiero logo». Dejar el
-     * objeto huérfano en el almacén sería acumular archivos que nadie referencia
-     * y que nadie va a revisar.
-     */
+    /** Retira el logo de nuevas emisiones; conserva el archivo para el historial. */
     @Transactional
     public List<EstadoDeLogo> quitar(String columna) {
         var logo = LogoDeEmpresa.porColumna(columna);
@@ -163,7 +157,7 @@ public class Identidad {
         }
 
         identidades.guardar(identidad);
-        almacen.eliminar(quitada.get());
+
 
         auditoria.registrar("identidad_visual", identidad.id(), "QUITAR_LOGO",
                 new Instantanea(logo.columna(), quitada.get()),

@@ -1,0 +1,121 @@
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.175 s -- in com.ondexia.domain.almacen.ProductoTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.073 s -- in com.ondexia.domain.comprobante.ComprobanteElectronicoTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.049 s -- in com.ondexia.domain.comprobante.ComunicacionDeBajaTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in com.ondexia.domain.comun.TipoDeContribuyenteTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.138 s -- in Claves de openssl
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.065 s -- in Ida y vuelta
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.075 s -- in Lo que no debe pasar
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.287 s -- in com.ondexia.domain.consultas.AtestacionTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.061 s -- in Aptitud para el registro
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.022 s -- in Motivo del rechazo
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.029 s -- in El hueco del respaldo
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in Lo que no puede faltar
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.119 s -- in com.ondexia.domain.consultas.DatosDeRucTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in com.ondexia.domain.identidad.EmpresaEmisionTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.ondexia.domain.identidad.EmpresaRegimenTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in com.ondexia.domain.identidad.PermisosCubreTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in com.ondexia.domain.ventas.ClienteTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.029 s -- in com.ondexia.domain.ventas.DocumentoVentaTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.021 s -- in com.ondexia.domain.ventas.NotaDeCreditoTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.022 s -- in com.ondexia.domain.ventas.PagoTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 s -- in com.ondexia.domain.ventas.SesionCajaTest
+[INFO] Tests run: 123, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.118 s -- in com.ondexia.application.panel.PanelDelDiaTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.109 s -- in com.ondexia.infrastructure.configuration.CertificadoRaizRdsTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.094 s -- in FuenteDeDatosIam · firma del token
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.399 s -- in com.ondexia.pruebas.AdministradorDeCuentaIT
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.114 s -- in com.ondexia.pruebas.AislamientoEmpresaIT
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.647 s -- in com.ondexia.pruebas.AlmacenesIT
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.663 s -- in com.ondexia.pruebas.AnulacionYCanjeIT
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.526 s -- in com.ondexia.pruebas.ArquitecturaTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.078 s -- in com.ondexia.pruebas.AuditoriaIT
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.036 s -- in com.ondexia.pruebas.BitacoraSoloInstantaneasIT
+[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.543 s -- in com.ondexia.pruebas.CajasIT
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.511 s -- in com.ondexia.pruebas.ClientesIT
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.166 s -- in com.ondexia.pruebas.ComprobantesIT
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.806 s -- in com.ondexia.pruebas.ComunicacionDeBajaIT
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.437 s -- in com.ondexia.pruebas.ConcurrenciaDeTiposIT
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.445 s -- in com.ondexia.pruebas.ConfiguracionEmpresaIT
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.134 s -- in com.ondexia.pruebas.ContextoIT
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in com.ondexia.pruebas.CorsIT
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.589 s -- in com.ondexia.pruebas.EmisionElectronicaIT
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.745 s -- in com.ondexia.pruebas.ExportarContratoIT
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.020 s -- in Uso y audiencia
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.196 s -- in com.ondexia.pruebas.FirmaDelTokenIT
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.033 s -- in com.ondexia.pruebas.GrantsDeLaAplicacionIT
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.176 s -- in com.ondexia.pruebas.IdentidadVisualIT
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.030 s -- in com.ondexia.pruebas.MigracionDeTiposIT
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.092 s -- in com.ondexia.pruebas.ModulosContratadosIT
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.259 s -- in com.ondexia.pruebas.PanelIT
+[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.314 s -- in com.ondexia.pruebas.PerfilIT
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.387 s -- in com.ondexia.pruebas.PermisosAnotacionIT
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.153 s -- in com.ondexia.pruebas.ProductosIT
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.182 s -- in com.ondexia.pruebas.PuntoDeVentaIT
+[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.629 s -- in com.ondexia.pruebas.RegistroDeEmpresaIT
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.631 s -- in com.ondexia.pruebas.RegistroIT
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.122 s -- in com.ondexia.pruebas.RolesIT
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.050 s -- in com.ondexia.pruebas.SaludIT
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.416 s -- in com.ondexia.pruebas.SeriesIT
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.124 s -- in com.ondexia.pruebas.SuscripcionCaidaIT
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.426 s -- in com.ondexia.pruebas.TiposDeProductoIT
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.034 s -- in com.ondexia.pruebas.TokenDesarrolloIT
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.045 s -- in com.ondexia.pruebas.TraduccionRestriccionesIT
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.344 s -- in com.ondexia.pruebas.UsuariosIT
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.110 s -- in com.ondexia.pruebas.VinculacionIT
+[INFO] Tests run: 270, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.185 s -- in com.ondexia.admin.configuracion.CertificadoRaizRdsTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.106 s -- in FuenteDeDatosIam · firma del token
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.001 s -- in com.ondexia.admin.cuentas.BitacoraDelPanelIT
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.327 s -- in com.ondexia.admin.cuentas.ConsultaDeCuentasIT
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.195 s -- in com.ondexia.admin.cuentas.GestionDeCuentasIT
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.430 s -- in com.ondexia.admin.seguridad.FirmaDelTokenIT
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.ondexia.admin.seguridad.GruposDelPersonalTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.122 s -- in com.ondexia.admin.seguridad.TokenDeLaPasarelaTest
+[INFO] Tests run: 41, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Reactor Summary for Ondexia — backend 0.1.0-SNAPSHOT:
+[INFO] Ondexia — backend .................................. SUCCESS [  0.002 s]
+[INFO] Ondexia — dominio .................................. SUCCESS [  2.415 s]
+[INFO] Ondexia — API Core ................................. SUCCESS [ 33.898 s]
+[INFO] Ondexia — panel administrativo ..................... SUCCESS [  7.175 s]
+[INFO] BUILD SUCCESS
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.123 s -- in com.ondexia.domain.almacen.ProductoTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.045 s -- in com.ondexia.domain.comprobante.ComprobanteElectronicoTest
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.039 s -- in com.ondexia.domain.comprobante.ComunicacionDeBajaTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in com.ondexia.domain.comun.TipoDeContribuyenteTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.075 s -- in Claves de openssl
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.037 s -- in Ida y vuelta
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.047 s -- in Lo que no debe pasar
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.167 s -- in com.ondexia.domain.consultas.AtestacionTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.054 s -- in Aptitud para el registro
+[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 s -- in Motivo del rechazo
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.010 s -- in El hueco del respaldo
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in Lo que no puede faltar
+[INFO] Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.085 s -- in com.ondexia.domain.consultas.DatosDeRucTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in com.ondexia.domain.identidad.EmpresaEmisionTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.ondexia.domain.identidad.EmpresaRegimenTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in com.ondexia.domain.identidad.PermisosCubreTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in com.ondexia.domain.ventas.ClienteTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.023 s -- in com.ondexia.domain.ventas.DocumentoVentaTest
+[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.027 s -- in com.ondexia.domain.ventas.NotaDeCreditoTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in com.ondexia.domain.ventas.PagoTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in com.ondexia.domain.ventas.SesionCajaTest
+[INFO] Tests run: 123, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.156 s -- in com.ondexia.consultas.CascadaDeProveedoresTest
+[INFO] Tests run: 16, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.088 s -- in com.ondexia.consultas.VocabularioDeSunatTest
+[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.001 s -- in com.ondexia.consultas.web.ConsultaDeDniControllerTest
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.301 s -- in com.ondexia.consultas.web.ConsultaDeRucControllerTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.200 s -- in com.ondexia.consultas.web.CuotaDeConsultasTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.ondexia.consultas.web.CuotaPorSolicitanteTest
+[INFO] Tests run: 41, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.942 s -- in com.ondexia.facturacion.ProcesadorDeOrdenesTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.870 s -- in com.ondexia.facturacion.lambda.ManejadorDeOrdenesTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.119 s -- in com.ondexia.facturacion.sunat.ConstructorDeComprobanteTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.054 s -- in com.ondexia.facturacion.sunat.FirmadorDeComprobanteTest
+[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.026 s -- in com.ondexia.facturacion.sunat.LectorDeRespuestaSunatTest
+[INFO] Tests run: 27, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Reactor Summary for Ondexia — backend 0.1.0-SNAPSHOT:
+[INFO] Ondexia — backend .................................. SUCCESS [  0.002 s]
+[INFO] Ondexia — dominio .................................. SUCCESS [  1.787 s]
+[INFO] Ondexia — consultas externas ....................... SUCCESS [  3.606 s]
+[INFO] Ondexia — emisor electronico ....................... SUCCESS [  4.039 s]
+[INFO] BUILD SUCCESS

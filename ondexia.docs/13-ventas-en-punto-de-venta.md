@@ -342,6 +342,14 @@ pagos y totales. «Previsualizar comprobante» abre ticket de 80 mm o A4 y permi
 imprimir desde el navegador (doc 12 §5.4) o volver al registro. La nota de venta
 muestra «Importe de venta» y «Total», sin fila de IGV ni leyenda interna al pie.
 Sus importes guardados no se modifican. Las leyendas fiscales se conservan.
+La cabecera se comparte con Identidad visual: A4 usa el logo principal y el
+recuadro de RUC/tipo/número; ticket usa su logo en gris y datos centrados. Desde
+V27 cada emisión fija ambas claves. Cambiar o quitar el logo conserva los
+archivos y no cambia el historial. Documentos sin referencia guardada se
+imprimen sin logo, según la decisión del propietario del 2026-10-10. La consulta
+entrega las URLs históricas bajo los permisos de ventas, sin pedir permisos de
+Configuración. Ver `PuntoDeVentaIT.versionesDeLogoEnLaEmision` e `inmutable`,
+`IdentidadVisualIT.quitarConservaHistoria` y la especificación de logos históricos.
 Desde cada listado se abre el formulario compartido con tipo fijo: nueva nota,
 boleta o factura solo emite ese tipo. El mostrador general conserva su selector
 según permisos/régimen. `rutas-emision.spec.ts` contrasta las rutas reales y
