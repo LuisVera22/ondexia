@@ -48,3 +48,12 @@ El control local de tono/forma no pudo evaluar los sitios: faltan los directorio
 dist de web y landing en este worktree. Su mensaje «no cumple» no se registra
 como validación correcta; el CI ejecutará construcción y control completos.
 CI del PR e integración de este lote pendientes al registrar la evidencia.
+
+## Continuidad de F04
+
+Las instrucciones y resultados anteriores corresponden al primer corte histórico
+de F03. El [primer corte F04](2026-10-10-decimales-mostrador.md) corrige el mostrador
+y actualiza el diagnóstico para cargar el auxiliar decimal real: en esa revisión
+los siete oráculos coinciden y la salida es 0. Para reproducir las divergencias
+originales, consultar la revisión del PR #37, no el script posterior corregido.
+Los archivos originales de evidencia se conservan.

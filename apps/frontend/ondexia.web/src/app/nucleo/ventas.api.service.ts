@@ -92,14 +92,14 @@ export type EstadoDocumentoVenta = 'EMITIDO' | 'PENDIENTE' | 'CANJEADO' | 'ANULA
 
 export interface LineaPedida {
   readonly productoId: string;
-  readonly cantidad: number;
-  readonly descuento?: number | null;
+  readonly cantidad: string | number;
+  readonly descuento?: string | number | null;
 }
 
 export interface PagoPedido {
   readonly forma: FormaDePago;
   /** Lo que este pago aporta al total del documento. */
-  readonly monto: number;
+  readonly monto: string | number;
   readonly referencia?: string | null;
   /**
    * Lo que el cliente entregó, si fue más que el monto. Solo en efectivo.
@@ -107,7 +107,7 @@ export interface PagoPedido {
    * El vuelto no se manda porque es `entregado - monto`: un dato derivado que
    * viaja es un dato que algún día no coincide con sus operandos.
    */
-  readonly entregado?: number | null;
+  readonly entregado?: string | number | null;
 }
 
 export interface PeticionVenta {

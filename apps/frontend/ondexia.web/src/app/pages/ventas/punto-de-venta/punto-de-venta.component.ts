@@ -1,3 +1,4 @@
+import { decimal, entradaDecimalValida, importeDecimal, normalizarEntradaDecimal } from '../../../nucleo/decimal-exacto';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -34,11 +35,11 @@ export interface LineaPos {
   readonly codigo: string;
   readonly descripcion: string;
   readonly unidad: string;
-  readonly precio: number;
+  readonly precio: string;
   readonly llevaIgv: boolean;
-  readonly existencia: number | null;
-  cantidad: number;
-  descuento: number;
+  readonly existencia: string | null;
+  cantidad: string;
+  descuento: string;
 }
 
 export interface PagoPos {
@@ -52,7 +53,7 @@ export interface PagoPos {
    * es el vuelto. En las demás formas de pago es el importe exacto, porque un
    * datáfono no devuelve suelto.
    */
-  monto: number | null;
+  monto: string | null;
   referencia: string;
 }
 
@@ -60,19 +61,18 @@ export interface PagoPos {
 export interface PagoAplicado {
   readonly pago: PagoPos;
   /** Lo que este renglón aporta al total del documento. */
-  readonly aplicado: number;
+  readonly aplicado: string;
   /** Lo que sobra y hay que devolver. Siempre cero fuera del efectivo. */
-  readonly vuelto: number;
+  readonly vuelto: string;
 }
 
-/** Redondeo a céntimos, que es lo que el servidor valida. */
-export function redondear(valor: number): number {
-  return Math.round((valor + Number.EPSILON) * 100) / 100;
-}
+/** HALF_UP decimal, según LineaDeVenta.calcular. */
+export function redondear(valor: string): string { return decimal(valor).redondear(2).texto(); }
 
-/** El total de una línea: cantidad por precio con IGV menos el descuento, en céntimos. */
-export function totalDeLinea(linea: { cantidad: number; precio: number; descuento: number }): number {
-  return Math.max(0, redondear(linea.cantidad * linea.precio - (linea.descuento || 0)));
+export function totalDeLinea(linea: { cantidad: string; precio: string; descuento: string }): string {
+  if (!entradaDecimalValida(linea.cantidad, 6) || !entradaDecimalValida(linea.descuento, 2)) return '0.00';
+  const total = decimal(linea.cantidad).multiplicar(decimal(linea.precio)).restar(decimal(linea.descuento)).redondear(2);
+  return total.comparar(decimal('0')) < 0 ? '0.00' : total.texto();
 }
 
 /**
@@ -102,7 +102,7 @@ export class PuntoDeVentaComponent {
   private readonly ruta = inject(ActivatedRoute);
 
   readonly formasDePago = FORMAS_DE_PAGO;
-  readonly TOPE_BOLETA_SIN_DOCUMENTO = 700;
+  readonly TOPE_BOLETA_SIN_DOCUMENTO = '700';
 
   readonly tipoFijo = signal<TipoVenta | null>(null);
   readonly tipo = signal<TipoVenta>('NV');
@@ -152,44 +152,33 @@ export class PuntoDeVentaComponent {
     this.series().map((s) => ({ valor: s.id, etiqueta: s.serie, detalle: s.siguienteNumero }))
   );
 
-  readonly total = computed(() => redondear(this.lineas().reduce((suma, l) => suma + totalDeLinea(l), 0)));
-  readonly igvEstimado = computed(() =>
-    redondear(
-      this.lineas()
-        .filter((l) => l.llevaIgv)
-        .reduce((suma, l) => suma + (totalDeLinea(l) - redondear(totalDeLinea(l) / 1.18)), 0)
-    )
-  );
-  /**
-   * Reparte lo escrito en cada renglón entre lo que se aplica y lo que se
-   * devuelve.
-   *
-   * El efectivo no puede pasarse: lo que exceda de lo que queda por cobrar es
-   * vuelto, no un cobro de más. Las demás formas sí pueden pasarse, y entonces
-   * es un error — nadie devuelve suelto de una transferencia.
-   *
-   * Se recorre en orden y descontando, para que en un pago mixto cada renglón
-   * vea lo que dejaron los anteriores.
-   */
+  readonly total = computed(() => this.lineas().reduce((suma, linea) =>
+    suma.sumar(decimal(totalDeLinea(linea))), decimal('0')).redondear(2).texto());
+  readonly igvEstimado = computed(() => this.lineas().filter(l => l.llevaIgv).reduce((suma, linea) => {
+    const total = decimal(totalDeLinea(linea));
+    return suma.sumar(total.restar(total.dividir(decimal('1.18'), 2)));
+  }, decimal('0')).redondear(2).texto());
+
+  /** Recorrido en orden: solo el efectivo excedente se devuelve como vuelto. */
   readonly aplicaciones = computed<PagoAplicado[]>(() => {
-    let restante = this.total();
-    return this.pagos().map((pago) => {
-      const escrito = redondear(Number(pago.monto) || 0);
-      const aplicado =
-        pago.forma === 'EFECTIVO' ? Math.min(escrito, Math.max(restante, 0)) : escrito;
-      restante = redondear(restante - aplicado);
-      return { pago, aplicado, vuelto: redondear(escrito - aplicado) };
+    let restante = decimal(this.total());
+    return this.pagos().map(pago => {
+      const escrito = decimal(pago.monto && entradaDecimalValida(pago.monto, 2) ? pago.monto : '0');
+      const limite = restante.comparar(decimal('0')) > 0 ? restante : decimal('0');
+      const aplicado = pago.forma === 'EFECTIVO' && escrito.comparar(limite) > 0 ? limite : escrito;
+      restante = restante.restar(aplicado);
+      return { pago, aplicado: aplicado.redondear(2).texto(), vuelto: escrito.restar(aplicado).redondear(2).texto() };
     });
   });
-
-  readonly cobrado = computed(() =>
-    redondear(this.aplicaciones().reduce((suma, a) => suma + a.aplicado, 0))
-  );
-  readonly porCobrar = computed(() => redondear(this.total() - this.cobrado()));
-  /** Lo que hay que devolver de la gaveta. Cero salvo que alguien pague con un billete grande. */
-  readonly vuelto = computed(() =>
-    redondear(this.aplicaciones().reduce((suma, a) => suma + a.vuelto, 0))
-  );
+  readonly cobrado = computed(() => this.aplicaciones().reduce((suma, a) =>
+    suma.sumar(decimal(a.aplicado)), decimal('0')).redondear(2).texto());
+  readonly porCobrar = computed(() => decimal(this.total()).restar(decimal(this.cobrado())).redondear(2).texto());
+  readonly vuelto = computed(() => this.aplicaciones().reduce((suma, a) =>
+    suma.sumar(decimal(a.vuelto)), decimal('0')).redondear(2).texto());
+  readonly signoPorCobrar = computed(() => decimal(this.porCobrar()).comparar(decimal('0')));
+  readonly porCobrarAbsoluto = computed(() => this.signoPorCobrar() < 0
+    ? decimal(this.porCobrar()).negar().texto() : this.porCobrar());
+  readonly tieneVuelto = computed(() => decimal(this.vuelto()).comparar(decimal('0')) > 0);
 
   /** Lo que el servidor va a decir, dicho antes. */
   readonly impedimento = computed<string | null>(() => {
@@ -204,16 +193,25 @@ export class PuntoDeVentaComponent {
     if (this.lineas().length === 0) {
       return 'Agrega al menos un producto.';
     }
+    for (const linea of this.lineas()) {
+      if (!entradaDecimalValida(linea.cantidad, 6) || decimal(linea.cantidad).comparar(decimal('0')) <= 0)
+        return 'Indica una cantidad mayor que cero, con hasta seis decimales.';
+      if (!entradaDecimalValida(linea.descuento, 2)) return 'El descuento debe ser positivo o cero y expresarse en céntimos.';
+      if (decimal(linea.cantidad).multiplicar(decimal(linea.precio)).restar(decimal(linea.descuento)).redondear(2).comparar(decimal('0')) < 0)
+        return 'El descuento no puede superar el total de la línea.';
+    }
+    if (this.pagos().some(p => p.monto !== null && !entradaDecimalValida(p.monto, 2)))
+      return 'Indica un pago positivo o cero, con hasta dos decimales.';
     if (this.tipo() === 'FACTURA' && this.cliente()?.tipoDocumento !== 'RUC') {
       return 'Una factura exige un cliente con RUC.';
     }
-    if (this.tipo() === 'BOLETA' && !this.cliente() && this.total() > this.TOPE_BOLETA_SIN_DOCUMENTO) {
+    if (this.tipo() === 'BOLETA' && !this.cliente() && decimal(this.total()).comparar(decimal(this.TOPE_BOLETA_SIN_DOCUMENTO)) > 0) {
       return `Una boleta de más de S/ ${this.TOPE_BOLETA_SIN_DOCUMENTO} tiene que identificar al adquirente.`;
     }
-    if (this.porCobrar() !== 0) {
-      return this.porCobrar() > 0
+    if (this.signoPorCobrar() !== 0) {
+      return this.signoPorCobrar() > 0
         ? `Falta cobrar ${this.importe(this.porCobrar())}.`
-        : `Los pagos superan el total en ${this.importe(-this.porCobrar())}. Solo el efectivo`
+        : `Los pagos superan el total en ${this.importe(this.porCobrarAbsoluto())}. Solo el efectivo`
           + ' admite entregar de más, y se devuelve como vuelto.';
     }
     if (this.series().length > 1 && !this.serieId()) {
@@ -332,7 +330,7 @@ export class PuntoDeVentaComponent {
     const existente = actuales.find((l) => l.productoId === producto.id);
     if (existente) {
       // El mismo producto dos veces suma cantidad: es lo que hace el mostrador.
-      this.lineas.set(actuales.map((l) => (l === existente ? { ...l, cantidad: l.cantidad + 1 } : l)));
+      this.lineas.set(actuales.map((l) => (l === existente ? { ...l, cantidad: entradaDecimalValida(l.cantidad, 6) ? decimal(l.cantidad).sumar(decimal('1')).texto() : l.cantidad } : l)));
       return;
     }
     this.lineas.set([
@@ -345,19 +343,19 @@ export class PuntoDeVentaComponent {
         precio: producto.precio,
         llevaIgv: producto.llevaIgv,
         existencia: producto.existencia,
-        cantidad: 1,
-        descuento: 0,
+        cantidad: '1',
+        descuento: '0',
       },
     ]);
   }
 
   cambiarCantidad(linea: LineaPos, valor: string | number): void {
-    const cantidad = Number(valor);
-    this.lineas.set(this.lineas().map((l) => (l === linea ? { ...l, cantidad: cantidad > 0 ? cantidad : 1 } : l)));
+    const cantidad = normalizarEntradaDecimal(String(valor));
+    this.lineas.set(this.lineas().map((l) => (l === linea ? { ...l, cantidad } : l)));
   }
 
   cambiarDescuento(linea: LineaPos, valor: string | number): void {
-    const descuento = Math.max(0, Number(valor) || 0);
+    const descuento = normalizarEntradaDecimal(String(valor)) || '0';
     this.lineas.set(this.lineas().map((l) => (l === linea ? { ...l, descuento } : l)));
   }
 
@@ -365,12 +363,12 @@ export class PuntoDeVentaComponent {
     this.lineas.set(this.lineas().filter((l) => l !== linea));
   }
 
-  totalLinea(linea: LineaPos): number {
+  totalLinea(linea: LineaPos): string {
     return totalDeLinea(linea);
   }
 
   sinExistencias(linea: LineaPos): boolean {
-    return linea.existencia !== null && linea.existencia < linea.cantidad;
+    return linea.existencia !== null && entradaDecimalValida(linea.cantidad, 6) && decimal(linea.existencia).comparar(decimal(linea.cantidad)) < 0;
   }
 
   // ── Cliente ────────────────────────────────────────────────────────────
@@ -436,7 +434,7 @@ export class PuntoDeVentaComponent {
   }
 
   cambiarMonto(pago: PagoPos, valor: string | number): void {
-    const monto = valor === '' || valor === null ? null : Number(valor);
+    const monto = valor === '' || valor === null ? null : normalizarEntradaDecimal(String(valor));
     this.pagos.set(this.pagos().map((p) => (p === pago ? { ...p, monto } : p)));
   }
 
@@ -453,9 +451,9 @@ export class PuntoDeVentaComponent {
    * cobrar de más.
    */
   completarPago(pago: PagoPos): void {
-    const aplicado = this.aplicaciones().find((a) => a.pago === pago)?.aplicado ?? 0;
-    const resto = redondear(this.porCobrar() + aplicado);
-    this.cambiarMonto(pago, resto > 0 ? resto : 0);
+    const aplicado = this.aplicaciones().find((a) => a.pago === pago)?.aplicado ?? '0.00';
+    const resto = decimal(this.porCobrar()).sumar(decimal(aplicado)).redondear(2).texto();
+    this.cambiarMonto(pago, decimal(resto).comparar(decimal('0')) > 0 ? resto : '0.00');
   }
 
   // ── Emitir ─────────────────────────────────────────────────────────────
@@ -468,18 +466,18 @@ export class PuntoDeVentaComponent {
       lineas: this.lineas().map((l) => ({
         productoId: l.productoId,
         cantidad: l.cantidad,
-        descuento: l.descuento || null,
+        descuento: decimal(l.descuento).comparar(decimal('0')) === 0 ? null : l.descuento,
       })),
       // Se manda lo APLICADO como monto y, solo si hubo vuelto, lo entregado.
       // El comprobante y el arqueo cuadran con el monto; el billete del cliente
       // queda aparte.
       pagos: this.aplicaciones()
-        .filter((a) => a.aplicado > 0)
+        .filter((a) => decimal(a.aplicado).comparar(decimal('0')) > 0)
         .map((a) => ({
           forma: a.pago.forma,
           monto: a.aplicado,
           referencia: a.pago.referencia || null,
-          entregado: a.vuelto > 0 ? redondear(a.aplicado + a.vuelto) : null,
+          entregado: decimal(a.vuelto).comparar(decimal('0')) > 0 ? decimal(a.aplicado).sumar(decimal(a.vuelto)).redondear(2).texto() : null,
         })),
       observaciones: this.observaciones() || null,
     };
@@ -522,11 +520,11 @@ export class PuntoDeVentaComponent {
     this.opcionesCliente.set([]);
   }
 
-  importe(valor: number): string {
-    return Number(valor).toLocaleString('es-PE', { style: 'currency', currency: 'PEN', minimumFractionDigits: 2 });
+  importe(valor: string | number): string {
+    return importeDecimal(String(valor));
   }
 
-  cantidad(valor: number): string {
-    return Number(valor).toLocaleString('es-PE', { maximumFractionDigits: 6 });
+  cantidad(valor: string): string {
+    return valor;
   }
 }

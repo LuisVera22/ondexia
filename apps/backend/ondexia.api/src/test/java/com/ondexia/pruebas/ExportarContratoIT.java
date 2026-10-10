@@ -40,6 +40,28 @@ class ExportarContratoIT extends PruebaIntegracion {
             Path.of("..", "..", "..", "ondexia.contracts", "openapi.yaml");
 
     @Test
+    @DisplayName("Los decimales de venta documentan texto exacto y compatibilidad numérica")
+    void contratoDecimal() throws Exception {
+        String respuesta = mockMvc.perform(get("/v3/api-docs"))
+                .andExpect(status().isOk()).andReturn().getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+        var esquemas = new tools.jackson.databind.ObjectMapper().readTree(respuesta)
+                .path("components").path("schemas");
+        assertThat(esquemas.path("RespuestaDisponible").path("properties")
+                .path("precio").path("type").asString()).isEqualTo("string");
+        for (var entrada : java.util.Map.of("LineaPedida", java.util.List.of("cantidad", "descuento"),
+                "PagoPedido", java.util.List.of("monto", "entregado")).entrySet()) {
+            for (String campo : entrada.getValue()) {
+                var decimal = esquemas.path(entrada.getKey()).path("properties").path(campo);
+                assertThat(decimal.has("properties")).isFalse();
+                assertThat(decimal.path("oneOf").size()).isEqualTo(2);
+                assertThat(decimal.path("oneOf").get(0).path("type").asString()).isEqualTo("string");
+                assertThat(decimal.path("oneOf").get(1).path("type").asString()).isEqualTo("number");
+            }
+        }
+    }
+
+    @Test
     @DisplayName("El contrato se exporta a ondexia.contracts")
     void exportarContrato() throws Exception {
         String contrato = mockMvc.perform(get("/v3/api-docs.yaml"))

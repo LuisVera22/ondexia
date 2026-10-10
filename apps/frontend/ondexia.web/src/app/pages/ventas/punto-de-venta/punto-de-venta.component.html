@@ -60,13 +60,13 @@
                 </span>
               </td>
               <td data-etiqueta="Cantidad" class="px-2 py-2.5 text-right">
-                <input type="number" min="0.000001" step="any" [ngModel]="linea.cantidad" (ngModelChange)="cambiarCantidad(linea, $event)"
+                <input type="text" inputmode="decimal" maxlength="19" [ngModel]="linea.cantidad" (ngModelChange)="cambiarCantidad(linea, $event)"
                   [attr.aria-label]="'Cantidad de ' + linea.descripcion"
                   class="h-9 w-24 rounded-base border border-gray-300 bg-transparent px-2 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
               </td>
               <td data-etiqueta="Precio" class="px-2 py-2.5 text-right tabular-nums text-gray-700 dark:text-gray-300">{{ importe(linea.precio) }}</td>
               <td data-etiqueta="Descuento" class="px-2 py-2.5 text-right">
-                <input type="number" min="0" step="0.01" [ngModel]="linea.descuento" (ngModelChange)="cambiarDescuento(linea, $event)"
+                <input type="text" inputmode="decimal" maxlength="15" [ngModel]="linea.descuento" (ngModelChange)="cambiarDescuento(linea, $event)"
                   [attr.aria-label]="'Descuento de ' + linea.descripcion"
                   class="h-9 w-24 rounded-base border border-gray-300 bg-transparent px-2 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20 dark:border-gray-700 dark:text-white/90" />
               </td>
@@ -158,7 +158,7 @@
                 <option [value]="forma.codigo">{{ forma.nombre }}</option>
                 }
               </select>
-              <input type="number" min="0" step="0.01" placeholder="0.00" [ngModel]="pago.monto" (ngModelChange)="cambiarMonto(pago, $event)"
+              <input type="text" inputmode="decimal" maxlength="15" placeholder="0.00" [ngModel]="pago.monto" (ngModelChange)="cambiarMonto(pago, $event)"
                 [attr.aria-label]="pago.forma === 'EFECTIVO' ? 'Efectivo entregado' : 'Monto'"
                 [title]="pago.forma === 'EFECTIVO' ? 'Lo que entrega el cliente. Si es de más, la diferencia sale como vuelto.' : 'Importe exacto de este pago.'"
                 class="min-w-0 w-full h-10 rounded-base border border-gray-300 bg-transparent px-2 text-right text-sm tabular-nums text-gray-800 focus:border-brand-300 focus:outline-hidden dark:border-gray-700 dark:text-white/90" />
@@ -177,8 +177,8 @@
         <button type="button" (click)="agregarPago()" class="mt-2 text-xs font-medium text-brand-500 hover:text-brand-600">Agregar otra forma de pago</button>
 
         <div class="mt-4 flex items-baseline justify-between text-sm">
-          <span class="text-gray-500 dark:text-gray-400">{{ porCobrar() >= 0 ? 'Por cobrar' : 'De más' }}</span>
-          <span class="tabular-nums font-medium" [class]="porCobrar() === 0 ? 'text-success-700 dark:text-success-400' : 'text-gray-800 dark:text-white/90'">{{ importe(porCobrar() < 0 ? -porCobrar() : porCobrar()) }}</span>
+          <span class="text-gray-500 dark:text-gray-400">{{ signoPorCobrar() >= 0 ? 'Por cobrar' : 'De más' }}</span>
+          <span class="tabular-nums font-medium" [class]="signoPorCobrar() === 0 ? 'text-success-700 dark:text-success-400' : 'text-gray-800 dark:text-white/90'">{{ importe(porCobrarAbsoluto()) }}</span>
         </div>
 
         <!--
@@ -186,7 +186,7 @@
           canta grande y aparte del total. No va al comprobante: alli el importe
           es el de la venta, no el billete que puso el cliente.
         -->
-        @if (vuelto() > 0) {
+        @if (tieneVuelto()) {
         <div class="mt-2 flex items-baseline justify-between rounded-base bg-warning-50 px-3 py-2 dark:bg-warning-500/10">
           <span class="text-sm font-medium text-warning-700 dark:text-warning-400">Vuelto</span>
           <span class="text-xl font-semibold tabular-nums text-warning-700 dark:text-warning-400">{{ importe(vuelto()) }}</span>

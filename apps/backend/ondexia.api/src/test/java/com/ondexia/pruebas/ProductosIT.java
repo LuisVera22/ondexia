@@ -77,6 +77,19 @@ class ProductosIT extends PruebaIntegracion {
     }
 
     @Test
+    @DisplayName("El precio disponible conserva seis decimales como texto JSON")
+    void precioDisponibleDecimal() throws Exception {
+        crear("DEC-EXACTO", "Servicio decimal", "123456789012.344999", false);
+        String cuerpo = mockMvc.perform(comoAdministrador(get(PRODUCTOS + "/disponibles")
+                        .param("sucursalId", MATRIZ).param("q", "DEC-EXACTO")))
+                .andExpect(status().isOk()).andReturn().getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+        var precio = json.readTree(cuerpo).get(0).path("precio");
+        assertThat(precio.isString()).isTrue();
+        assertThat(precio.asString()).isEqualTo("123456789012.344999");
+    }
+
+    @Test
     @DisplayName("Alta, edición, desactivación y catálogos de SUNAT")
     void cicloCompleto() throws Exception {
         JsonNode creado = crear("cem-t01", "Cemento Portland Tipo I", "32.5", true);
