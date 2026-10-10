@@ -212,6 +212,29 @@ class PuntoDeVentaIT extends PruebaIntegracion {
     }
 
     @Test
+    @DisplayName("Los decimales textuales se validan y los pagos mixtos cuadran sin cambiar importes")
+    void ventaConDecimalesTextuales() throws Exception {
+        String caja = cajaAbierta("0");
+        String cuerpo = mockMvc.perform(comoAdministrador(post("/api/v1/ventas/notas-de-venta")).content("""
+                        {"cajaId": "%s", "serieId": "%s",
+                         "lineas": [{"productoId": "%s", "cantidad": "0.500000", "descuento": "0.10"}],
+                         "pagos": [{"forma": "TARJETA", "monto": "10.00"},
+                                   {"forma": "EFECTIVO", "monto": "29.90", "entregado": "50.00"}]}
+                        """.formatted(caja, SERIE_NV, INSTALACION)))
+                .andExpect(status().isCreated()).andReturn().getResponse()
+                .getContentAsString(StandardCharsets.UTF_8);
+        var documento = leer(cuerpo).path("documento");
+        assertThat(documento.path("total").decimalValue()).isEqualByComparingTo("39.90");
+        assertThat(documento.path("pagos").get(1).path("vuelto").decimalValue()).isEqualByComparingTo("20.10");
+        mockMvc.perform(comoAdministrador(post("/api/v1/ventas/notas-de-venta")).content("""
+                        {"cajaId": "%s", "serieId": "%s",
+                         "lineas": [{"productoId": "%s", "cantidad": "0.5000001"}],
+                         "pagos": [{"forma": "EFECTIVO", "monto": "40.00"}]}
+                        """.formatted(caja, SERIE_NV, INSTALACION)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     @DisplayName("Nota de venta completa: correlativo, IGV, pago mixto, descarga y arqueo")
     void notaDeVentaCompleta() throws Exception {
         String caja = cajaAbierta("100");
@@ -520,8 +543,8 @@ class PuntoDeVentaIT extends PruebaIntegracion {
                         .param("sucursalId", MATRIZ).param("q", "cemento"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].codigo").value("CEM-001"))
-                .andExpect(jsonPath("$[0].precio").value(32.5))
-                .andExpect(jsonPath("$[0].existencia").value(25));
+                .andExpect(jsonPath("$[0].precio").value("32.500000"))
+                .andExpect(jsonPath("$[0].existencia").value("25.000000"));
 
         // Un servicio no tiene existencias: null, no cero.
         mockMvc.perform(comoAdministrador(get("/api/v1/almacen/productos/disponibles"))

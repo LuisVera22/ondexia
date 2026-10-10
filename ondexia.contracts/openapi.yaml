@@ -2849,13 +2849,26 @@ components:
           type: string
           format: uuid
         cantidad:
-          minimum: 0
-          exclusiveMinimum: true
-          type: number
+          description: Decimal exacto como texto; se admiten números por compatibilidad.
+            Hasta 12 cifras enteras y 6 decimales.
+          nullable: false
+          oneOf:
+          - pattern: "^(?!0+(?:\\.0+)?$)[0-9]{1,12}(\\.[0-9]{1,6})?$"
+            type: string
+          - minimum: 0
+            exclusiveMinimum: true
+            type: number
         descuento:
-          minimum: 0
-          exclusiveMinimum: false
-          type: number
+          description: Decimal exacto como texto; se admiten números por compatibilidad.
+            Hasta 12 cifras enteras y 2 decimales.
+          nullable: true
+          oneOf:
+          - pattern: "^[0-9]{1,12}(\\.[0-9]{1,2})?$"
+            type: string
+            nullable: true
+          - minimum: 0
+            exclusiveMinimum: false
+            type: number
     PagoPedido:
       required:
       - forma
@@ -2870,17 +2883,30 @@ components:
           - TRANSFERENCIA
           - BILLETERA_DIGITAL
         monto:
-          minimum: 0
-          exclusiveMinimum: true
-          type: number
+          description: Decimal exacto como texto; se admiten números por compatibilidad.
+            Hasta 12 cifras enteras y 2 decimales.
+          nullable: false
+          oneOf:
+          - pattern: "^(?!0+(?:\\.0+)?$)[0-9]{1,12}(\\.[0-9]{1,2})?$"
+            type: string
+          - minimum: 0
+            exclusiveMinimum: true
+            type: number
         referencia:
           maxLength: 100
           minLength: 0
           type: string
         entregado:
-          minimum: 0
-          exclusiveMinimum: true
-          type: number
+          description: Decimal exacto como texto; se admiten números por compatibilidad.
+            Hasta 12 cifras enteras y 2 decimales.
+          nullable: true
+          oneOf:
+          - pattern: "^(?!0+(?:\\.0+)?$)[0-9]{1,12}(\\.[0-9]{1,2})?$"
+            type: string
+            nullable: true
+          - minimum: 0
+            exclusiveMinimum: true
+            type: number
     PeticionVenta:
       required:
       - cajaId
@@ -3827,11 +3853,11 @@ components:
         llevaIgv:
           type: boolean
         precio:
-          type: number
+          type: string
         controlaStock:
           type: boolean
         existencia:
-          type: number
+          type: string
           nullable: true
     RespuestaCatalogos:
       type: object

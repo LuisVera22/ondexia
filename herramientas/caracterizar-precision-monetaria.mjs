@@ -18,7 +18,12 @@ const codigo = funciones.map((nodo) => nodo.getText(fuente)).join('\n');
 const compilado = ts.transpileModule(codigo, {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText;
-const entorno = { exports: {} };
+const auxiliares = { exports: {} };
+const rutaDecimal = resolve(raiz, 'apps/frontend/ondexia.web/src/app/nucleo/decimal-exacto.ts');
+runInNewContext(ts.transpileModule(readFileSync(rutaDecimal, 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+}).outputText, auxiliares, { timeout: 1000 });
+const entorno = { ...auxiliares.exports, exports: {} };
 runInNewContext(compilado, entorno, { timeout: 1000 });
 
 // Oráculos fijados con multiplicación/resta decimal y HALF_UP a céntimos (doc 13 §4.3).
@@ -33,8 +38,8 @@ const casos = [
 ];
 const resultados = casos.map((caso) => {
   const observado = entorno.exports.totalDeLinea({
-    cantidad: Number(caso.cantidad), precio: Number(caso.precio), descuento: Number(caso.descuento),
-  }).toFixed(2);
+    cantidad: caso.cantidad, precio: caso.precio, descuento: caso.descuento,
+  });
   return { ...caso, observado, coincide: observado === caso.esperado };
 });
 console.log(JSON.stringify({ alcance: 'Funciones reales extraídas mediante AST; sin HTTP, plantilla ni persistencia', resultados }, null, 2));
