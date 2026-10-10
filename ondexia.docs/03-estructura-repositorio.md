@@ -520,8 +520,9 @@ la cobertura o un CI verde no prueban controles omitidos o de otro commit.
 Trazar necesidad/regla → caso de uso/extensión → aceptación → prueba/control →
 evidencia del commit. La relación puede ser múltiple; las tareas técnicas pueden
 referenciar invariantes sin inventar historias comerciales. Usar la
-ficha de cambio del harness existente (`/workspace/.ondexia-harness/templates/cambio-verificable.md`) y la
-plantilla de trazabilidad del harness existente (`/workspace/.ondexia-harness/templates/trazabilidad-negocio-sdlc.md`).
+[ficha de cambio y tabla de trazabilidad](investigacion/2026-10-10-requisitos-ux-seguridad/plantillas.md#7-ficha-de-cambio-y-evidencia)
+que complementan las del harness existente. Los campos también están disponibles
+en el repositorio para trabajar sin depender de una ruta local externa.
 
 ### 11.4 Seguridad e información
 

@@ -207,6 +207,9 @@ todavía no ha corrido en ningún sitio.
 | Qué se construye primero y en qué orden | `ondexia.docs/12-plan-primer-producto.md` |
 | Estructura del repositorio y CI/CD | `ondexia.docs/03-estructura-repositorio.md` |
 | Arquitectura del backend | `ondexia.docs/08-arquitectura-backend.md` |
+| Negocio, requisitos, pruebas y seguridad del desarrollo | `ondexia.docs/03-estructura-repositorio.md`, §11 |
+| UX/UI, móvil y accesibilidad | `ondexia.docs/10-convenciones-de-interfaz.md`, §15 |
+| Formatos de especificación, pruebas y evidencia | `ondexia.docs/investigacion/2026-10-10-requisitos-ux-seguridad/plantillas.md` |
 | Panel interno | `ondexia.docs/09-panel-administrativo.md` |
 | Caja, nota de venta y existencias | `ondexia.docs/13-ventas-en-punto-de-venta.md` |
 | Emisión electrónica ante SUNAT | `ondexia.docs/14-emision-electronica.md` |

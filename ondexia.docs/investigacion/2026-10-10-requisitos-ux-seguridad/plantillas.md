@@ -156,3 +156,35 @@ Commit/PR/CI | Evidencia/límite | Versión entregada | Resultado de negocio
 Son relaciones múltiples, no una fila obligatoria por cada test. Puede partirse
 de un requisito técnico o incidente sin forzar una historia comercial ficticia.
 Una necesidad descartada conserva su decisión y no tiene que llegar a código.
+
+
+## 7. Ficha de cambio y evidencia
+
+Complementa la ficha del harness existente. Registrar los mismos datos en un solo
+artefacto del cambio; no exigir una segunda ficha por ubicación del entorno.
+
+```text
+ID / objetivo / fuente y decisión vigente:
+Repositorio / rama / commit base / commit evaluado:
+Alcance, exclusiones, riesgo y método SDD/BDD/TDD elegido:
+Requisitos / casos de uso / extensiones / aceptación / contratos:
+UX y seguridad pertinentes / configuración / pruebas:
+Oráculo independiente / datos sintéticos / comando / entorno / resultado:
+Corrección: fallo sin arreglo y éxito con él:
+Control existente: mutación aislada detectada y restaurada:
+Pruebas fallidas, correctas, omitidas y no ejecutadas:
+Verificaciones externas pendientes y dependencias:
+Revisión independiente: sesión, alcance, commit y hallazgos, o pendiente:
+CI del PR / CI de rama integrada / commit comprobado, cuando corresponda:
+Decisiones pendientes / siguiente paso autorizado / recuperación:
+Resultado de negocio observado y medida de seguimiento:
+```
+
+## 8. Trazabilidad y seguimiento
+
+Complementa la tabla del harness existente. Reutilizar IDs y evidencias; mantener
+relaciones de varios a varios y declarar pendiente lo que no tenga comprobación.
+
+| Necesidad/regla y fuente | Decisión y versión | Caso de uso/extensión | Aceptación y esperado independiente | Control/prueba | Evidencia y commit | Resultado de negocio y pendiente |
+|---|---|---|---|---|---|---|
+| Referencia vigente | Aprobada o pendiente, con fuente | Flujo y excepción pertinentes | Definido antes de observar | ID y archivo/configuración | Comando, entorno y resultado, o no ejecutado | Medida, fuente, responsable y siguiente comprobación |
