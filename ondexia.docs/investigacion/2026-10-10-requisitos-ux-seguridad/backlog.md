@@ -1,6 +1,7 @@
 # Aplicación de la investigación al backlog de fundamentos
 
-Estado: propuesta, actividades **pendientes**. La investigación documental y la
+Estado: ejecución progresiva autorizada; ACT-13 en verificación local, demás
+actividades pendientes salvo evidencia específica. La investigación documental y la
 inspección estática descritas en README están realizadas; no se confunden con
 ejecutar las actividades siguientes. No se inicia funcionalidad nueva.
 
@@ -163,3 +164,13 @@ heads y checks consultados, recomendaciones condicionadas y migraciones mayores
 pospuestas. Confirmado en el log de #15: análisis Dependency-Check omitido aunque
 build esté verde. Se coordina con ACT-19. Faltan avisos oficiales/release notes,
 aplicabilidad, pruebas en develop y decisión final; no se integró ni cerró un PR.
+
+## 6. Seguimiento del primer lote
+
+ACT-13: regresión de cuatro configuraciones inválidas y diez casos JWT previos;
+fallo sin arreglo y verificación local después. Ver
+[especificación](../../especificaciones/2026-10-10-audiencia-jwt.md) y
+[evidencia](../../evidencias/2026-10-10-audiencia-jwt.md).
+CI, integración y auditoría independiente pendientes. F01 tiene inventario inicial
+en §11 del plan; no está completo. ACT-14/15 y los demás puntos no se cierran
+por esta corrección. No se ha probado configuración desplegada en AWS.

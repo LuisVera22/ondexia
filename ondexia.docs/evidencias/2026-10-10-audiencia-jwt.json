@@ -1,0 +1,65 @@
+{
+  "commit_base": "0df3f6d57a8b0dcece6f7667ce605c7fa307dc15",
+  "rama": "feature/cerrar-audiencia-jwt",
+  "directorio": "/workspace/ondexia-deuda-audiencia/apps/backend",
+  "java": "21.0.12.1",
+  "perfil_prueba": "aws",
+  "comando_jwt": "source /workspace/.ondexia-setup/activar-develop.sh; ./mvnw -o -B -s /workspace/.ondexia-setup/maven.xml -pl ondexia.api -am -Ddependency-check.skip=true -Dtest=FirmaDelTokenIT -Dsurefire.failIfNoSpecifiedTests=false test",
+  "comando_regresion": "source /workspace/.ondexia-setup/activar-develop.sh; ./mvnw -o -B -s /workspace/.ondexia-setup/maven.xml -pl ondexia.api -am -Ddependency-check.skip=true -Dtest=FirmaDelTokenIT,ArquitecturaTest -Dsurefire.failIfNoSpecifiedTests=false test",
+  "datos": "RSA generado por prueba; emisor ficticio y cliente ajeno sintético",
+  "resultados": {
+    "rojo": {
+      "casos": 14,
+      "fallos": 4,
+      "errores": 0,
+      "omitidos": 0,
+      "salida": 1
+    },
+    "verde": {
+      "casos": 23,
+      "fallos": 0,
+      "errores": 0,
+      "omitidos": 0,
+      "salida": 0
+    },
+    "mutacion": {
+      "cambio": "Se sustituye temporalmente if (!nuestro) por if (false)",
+      "casos": 14,
+      "fallos": 2,
+      "errores": 0,
+      "omitidos": 0,
+      "salida": 1,
+      "detectada_por": [
+        "otroClienteEnAcceso",
+        "otroClienteEnIdentidad"
+      ]
+    },
+    "restaurado": {
+      "casos": 23,
+      "fallos": 0,
+      "errores": 0,
+      "omitidos": 0,
+      "salida": 0
+    }
+  },
+  "no_verificado": [
+    "AWS desplegado",
+    "Arranque completo con base de datos",
+    "Ausencia total de propiedad en Spring",
+    "Rotación JWKS",
+    "Auditoría independiente",
+    "CI e integración de la corrección",
+    "SCA local: se omitió Dependency-Check de forma explícita"
+  ],
+  "codigo_evaluado_sha256": {
+    "apps/backend/ondexia.api/src/main/java/com/ondexia/infrastructure/configuration/SeguridadPasarelaConfig.java": "476e6f3773de8e2bfc86fb16c2a787243dea05b9293b87e0cd6746fb08015525",
+    "apps/backend/ondexia.api/src/test/java/com/ondexia/pruebas/FirmaDelTokenIT.java": "4f4a0b20c5382abd9320fb928fecc14e7cf4e665ea5cf1e384572fb6418b81aa"
+  },
+  "artefactos_sha256": {
+    "ondexia.docs/evidencias/2026-10-10-audiencia-jwt/mutacion.log.gz": "6187e6b9ea184fdc85c2459d3a920af9a4353e4dc9afbc930079daf76c4b2cd8",
+    "ondexia.docs/evidencias/2026-10-10-audiencia-jwt/restaurado.log.gz": "3b3b23a02cea5a140c6afa7b4ff29284c532818cbc2a9f1c624854cbae9e9b12",
+    "ondexia.docs/evidencias/2026-10-10-audiencia-jwt/rojo.log.gz": "2be73eb756cc0d4003571a64ede054e4c754645d2cdfda4b39ea549da78ca0f7",
+    "ondexia.docs/evidencias/2026-10-10-audiencia-jwt/verde.log.gz": "ec8585c23be3a130da7b6739fc513fc0a6da0b7bb9b5090f24aa22e78024e811"
+  },
+  "formato_artefactos": "Gzip; salida original conservada sin editar"
+}
