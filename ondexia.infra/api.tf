@@ -609,10 +609,13 @@ resource "aws_lambda_function" "migraciones" {
  * que si tiene internet, y el valor viaja como variable de entorno. No es un
  * secreto —son claves publicas— asi que que quede en el estado no importa.
  *
- * SOBRE LA ROTACION. Cognito no rota las claves de firma de un grupo de usuarios
- * por su cuenta: viven lo que el grupo. Si algun dia lo hiciera, el sintoma
- * seria un 401 en toda peticion y se arregla volviendo a aplicar. Ese es el
- * precio de no pagar un endpoint de interfaz (~7.30 USD/mes), y es explicito.
+ * SOBRE LA ROTACIÓN. Cognito puede rotar sus claves de firma. Esta descarga al
+ * aplicar no actualiza periódicamente las instancias ya construidas. La prueba
+ * RotacionDeClavesIT caracteriza rechazo de clave nueva y aceptación al construir
+ * otro decodificador con el JWKS actualizado. Recuperación mediante despliegue
+ * real y actualización automática: no verificadas; pendientes de ACT-14.
+ * Fuente: docs.aws.amazon.com/cognito/latest/developerguide/
+ * amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html
  */
 data "http" "jwks_inquilinos" {
   url = "https://cognito-idp.${var.region}.amazonaws.com/${aws_cognito_user_pool.inquilinos.id}/.well-known/jwks.json"

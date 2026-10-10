@@ -38,7 +38,7 @@ decisiones o evidencia antes de cualquier cambio de código.
 |---|---|---|---|
 | ACT-12 · F11/F16/F24 | P0 | Matriz de activos/amenazas/requisitos ASVS 5.0.0 con aplicabilidad, configuración/prueba/resultado y límites; reconciliar DTE con S3 y controles reales | Inventario F01 |
 | ACT-13 · F19/F24/F25 | P0 | Caracterizar y cerrar aceptación con audiencia configurada vacía; comprobar falla cerrada y algoritmos/uso/audiencia de JWT | SEC-01/02; prueba de regresión |
-| ACT-14 · F17/F24 | P0 | Ensayo de clave Cognito nueva y diseño de actualización segura; evidencia de recuperación y costos; retirar premisa externa incorrecta | SEC-03; entorno controlado |
+| ACT-14 · F17/F24 | P0 | Ensayo de clave Cognito nueva y diseño de actualización segura; evidencia de recuperación y costos; retirar premisa externa incorrecta. [Caracterización local](../../evidencias/2026-10-10-rotacion-jwt.md) realizada; recuperación automática y panel pendientes | SEC-03; entorno controlado |
 | ACT-15 · F16/F18/F24 | P0 | Matriz negativa de permisos/aislamiento por lectura y escritura, cambios de contexto, objetos y rutas; rol real restringido y controles externos pendientes | SEC-04; contrato de errores vigente |
 | ACT-16 · F16/F24/F25 | P0 | Ensayo de bytes falsos, tamaño/dimensiones y reutilización de subida; definir publicación y referencia histórica inmutable; corregir defectos demostrados | SEC-05/06; ensayo S3 aislado si necesario |
 | ACT-17 · F18/F24 | P1 | Flujo de datos de XML/ZIP y pruebas hostiles locales; controles parser/transformación y consumo; diferenciar entradas externas e internas | SEC-07 |

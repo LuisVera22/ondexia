@@ -51,9 +51,12 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
  * un secreto: son claves públicas.
  *
  * <p>La fuente es inmutable ({@link ImmutableJWKSet}): no hay red en ejecución,
- * no hay caché que expire, no hay tiempo de espera que agotar. Si Cognito rotara
- * las claves —hoy no lo hace por su cuenta— el síntoma sería un 401 en toda
- * petición y se arregla volviendo a aplicar.
+ * no hay caché que expire, no hay tiempo de espera que agotar. Cognito puede
+ * rotar sus claves: una firma cuya clave no está configurada se rechaza.
+ * Construir otra instancia con el JWKS actualizado permite verificar las claves
+ * publicadas, sin actualizar la instancia anterior.
+ * Ver {@link com.ondexia.pruebas.RotacionDeClavesIT}; recuperación automática y
+ * aplicación de la configuración en AWS: no verificadas (ACT-14).
  *
  * <h2>Qué se exige, además de la firma</h2>
  *
