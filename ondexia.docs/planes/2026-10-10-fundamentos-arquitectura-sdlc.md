@@ -343,5 +343,28 @@ incertidumbres con entregables y criterios concretos.
 La [investigación de requisitos, UX/UI y seguridad](../investigacion/2026-10-10-requisitos-ux-seguridad/README.md)
 profundiza en historias, casos de uso completos, pruebas, interacción y controles
 OWASP actuales. Incluye fuentes primarias, plantillas, ejemplo didáctico de cajero
-y actividades ACT-01–ACT-22 vinculadas a este backlog. Es documentación propuesta;
+y actividades ACT-01–ACT-23 vinculadas a este backlog. Es documentación propuesta;
 no demuestra controles ejecutados ni autoriza funcionalidades nuevas.
+
+
+## 10. Priorización añadida: revisión de Dependabot, 2026-10-10
+
+Por solicitud del propietario se incorpora **ACT-23**, vinculada a
+F01/F20/F23/F24, en el
+[backlog detallado, §5](../investigacion/2026-10-10-requisitos-ux-seguridad/backlog.md#5-act-23-revisión-y-selección-de-actualizaciones-de-dependabot).
+Se conserva el catálogo existente. La tarea evalúa los 18 PR #13–#30 y produce
+una decisión técnica individual: integrar, adaptar, posponer o descartar.
+
+Prioridad general P1; el triaje comienza en el inventario inicial junto con
+ACT-14/15, después de atender el cierre del bloque ACT-13. Elevar a P0 únicamente
+las propuestas con riesgo de seguridad aplicable confirmado o bloqueo real de
+controles indispensables. Coordinar escáner/CI con ACT-19. Las actualizaciones
+compatibles elegidas preceden a cambios generales de estilo y a mejoras
+cosméticas; los saltos mayores sin necesidad demostrada pueden quedar en P2.
+Los riesgos P0 de dinero e historia mantienen prioridad por evidencia.
+
+La inspección confirmó que todos esos PR apuntan a main y sus títulos usan
+`Actualiza`; alinear las nuevas propuestas con develop y Conventional Commits
+forma parte de ACT-23. No se ha evaluado todavía la compatibilidad ni el CI de
+cada propuesta; ninguna se declara adecuada para integrar por este registro.
+No se cambia código ni configuración de Dependabot en este lote documental.

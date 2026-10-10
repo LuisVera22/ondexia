@@ -1,0 +1,405 @@
+{
+  "fecha": "2026-10-10",
+  "repositorio": "LuisVera22/ondexia",
+  "base_local": "0df3f6d57a8b0dcece6f7667ce605c7fa307dc15",
+  "metodo": "GET pulls abiertos y check-runs por head; jobs y log solo para PR 15; diff de manifiesto PR 27",
+  "propuestas": [
+    {
+      "pr": 30,
+      "titulo": "Actualiza: Bump karma-jasmine-html-reporter from 2.1.0 to 2.3.0 in /apps/frontend/ondexia.admin",
+      "autor": "dependabot[bot]",
+      "head": "b91dff7fee221c9e6979fb7287fbc950756e579b",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 29,
+      "titulo": "Actualiza: Bump zone.js from 0.15.1 to 0.16.3 in /apps/frontend/ondexia.admin",
+      "autor": "dependabot[bot]",
+      "head": "19d30a0bd9a7bc5fb92be29cf402327877eeab4f",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 28,
+      "titulo": "Actualiza: Bump postcss from 8.5.26 to 8.5.29 in /apps/frontend/ondexia.admin",
+      "autor": "dependabot[bot]",
+      "head": "f1c2d8a0bfabe8356b1d5ec0135a470af4cc4cf3",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 27,
+      "titulo": "Actualiza: Bump @angular/cli from 21.2.21 to 22.2.1 in /apps/frontend/ondexia.admin",
+      "autor": "dependabot[bot]",
+      "head": "ffe80e160607077936e07195b8d140939cb22d1d",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 26,
+      "titulo": "Actualiza: Bump typescript from 5.9.3 to 6.0.3 in /apps/frontend/ondexia.landing",
+      "autor": "dependabot[bot]",
+      "head": "78139d4bacbeb9ec090b344999792731b3bbe168",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 25,
+      "titulo": "Actualiza: Bump @types/jasmine from 5.1.15 to 7.0.0 in /apps/frontend/ondexia.admin",
+      "autor": "dependabot[bot]",
+      "head": "af5feffaf9adc5e88613585cf45cd0d8af63ebe4",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 24,
+      "titulo": "Actualiza: Bump astro from 7.2.10 to 7.3.6 in /apps/frontend/ondexia.landing",
+      "autor": "dependabot[bot]",
+      "head": "c7173e4ddd616c2eee2a805a236eaac2ee1dc0a1",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 23,
+      "titulo": "Actualiza: Bump @astrojs/sitemap from 3.7.3 to 3.7.4 in /apps/frontend/ondexia.landing",
+      "autor": "dependabot[bot]",
+      "head": "f12a7df346899b8949a0861ba0e56ab7ccea923a",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 22,
+      "titulo": "Actualiza: Bump software.amazon.awssdk:bom from 2.32.14 to 2.55.11 in /apps/backend",
+      "autor": "dependabot[bot]",
+      "head": "77f78524641c99d58d36b8d2bcab52da7be97690",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 21,
+      "titulo": "Actualiza: Bump actions/cache/restore from 4.3.0 to 6.1.0",
+      "autor": "dependabot[bot]",
+      "head": "1c15062a5d436eeab0526917953f321b58b99d09",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 20,
+      "titulo": "Actualiza: Bump io.quarkus.qute:qute-core from 3.39.2 to 3.40.1 in /apps/backend",
+      "autor": "dependabot[bot]",
+      "head": "69ff095d930fe66e9b9e3c5c14eb36f78f72109c",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 19,
+      "titulo": "Actualiza: Bump actions/upload-artifact from 4.6.2 to 7.0.1",
+      "autor": "dependabot[bot]",
+      "head": "24a0e9b0bd538d1c621932654befc11fb82c3967",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 18,
+      "titulo": "Actualiza: Bump pnpm/action-setup from f520eceda224fe1a4aed5a2a27a194379a409996 to 0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+      "autor": "dependabot[bot]",
+      "head": "fd046ef03139959a9426a06e5e1e2732ef3d2519",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 17,
+      "titulo": "Actualiza: Bump org.apache.maven:apache-maven from 3.9.16 to 3.10.0 in /apps/backend",
+      "autor": "dependabot[bot]",
+      "head": "a1890b3b510715a701d883f7d69739ec6fba82cd",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 16,
+      "titulo": "Actualiza: Bump actions/setup-java from 5.7.0 to 6.0.1",
+      "autor": "dependabot[bot]",
+      "head": "7ab4db6967e72a4671d81c0ad3cafe99cd2900f5",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 15,
+      "titulo": "Actualiza: Bump org.owasp:dependency-check-maven from 12.1.0 to 13.0.0 in /apps/backend",
+      "autor": "dependabot[bot]",
+      "head": "eae6d4082b61388ef9b4b6bc2b49f757847baf80",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 14,
+      "titulo": "Actualiza: Bump actions/download-artifact from 4.3.0 to 8.0.1",
+      "autor": "dependabot[bot]",
+      "head": "ea9d6ec71273ea7080c2a6a9d7cba21ac081f3aa",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    },
+    {
+      "pr": 13,
+      "titulo": "Actualiza: Bump com.tngtech.archunit:archunit-junit5 from 1.5.0 to 1.5.1 in /apps/backend",
+      "autor": "dependabot[bot]",
+      "head": "3def5cdb79d9fa75fdb47dcf9397ef2ef9f83ed5",
+      "base": "main",
+      "estado": "open",
+      "integracion_automatica": null
+    }
+  ],
+  "controles": [
+    {
+      "pr": 30,
+      "head": "b91dff7fee221c9e6979fb7287fbc950756e579b",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37965256263/job/113937888096"
+        }
+      ]
+    },
+    {
+      "pr": 29,
+      "head": "19d30a0bd9a7bc5fb92be29cf402327877eeab4f",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37965230104/job/113937799055"
+        }
+      ]
+    },
+    {
+      "pr": 28,
+      "head": "f1c2d8a0bfabe8356b1d5ec0135a470af4cc4cf3",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37965195853/job/113937681358"
+        }
+      ]
+    },
+    {
+      "pr": 27,
+      "head": "ffe80e160607077936e07195b8d140939cb22d1d",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37965127452/job/113937446658"
+        }
+      ]
+    },
+    {
+      "pr": 26,
+      "head": "78139d4bacbeb9ec090b344999792731b3bbe168",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37965090516/job/113937319711"
+        }
+      ]
+    },
+    {
+      "pr": 25,
+      "head": "af5feffaf9adc5e88613585cf45cd0d8af63ebe4",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37965087616/job/113937309651"
+        }
+      ]
+    },
+    {
+      "pr": 24,
+      "head": "c7173e4ddd616c2eee2a805a236eaac2ee1dc0a1",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37965053550/job/113937196985"
+        }
+      ]
+    },
+    {
+      "pr": 23,
+      "head": "f12a7df346899b8949a0861ba0e56ab7ccea923a",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37965016957/job/113937077316"
+        }
+      ]
+    },
+    {
+      "pr": 22,
+      "head": "77f78524641c99d58d36b8d2bcab52da7be97690",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964980609/job/113936957323"
+        }
+      ]
+    },
+    {
+      "pr": 21,
+      "head": "1c15062a5d436eeab0526917953f321b58b99d09",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964966341/job/113936910796"
+        }
+      ]
+    },
+    {
+      "pr": 20,
+      "head": "69ff095d930fe66e9b9e3c5c14eb36f78f72109c",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964954670/job/113936873419"
+        }
+      ]
+    },
+    {
+      "pr": 19,
+      "head": "24a0e9b0bd538d1c621932654befc11fb82c3967",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964951266/job/113936863006"
+        }
+      ]
+    },
+    {
+      "pr": 18,
+      "head": "fd046ef03139959a9426a06e5e1e2732ef3d2519",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964940176/job/113936827078"
+        }
+      ]
+    },
+    {
+      "pr": 17,
+      "head": "a1890b3b510715a701d883f7d69739ec6fba82cd",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964934138/job/113936807943"
+        }
+      ]
+    },
+    {
+      "pr": 16,
+      "head": "7ab4db6967e72a4671d81c0ad3cafe99cd2900f5",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964929591/job/113936792913"
+        }
+      ]
+    },
+    {
+      "pr": 15,
+      "head": "eae6d4082b61388ef9b4b6bc2b49f757847baf80",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964915726/job/113936750543"
+        }
+      ]
+    },
+    {
+      "pr": 14,
+      "head": "ea9d6ec71273ea7080c2a6a9d7cba21ac081f3aa",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964909180/job/113936728151"
+        }
+      ]
+    },
+    {
+      "pr": 13,
+      "head": "3def5cdb79d9fa75fdb47dcf9397ef2ef9f83ed5",
+      "controles": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "resultado": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964895568/job/113936681285"
+        }
+      ]
+    }
+  ],
+  "analisis_omitido": {
+    "pr": 15,
+    "run": 37964915726,
+    "job": 113936750543,
+    "head": "eae6d4082b61388ef9b4b6bc2b49f757847baf80",
+    "evidencia": "Log: NVD_API_KEY vacía y aviso OWASP Dependency-Check no se ejecutó",
+    "limite": "No demuestra falta de credencial en todos los contextos ni estado de los otros 17 análisis"
+  },
+  "no_verificado": [
+    "Compatibilidad en develop",
+    "Avisos de seguridad oficiales por versión",
+    "Todas las release notes",
+    "Permisos efectivos y secretos del bot",
+    "SCA de otros PR",
+    "Jobs de otros PR",
+    "CI posterior de integración"
+  ]
+}
