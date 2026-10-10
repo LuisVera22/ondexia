@@ -1062,7 +1062,7 @@ Sustitutos admisibles, en orden de valor:
 
 **El riesgo residual que ninguno cubre:** un error de interpretación de la normativa SUNAT que el autor da por cierto. Una IA tiende a aceptar la premisa del autor, y las pruebas solo verifican lo que el autor pensó verificar.
 
-**Mitigación específica y obligatoria:** validar la interpretación tributaria contra **la beta de SUNAT**, que es un revisor imparcial e inapelable. Un comprobante que la beta acepta está bien formado; uno que rechaza señala exactamente dónde está el error. Es la razón por la que la Fase 0 (§10.3) prioriza llegar temprano a la beta: sustituye al peer review en la única dimensión donde el peer review era insustituible.
+**Mitigación específica y obligatoria:** contrastar los casos tributarios implementados con **la beta de SUNAT** y registrar XML, respuesta/CDR y versión del caso, sin secretos. La aceptación técnica demuestra únicamente el resultado del caso enviado; no acredita toda la interpretación normativa, la corrección económica ni cumplimiento jurídico completo. Los rechazos requieren analizar código, datos y respuesta. Este ensayo complementa la revisión de dominio y la auditoría independiente; no las sustituye.
 
 **Este documento no puede pasar a "Aprobado" mientras:**
 
@@ -1071,6 +1071,35 @@ Sustitutos admisibles, en orden de valor:
 3. No se resuelva DT-12 reabierta (§7.1) — emisión propia vs proveedor.
 4. No se resuelvan las 5 preguntas abiertas del documento de alcance §5.
 5. No se confirme el plan de cortes verticales del alcance §6.
+
+---
+
+### 12.2 Lineamientos incorporados al desarrollo y al harness
+
+Decisión del propietario del 2026-10-10. Complementa este DTE y los documentos
+existentes, sin crear otro harness, cambiar una DT ni aprobar este DTE completo.
+
+La evaluación de negocio y procesos, las especificaciones de casos de uso y la
+verificación se rigen por [03, §11](03-estructura-repositorio.md#11-desarrollo-soporte-y-evidencia-del-harness-existente).
+Cada cambio vincula necesidad/regla, fuente y decisión vigente con flujo/extensión,
+aceptación, prueba/control y evidencia del commit. Los resultados esperados deben
+ser independientes de lo observado; declarar verificaciones omitidas y externas
+pendientes. Las correcciones requieren rojo sin arreglo y verde con él; los
+controles existentes requieren sensibilidad con mutación aislada y restaurada.
+Para cambios documentales, corresponde revisión de contenido y enlaces.
+
+Aplicar los criterios de [arquitectura y diseño, 08 §10](08-arquitectura-backend.md#10-criterios-de-diseño-y-arquitectura)
+y [UX/UI y accesibilidad, 10 §15](10-convenciones-de-interfaz.md#15-uxui-y-accesibilidad).
+Los controles de seguridad se seleccionan según activos, fronteras y riesgos,
+con versiones, configuración y comprobaciones: OWASP Top 10:2025 y API Top 10:2023
+orientan riesgos; ASVS 5.0.0 sustenta requisitos verificables. Evaluar costo y
+operación sin relajar las invariantes de [CLAUDE.md](../CLAUDE.md).
+
+La auditoría se realiza en sesión independiente, sin heredar la narrativa del
+implementador. Un informe se contrasta con evidencia; no impone decisiones de
+negocio. La revisión del autor o una suite verde no sustituyen esa auditoría.
+Ni la aprobación del método ni las fuentes consultadas acreditan controles ya
+implementados, conformidad WCAG/ASVS o cierre del backlog.
 
 ---
 
@@ -1097,6 +1126,8 @@ Sustitutos admisibles, en orden de valor:
 | 0.10 | 2026-08-11 | Esqueleto del backend construido y verificado. DT-17 nueva (arquitectura interna: monolito modular con hexagonal pragmática) y DT-18 nueva (Spring Boot 4.0.7, con las cuatro reorganizaciones de módulos que rompen los ejemplos publicados). §8.1: **segunda trampa de RLS** — un rol superusuario se salta todas las políticas y `FORCE` no le alcanza; detectada porque las pruebas de aislamiento fallaron, mitigada con un rol dedicado y una comprobación que aborta el arranque. Se documenta qué tablas quedan fuera de RLS y por qué. Deudas DT-D12 a DT-D15 | — |
 | 0.9 | 2026-08-10 | DT-16 nueva: Terraform sustituye a AWS CDK. Se escribe la v1 completa en `ondexia.infra/`. Referencias a CDK actualizadas en §4.5, §8.3, §9 y §10.3 | — |
 | 0.8 | 2026-08-10 | §4.6 corregido: faltaban WAF, IP pública IPv4 y el escalado de secretos por empresa; el piso pasa de ~24 a ~40 USD/mes. La capa gratuita cambió a créditos. §4.7 nueva: costo de la v1 (~15). §4.8 nueva: consecuencias de la Lambda sin NAT. §5.2 ampliado con `cuenta`, `cuenta_administrador`, alcance por sucursal y `permisos_version`. §5.8 nueva: política de almacenamiento por reproducibilidad. §8.1 reescrito: contexto no confiable, grupos de usuarios separados, trampa de RLS con Lambda. DT-05 corregida (dato de capa gratuita caduco) | — |
+
+| Complemento documental, sin nueva DT | 2026-10-10 | §12.2: integra los lineamientos aprobados de negocio, requisitos, arquitectura, UX/UI, seguridad y pruebas con referencias a los documentos existentes. §12.1: precisa el alcance de aceptación técnica en SUNAT beta; no acredita cumplimiento completo ni sustituye auditoría | — |
 
 ---
 
