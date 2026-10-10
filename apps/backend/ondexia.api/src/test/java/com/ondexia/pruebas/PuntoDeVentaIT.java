@@ -178,9 +178,10 @@ class PuntoDeVentaIT extends PruebaIntegracion {
                 .andExpect(status().isOk());
         contextoMarca();
         try {
-            transaccion.executeWithoutResult(estado -> jdbc.sql(
+            Integer filas = transaccion.execute(estado -> jdbc.sql(
                             "update producto set nombre = 'Servicio posterior', precio_lista = 90 where id = ?::uuid")
                     .param(INSTALACION).update());
+            assertThat(filas).as("El maestro cambia efectivamente bajo el contexto de empresa").isEqualTo(1);
         } finally {
             com.ondexia.infrastructure.seguridad.ContextoDePrueba.limpiar();
         }

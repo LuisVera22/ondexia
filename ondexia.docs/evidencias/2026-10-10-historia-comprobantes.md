@@ -16,7 +16,9 @@ Mutación aislada de reconstrucción: sustituir descripción de detalle por
 **Servicio posterior**. Una prueba falló (esperado **Instalacion a domicilio**).
 Detectó la alteración en la comprobación inicial de emisión. Restaurado byte por
 byte el adaptador, SHA-256 `61180fdfd2209a8041688137391aa38b0d671a5ba33fb68ec8e3752cfa5f54ff`.
-La suite PuntoDeVentaIT pasó después de restaurar; recuento exacto en JSON.
+La suite PuntoDeVentaIT pasó después de restaurar: 13 pruebas. Una comprobación
+adicional exige que el cambio del producto afecte una fila real bajo RLS; la suite
+final volvió a pasar con 13 pruebas. Recuento exacto en JSON.
 Este lote caracteriza; no contiene arreglo y no finge un ciclo rojo/verde de F06.
 
 Ejecución: Java 21, PostgreSQL 17 efímero de Testcontainers, perfil local.
