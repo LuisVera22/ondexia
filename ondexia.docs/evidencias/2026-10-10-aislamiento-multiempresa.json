@@ -1,0 +1,92 @@
+{
+  "fecha": "2026-10-10",
+  "rama": "feature/verificar-aislamiento-multiempresa",
+  "base_inicial": "0df3f6d57a8b0dcece6f7667ce605c7fa307dc15",
+  "base_publicacion_y_repeticion": "c5498b35c5eff9390be980792a4e3446b90630c3",
+  "diferencia_backend_entre_bases": "ninguna; diff comprobado",
+  "servidor": "PostgreSQL 17.11 temporal de Testcontainers; postgres:17-alpine",
+  "variables_externas_excluidas": [
+    "ONDEXIA_PRUEBAS_BD_URL",
+    "ONDEXIA_PRUEBAS_BD_USUARIO",
+    "ONDEXIA_PRUEBAS_BD_CONTRASENA"
+  ],
+  "rol_ejercitado": "ondexia_app; sin SUPERUSER/BYPASSRLS y sin propiedad de almacen",
+  "comando": "./mvnw -o -B -s /workspace/.ondexia-setup/maven.xml -pl ondexia.api -am -Ddependency-check.skip=true -Dtest=AislamientoSqlIT,AislamientoEmpresaIT,ContextoIT,PermisosAnotacionIT,GrantsDeLaAplicacionIT -Dsurefire.failIfNoSpecifiedTests=false test",
+  "mutacion": "Solo AislamientoSqlIT con -Dondexia.pruebas.mutarAislamiento=true; ALTER POLICY transaccional, rollback y verificación de ambas expresiones restauradas",
+  "resultados": [
+    {
+      "fase": "base",
+      "casos": 17,
+      "fallos": 0,
+      "errores": 0,
+      "omitidos": 0,
+      "salida": 0,
+      "archivo": "ondexia.docs/evidencias/2026-10-10-aislamiento-multiempresa/base.log.gz",
+      "sha256_original": "ea12fd2770f3d778fd17f55dcd73d3e5c3a808f69612c6c333a9087db39bf340",
+      "sha256_comprimido": "7f26c267e2e2902e85439f2bf4ef754e0bd8007132d87bc2b04a8c5cba2fe90a"
+    },
+    {
+      "fase": "preparacion-inicial",
+      "casos": 21,
+      "fallos": 0,
+      "errores": 4,
+      "omitidos": 0,
+      "salida": 1,
+      "archivo": "ondexia.docs/evidencias/2026-10-10-aislamiento-multiempresa/preparacion-inicial.log.gz",
+      "sha256_original": "b6bfea6871a806e29b09e1a11a98f414f8be28c90b434c930a6cb4d122129622",
+      "sha256_comprimido": "6f6f7af9a51e7ffc868455dbe51881dfa4eefab265aafcacca79eb7b5cd4d04b"
+    },
+    {
+      "fase": "verde",
+      "casos": 23,
+      "fallos": 0,
+      "errores": 0,
+      "omitidos": 0,
+      "salida": 0,
+      "archivo": "ondexia.docs/evidencias/2026-10-10-aislamiento-multiempresa/verde.log.gz",
+      "sha256_original": "f4175b5310192563cf76135d6e84341f4793e603e01b4d56f4fe96b1462d09c7",
+      "sha256_comprimido": "d39589ea08d77c709b6a4d70d4ee748108156845ae871ded971f95fa8cfe2fb8"
+    },
+    {
+      "fase": "mutacion",
+      "casos": 6,
+      "fallos": 5,
+      "errores": 0,
+      "omitidos": 0,
+      "salida": 1,
+      "archivo": "ondexia.docs/evidencias/2026-10-10-aislamiento-multiempresa/mutacion.log.gz",
+      "sha256_original": "916c161f45fd5ab41e7eedad94a79e9e207bd244d7706891376e64c0becb0310",
+      "sha256_comprimido": "81146f0e0232c74f88f3d40cdf7709c422622ceec8922fdac005c245803eede9"
+    },
+    {
+      "fase": "restaurado",
+      "casos": 23,
+      "fallos": 0,
+      "errores": 0,
+      "omitidos": 0,
+      "salida": 0,
+      "archivo": "ondexia.docs/evidencias/2026-10-10-aislamiento-multiempresa/restaurado.log.gz",
+      "sha256_original": "7f8c7db4f50687fc235fa922c7fb0784bb01e2ad373eeb2f18281d492440d9b8",
+      "sha256_comprimido": "ca9be0f619132caa9ba4b2087b8d19c05515a3f02b9ac56d0d04c52cfe315421"
+    }
+  ],
+  "fuentes": [
+    {
+      "archivo": "apps/backend/ondexia.api/src/test/java/com/ondexia/pruebas/AislamientoSqlIT.java",
+      "sha256": "8f97bb4ad31675c1d65ea7da09bf3d2a9b3f23092df902789e4d5f041f0a61ca"
+    },
+    {
+      "archivo": "ondexia.docs/especificaciones/2026-10-10-aislamiento-multiempresa.md",
+      "sha256": "8ea5d77f79b657a0e5b974860c212b622ddc269d61d0ae4f6be08c95fcb62898"
+    }
+  ],
+  "no_verificado": [
+    "Todas las tablas y rutas HTTP",
+    "Revocación/caché de permisos",
+    "Concurrencia",
+    "Cognito/RDS/IAM desplegados",
+    "Dependency-Check local: omitido",
+    "CI completo e integración",
+    "Auditoría independiente"
+  ]
+}
