@@ -47,6 +47,7 @@ decisiones o evidencia antes de cualquier cambio de código.
 | ACT-20 · F20/F24 | P1 | Elegir controles estáticos de código/secretos/IaC con prueba y costo; verificar cabeceras reales por sitio; no dar herramientas por instaladas | SEC-09/11/12 |
 | ACT-21 · F11/F24/F28 | P1 | Clasificación, accesos de soporte, retención, respuesta a incidente y ensayo de recuperación; tiempos aprobados o pendientes y evidencia sanitizada | ACT-12; datos/entornos autorizados |
 | ACT-22 · F26 | P1 | Contraste independiente del piloto contra decisiones/commit; discrepancias reproducibles y riesgo residual explícito | Piloto implementado y verificado |
+| ACT-23 · F01/F20/F23/F24 | P1; elevar casos confirmados a P0 | Revisar los PR de Dependabot; decidir por dependencia integrar, adaptar, posponer o descartar, con compatibilidad, riesgo, costo, pruebas y evidencia; alinear destino develop y Conventional Commits | Inventario por PR; ACT-19 para controles de análisis; alcance técnico presentado |
 
 ## 4. Orden recomendado y puertas
 
@@ -71,3 +72,94 @@ pertinente y CI del commit cuando haya código. Una investigación documental no
 requiere fingir TDD. Los cambios se integran según GitFlow y Conventional Commits;
 no tocar main, desplegar, instalar servicios o hacer pruebas ofensivas externas
 por el solo hecho de figurar en este backlog.
+
+
+## 5. ACT-23: revisión y selección de actualizaciones de Dependabot
+
+Solicitud del propietario, 2026-10-10: incorporar esta revisión al backlog
+existente y priorizarla junto con la deuda. Responsable del análisis y de la
+recomendación técnica: Codex. Estado: **pendiente de evaluación individual**;
+registrar una propuesta no acredita su compatibilidad ni autoriza integrar en main.
+
+### Línea base verificada
+
+GitHub muestra 18 ramas `dependabot/*`, asociadas a los PR abiertos #13–#30,
+creados por `dependabot[bot]` el 2026-10-09. Todos apuntan a `main` y ninguno
+tiene integración automática activada. La configuración actual no declara
+`target-branch`, programa revisiones semanales y permite hasta cinco propuestas
+por ecosistema/directorio; utiliza el prefijo `Actualiza`.
+
+Estos dos desajustes deben corregirse dentro del lote: destino `develop` y
+Conventional Commits con ámbito/descripción en español. No reescribir mensajes
+históricos. Evaluar cómo aplicar la convención a los títulos y mensajes generados
+por el bot y al commit de integración; comprobar el resultado real, sin afirmar
+que un prefijo por sí solo traduce la descripción generada.
+
+| Grupo de propuestas | PR | Qué revisar antes de decidir |
+|---|---|---|
+| GitHub Actions | #14, #16, #18, #19, #21 | Runtime del runner, permisos, cambios de entradas/salidas, integridad de artefactos y caché; mantener referencias por SHA |
+| Backend y construcción | #13, #15, #17, #20, #22 | Java/Maven, contratos de ArchUnit, base y caché de Dependency-Check, plantillas Qute y SDK AWS; compatibilidad de reactor y adaptadores |
+| Administración Angular | #25, #27, #28, #29, #30 | Compatibilidad conjunta de Angular, CLI, Zone.js y herramientas de pruebas; no actualizar paquetes relacionados como si fueran independientes |
+| Landing | #23, #24, #26 | Compatibilidad Astro/sitemap/TypeScript, construcción y regresiones de navegación y contenido |
+
+Enlaces: [PR de Dependabot](https://github.com/LuisVera22/ondexia/pulls?q=is%3Apr+is%3Aopen+author%3Aapp%2Fdependabot).
+Las versiones, heads, estado y necesidad deben consultarse nuevamente al ejecutar;
+esta línea base no constituye resultado del CI ni auditoría de vulnerabilidades.
+
+### Prioridad frente a las actividades existentes
+
+1. Terminar la revisión/integración del bloque ACT-13 en curso, manteniendo su
+   auditoría independiente. Continuar F01 y la caracterización de autenticación
+   y aislamiento ACT-14/15.
+2. Hacer el triaje inicial de ACT-23 en ese primer lote de inventario: registrar
+   avisos de seguridad aplicables y bloqueos reales de construcción/CI. Si una
+   propuesta corrige un riesgo confirmado o desbloquea un control indispensable,
+   elevar ese caso a P0 y atenderlo antes del siguiente lote no urgente.
+3. Revisar las mejoras del escáner y del CI junto con ACT-19; contrastar primero
+   la puerta de producción y la caché existentes, sin duplicarlas ni desactivar
+   controles para obtener verde.
+4. Ejecutar actualizaciones compatibles seleccionadas como P1, después de los
+   riesgos P0 confirmados de identidad/aislamiento, dinero e historia
+   (F03–F06 y ACT-16 según evidencia), y antes del reformateo o renombrado general
+   y mejoras cosméticas. No detener caracterizaciones independientes por una
+   migración de herramientas.
+5. Posponer como P2 los saltos mayores sin necesidad demostrada que requieran
+   migración amplia; reevaluar si cambia soporte, exposición o beneficio.
+
+El orden es por riesgo y dependencias, no por número de PR ni por versión más
+reciente. No se afirma que los 18 PR solucionen vulnerabilidades. El tiempo y
+costo de migración se estimarán por propuesta; no se inventan cifras de retorno.
+
+### Entregable, decisión y cierre
+
+Una matriz por PR incluirá: dependencia y versiones; head actual y base;
+aviso de seguridad y aplicabilidad o ausencia de evidencia; soporte;
+compatibilidad y paquetes relacionados; beneficio, esfuerzo y riesgo de
+regresión; decisión **integrar / adaptar / posponer / descartar**, motivo,
+pruebas, CI y siguiente revisión cuando corresponda. Lo desconocido queda
+explícito. Las decisiones nuevas de negocio, presupuesto o excepciones al
+contrato se consultan al propietario.
+
+Cada lote elegido debe presentar alcance y comprobaciones antes de implementar.
+Validar desde `develop` actualizado en rama separada, sin mezclarlo con ACT-13
+ni el manual de arquitectura. Una propuesta obsoleta se contrasta con las
+versiones ya integradas antes de cerrarla. Para un arreglo de comportamiento,
+prueba roja/verde; para un control ya correcto, mutación aislada y restaurada.
+Para una actualización documental o de versión sin defecto demostrado,
+comprobaciones de compatibilidad y regresión pertinentes, sin inventar TDD.
+
+La recomendación de integrar requiere controles completos del mismo head,
+revisión pertinente y autorización aplicable; después comprobar CI del commit
+integrado en develop y eliminar únicamente la rama correspondiente si está
+integrada y no tiene commits nuevos. Un descarte registra el motivo antes de
+cerrar su PR y retirar su rama según autorización. No integrar automáticamente
+los 18 PR, eludir protecciones, tocar main ni desplegar en AWS.
+
+
+## 6. Avance de ACT-23
+
+[Triaje inicial de las 18 propuestas](../../evidencias/2026-10-10-triaje-dependabot.md):
+heads y checks consultados, recomendaciones condicionadas y migraciones mayores
+pospuestas. Confirmado en el log de #15: análisis Dependency-Check omitido aunque
+build esté verde. Se coordina con ACT-19. Faltan avisos oficiales/release notes,
+aplicabilidad, pruebas en develop y decisión final; no se integró ni cerró un PR.
