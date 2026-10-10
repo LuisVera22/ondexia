@@ -1,6 +1,6 @@
 # Plantillas de trabajo y revisión
 
-Estado: formatos adoptados por el [harness](../../harness/README.md) el 2026-10-10. No son formularios que deban rellenarse todos
+Estado: formatos adoptados por el [harness existente mediante el documento 03, §11](../../03-estructura-repositorio.md#11-desarrollo-soporte-y-evidencia-del-harness-existente) el 2026-10-10. No son formularios que deban rellenarse todos
 para cada ajuste. Usar campos pertinentes y justificar exclusiones en cambios de
 riesgo. Reutilizar decisiones y evidencias existentes; no duplicarlas.
 

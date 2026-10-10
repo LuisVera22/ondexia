@@ -49,8 +49,10 @@ El detalle del flujo está en `ondexia.docs/03-estructura-repositorio.md`, §6.
 
 ## Desarrollo guiado por negocio y evidencia
 
-Las [reglas del harness](ondexia.docs/harness/README.md), aprobadas por el
-propietario el 2026-10-10, forman parte del contrato de desarrollo y soporte.
+Los complementos del [documento 03, §11](ondexia.docs/03-estructura-repositorio.md#11-desarrollo-soporte-y-evidencia-del-harness-existente),
+[documento 08, §10](ondexia.docs/08-arquitectura-backend.md) y
+[documento 10, §15](ondexia.docs/10-convenciones-de-interfaz.md), aprobados por el
+propietario el 2026-10-10, forman parte del contrato y del harness existente.
 Aplicar su profundidad según alcance y riesgo, reutilizando decisiones vigentes.
 
 Antes de una funcionalidad, presentar el plan y resolver con el propietario las
@@ -73,7 +75,7 @@ pruebas efectivas, con costo proporcional al riesgo y sin relajar invariantes.
 La auditoría requiere una sesión independiente sin narrativa del implementador.
 
 Estas reglas no dan por resuelto el backlog, no convierten ejemplos en políticas
-y no autorizan despliegues. El harness versionado distingue reglas de trabajo,
+y no autorizan despliegues. El harness existente distingue reglas de trabajo,
 capacidades operativas y propuestas pendientes.
 
 ## Las cuatro reglas que salieron de la auditoría

@@ -253,3 +253,27 @@ momento y la forma correctos de detectarlo.
 
 **Se cambió con un solo corte vertical construido**, que era el momento más
 barato. Cada entrega posterior lo habría encarecido.
+
+
+## 10. Criterios de Diseño y arquitectura
+
+Respetar arquitectura hexagonal, contratos y dirección de dependencias existentes;
+aplicar SOLID, encapsulamiento y código legible con responsabilidad y efectos
+explícitos. Evitar herencia sin relación de sustitución y abstracciones sin necesidad.
+Justificar patrones y decisiones en función del problema y costo de mantenimiento.
+No introducir eventos, CQRS, microservicios o nuevos proveedores por adoptar una etiqueta.
+
+Usar identificadores, archivos, comentarios y documentación en español según las
+convenciones vigentes de cada tecnología. No renombrar contratos o paquetes
+históricos en masa. Registrar contradicciones de nomenclatura o granularidad de
+casos de uso como decisiones pendientes del plan de fundamentos.
+
+Conservar precisión decimal: `NUMERIC(18,6)` / `BigDecimal`, nunca `double` o `float`.
+Mantener API, OpenAPI y modelos Angular sincronizados en el mismo cambio. Una
+migración aplicada permanece intacta. Las deudas existentes no son excepciones
+nuevas autorizadas ni se dan por resueltas con documentación.
+
+Complemento de trabajo aprobado el 2026-10-10. Aplicar junto con las decisiones
+y excepciones de este documento; las contradicciones pendientes del
+[plan de fundamentos](planes/2026-10-10-fundamentos-arquitectura-sdlc.md)
+requieren resolución explícita, no renombrado o reestructuración automática.

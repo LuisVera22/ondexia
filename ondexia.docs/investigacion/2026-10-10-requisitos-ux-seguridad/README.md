@@ -3,7 +3,7 @@
 Fecha de consulta: 2026-10-10. Base local: `develop`,
 `6f7ae796af30dc10ccb6307c482097a24e3c53de`.
 Estado: investigación conservada; **método aprobado el 2026-10-10** e incorporado
-al [harness versionado](../../harness/README.md), sin cambios funcionales.
+al [documento 03, §11](../../03-estructura-repositorio.md#11-desarrollo-soporte-y-evidencia-del-harness-existente), sin cambios funcionales.
 La aprobación corresponde a las prácticas de trabajo, no a ejecutar el backlog,
 a políticas sintéticas del ejemplo ni a declarar controles ya verificados.
 
