@@ -55,6 +55,8 @@ class ExportarContratoIT extends PruebaIntegracion {
                 var decimal = esquemas.path(entrada.getKey()).path("properties").path(campo);
                 assertThat(decimal.has("properties")).isFalse();
                 assertThat(decimal.path("oneOf").size()).isEqualTo(2);
+                assertThat(decimal.path("oneOf").get(0).path("nullable").asBoolean())
+                        .isEqualTo(campo.equals("descuento") || campo.equals("entregado"));
                 assertThat(decimal.path("oneOf").get(0).path("type").asString()).isEqualTo("string");
                 assertThat(decimal.path("oneOf").get(1).path("type").asString()).isEqualTo("number");
             }

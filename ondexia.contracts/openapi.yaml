@@ -2865,6 +2865,7 @@ components:
           oneOf:
           - pattern: "^[0-9]{1,12}(\\.[0-9]{1,2})?$"
             type: string
+            nullable: true
           - minimum: 0
             exclusiveMinimum: false
             type: number
@@ -2902,6 +2903,7 @@ components:
           oneOf:
           - pattern: "^(?!0+(?:\\.0+)?$)[0-9]{1,12}(\\.[0-9]{1,2})?$"
             type: string
+            nullable: true
           - minimum: 0
             exclusiveMinimum: true
             type: number

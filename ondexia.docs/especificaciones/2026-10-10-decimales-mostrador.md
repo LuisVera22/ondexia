@@ -68,7 +68,9 @@ OpenAPI y almacen.modelos.ts se regeneran desde la aplicación real.
 
 Entrada: cantidad, descuento, monto y entregado documentan oneOf string/number.
 Los clientes nuevos envían texto; el servidor conserva aceptación de peticiones
-numéricas anteriores. Los DTO de venta manuales reflejan ambas variantes.
+numéricas anteriores. Los DTO de venta manuales reflejan ambas variantes. Los campos opcionales
+descuento y entregado admiten null en una sola variante de oneOf, con type explícito
+para cumplir OpenAPI 3.0; cantidad y monto siguen siendo obligatorios no nulos.
 La variante textual documenta el formato canónico que produce la web; no pretende
 inventariar todas las coerciones adicionales del deserializador de BigDecimal.
 

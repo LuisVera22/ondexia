@@ -28,7 +28,12 @@ comprobando compatibilidad de entrada. La mutación no forma parte del cambio.
 Se regeneró OpenAPI desde springdoc y almacen.modelos.ts desde ese contrato.
 Una prueba exige salida string para precio y variantes escalares string/number
 para cantidades, descuentos y pagos, evitando representar BigDecimal como objeto.
-El CI debe confirmar que la regeneración no deja diferencias.
+La verificación adicional de nulabilidad falla sobre OpenApiConfig del primer
+commit: esperaba true para la variante textual opcional y recibía false (un caso,
+un fallo). Se restaura la corrección byte por byte y pasan las dos pruebas del
+contrato. La suite completa de 525 casos se repitió con la declaración corregida.
+Solo una variante de oneOf admite null, con type string explícito como exige
+OpenAPI 3.0; el CI debe confirmar que la regeneración no deja diferencias.
 
 ## Reproducción
 

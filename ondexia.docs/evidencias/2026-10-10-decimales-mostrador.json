@@ -13,6 +13,15 @@
     "cantidad_cero_base_original": {
       "casos": 133,
       "fallos": 1
+    },
+    "nulabilidad_contrato": {
+      "base": "c060ee2e909b0456bd3de3ad47824064bf1a120a",
+      "casos": 1,
+      "fallos": 1,
+      "esperado": "nullable true en la variante textual de los campos opcionales",
+      "observado": "false",
+      "sha256_antes": "6e2c8200e919ade54cb51a1133d7f39ceb358c71ae641ff6d38606f57b9b6501",
+      "sha256_despues": "6e2c8200e919ade54cb51a1133d7f39ceb358c71ae641ff6d38606f57b9b6501"
     }
   },
   "sensibilidad": {
@@ -47,7 +56,8 @@
     "oraculos_f03": 7,
     "pantallas": 21,
     "impresiones": 8,
-    "compilacion_produccion": true
+    "compilacion_produccion": true,
+    "contrato_tras_restauracion": 2
   },
   "ci_pr": "pendiente al registrar",
   "ci_develop": "pendiente al registrar",
@@ -63,11 +73,13 @@
     "api-mutacion.log.gz": "e72d313292ee1c216b8fc74c2bcaa6fcb48140b0f1bd6d96d20367a558367b70",
     "api-rojo.log.gz": "8a8426d6238c51438443ef771cd5e42785cf4e51dc4606f0822c3d3f7b7865b9",
     "api-verde.log.gz": "2992174d40893017f588214fd8cb4cdd4832760e111a2a135b4d696002f94c2c",
-    "backend-completo.log.gz": "c4c2aaf7ae3dc77f3585beeb8ade3e971bdba39707bea7d9a0f008f5de1ef3f8",
+    "backend-completo.log.gz": "8080932d0f4579d817ed3bc0ff35cc72d7f8378d2050870959d7ed4336bd1e7b",
     "caracterizacion.json": "b97c69188d1427eb547fbf77e3a8878a1e763148a957da5d501a13eff7c8f708",
     "compilacion.log.gz": "ac481b20d34e2944df3d9591579292edc203879c5b6500f1b2364ad43237075e",
     "entrada-rojo.log.gz": "5de2b04b0f1189b15ec44b8f773eb46963ae58655762cde117fc1b082faf1665",
     "movil.json": "40277c0e90c91552e0bf7d9e781ca0a5f87b2f58c4227d2cc1b3eb6ad740b795",
+    "nulabilidad-rojo.log.gz": "7de365b4996a31d70794bdeca5d90b780fe9f4f6c4cd45470fc865ed06be19f8",
+    "nulabilidad-verde.log.gz": "9f3ccd2c642213ef4b1d3ee1fa3b4d6580953939b7d85b7b8c4d0c04e64c9f13",
     "venta-1440.png": "27969d184ea270c34d3902dda56e6a7beed3066df174a4a2cfb65509f6840635",
     "venta-320.png": "949c01effcf94a40fe9affa1f03a625427b58e70e17986c98c5131397e2ef0a3",
     "venta-390.png": "299aac8a54e941d8d1871ce7f18599538a385fe8e2becfb36e4ecb7d2deaa908",

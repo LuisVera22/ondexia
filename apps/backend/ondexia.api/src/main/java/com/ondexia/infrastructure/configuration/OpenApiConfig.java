@@ -41,6 +41,9 @@ public class OpenApiConfig {
                     boolean positivo = !campo.equals("descuento");
                     var textual = new StringSchema().pattern("^" + (positivo ? "(?!0+(?:\\.0+)?$)" : "")
                             + "[0-9]{1,12}(\\.[0-9]{1," + escala + "})?$");
+                    // En OpenAPI 3.0 nullable necesita un type explícito: solo esta
+                    // variante admite null, para que oneOf no lo acepte dos veces.
+                    if (campo.equals("descuento") || campo.equals("entregado")) textual.setNullable(true);
                     var numerico = new NumberSchema();
                     numerico.setMinimum(BigDecimal.ZERO);
                     numerico.setExclusiveMinimum(positivo);
