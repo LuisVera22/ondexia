@@ -61,3 +61,11 @@ El ensayo local omite explícitamente Dependency-Check; no es SCA ni CI completo
 Auditoría independiente e integración pendientes. El rechazo por clave nueva es
 una limitación reproducida del modelo inmutable, no una caída productiva probada
 ni una corrección funcional de renovación automática.
+
+## Reconciliación posterior con ACT-13
+
+Después de integrar el cierre de audiencia en develop
+`9e262d7fa9a63eacb8ffa3879b61323e97f8fb40`, se repitieron FirmaDelTokenIT,
+RotacionDeClavesIT y ArquitecturaTest: 26 casos correctos (14 + 3 + 9).
+El log combinado acompaña la evidencia original; no sustituye su ensayo de
+mutación. Dependency-Check local se omitió; AWS y auditoría siguen pendientes.

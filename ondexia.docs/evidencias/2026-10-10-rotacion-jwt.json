@@ -53,5 +53,14 @@
     "CI completo",
     "Dependency-Check local: omitido explícitamente",
     "Auditoría independiente"
-  ]
+  ],
+  "reconciliacion_audiencia": {
+    "develop": "9e262d7fa9a63eacb8ffa3879b61323e97f8fb40",
+    "pruebas": 26,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0,
+    "archivo": "2026-10-10-rotacion-jwt/combinado-audiencia.log.gz",
+    "sha256_comprimido": "e13974a69b9c5d0dd4658e678566cf94758c03fc7bf372a9f2f15958738fbbb4"
+  }
 }
