@@ -1,0 +1,68 @@
+{
+  "alcance": "Funciones reales extraídas mediante AST; sin HTTP, plantilla ni persistencia",
+  "resultados": [
+    {
+      "id": "dos-bolsas",
+      "cantidad": "2",
+      "precio": "32.50",
+      "descuento": "0",
+      "esperado": "65.00",
+      "observado": "65.00",
+      "coincide": true
+    },
+    {
+      "id": "decima",
+      "cantidad": "3",
+      "precio": "0.10",
+      "descuento": "0",
+      "esperado": "0.30",
+      "observado": "0.30",
+      "coincide": true
+    },
+    {
+      "id": "mitad-centimo",
+      "cantidad": "1",
+      "precio": "10.075000",
+      "descuento": "0",
+      "esperado": "10.08",
+      "observado": "10.07",
+      "coincide": false
+    },
+    {
+      "id": "cantidad-fraccionaria",
+      "cantidad": "0.5",
+      "precio": "20.150000",
+      "descuento": "0",
+      "esperado": "10.08",
+      "observado": "10.07",
+      "coincide": false
+    },
+    {
+      "id": "descuento",
+      "cantidad": "1",
+      "precio": "20.075000",
+      "descuento": "10",
+      "esperado": "10.08",
+      "observado": "10.07",
+      "coincide": false
+    },
+    {
+      "id": "precio-seis-decimales",
+      "cantidad": "5000",
+      "precio": "0.000001",
+      "descuento": "0",
+      "esperado": "0.01",
+      "observado": "0.01",
+      "coincide": true
+    },
+    {
+      "id": "importe-grande",
+      "cantidad": "1",
+      "precio": "123456789012.344999",
+      "descuento": "0",
+      "esperado": "123456789012.34",
+      "observado": "123456789012.35",
+      "coincide": false
+    }
+  ]
+}
