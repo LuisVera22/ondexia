@@ -154,3 +154,12 @@ integrado en develop y eliminar únicamente la rama correspondiente si está
 integrada y no tiene commits nuevos. Un descarte registra el motivo antes de
 cerrar su PR y retirar su rama según autorización. No integrar automáticamente
 los 18 PR, eludir protecciones, tocar main ni desplegar en AWS.
+
+
+## 6. Avance de ACT-23
+
+[Triaje inicial de las 18 propuestas](../../evidencias/2026-10-10-triaje-dependabot.md):
+heads y checks consultados, recomendaciones condicionadas y migraciones mayores
+pospuestas. Confirmado en el log de #15: análisis Dependency-Check omitido aunque
+build esté verde. Se coordina con ACT-19. Faltan avisos oficiales/release notes,
+aplicabilidad, pruebas en develop y decisión final; no se integró ni cerró un PR.
