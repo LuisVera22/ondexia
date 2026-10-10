@@ -1,6 +1,7 @@
 # Plan de fundamentos de arquitectura, código y desarrollo de producto
 
-Fecha: 2026-10-10. Estado: **propuesta para revisión del propietario**.
+Fecha: 2026-10-10. Estado: ejecución progresiva autorizada por el propietario;
+primer lote en curso, decisiones pendientes explícitas.
 
 Base inspeccionada: `/workspace/ondexia`, rama `develop`, commit
 `6f7ae796af30dc10ccb6307c482097a24e3c53de`.
@@ -178,8 +179,9 @@ afecta decisiones de implementación; **P1** para diseño y controles del proces
 **P2** para extensión y medición después del piloto. No significa que cada P0 sea
 un defecto demostrado ni que todas las funcionalidades deban detenerse.
 
-Todos los elementos están **pendientes**, salvo la inspección preliminar y la
-ejecución de nueve pruebas descritas arriba. Una actividad se cierra con su
+Estado inicial: elementos pendientes salvo la inspección preliminar y las nueve
+pruebas descritas arriba. El avance posterior se registra en §10; no implica
+cierre del conjunto. Una actividad se cierra con su
 entregable y evidencia, no con la afirmación de haber seguido una práctica.
 
 | ID / prioridad | Actividad y entregable | Criterio de aceptación | Depende de |
@@ -345,3 +347,44 @@ profundiza en historias, casos de uso completos, pruebas, interacción y control
 OWASP actuales. Incluye fuentes primarias, plantillas, ejemplo didáctico de cajero
 y actividades ACT-01–ACT-22 vinculadas a este backlog. Es documentación propuesta;
 no demuestra controles ejecutados ni autoriza funcionalidades nuevas.
+
+
+## 10. Ejecución autorizada del primer lote, 2026-10-10
+
+El propietario autorizó comenzar el backlog. Se conserva este catálogo y los
+IDs ACT del backlog detallado. La revisión completa y la auditoría independiente
+no están realizadas. Base: develop `0df3f6d57a8b0dcece6f7667ce605c7fa307dc15`.
+
+### F01: inventario inicial reproducible
+
+Conteo por `src/main/java` y `src/test/java` del reactor. Archivos de prueba no
+equivalen a casos ejecutados; cantidad de archivos no demuestra calidad.
+
+| Módulo | Archivos Java de producción | Archivos Java de prueba |
+|---|---|---|
+| `ondexia.domain` | 101 | 14 |
+| `ondexia.api` | 153 | 45 |
+| `ondexia.admin` | 18 | 10 |
+| `ondexia.consultas` | 19 | 6 |
+| `ondexia.facturacion` | 17 | 7 |
+
+| Área/regla | Contrato/implementación localizada | Estado y siguiente comprobación |
+|---|---|---|
+| Audiencia JWT obligatoria | CLAUDE; SeguridadPasarelaConfig; FirmaDelTokenIT | ACT-13: defecto reproducido y arreglo local en verificación; CI/revisión independiente pendientes |
+| Firma/emisor/uso/audiencia configurados | FirmaDelTokenIT, perfil AWS | Suite focal; no representa inventario completo de autenticación ni AWS real |
+| Rotación de claves | JWKS inmutable de SeguridadPasarelaConfig | ACT-14 pendiente: caracterizar clave nueva y recuperación sin asumir infraestructura |
+| Aislamiento/permisos | RLS, contexto y pruebas de grants/permisos existentes | ACT-15 pendiente: matriz negativa de lectura/escritura y conexiones reutilizadas |
+| Importes decimales | Dominio BigDecimal; almacen.modelos.ts con precio number | F03/F04 pendientes: casos exactos independientes, alcance y política de redondeo vigente |
+| Historia de documentos | DocumentoVentaAdaptador carga cliente por ID actual; logo conservado por cambio previo | F05/F06 pendientes: caracterizar datos maestros e identificar campos históricos acordados |
+| Emisión y recuperación | EmisionElectronica.afterCommit; BusDeEmision S3/memoria | F17 pendiente: rollback, caída poscommit, duplicados, resultados tardíos y recuperación |
+| Contratos HTTP | OpenAPI exportado y modelo de almacén regenerado | F16 pendiente: catálogo de DTO manuales/generados y consistencia de toda API |
+| Arquitectura | Nueve restricciones de ArquitecturaTest; cinco módulos del reactor | F12/F19 pendientes: ciclos, fronteras entre áreas y contratos semánticos |
+| Convenciones/manual | Ampliación local 717246d, rama feature/manual-arquitectura-hexagonal | Manual preparado, aún no integrado; no cerrar F02/F14 por documentación |
+| UX/UI | Documento 10, vistas de ventas y pruebas existentes | ACT-06/07 pendientes: tareas, estados, teclado/foco y móvil; no conformidad WCAG declarada |
+| DevSecOps | ci.yml/deploy.yml; producción rechaza falta NVD_API_KEY | ACT-19 pendiente: sensibilidad y evidencia del control; evitar duplicar la puerta existente |
+
+F01 queda **en curso**: falta inventario detallado de reglas/controles por área,
+consumidores y configuración efectiva. ACT-13 se registra en su
+[especificación](../especificaciones/2026-10-10-audiencia-jwt.md) y
+[evidencia](../evidencias/2026-10-10-audiencia-jwt.md). Los demás puntos conservan
+estado pendiente; no se deduce un defecto funcional solo por observar código.

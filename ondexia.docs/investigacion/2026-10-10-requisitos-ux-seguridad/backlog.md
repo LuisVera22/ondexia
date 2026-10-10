@@ -1,6 +1,7 @@
 # Aplicación de la investigación al backlog de fundamentos
 
-Estado: propuesta, actividades **pendientes**. La investigación documental y la
+Estado: ejecución progresiva autorizada; ACT-13 en verificación local, demás
+actividades pendientes salvo evidencia específica. La investigación documental y la
 inspección estática descritas en README están realizadas; no se confunden con
 ejecutar las actividades siguientes. No se inicia funcionalidad nueva.
 
@@ -71,3 +72,14 @@ pertinente y CI del commit cuando haya código. Una investigación documental no
 requiere fingir TDD. Los cambios se integran según GitFlow y Conventional Commits;
 no tocar main, desplegar, instalar servicios o hacer pruebas ofensivas externas
 por el solo hecho de figurar en este backlog.
+
+
+## 5. Seguimiento del primer lote
+
+ACT-13: regresión de cuatro configuraciones inválidas y diez casos JWT previos;
+fallo sin arreglo y verificación local después. Ver
+[especificación](../../especificaciones/2026-10-10-audiencia-jwt.md) y
+[evidencia](../../evidencias/2026-10-10-audiencia-jwt.md).
+CI, integración y auditoría independiente pendientes. F01 tiene inventario inicial
+en §10 del plan; no está completo. ACT-14/15 y los demás puntos no se cierran
+por esta corrección. No se ha probado configuración desplegada en AWS.
