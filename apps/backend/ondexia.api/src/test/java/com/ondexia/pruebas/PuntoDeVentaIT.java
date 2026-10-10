@@ -149,6 +149,71 @@ class PuntoDeVentaIT extends PruebaIntegracion {
                 .path("documento");
     }
 
+    @Test
+    @DisplayName("F05 caracteriza el cliente actual y la línea histórica sin aprobar una política")
+    void caracterizaClienteActualYLineaHistorica() throws Exception {
+        String cliente = leer(mockMvc.perform(comoAdministrador(post("/api/v1/ventas/clientes"))
+                        .content("""
+                                {"tipoDocumento":"DNI","numeroDocumento":"90112233",
+                                 "nombre":"Cliente al emitir","direccion":"Dirección al emitir"}
+                                """))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString())
+                .path("id").asString();
+        String caja = cajaAbierta("0");
+        JsonNode emitido = leer(mockMvc.perform(comoAdministrador(post("/api/v1/ventas/notas-de-venta"))
+                        .content("""
+                                {"cajaId":"%s","serieId":"%s","clienteId":"%s",
+                                 "lineas":[{"productoId":"%s","cantidad":"1"}],
+                                 "pagos":[{"forma":"EFECTIVO","monto":"80"}]}
+                                """.formatted(caja, SERIE_NV, cliente, INSTALACION)))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString())
+                .path("documento");
+        assertThat(emitido.path("cliente").path("nombre").asString()).isEqualTo("Cliente al emitir");
+        assertThat(emitido.path("cliente").path("direccion").asString()).isEqualTo("Dirección al emitir");
+        comprobarLineaHistorica(emitido);
+        mockMvc.perform(comoAdministrador(put("/api/v1/ventas/clientes/" + cliente))
+                        .content("""
+                                {"nombre":"Cliente después de emitir","direccion":"Dirección posterior"}
+                                """))
+                .andExpect(status().isOk());
+        contextoMarca();
+        try {
+            transaccion.executeWithoutResult(estado -> jdbc.sql(
+                            "update producto set nombre = 'Servicio posterior', precio_lista = 90 where id = ?::uuid")
+                    .param(INSTALACION).update());
+        } finally {
+            com.ondexia.infrastructure.seguridad.ContextoDePrueba.limpiar();
+        }
+        try {
+            JsonNode consultado = leer(mockMvc.perform(comoAdministrador(
+                            get("/api/v1/ventas/notas-de-venta/" + emitido.path("id").asString())))
+                    .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
+            // Estado observado por inspección previa; no constituye una política aprobada.
+            assertThat(consultado.path("cliente").path("nombre").asString())
+                    .isEqualTo("Cliente después de emitir");
+            assertThat(consultado.path("cliente").path("direccion").asString())
+                    .isEqualTo("Dirección posterior");
+            comprobarLineaHistorica(consultado);
+            assertThat(consultado.path("total").decimalValue()).isEqualByComparingTo("80.00");
+        } finally {
+            contextoMarca();
+            try {
+                transaccion.executeWithoutResult(estado -> jdbc.sql(
+                                "update producto set nombre = 'Instalacion a domicilio', precio_lista = 80 where id = ?::uuid")
+                        .param(INSTALACION).update());
+            } finally {
+                com.ondexia.infrastructure.seguridad.ContextoDePrueba.limpiar();
+            }
+        }
+    }
+
+    private void comprobarLineaHistorica(JsonNode documento) {
+        JsonNode linea = documento.path("lineas").get(0);
+        assertThat(linea.path("descripcion").asString()).isEqualTo("Instalacion a domicilio");
+        assertThat(linea.path("precioUnitario").decimalValue()).isEqualByComparingTo("80.000000");
+        assertThat(linea.path("cantidad").decimalValue()).isEqualByComparingTo("1");
+    }
+
     private void comprobarConsultaComoVendedor(String documentoId, String principal) throws Exception {
         contextoMarca();
         var anterior = transaccion.execute(estado -> jdbc.sql(

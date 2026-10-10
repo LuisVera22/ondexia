@@ -1,0 +1,37 @@
+{
+  "actividad": "F05",
+  "base": "392bd6884a2d9d4fdb43551ae50e41a13f100453",
+  "caracterizacion": {
+    "pruebas": 1,
+    "fallos": 0,
+    "errores": 0
+  },
+  "mutacion": {
+    "pruebas": 1,
+    "fallos": 1,
+    "errores": 0,
+    "esperado": "Instalacion a domicilio",
+    "obtenido": "Servicio posterior",
+    "restauracion_sha256": "61180fdfd2209a8041688137391aa38b0d671a5ba33fb68ec8e3752cfa5f54ff"
+  },
+  "suite": {
+    "pruebas": 13,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  "resultados": {
+    "cliente": "datos maestros actuales",
+    "linea": "descripcion y precio conservados",
+    "emisor": "solo inspeccion estatica"
+  },
+  "no_verificado": [
+    "impresion ejecutada",
+    "XML/CDR",
+    "AWS",
+    "datos antiguos",
+    "otros tipos",
+    "auditoria independiente",
+    "CI remoto"
+  ]
+}
