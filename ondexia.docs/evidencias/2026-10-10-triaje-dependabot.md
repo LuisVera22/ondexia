@@ -76,4 +76,3 @@ esfuerzo estimado y pruebas de compatibilidad en develop. Cada propuesta debe
 actualizar esta matriz con evidencia y decisión final. No cerrar ni borrar ramas
 por esta selección; seguir las puertas de PR/CI/integración y autorizaciones
 vigentes. No se modifica main, el código de terceros ni AWS.
-
