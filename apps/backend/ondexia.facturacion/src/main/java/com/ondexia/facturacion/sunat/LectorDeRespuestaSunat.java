@@ -26,7 +26,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * repetir la credencial enviada).
  */
 public class LectorDeRespuestaSunat {
-    private static final int LIMITE_SOAP = 16 * 1024 * 1024;
+    static final int LIMITE_SOAP = 16 * 1024 * 1024;
 
     private static final String NS_CBC =
             "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2";
