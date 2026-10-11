@@ -80,7 +80,7 @@ por el solo hecho de figurar en este backlog.
 
 Solicitud del propietario, 2026-10-10: incorporar esta revisión al backlog
 existente y priorizarla junto con la deuda. Responsable del análisis y de la
-recomendación técnica: Codex. Estado: **pendiente de evaluación individual**;
+recomendación técnica: Codex. Estado: **evaluación individual documentada; ejecución pendiente**;
 registrar una propuesta no acredita su compatibilidad ni autoriza integrar en main.
 
 ### Línea base del triaje, 2026-10-10
@@ -160,6 +160,14 @@ los 18 PR, eludir protecciones, tocar main ni desplegar en AWS.
 
 ## 6. Avance de ACT-23
 
+[Revisión individual y auditorías actuales](../../evidencias/2026-10-11-revision-dependabot.md):
+cinco candidatas a integrar, diez a adaptar y tres pospuestas. Los 18 PR siguen
+abiertos hacia main; ninguna versión propuesta se ha ejecutado en develop.
+La auditoría completa de los lockfiles detecta avisos críticos en piscina y
+proxy-addr de herramientas Angular: priorizar su caracterización/remediación
+en ACT-19/23 antes de mantenimiento cosmético, sin afirmar explotación ni
+equivalencia con el análisis --prod del CI. ACT-23 permanece parcial.
+
 [Triaje inicial de las 18 propuestas](../../evidencias/2026-10-10-triaje-dependabot.md):
 heads y checks consultados, recomendaciones condicionadas y migraciones mayores
 pospuestas. Confirmado en el log de #15: análisis Dependency-Check omitido aunque
@@ -206,7 +214,7 @@ La tabla mantiene los criterios de §1–3 y actualiza su estado; no crea otro c
 | ACT-20 | Parcial | SHA/TypeScript estricto/auditoría pnpm; sin SAST/IaC elegido/ejecutado ni cabeceras reales comprobadas | Selección proporcional y prueba; Terraform declarativo no es respuesta servida |
 | ACT-21 | Parcial | Procedimiento de originales preparado; no clasificación/soporte/retención/incidentes generales | Propuesta y decisiones del propietario; ensayos sintéticos, tiempos pendientes; caso histórico real diferido |
 | ACT-22 | Pendiente | Sin auditoría independiente de este commit; informes antiguos no sustituyen evaluación actual | Sesión/revisor separados, commit y reglas sin narrativa; contrastar hallazgos |
-| ACT-23 | Parcial | PR #35 triaje; #13–#30 siguen abiertos/base main; [configuración de propuestas en develop](../../evidencias/2026-10-11-propuestas-dependabot.md) declara destino y prefijo convencional | Contrastar operación real/publicación de configuración y mensajes españoles; notas oficiales y pruebas develop por actualización; cerrar solo ciclos terminados |
+| ACT-23 | Parcial | PR #35 triaje; #13–#30 siguen abiertos/base main; [revisión individual](../../evidencias/2026-10-11-revision-dependabot.md) con notas oficiales, compatibilidad declarada y auditorías actuales; configuración en develop declara destino y prefijo | Priorizar avisos críticos/altos de herramientas; ejecutar versiones seleccionadas en develop; contrastar operación real/publicación de configuración y mensajes españoles; cerrar solo ciclos terminados |
 
 **Balance ACT: 23 revisados, 1 cerrado en su alcance, 17 parciales, 5 pendientes.**
 Con Fxx: 51 entradas revisadas, 1 cerrada, 41 parciales y 9 pendientes. Son IDs

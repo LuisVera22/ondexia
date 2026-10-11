@@ -501,6 +501,15 @@ agentes, SAST/IaC, conectores comerciales ni acceso efectivo a AWS. El manual
 
 ### 12.3 Orden actualizado, decisiones y estimación
 
+Actualización ACT-19/23, 2026-10-11: la
+[revisión individual de Dependabot](../evidencias/2026-10-11-revision-dependabot.md)
+detecta avisos críticos/altos en la cadena de herramientas de los lockfiles.
+Su caracterización/remediación precede al mantenimiento y cambios cosméticos;
+no prueba explotación de producción. Cinco propuestas son candidatas a integrar,
+diez requieren adaptación y tres se posponen; todas requieren validación nueva
+en develop, sin reutilizar los checks antiguos de main. El backlog existente
+conserva ACT-19/23 parciales y detalla pruebas, prioridades y límites.
+
 1. **ACT-12/16 y F01/F24:** caracterizar validación de bytes/dimensiones y
    publicación de logos, distinguiendo referencia histórica y contenido inmutable.
    Primero pruebas locales; no ensayo AWS ni explotación afirmados.
