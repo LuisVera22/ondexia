@@ -1,0 +1,121 @@
+{
+  "base": "c550ebb744012f434be3d7bb74d247a004491271",
+  "version_antes": "3.7.3",
+  "version_despues": "3.7.4",
+  "oraculos": {
+    "pagina": "https://ondexia.com/",
+    "indice": "https://ondexia.com/sitemap-0.xml"
+  },
+  "salidas": {
+    "build_antes": 0,
+    "control_antes": 1,
+    "instalacion_congelada": 0,
+    "build_despues_con_control": 0,
+    "audit_completo_antes": 1,
+    "audit_completo_despues": 1,
+    "audit_produccion_umbral_alto": 0
+  },
+  "mutaciones": {
+    "resultados": [
+      {
+        "caso": "canonical",
+        "salida": 1,
+        "asercion": "Canonical debe apuntar"
+      },
+      {
+        "caso": "open-graph",
+        "salida": 1,
+        "asercion": "Open Graph debe apuntar"
+      },
+      {
+        "caso": "indice",
+        "salida": 1,
+        "asercion": "El índice debe referir"
+      }
+    ],
+    "huellas_dist_intacto": {
+      "sitemap-0.xml": "7bd1b1d3b72230c1fc6203edb5114eba63911abd59a64f08dbb8117937f80c15",
+      "sitemap-index.xml": "e2bedcf16d1aaf065529da0d7239b994c40494346fee1767a4308615a4fd4563",
+      "index.html": "274addb69f4e25fa691f3f2600eeb45e9cc716b00cb521e0e35c638b192b911d"
+    }
+  },
+  "avisos": {
+    "completo_antes": {
+      "info": 0,
+      "low": 0,
+      "moderate": 2,
+      "high": 2,
+      "critical": 0
+    },
+    "completo_despues": {
+      "info": 0,
+      "low": 0,
+      "moderate": 2,
+      "high": 2,
+      "critical": 0
+    },
+    "produccion_despues": {
+      "info": 0,
+      "low": 0,
+      "moderate": 1,
+      "high": 0,
+      "critical": 0
+    }
+  },
+  "fuentes": {
+    "notas": "https://github.com/withastro/astro/blob/main/packages/integrations/sitemap/CHANGELOG.md",
+    "cambio": "https://github.com/withastro/astro/commit/52d3f56999ecdf92510b2c16ed2a3a4785b9c73a",
+    "npm": {
+      "url": "https://registry.npmjs.org/@astrojs/sitemap/3.7.4",
+      "dependencias": {
+        "zod": "^4.3.6",
+        "sitemap": "^9.0.0"
+      },
+      "integridad": "sha512-LbKNC24bdUWcQf/pThB6qLlSqHojxGjZDURIzFocY8rlWnAn2t74nnhnK6S5x0NHriHoAduLEpVjRykmeGiVvA=="
+    }
+  },
+  "artefactos": [
+    {
+      "archivo": "2026-10-11-sitemap-antes-build.log.gz",
+      "sha256": "4162baf1c856e7a509a6a3fe9a895eacffcc8074eb5440dff31ef450aa15af47"
+    },
+    {
+      "archivo": "2026-10-11-sitemap-antes-control.log.gz",
+      "sha256": "d848ab38f9deb1ab016691825fa9040b4b5265362ca05589c90a74b39c2e919d"
+    },
+    {
+      "archivo": "2026-10-11-sitemap-install.log.gz",
+      "sha256": "da100a8432d5c3b1a8e2f69998a73fa721c927cbc218b649e16498e494e07ab7"
+    },
+    {
+      "archivo": "2026-10-11-sitemap-despues-build.log.gz",
+      "sha256": "c5fb4dc7eb52431b0f3031f71507bb7a5a6b8af01f636bed9ab23244d320cf2c"
+    },
+    {
+      "archivo": "2026-10-11-sitemap-antes-audit.json.gz",
+      "sha256": "f71778b6937a935735e013b4fc251dc08d8fad9cedee17bd10afb94c7d65cf19"
+    },
+    {
+      "archivo": "2026-10-11-sitemap-despues-audit.json.gz",
+      "sha256": "8aa2258fde5cb1bc01fb4cef956ef69840ca38cdee66097bacfdac951f48e257"
+    },
+    {
+      "archivo": "2026-10-11-sitemap-despues-produccion-audit.json.gz",
+      "sha256": "e48c77bf1fe7476b450317c9ad03cb3a0dd9d127a7d0f4bdcfe9d5425f05f651"
+    },
+    {
+      "archivo": "2026-10-11-sitemap-mutacion-canonical.log.gz",
+      "sha256": "3596ba30abb45d3a4bf0fe348f2dc40fde526bb88e8eb6b68368b81e2d18d0b6"
+    },
+    {
+      "archivo": "2026-10-11-sitemap-mutacion-open-graph.log.gz",
+      "sha256": "90cbff37f413ec80a964cd12c7feb97f652319681e7580e57015b195e2788190"
+    },
+    {
+      "archivo": "2026-10-11-sitemap-mutacion-indice.log.gz",
+      "sha256": "34c698ff6f659e0f669ae09d99af727eb2b46ba1ce76c8b8defcb5dd9d51d7ac"
+    }
+  ],
+  "ci": "pendiente al registrar",
+  "auditoria_independiente": "no ejecutada"
+}
