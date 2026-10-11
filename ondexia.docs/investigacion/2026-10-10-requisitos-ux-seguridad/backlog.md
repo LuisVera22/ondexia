@@ -160,6 +160,17 @@ los 18 PR, eludir protecciones, tocar main ni desplegar en AWS.
 
 ## 6. Avance de ACT-23
 
+El propietario autoriza resolver y cerrar todas las propuestas bot actuales.
+[Corte de decisiones y evidencia](../../evidencias/2026-10-11-cierre-dependabot.md):
+seleccionar #14/#16/#17/#19/#21/#28/#29/#30; no adoptar en este ciclo
+#15/#18/#20/#22/#24/#25/#26/#27, conservando en el inventario los motivos y las
+condiciones de reevaluación. Interfaz preparada: tres casos PostCSS rojo/verde,
+tres controles Zone con mutación detectada/restaurada, 147 web y 8 panel correctos.
+CI/integración/cierres pendientes al registrar; no declara cero ramas aún.
+El cierre de propuestas no cierra ACT-19/23 ni F15/F20/F24; las migraciones
+coordinadas, el escáner/caché, contratos del SDK/Qute y avisos residuales
+siguen en estas actividades existentes, sin abrir otro catálogo.
+
 [Direcciones de herramientas](../../evidencias/2026-10-11-direcciones-herramientas.md):
 fast-uri 3.1.6 → 3.1.8, con tres fallos previos y mismos tres tests correctos
 después. Los tres avisos desaparecen; la auditoría completa de landing pasa de
