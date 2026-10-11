@@ -22,7 +22,6 @@ import {
 import { accionConEstado } from '../../../shared/components/comunes/boton/estado-accion';
 import { AvisosService } from '../../../shared/services/avisos.service';
 import { ContextoService } from '../../../shared/services/contexto.service';
-import { ConfiguracionApiService, Empresa, Establecimiento } from '../../../nucleo/configuracion.api.service';
 import { mensajeDeError } from '../../../nucleo/errores';
 
 /**
@@ -56,7 +55,6 @@ import { mensajeDeError } from '../../../nucleo/errores';
 })
 export class DetalleDocumentoComponent implements OnDestroy {
   private readonly ventas = inject(VentasApiService);
-  private readonly configuracion = inject(ConfiguracionApiService);
   private readonly ruta = inject(ActivatedRoute);
   private readonly avisos = inject(AvisosService);
   private readonly contexto = inject(ContextoService);
@@ -64,8 +62,8 @@ export class DetalleDocumentoComponent implements OnDestroy {
   private readonly router = inject(Router);
 
   readonly documento = signal<DocumentoVentaApi | null>(null);
-  readonly empresa = signal<Empresa | null>(null);
-  readonly establecimiento = signal<Establecimiento | null>(null);
+  readonly empresa = computed(() => this.documento()?.datosHistoricos?.emisor ?? null);
+  readonly establecimiento = computed(() => this.documento()?.datosHistoricos?.local ?? null);
   readonly cargando = signal(true);
   readonly error = signal<string | null>(null);
   readonly visualizandoComprobante = signal(false);
@@ -166,14 +164,8 @@ export class DetalleDocumentoComponent implements OnDestroy {
 
   private async cargar(tipo: TipoDocumentoVenta, id: string): Promise<void> {
     try {
-      const [documento, empresa, establecimientos] = await Promise.all([
-        this.ventas.documento(id, tipo),
-        this.configuracion.empresa(),
-        this.configuracion.establecimientos(),
-      ]);
+      const documento = await this.ventas.documento(id, tipo);
       this.documento.set(documento);
-      this.empresa.set(empresa);
-      this.establecimiento.set(establecimientos.find((e) => e.id === documento.sucursalId) ?? null);
       if (documento.fiscal) {
         await this.consultarSunat(id);
       }

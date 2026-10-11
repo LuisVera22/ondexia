@@ -147,6 +147,14 @@ transacción que falla cerrado. La aplicación NUNCA se conecta como superusuari
 un superusuario no está sujeto a RLS y el aislamiento quedaría activo y sin
 efecto.
 
+**Los documentos conservan los datos exactos del momento de emisión.** Cliente,
+emisor, local y versión del logo se fijan al emitir; las ediciones de maestros no
+cambian consulta, reimpresión ni datos documentales de envío. Los archivos originales
+enviados y recibidos de SUNAT se conservan vinculados al documento, sin sobrescritura;
+una representación regenerada se distingue del original. El legado solo se recupera
+de originales verificables; no se rellena con valores actuales. El avance y los
+límites de F06 están en `ondexia.docs/especificaciones/2026-10-11-conservacion-emision.md`.
+
 **Las bitácoras son de solo inserción**, por disparador y no solo por permisos.
 Los privilegios los concede quien es dueño de la tabla y se pueden volver a
 conceder.

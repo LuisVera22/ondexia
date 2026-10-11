@@ -579,3 +579,18 @@ plazo, no una arquitectura.
 - **v1.3 (2026-09-08)** — §4.4 y la regla del almacén del local, con la iteración 5.
 - **v1.4 (2026-09-08)** — §5 (canje y nota de crédito) y §6 (comunicación de
   baja), con la iteración 6.
+
+## Conservación del momento de emisión · F06
+
+Decisión del propietario, 2026-10-11: cliente, emisor, local y logos conservan los
+datos exactos al emitir. V28 copia los campos públicos en datos_historicos y V27
+impide cambiar el registro completo salvo estado. PuntoDeVentaIT.conservaClienteYLineaHistorica,
+conservaEmisorYLocal e inmutable ejercitan el primer bloque; detalle-documento.component.spec.ts
+verifica cabecera ticket/A4 y estado de legado. API, contrato y Angular se actualizan juntos.
+
+Las filas antiguas permanecen sin copia y se muestran como datos originales no
+disponibles; no significa cliente anónimo. No se genera una orden con maestros
+actuales para aparentar una emisión original. Recuperar desde XML exige verificar
+original y vínculo antes de cualquier reconstrucción; esa recuperación está pendiente.
+El almacenamiento de originales enviados/recibidos se aborda en el siguiente bloque
+F06. Ver especificación y evidencia 2026-10-11-conservacion-emision.

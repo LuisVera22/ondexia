@@ -135,6 +135,33 @@ describe('Detalle del documento · presentación interna y fiscal', () => {
     });
   }
 
+  for (const formato of ['ticket', 'a4'] as const) {
+    it(`la cabecera ${formato} usa los datos del momento de emisión`, () => {
+      const hoja = mostrar({ ...nota, datosHistoricos: {
+        emisor: { ruc: '20100000009', razonSocial: 'Emisor al emitir', nombreComercial: 'Marca al emitir',
+          domicilioFiscal: 'Domicilio al emitir', ubigeo: '150101' },
+        local: { id: 'suc-1', nombre: 'Local al emitir', direccion: 'Dirección del local al emitir',
+          ubigeo: '150101', codigo: '0000' }, cliente: null,
+      } }, formato);
+      expect(hoja.querySelector('header')?.textContent).toContain('Emisor al emitir');
+      expect(hoja.querySelector('header')?.textContent).toContain('Dirección del local al emitir');
+      expect(hoja.querySelector('header')?.textContent).toContain('20100000009');
+    });
+  }
+
+  it('distingue el legado y no presenta la falta de datos como cliente anónimo', () => {
+    const vista = TestBed.createComponent(DetalleDocumentoComponent);
+    vista.componentInstance.documento.set(nota);
+    vista.componentInstance.cargando.set(false);
+    vista.componentInstance.error.set(null);
+    vista.detectChanges();
+    expect(vista.nativeElement.querySelector('[role="status"]')?.textContent).toContain('datos originales');
+    expect(vista.nativeElement.querySelector('[aria-label="Registro de venta"]')?.textContent)
+      .toContain('Datos originales no disponibles');
+    expect(vista.nativeElement.querySelector('[aria-label="Registro de venta"]')?.textContent)
+      .not.toContain('Cliente varios');
+  });
+
   it('no resta de nuevo descuentos ni reclasifica afectaciones mixtas en la nota', () => {
     const hoja = mostrar({ ...nota, totalGravado: 100, totalIgv: 18, totalExonerado: 50,
       totalInafecto: 32, totalDescuento: 10, total: 200 }, 'a4');

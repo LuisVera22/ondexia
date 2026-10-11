@@ -118,7 +118,7 @@
           <dt>Número</dt><dd class="font-semibold">{{ d.numeroCompleto }}</dd>
           <dt>Estado</dt><dd>{{ estadoTexto(d.estado) }}</dd>
           <dt>Fecha</dt><dd>{{ fecha(d.emitidoEn) }}</dd>
-          <dt>Local</dt><dd>{{ establecimiento()?.nombre || 'Sin local disponible' }}</dd>
+          <dt>Local</dt><dd>{{ establecimiento()?.nombre || 'Datos originales no disponibles' }}</dd>
           <dt>Moneda</dt><dd>{{ d.moneda }}</dd>
         </dl>
       </section>
@@ -129,7 +129,7 @@
         <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ c.tipoDocumento }} {{ c.numeroDocumento }}</p>
         @if (c.direccion) {<p class="mt-2 text-sm text-gray-600 dark:text-gray-400">{{ c.direccion }}</p>}
         } @else {
-        <p class="text-sm text-gray-600 dark:text-gray-400">Cliente varios</p>
+        <p class="text-sm text-gray-600 dark:text-gray-400">{{ d.datosHistoricos ? 'Cliente varios' : 'Datos originales no disponibles' }}</p>
         }
       </section>
     </div>
@@ -183,6 +183,12 @@
   </section>
   }
 
+  @if (!d.datosHistoricos) {
+  <p role="status" class="my-4 rounded-base border border-warning-500 p-3 text-sm">
+    No se dispone de los datos originales del emisor, local y cliente de este documento.
+  </p>
+  }
+
   <!-- La hoja: lo que se imprime. -->
   <article [style.display]="visualizandoComprobante() ? null : 'none'" class="hoja mx-auto rounded-base border border-gray-200 bg-white p-6 text-gray-900 print:text-black"
     [class]="formato() === 'ticket' ? 'hoja--ticket' : 'max-w-3xl'">
@@ -206,7 +212,7 @@
         {{ c.nombre }}<br /><span class="tabular-nums">{{ c.tipoDocumento === 'RUC' ? 'RUC' : c.tipoDocumento === 'DNI' ? 'DNI' : c.tipoDocumento }} {{ c.numeroDocumento }}</span>
         @if (c.direccion) {<br />{{ c.direccion }}}
         } @else {
-        Cliente varios
+        {{ d.datosHistoricos ? 'Cliente varios' : 'Datos originales no disponibles' }}
         }
       </dd>
       <dt class="text-gray-600">Pago</dt>

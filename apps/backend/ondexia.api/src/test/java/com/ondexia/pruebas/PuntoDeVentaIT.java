@@ -150,8 +150,8 @@ class PuntoDeVentaIT extends PruebaIntegracion {
     }
 
     @Test
-    @DisplayName("F05 caracteriza el cliente actual y la línea histórica sin aprobar una política")
-    void caracterizaClienteActualYLineaHistorica() throws Exception {
+    @DisplayName("F06 conserva el cliente y las líneas del momento de emisión")
+    void conservaClienteYLineaHistorica() throws Exception {
         String cliente = leer(mockMvc.perform(comoAdministrador(post("/api/v1/ventas/clientes"))
                         .content("""
                                 {"tipoDocumento":"DNI","numeroDocumento":"90112233",
@@ -189,11 +189,11 @@ class PuntoDeVentaIT extends PruebaIntegracion {
             JsonNode consultado = leer(mockMvc.perform(comoAdministrador(
                             get("/api/v1/ventas/notas-de-venta/" + emitido.path("id").asString())))
                     .andExpect(status().isOk()).andReturn().getResponse().getContentAsString());
-            // Estado observado por inspección previa; no constituye una política aprobada.
+            // Regla aprobada: una edición del maestro no cambia el documento emitido.
             assertThat(consultado.path("cliente").path("nombre").asString())
-                    .isEqualTo("Cliente después de emitir");
+                    .isEqualTo("Cliente al emitir");
             assertThat(consultado.path("cliente").path("direccion").asString())
-                    .isEqualTo("Dirección posterior");
+                    .isEqualTo("Dirección al emitir");
             comprobarLineaHistorica(consultado);
             assertThat(consultado.path("total").decimalValue()).isEqualByComparingTo("80.00");
         } finally {
@@ -206,6 +206,58 @@ class PuntoDeVentaIT extends PruebaIntegracion {
                 com.ondexia.infrastructure.seguridad.ContextoDePrueba.limpiar();
             }
         }
+    }
+
+    @Test
+    @DisplayName("El emisor y el local conservan los datos fijados al emitir")
+    void conservaEmisorYLocal() throws Exception {
+        contextoMarca();
+        var empresaAnterior = transaccion.execute(estado -> jdbc.sql(
+                "select razon_social, nombre_comercial, domicilio_fiscal from empresa where id = ?::uuid")
+                .param(EMPRESA_ADMINISTRADA).query().singleRow());
+        var localAnterior = transaccion.execute(estado -> jdbc.sql(
+                "select nombre, direccion from sucursal where id = ?::uuid")
+                .param(MATRIZ).query().singleRow());
+        try {
+            cambiarDatosMaestros("Emisor original", "Marca original", "Domicilio original",
+                    "Local original", "Dirección original");
+            com.ondexia.infrastructure.seguridad.ContextoDePrueba.limpiar();
+            var emitido = emitirConLogos(cajaAbierta("0"));
+            assertThat(emitido.path("datosHistoricos").path("emisor").path("razonSocial").asString())
+                    .isEqualTo("Emisor original");
+            contextoMarca();
+            cambiarDatosMaestros("Emisor posterior", "Marca posterior", "Domicilio posterior",
+                    "Local posterior", "Dirección posterior");
+            com.ondexia.infrastructure.seguridad.ContextoDePrueba.limpiar();
+            mockMvc.perform(comoAdministrador(get("/api/v1/ventas/notas-de-venta/" + emitido.path("id").asString())))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.datosHistoricos.emisor.razonSocial").value("Emisor original"))
+                    .andExpect(jsonPath("$.datosHistoricos.emisor.nombreComercial").value("Marca original"))
+                    .andExpect(jsonPath("$.datosHistoricos.emisor.domicilioFiscal").value("Domicilio original"))
+                    .andExpect(jsonPath("$.datosHistoricos.local.nombre").value("Local original"))
+                    .andExpect(jsonPath("$.datosHistoricos.local.direccion").value("Dirección original"));
+        } finally {
+            contextoMarca();
+            try {
+                cambiarDatosMaestros((String) empresaAnterior.get("razon_social"),
+                        (String) empresaAnterior.get("nombre_comercial"),
+                        (String) empresaAnterior.get("domicilio_fiscal"),
+                        (String) localAnterior.get("nombre"), (String) localAnterior.get("direccion"));
+            } finally {
+                com.ondexia.infrastructure.seguridad.ContextoDePrueba.limpiar();
+            }
+        }
+    }
+
+    private void cambiarDatosMaestros(String razonSocial, String nombreComercial,
+            String domicilioFiscal, String local, String direccion) {
+        transaccion.executeWithoutResult(estado -> {
+            assertThat(jdbc.sql("update empresa set razon_social = ?, nombre_comercial = ?, domicilio_fiscal = ? where id = ?::uuid")
+                    .param(razonSocial).param(nombreComercial).param(domicilioFiscal)
+                    .param(EMPRESA_ADMINISTRADA).update()).isEqualTo(1);
+            assertThat(jdbc.sql("update sucursal set nombre = ?, direccion = ? where id = ?::uuid")
+                    .param(local).param(direccion).param(MATRIZ).update()).isEqualTo(1);
+        });
     }
 
     private void comprobarLineaHistorica(JsonNode documento) {
@@ -661,6 +713,10 @@ class PuntoDeVentaIT extends PruebaIntegracion {
                                     .param(id).update()))
                     .hasMessageContaining("no se modifica");
             // El estado sí: es lo único que cambia después.
+            assertThat(org.assertj.core.api.Assertions.catchThrowable(() ->
+                    transaccion.executeWithoutResult(estado -> jdbc.sql(
+                            "update documento_venta set datos_historicos = '{}'::jsonb where id = ?::uuid")
+                            .param(id).update()))).hasStackTraceContaining("no se modifica");
             transaccion.executeWithoutResult(estado ->
                     jdbc.sql("update documento_venta set estado = 'ANULADO' where id = ?::uuid").param(id).update());
         } finally {

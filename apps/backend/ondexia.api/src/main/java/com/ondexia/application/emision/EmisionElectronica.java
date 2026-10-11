@@ -236,14 +236,19 @@ public class EmisionElectronica {
 
     /** Todo lo que el XML necesita, copiado y ya calculado: el Emisor no suma nada. */
     OrdenDeEmision construirOrden(ComprobanteElectronico comprobante, DocumentoVenta d, Empresa e) {
-        Sucursal sucursal = sucursales.buscarPorId(d.sucursalId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "El documento " + d.numeroCompleto() + " apunta a un establecimiento que no existe."));
-        var emisor = new OrdenDeEmision.Emisor(e.ruc().valor(), e.razonSocial(), e.nombreComercial(),
-                sucursal.direccion() == null ? e.domicilioFiscal() : sucursal.direccion(),
-                sucursal.ubigeo() != null ? sucursal.ubigeo().valor()
-                        : e.ubigeo() == null ? null : e.ubigeo().valor(),
-                sucursal.codigo(), e.usuarioSol());
+        var historicos = d.datosHistoricos();
+        if (historicos == null) {
+            throw new com.ondexia.domain.comun.error.ReglaDeNegocioViolada(
+                    "datos_historicos_no_disponibles",
+                    "Se requieren los datos originales del documento para preparar su envío.");
+        }
+        var emisorHistorico = historicos.emisor();
+        var localHistorico = historicos.local();
+        var emisor = new OrdenDeEmision.Emisor(emisorHistorico.ruc(),
+                emisorHistorico.razonSocial(), emisorHistorico.nombreComercial(),
+                localHistorico.direccion() == null ? emisorHistorico.domicilioFiscal() : localHistorico.direccion(),
+                localHistorico.ubigeo() == null ? emisorHistorico.ubigeo() : localHistorico.ubigeo(),
+                localHistorico.codigo(), e.usuarioSol());
         var cliente = d.cliente();
         var adquirente = cliente == null ? null : new OrdenDeEmision.Adquirente(
                 cliente.tipoDocumento().codigo(), cliente.numeroDocumento(), cliente.nombre(),

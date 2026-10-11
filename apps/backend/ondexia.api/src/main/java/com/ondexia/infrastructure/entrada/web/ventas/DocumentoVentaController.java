@@ -236,7 +236,8 @@ public class DocumentoVentaController {
             BigDecimal totalInafecto, BigDecimal totalDescuento, BigDecimal totalIgv,
             BigDecimal total, String observaciones, UUID documentoOrigenId, String motivo,
             String motivoNombre, RespuestaOrigen origen, List<RespuestaLinea> lineas,
-            List<RespuestaPago> pagos, String logoPrincipal, String logoTicket) {
+            List<RespuestaPago> pagos, String logoPrincipal, String logoTicket,
+            com.ondexia.domain.ventas.DatosHistoricosDocumento datosHistoricos) {
 
         static RespuestaDocumento desde(DocumentoVenta d) {
             var c = d.cliente();
@@ -255,7 +256,7 @@ public class DocumentoVentaController {
                     origen == null ? null : new RespuestaOrigen(d.documentoOrigenId(),
                             origen.tipo().codigo(), origen.numeroCompleto()),
                     d.lineas().stream().map(RespuestaLinea::desde).toList(),
-                    d.pagos().stream().map(RespuestaPago::desde).toList(), d.logoPrincipal(), d.logoTicket());
+                    d.pagos().stream().map(RespuestaPago::desde).toList(), d.logoPrincipal(), d.logoTicket(), d.datosHistoricos());
         }
     }
 
