@@ -160,6 +160,11 @@ los 18 PR, eludir protecciones, tocar main ni desplegar en AWS.
 
 ## 6. Avance de ACT-23
 
+[Wrapper Maven 3.10.0](../../evidencias/2026-10-11-cierre-dependabot-maven.md):
+adaptación #17 preparada con 656 pruebas correctas en Java 21; wrapper Windows
+intacto byte a byte (Windows no ejecutado). Es compatibilidad, no un fallo de
+negocio demostrado. NVD efectivo y CI posterior pendientes antes de cerrar.
+
 El propietario autoriza resolver y cerrar todas las propuestas bot actuales.
 [Corte de decisiones y evidencia](../../evidencias/2026-10-11-cierre-dependabot.md):
 seleccionar #14/#16/#17/#19/#21/#28/#29/#30; no adoptar en este ciclo
