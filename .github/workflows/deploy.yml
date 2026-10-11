@@ -178,6 +178,8 @@ jobs:
         # documentos con valor tributario, esa garantía no se asume.
         #
         # Sobre NVD_API_KEY, ver el comentario equivalente en ci.yml.
+        # Bloqueo sin clave y propagación de fallo: test_puerta_dependencias.py.
+        # Ensayo local con Maven sustituido; despliegue efectivo no verificado.
         run: |
           if [ -z "$NVD_API_KEY" ]; then
             # En prod NO se omite (hallazgo M11).
