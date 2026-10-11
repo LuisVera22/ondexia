@@ -1,0 +1,49 @@
+{
+  "bloque": "F06 — verificación local de candidatos XML",
+  "base": "fb5c9fc1637e3dff0e6b53f5a5680063c057338a",
+  "pruebas_nuevas": 19,
+  "pruebas_facturacion": 52,
+  "tdd": "stub inicial: siete fallos de siete pruebas; capacidad nueva, no defectos históricos",
+  "mutaciones": {
+    "ignorar_resultado_firma": 2,
+    "declarar_confianza_y_aceptacion": 3,
+    "permitir_dtd": 2
+  },
+  "restauracion": "comparación byte por byte del verificador; suite completa verde después de restaurar",
+  "oraculo": "RUC/tipo/serie-número literales de fixtures; certificado público de pruebas; firma de fragmento válida comprobada por JDK",
+  "consola": "JDK 21 ejecutado: DTD rechazado, salida 1, JSON fijo y bytes sin cambios",
+  "no_verificado": [
+    "originales reales",
+    "procedencia y cadena de confianza del certificado",
+    "revocación y vigencia aplicable a la emisión",
+    "aceptación SUNAT/CDR",
+    "recuperación y vinculación histórica",
+    "AWS y backups reales",
+    "PDF persistido",
+    "auditoría independiente"
+  ],
+  "ci": "pendiente al registrar",
+  "registros": [
+    {
+      "archivo": "2026-10-11-verificador-originales-xml/rojo.log.gz",
+      "sha256": "337db1f231a1d090705c50480f99aa70d2b0241b0e5e7563091b7156a8333540"
+    },
+    {
+      "archivo": "2026-10-11-verificador-originales-xml/mutacion-firma.log.gz",
+      "sha256": "7542af036d3df517c2f5a691da77905b88e38bf3bf9521c66b9264d92ca4b66f"
+    },
+    {
+      "archivo": "2026-10-11-verificador-originales-xml/mutacion-confianza.log.gz",
+      "sha256": "c24274c026be2a7aabda46f1c5b907b92d7fcc21c13615af6942209b04121e65"
+    },
+    {
+      "archivo": "2026-10-11-verificador-originales-xml/mutacion-dtd.log.gz",
+      "sha256": "76cb66d3f6bb55dc0f0fc7e6877effd00f38bca5fcbffb72cd7c1f275c673d4f"
+    },
+    {
+      "archivo": "2026-10-11-verificador-originales-xml/completo.log.gz",
+      "sha256": "032ca89d6baa0506bbe37551fc625b12fad61fb00a3b13d5bc051c4d52b34250"
+    }
+  ],
+  "pruebas_dominio": 130
+}

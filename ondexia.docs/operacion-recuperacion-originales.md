@@ -70,6 +70,29 @@ integridad de referencias, certificado y contexto aplicables mediante un
 verificador específico; no basta encontrar un elemento `Signature` o que el
 XML sea legible. El inventario **no implementa esa verificación**.
 
+El [verificador local de candidatos XML](especificaciones/2026-10-11-verificador-originales-xml.md)
+comprueba la integridad de una firma del documento completo y contrasta una
+identidad esperada independiente. No verifica confianza del certificado ni
+aceptación SUNAT; no cambia el estado del inventario ni recupera datos.
+Usar un certificado **público** X.509 DER obtenido por una fuente independiente,
+sin `.pfx` ni contraseña, y conservar evidencia de su procedencia. No extraer
+el certificado del mismo candidato como única referencia de confianza.
+
+Tras compilar el módulo con JDK 21, desde la raíz del repositorio:
+
+```bash
+java -cp apps/backend/ondexia.facturacion/target/classes \
+  com.ondexia.facturacion.recuperacion.ComprobarOriginalXml \
+  "$copia_del_xml" "$certificado_publico_independiente" \
+  "$ruc_esperado" "$tipo_esperado" "$serie_numero_esperados"
+```
+
+Para XML legado con RSA-SHA1/SHA1, agregar `--permitir-sha1-legado` de forma
+explícita; no cambia el firmador de producción. Código 0 indica únicamente
+integridad comprobada dentro del perfil admitido; 1 candidato rechazado; 2
+entradas operativas ilegibles/no admitidas. Guardar informe fuera de la fuente.
+Límites: XML 8 MiB, certificado 64 KiB; copia estable en directorios de confianza.
+
 Contrastar CDR con el comprobante correspondiente; un CDR acredita una respuesta,
 no todos los datos originales de la venta. Un hash recién calculado permite
 identificar bytes y comparar copias, pero no demuestra origen, confianza del
@@ -103,5 +126,7 @@ Preparación verificable con archivos sintéticos, prueba de no modificación,
 omisión de enlaces/archivos especiales y mensajes fijos ante errores. CI prueba
 la herramienta mediante el descubrimiento Python ya existente. No demuestra
 recuperación real, autenticidad XML, restauración de backups ni conformidad AWS.
-F06 continúa abierto: acceso/fuentes reales, verificador y vinculación, PDF
-persistido y ensayo AWS. Auditoría independiente sigue pendiente.
+F06 continúa abierto: acceso/fuentes reales, confianza del certificado,
+contraste de CDR y vinculación, PDF persistido y ensayo AWS. El verificador
+local complementa este procedimiento; sus pruebas no prueban originales reales.
+PDF en servidor pendiente de decisión de fase. Auditoría independiente pendiente.
