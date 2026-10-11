@@ -381,3 +381,12 @@ regeneración en `respuesta.xml`, con referencia y SHA-256. Fault y cuerpos no
 reconocidos no se archivan: pueden repetir credenciales. El ZIP CDR permanece
 como archivo independiente recibido. Pruebas: `conservaSoapOriginal`,
 `comunicacionDeBaja` y `consultaDelTicket`.
+
+### F06: recuperación del legado
+
+El [procedimiento de recuperación de originales](operacion-recuperacion-originales.md)
+prioriza versiones S3 con acceso de lectura limitado a documentos y después
+respaldos/copias. La herramienta local inventaría candidatos y sus hashes sin
+modificarlos; no valida autenticidad ni declara un documento irrecuperable.
+Sin fuente fiable, conservar lo disponible y señalar faltantes es la política
+aprobada por el propietario. Acceso AWS, verificación y recuperación real pendientes.
