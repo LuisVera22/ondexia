@@ -43,8 +43,9 @@ Cada defecto: prueba roja sobre la base y verde después del arreglo. Para DTD y
 CDR correcto ya admitidos, mutaciones aisladas con restauración byte por byte.
 Regresión completa de dominio/facturación y CI del mismo head antes de integrar.
 
-Pendientes: límite durante descarga HTTP (el lector recibe un arreglo ya
-materializado), presupuesto global de CPU/memoria, validación estructural y
+Este corte recibió SOAP ya materializado; el [corte posterior HTTP](2026-10-11-descarga-soap-acotada.md)
+añade conteo durante descarga y tiempo de recepción completa.
+Pendientes: presupuesto global de CPU/memoria, validación estructural y
 vinculación/firma CDR, XML interno y auditoría independiente. No se afirma
 explotación AWS/SUNAT ni seguridad completa. Por decisión del propietario, la
 validación de originales reales queda para cuando exista un caso en producción;

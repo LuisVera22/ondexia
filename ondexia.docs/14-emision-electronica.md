@@ -402,7 +402,13 @@ del ZIP. Limita ZIP comprimido a 8 MiB, bytes descomprimidos consumidos hasta es
 XML a 8 MiB y entradas examinadas a 32; cuenta bytes reales también al descartar
 entradas previas. El SOAP ya recibido por el lector se limita a 16 MiB. Son
 límites operativos, no fiscales: sobrepasarlos da respuesta ilegible, no rechazo
-tributario. El HTTP todavía materializa el cuerpo antes de estos controles.
+tributario. La [recepción HTTP](especificaciones/2026-10-11-descarga-soap-acotada.md)
+cuenta bytes antes de acumular: cancela al superar 16 MiB y aplica el tiempo
+configurado hasta terminar el cuerpo, además de la espera de cabeceras.
+`ClienteSunatHttpTest` verifica frontera, exceso por bloques/con longitud declarada,
+cuerpo abierto/truncado, redirección e interrupción. Exceso devuelve
+`RESPUESTA_DEMASIADO_GRANDE`; transporte/tiempo, `SIN_CONEXION` con diagnóstico
+fijo. Ninguno conserva un original parcial ni declara rechazo tributario.
 
 `LecturaHostilDeCdrTest` ejercita exceso/frontera, base64 inválido, carpeta/extensión,
 DTD y ausencia de diagnóstico del parser en descripción/stderr. Parser sin DTD
