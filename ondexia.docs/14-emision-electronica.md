@@ -416,3 +416,19 @@ ni recursos externos; errores CDR con código y descripción fijos, sin copiar
 mensajes internos. `LectorDeRespuestaSunatTest` mantiene CDR/ticket/estado válidos
 y sus originales. No se afirma validación de firma, vínculo ni esquema del CDR;
 ACT-17 sigue parcial y no se probó SUNAT/AWS real.
+
+### ACT-15 / F17: identidad de resultados de comprobantes
+
+[Especificación y límites](especificaciones/2026-10-11-identidad-resultados-emision.md).
+`ComprobanteElectronico.aplicar` comprueba ID, empresa y operación EMITIR antes
+de cualquier modificación. Un resultado de verificación de credenciales no
+puede acreditar un comprobante. La ruta de S3 consultada no sustituye este
+control del mensaje. `IdentidadResultadoEmisionTest` verifica los estados y
+campos; `FronteraResultadosEmisionTest` verifica ausencia de persistencia y
+acceso al documento ante mensajes incompatibles, con dobles de puertos.
+
+Un comprobante fuera de EN_COLA ignora otro resultado compatible. Al volver a
+EN_COLA, el control actual no discrimina el intento anterior: correlación,
+duplicados y respuesta tardía siguen pendientes de F17. Tampoco este corte
+valida firma/esquema del CDR, propiedad de claves de archivos, autenticidad del
+productor ni configuración AWS/RLS.
