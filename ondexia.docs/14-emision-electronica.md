@@ -141,10 +141,18 @@ medias, el comprobante electrónico puede haber ido y vuelto varias veces.
 | `ERROR_ENVIO` | No llegó o SUNAT no respondió: red, servicio caído (0100–1999), certificado que no abre | Reintentar tal cual |
 | `ANULADO` | Iteración 6 | — |
 
-Un resultado que llega tarde para un comprobante que ya se reintentó **se
-ignora**: `ComprobanteElectronico.aplicar` devuelve `false` si el comprobante no
-estaba en cola. Sin eso, la respuesta de un intento viejo podría pisar la del
-nuevo.
+Un resultado compatible recibido cuando el comprobante está fuera de `EN_COLA`
+se ignora: `ComprobanteElectronico.aplicar` devuelve `false` y conserva los
+datos de la respuesta registrada. `ReintentosYDuplicadosEmisionTest` comprueba
+las nueve combinaciones de ACEPTADO/RECHAZADO/ERROR_ENVIO y los límites del
+reintento, incluyendo el instante exacto de diez minutos y el reinicio de espera.
+
+Esto **no discrimina respuestas de intentos anteriores después de reencolar**.
+La orden y el resultado comparten el identificador del comprobante, sin un
+identificador de intento que el agregado pueda contrastar. Si vuelve a `EN_COLA`,
+una respuesta antigua compatible puede aplicarse. La correlación, conciliación
+y recuperación siguen pendientes en F17; no se acredita entrega exactamente
+una vez ni resolución de esa limitación con estas pruebas.
 
 El XML se conserva aunque SUNAT rechace: es lo que hay que mirar para entender
 el rechazo. El CDR se limpia al reintentar, porque el que había era del intento
