@@ -120,7 +120,7 @@ class PuntoDeVentaIT extends PruebaIntegracion {
         contextoMarca();
         try {
             var subida = identidad.autorizarSubida(tipo, "image/png", 1000L);
-            almacenMarca.simularSubida(subida.clave(), "image/png", 1000L);
+            almacenMarca.simularSubida(subida.clave(), "image/png", ImagenDePrueba.de("png"));
             identidad.confirmarSubida(tipo, subida.clave());
             return "http://cdn-de-desarrollo.local/" + subida.clave();
         } finally {

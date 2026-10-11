@@ -21,9 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
  * <ol>
  *   <li>{@link #autorizarSubida} firma un permiso para subir <em>ese</em>
  *       archivo, con su tipo y su tamaño dentro de la firma.</li>
- *   <li>El navegador sube directo al almacén. Nuestra API no ve el archivo.</li>
- *   <li>{@link #confirmarSubida} pregunta al almacén qué llegó de verdad y, solo
- *       entonces, guarda la clave.</li>
+ *   <li>El navegador sube directo al almacén.</li>
+ *   <li>{@link #confirmarSubida} comprueba metadata y contenido mediante el
+ *       puerto de almacenamiento antes de guardar la clave (ContenidoDeLogoIT).</li>
  * </ol>
  *
  * <p>El tercer paso es el que hace honesto al primero. Entre la firma y la
@@ -122,6 +122,8 @@ public class Identidad {
         // Segunda validación, ahora contra lo que el almacén dice que tiene. La
         // primera fue sobre lo que el cliente prometía.
         logo.exigirValido(objeto.tipoContenido(), objeto.bytes());
+        // Contenido falso/truncado no se publica: ContenidoDeLogoIT.
+        almacen.validarImagen(clave, objeto.tipoContenido(), logo.maximoBytes());
 
         var identidad = identidades.buscar()
                 .orElseGet(() -> new IdentidadVisual(UUID.randomUUID(), empresaActiva()));

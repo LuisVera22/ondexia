@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 public class AlmacenDeMarcaEnMemoria implements AlmacenDeMarca {
 
     private final Map<String, ObjetoDeMarca> objetos = new ConcurrentHashMap<>();
+    private final Map<String, byte[]> contenidos = new ConcurrentHashMap<>();
 
     @Override
     public AutorizacionDeSubida autorizarSubida(String clave, String tipoContenido, long bytes) {
@@ -42,7 +43,14 @@ public class AlmacenDeMarcaEnMemoria implements AlmacenDeMarca {
 
     /** Lo que en producción hace el navegador. Las pruebas lo llaman a mano. */
     public void simularSubida(String clave, String tipoContenido, long bytes) {
+        contenidos.remove(clave);
         objetos.put(clave, new ObjetoDeMarca(bytes, tipoContenido));
+    }
+
+    /** Carga bytes explícitos; no deduce contenido válido a partir del MIME. */
+    public void simularSubida(String clave, String tipoContenido, byte[] contenido) {
+        contenidos.put(clave, contenido.clone());
+        objetos.put(clave, new ObjetoDeMarca(contenido.length, tipoContenido));
     }
 
     @Override
@@ -51,8 +59,15 @@ public class AlmacenDeMarcaEnMemoria implements AlmacenDeMarca {
     }
 
     @Override
+    public void validarImagen(String clave, String tipoContenido, long maximoBytes) {
+        var contenido = contenidos.get(clave);
+        ValidadorDeImagen.validar(contenido == null ? new byte[0] : contenido, tipoContenido, maximoBytes);
+    }
+
+    @Override
     public void eliminar(String clave) {
         objetos.remove(clave);
+        contenidos.remove(clave);
     }
 
     @Override

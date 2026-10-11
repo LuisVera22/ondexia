@@ -60,7 +60,7 @@ class IdentidadVisualIT extends PruebaIntegracion {
     /** Firma, sube y confirma: el recorrido completo, como lo haría el navegador. */
     private String subirYConfirmar(String logo, String tipo, long bytes) {
         var autorizacion = identidad.autorizarSubida(logo, tipo, bytes);
-        almacen.simularSubida(autorizacion.clave(), tipo, bytes);
+        almacen.simularSubida(autorizacion.clave(), tipo, ImagenDePrueba.de("image/png".equals(tipo) ? "png" : "jpeg"));
         identidad.confirmarSubida(logo, autorizacion.clave());
         return autorizacion.clave();
     }
@@ -114,7 +114,7 @@ class IdentidadVisualIT extends PruebaIntegracion {
         assertThat(clave).startsWith("empresas/" + EMPRESA_ADMINISTRADA + "/logo_principal/");
 
         // Lo que hace el navegador.
-        almacen.simularSubida(clave, PNG, UN_PNG_RAZONABLE);
+        almacen.simularSubida(clave, PNG, ImagenDePrueba.de("png"));
 
         mockMvc.perform(put(IDENTIDAD + "/logo_principal")
                         .header("Authorization", autorizacionDemo())
@@ -179,7 +179,7 @@ class IdentidadVisualIT extends PruebaIntegracion {
         comoDemo();
         String ajena = "empresas/%s/logo_principal/%s.png"
                 .formatted(EMPRESA_COMO_VENDEDOR, UUID.randomUUID());
-        almacen.simularSubida(ajena, PNG, UN_PNG_RAZONABLE);
+        almacen.simularSubida(ajena, PNG, ImagenDePrueba.de("png"));
 
         assertThatThrownBy(() -> identidad.confirmarSubida("logo_principal", ajena))
                 .isInstanceOf(ReglaDeNegocioViolada.class)
