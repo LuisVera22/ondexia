@@ -357,3 +357,27 @@ compilación en algo que depende del disco de quien la ejecuta.
 - **v2 (2026-09-08)** — §6.1: el certificado de las pruebas lo genera la
   compilación. Once pruebas del Emisor pasaban en local y fallaban en el CI
   porque el `.pfx` estaba en el disco y no en el repositorio.
+
+## Conservación de archivos originales · F06
+
+La regla aprobada el 2026-10-11 exige conservar los artefactos exactos. Cada intento
+tiene carpeta independiente bajo documentos/{ruc}/originales/{ordenId}/{intentoId}/.
+Se guarda XML firmado, ZIP exacto de envío y CDR recibido; envio.json y recepcion.json
+fijan asociación y hashes sin contraseñas. Los resultados operativos pueden cambiar
+o expirar; los originales quedan en el prefijo de documentos. Las rutas anteriores
+no se rellenan ni se sobrescriben. La API descarga la clave referenciada por el resultado.
+
+ProcesadorDeOrdenesTest.reintentoConservaOriginales y sinArchivoOriginalNoEnvia
+comprueban conservación y frontera de envío. OriginalesEnDiscoTest comprueba
+rechazo de sobrescritura/borrado. OriginalesEnS3Test verifica If-None-Match y rechazo
+de borrado en la petición SDK. Estas pruebas no acreditan condición aplicada en AWS
+ni protección ante administradores: ensayo AWS no realizado. El flujo no genera
+PDF original persistido; la impresión es una representación. Recuperación del legado,
+listado de intentos y auditoría independiente pendientes. Especificación/evidencia:
+2026-10-11-archivos-originales. No se cambia retención por esta implementación.
+
+Las respuestas SOAP reconocidas (CDR, ticket y estado 98) se guardan sin
+regeneración en `respuesta.xml`, con referencia y SHA-256. Fault y cuerpos no
+reconocidos no se archivan: pueden repetir credenciales. El ZIP CDR permanece
+como archivo independiente recibido. Pruebas: `conservaSoapOriginal`,
+`comunicacionDeBaja` y `consultaDelTicket`.

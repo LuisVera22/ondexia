@@ -38,6 +38,7 @@ class ProcesadorDeOrdenesTest {
     /** El bus como mapa. */
     static class BusEnMemoria implements AlmacenDelBus {
         final Map<String, byte[]> objetos = new HashMap<>();
+        boolean rechazarZip;
 
         @Override
         public Optional<byte[]> leer(String clave) {
@@ -46,7 +47,13 @@ class ProcesadorDeOrdenesTest {
 
         @Override
         public void escribir(String clave, byte[] contenido, String tipoContenido) {
-            objetos.put(clave, contenido);
+            if (rechazarZip && clave.startsWith(ClavesDelBus.DOCUMENTOS) && clave.endsWith(".zip")) {
+                throw new IllegalStateException("No se pudo conservar el ZIP original.");
+            }
+            if (clave.startsWith(ClavesDelBus.DOCUMENTOS) && objetos.containsKey(clave)) {
+                throw new IllegalStateException("No se sobrescribe un documento original.");
+            }
+            objetos.put(clave, contenido.clone());
         }
 
         @Override
@@ -145,8 +152,8 @@ class ProcesadorDeOrdenesTest {
         assertThat(resultado.codigo()).isEqualTo("0");
         assertThat(resultado.observaciones()).containsExactly("4252 - observación");
         assertThat(resultado.resumenFirma()).isNotBlank();
-        assertThat(resultado.claveXml()).isEqualTo("documentos/20100000009/20100000009-03-B001-00000012.xml");
-        assertThat(resultado.claveCdr()).isEqualTo("documentos/20100000009/R-20100000009-03-B001-00000012.zip");
+        assertThat(resultado.claveXml()).startsWith("documentos/20100000009/originales/" + orden.id() + "/").endsWith("/20100000009-03-B001-00000012.xml");
+        assertThat(resultado.claveCdr()).startsWith("documentos/20100000009/originales/" + orden.id() + "/").endsWith("/R-20100000009-03-B001-00000012.zip");
         assertThat(resultado.procesadoEn()).isEqualTo(Instant.parse("2026-09-08T15:20:00Z"));
         assertThat(bus.objetos).containsKey(resultado.claveXml()).containsKey(resultado.claveCdr());
         assertThat(bus.objetos).as("la orden se borra al terminar")
@@ -158,6 +165,52 @@ class ProcesadorDeOrdenesTest {
         assertThat(sunat.usuarioUsado).isEqualTo("20100000009MODDATOS");
         assertThat(sunat.claveUsada).isEqualTo("MODDATOS");
         assertThat(sunat.zipUsado).isEqualTo("20100000009-03-B001-00000012.zip");
+    }
+
+    @Test
+    @DisplayName("Cada intento conserva XML, ZIP enviado y CDR originales sin sustituir el anterior")
+    void reintentoConservaOriginales() {
+        byte[] primerCdr = LectorDeRespuestaSunatTest.cdr("0", "Primera constancia");
+        sunat.respuesta = new LectorDeRespuestaSunat().leerCdr(primerCdr);
+        var orden = Ordenes.boleta(UUID.randomUUID());
+        var primero = procesador.procesar(orden);
+        byte[] primerZipEnviado = sunat.zipEnviado.clone();
+        byte[] primerXmlEnviado = Empaquetador.primerXml(primerZipEnviado);
+        assertThat(primero.claveXml()).contains("/originales/" + orden.id() + "/");
+        assertThat(bus.objetos.get(primero.claveXml())).isEqualTo(primerXmlEnviado);
+        assertThat(bus.objetos.get(primero.claveXml().replaceFirst("\\.xml$", ".zip")))
+                .isEqualTo(primerZipEnviado);
+        assertThat(bus.objetos.get(primero.claveCdr())).isEqualTo(primerCdr);
+        String prefijo = primero.claveXml().substring(0, primero.claveXml().lastIndexOf('/') + 1);
+        var envio = json.readTree(bus.objetos.get(prefijo + "envio.json"));
+        var recepcion = json.readTree(bus.objetos.get(prefijo + "recepcion.json"));
+        assertThat(envio.path("ordenId").asString()).isEqualTo(orden.id().toString());
+        assertThat(envio.path("empresaId").asString()).isEqualTo(orden.empresaId().toString());
+        assertThat(envio.path("registradoEn").asString()).isEqualTo("2026-09-08T15:20:00Z");
+        assertThat(recepcion.path("codigo").asString()).isEqualTo("0");
+        assertThat(new String(bus.objetos.get(prefijo + "envio.json"), StandardCharsets.UTF_8))
+                .doesNotContain("claveSol", "claveCertificado", "MODDATOS");
+        byte[] segundoCdr = LectorDeRespuestaSunatTest.cdr("0", "Segunda constancia");
+        sunat.respuesta = new LectorDeRespuestaSunat().leerCdr(segundoCdr);
+        var segundo = procesador.procesar(orden);
+        assertThat(segundo.claveXml()).isNotEqualTo(primero.claveXml());
+        assertThat(segundo.claveCdr()).isNotEqualTo(primero.claveCdr());
+        assertThat(bus.objetos.get(primero.claveXml())).isEqualTo(primerXmlEnviado);
+        assertThat(bus.objetos.get(primero.claveCdr())).isEqualTo(primerCdr);
+        assertThat(bus.objetos.get(segundo.claveCdr())).isEqualTo(segundoCdr);
+    }
+
+    @Test
+    @DisplayName("Si no se conserva el ZIP original, no se llama a SUNAT")
+    void sinArchivoOriginalNoEnvia() {
+        bus.rechazarZip = true;
+        sunat.respuesta = new LectorDeRespuestaSunat().leerCdr(
+                LectorDeRespuestaSunatTest.cdr("0", "Aceptada"));
+        var resultado = procesador.procesar(Ordenes.boleta(UUID.randomUUID()));
+        assertThat(resultado.estado()).isEqualTo(EstadoSunat.ERROR_ENVIO);
+        assertThat(resultado.codigo()).isEqualTo("EMISOR_FALLO");
+        assertThat(sunat.urlUsada).isNull();
+        assertThat(sunat.zipEnviado).isNull();
     }
 
     @Test
@@ -215,13 +268,14 @@ class ProcesadorDeOrdenesTest {
     @Test
     @DisplayName("La comunicación de baja: se firma, se envía y vuelve con ticket, no con constancia")
     void comunicacionDeBaja() {
-        sunat.respuestaDeResumen = new LectorDeRespuestaSunat().leerTicket(200, """
+        byte[] respuestaOriginal = """
                 <soap-env:Envelope xmlns:soap-env="http://schemas.xmlsoap.org/soap/envelope/">
                   <soap-env:Body><br:sendSummaryResponse xmlns:br="http://service.sunat.gob.pe">
                     <ticket>1554895</ticket>
                   </br:sendSummaryResponse></soap-env:Body>
                 </soap-env:Envelope>
-                """.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                """.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        sunat.respuestaDeResumen = new LectorDeRespuestaSunat().leerTicket(200, respuestaOriginal);
         OrdenDeEmision orden = Ordenes.baja(UUID.randomUUID());
 
         ResultadoDeEmision resultado = procesador.procesar(orden);
@@ -229,9 +283,11 @@ class ProcesadorDeOrdenesTest {
         assertThat(resultado.estado()).isEqualTo(EstadoSunat.EN_PROCESO);
         assertThat(resultado.codigo()).as("el ticket va en el código").isEqualTo("1554895");
         assertThat(resultado.claveXml())
-                .isEqualTo("documentos/20100000009/20100000009-RA-20260909-1.xml");
+                .startsWith("documentos/20100000009/originales/" + orden.id() + "/").endsWith("/20100000009-RA-20260909-1.xml");
         assertThat(bus.objetos).containsKey(resultado.claveXml());
         assertThat(sunat.zipUsado).isEqualTo("20100000009-RA-20260909-1.zip");
+        String prefijo = resultado.claveXml().substring(0, resultado.claveXml().lastIndexOf('/') + 1);
+        assertThat(bus.objetos.get(prefijo + "respuesta.xml")).isEqualTo(respuestaOriginal);
         // Firmada, como cualquier cosa que sale hacia SUNAT.
         assertThat(new String(Empaquetador.primerXml(sunat.zipEnviado),
                 java.nio.charset.StandardCharsets.ISO_8859_1)).contains("<ds:Signature");
@@ -249,7 +305,14 @@ class ProcesadorDeOrdenesTest {
                 </soap-env:Envelope>
                 """.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
-        var enProceso = procesador.procesar(Ordenes.consultaDeTicket(UUID.randomUUID(), "1554895"));
+        byte[] respuestaOriginal = sunat.respuesta.respuestaOriginal();
+        var ordenConsulta = Ordenes.consultaDeTicket(UUID.randomUUID(), "1554895");
+        var enProceso = procesador.procesar(ordenConsulta);
+        var originales = bus.objetos.entrySet().stream()
+                .filter(entrada -> entrada.getKey().startsWith("documentos/20100000009/originales/" + ordenConsulta.id() + "/"))
+                .filter(entrada -> entrada.getKey().endsWith("/respuesta.xml")).toList();
+        assertThat(originales).hasSize(1);
+        assertThat(originales.getFirst().getValue()).isEqualTo(respuestaOriginal);
         assertThat(enProceso.estado()).isEqualTo(EstadoSunat.EN_PROCESO);
         assertThat(enProceso.claveCdr()).isNull();
 
@@ -257,7 +320,7 @@ class ProcesadorDeOrdenesTest {
         var aceptada = procesador.procesar(Ordenes.consultaDeTicket(UUID.randomUUID(), "1554895"));
 
         assertThat(aceptada.estado()).isEqualTo(EstadoSunat.ACEPTADO);
-        assertThat(aceptada.claveCdr()).isEqualTo("documentos/20100000009/R-ticket-1554895.zip");
+        assertThat(aceptada.claveCdr()).startsWith("documentos/20100000009/originales/").endsWith("/R-ticket.zip");
         assertThat(bus.objetos).containsKey(aceptada.claveCdr());
     }
 

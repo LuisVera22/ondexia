@@ -47,11 +47,11 @@ public class LectorDeRespuestaSunat {
         }
         Element respuesta = primero(soap, "*", "applicationResponse");
         if (respuesta != null) {
-            return leerCdr(Base64.getMimeDecoder().decode(texto(respuesta).trim()));
+            return leerCdr(Base64.getMimeDecoder().decode(texto(respuesta).trim())).conOriginal(cuerpo);
         }
         Element estadoDelTicket = primero(soap, "*", "status");
         if (estadoDelTicket != null) {
-            return leerEstadoDeTicket(estadoDelTicket);
+            return leerEstadoDeTicket(estadoDelTicket).conOriginal(cuerpo);
         }
         return RespuestaSunat.sinRespuesta("HTTP_" + estadoHttp,
                 "SUNAT respondió " + estadoHttp + " sin CDR ni fallo.");
@@ -84,7 +84,7 @@ public class LectorDeRespuestaSunat {
                     "SUNAT aceptó el envío pero no devolvió ticket.");
         }
         return new RespuestaSunat(RespuestaSunat.Tipo.TICKET, texto(ticket).trim(),
-                "SUNAT recibió el envío y devolvió un ticket.", List.of(), null);
+                "SUNAT recibió el envío y devolvió un ticket.", List.of(), null).conOriginal(cuerpo);
     }
 
     /**
