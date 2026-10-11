@@ -47,8 +47,10 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * {@code afterCommit}: si la transacción no confirma, la orden no sale.
  *
  * <p>El precio de eso: si la publicación falla después de confirmar, el
- * comprobante queda {@code EN_COLA} sin orden. No se pierde: pasada la espera
- * máxima, {@link #reintentar} lo vuelve a publicar.
+ * comprobante queda {@code EN_COLA} sin orden. El error se propaga y no deshace
+ * la venta confirmada. Pasada la espera máxima puede invocarse {@link #reintentar};
+ * este callback no ofrece recuperación automática. Frontera transaccional
+ * comprobada por {@code PublicacionTrasConfirmarIT}, con bus simulado.
  *
  * <h2>El resultado se lee cuando alguien pregunta</h2>
  *
@@ -217,14 +219,15 @@ public class EmisionElectronica {
     }
 
     /**
-     * Engancha la publicación al final feliz de la transacción en curso. Sin
-     * transacción —no debería pasar— publica en el acto, que es lo que hacía
-     * antes de existir esta clase y es mejor que perder la orden en silencio.
+     * Exige transacción real y sincronización: fuera de esa frontera no existe
+     * confirmación que permita entregar la orden. PublicacionTrasConfirmarIT
+     * comprueba rechazo, commit, rollback y fallo posterior del bus.
      */
     static void publicarTrasConfirmar(BusDeEmision bus, OrdenDeEmision orden) {
-        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            bus.publicar(orden);
-            return;
+        if (!TransactionSynchronizationManager.isActualTransactionActive()
+                || !TransactionSynchronizationManager.isSynchronizationActive()) {
+            throw new IllegalStateException(
+                    "La publicación de emisión requiere una transacción real con sincronización activa.");
         }
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override

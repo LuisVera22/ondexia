@@ -1,0 +1,55 @@
+{
+  "fecha": "2026-10-11",
+  "base": "824aeebb8425d750f43938ccd0ed1fc966b1b023",
+  "bloque": "F17",
+  "antes": {
+    "pruebas": 8,
+    "fallos": 3,
+    "errores": 0,
+    "omitidas": 0
+  },
+  "despues": {
+    "pruebas": 8,
+    "fallos": 0,
+    "regresion": 43,
+    "errores": 0,
+    "omitidas": 0
+  },
+  "mutacion": {
+    "cambio": "afterCommit sustituido por beforeCommit",
+    "pruebas": 8,
+    "fallos": 2,
+    "errores": 0,
+    "restauracion_byte_a_byte": true
+  },
+  "oraculo": "Contrato doc 14 §2.1 y especificación previa; filas esperadas 0 o 1 según commit/rollback, llamadas al bus 0 o 1.",
+  "entorno": "PostgreSQL real; conexión exclusiva con tablas temporales y bus simulado; servidor dedicado etiquetado pruebas-sinteticas.",
+  "sca_local": "Omitido explícitamente mediante dependency-check.skip; no acredita análisis de dependencias.",
+  "contrato": "ExportarContratoIT ejecutado, sin diff en OpenAPI.",
+  "ci": "Pendiente; registrar en PR los runs del head exacto y del commit integrado.",
+  "no_verificado": [
+    "Entrega real Emisor/S3/SUNAT",
+    "Recuperación automática u outbox",
+    "Correlación de intentos y resultado tardío",
+    "Fallo del bus en venta HTTP completa",
+    "Auditoría independiente"
+  ],
+  "registros": [
+    {
+      "archivo": "2026-10-11-confirmacion-emision-rojo.log.gz",
+      "sha256": "82b91ef5ccd0970857d0058c87e426cae7c3ceb6c70e1a1e4efe613ea3539423"
+    },
+    {
+      "archivo": "2026-10-11-confirmacion-emision-verde.log.gz",
+      "sha256": "99cea09438de099c013a0694a36ed15445abcd489c4cbc93ad5b7150b8f35a4b"
+    },
+    {
+      "archivo": "2026-10-11-confirmacion-emision-mutacion.log.gz",
+      "sha256": "009e556062761385fb26118f744e703b01dbf9e91b857ddf9237794943e490bd"
+    },
+    {
+      "archivo": "2026-10-11-confirmacion-emision-regresion.log.gz",
+      "sha256": "c8b3734801264c74617f7da9f2c4d4b08fd2da716aa5f328cf1015a8776125e6"
+    }
+  ]
+}
