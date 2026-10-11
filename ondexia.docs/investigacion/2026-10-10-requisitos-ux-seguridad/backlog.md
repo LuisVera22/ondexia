@@ -160,6 +160,16 @@ los 18 PR, eludir protecciones, tocar main ni desplegar en AWS.
 
 ## 6. Avance de ACT-23
 
+**Ciclo actual terminado:** las 16 propuestas inventariadas están cerradas;
+cero ramas Dependabot remotas/locales y cero PR bot abiertos verificados.
+Ocho adaptadas e integradas mediante #60/#61/#62 y ocho no adoptadas con motivo
+y condición para reevaluar. CI completos de cada PR y su merge en develop
+verdes, incluidos transporte real entre runners, restauración de caché y seis
+análisis efectivos. [Resultado y referencias exactas](../../evidencias/2026-10-11-cierre-dependabot.md).
+ACT-19/23 permanece parcial por operación futura de la configuración, avisos
+residuales braces/smol-toml y evaluaciones/migraciones diferidas; no se oculta
+esa deuda ni se desactiva el bot. Los siguientes párrafos son cortes históricos.
+
 Once propuestas y sus ramas resueltas después del CI posterior de #60:
 #28/#29/#30 adaptadas; #15/#18/#20/#22/#24/#25/#26/#27 no adoptadas con motivo
 y condición de reevaluación. Maven #17 integrado mediante #61, CI posterior
@@ -294,7 +304,7 @@ La tabla mantiene los criterios de §1–3 y actualiza su estado; no crea otro c
 | ACT-20 | Parcial | SHA/TypeScript estricto/auditoría pnpm; sin SAST/IaC elegido/ejecutado ni cabeceras reales comprobadas | Selección proporcional y prueba; Terraform declarativo no es respuesta servida |
 | ACT-21 | Parcial | Procedimiento de originales preparado; no clasificación/soporte/retención/incidentes generales | Propuesta y decisiones del propietario; ensayos sintéticos, tiempos pendientes; caso histórico real diferido |
 | ACT-22 | Pendiente | Sin auditoría independiente de este commit; informes antiguos no sustituyen evaluación actual | Sesión/revisor separados, commit y reglas sin narrativa; contrastar hallazgos |
-| ACT-23 | Parcial | PR #35 triaje y revisión individual; #13 sustituido por #57 y #23 por #58, con CI posterior verde; 16 propuestas bot abiertas/base main; fast-uri preparado con tres fallos previos y éxito posterior; ver §6 | Priorizar smol-toml/braces; siguientes versiones seleccionadas en develop; contrastar configuración activa y mensajes españoles; cerrar solo ciclos terminados |
+| ACT-23 | Parcial | Ciclo de las 16 propuestas terminado: ocho adaptadas y ocho no adoptadas con motivo; #60/#61/#62 y CI posteriores verdes; cero PR/ramas bot verificados; ver §6 | Braces/smol-toml; condiciones de reevaluación del inventario; configuración activa de propuestas y mensajes españoles; mantener revisión de futuras propuestas |
 
 **Balance ACT: 23 revisados, 1 cerrado en su alcance, 17 parciales, 5 pendientes.**
 Con Fxx: 51 entradas revisadas, 1 cerrada, 41 parciales y 9 pendientes. Son IDs

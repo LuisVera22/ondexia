@@ -1,5 +1,48 @@
 # Resolución de las propuestas de Dependabot
 
+## Resultado final verificado
+
+Las 16 propuestas del inventario están cerradas y no quedan ramas Dependabot
+en remoto ni locales homónimas. Se consultó GitHub para cada PR y `git ls-remote`
+para todas las referencias `refs/heads/dependabot/*`; no se infirió ausencia
+desde referencias locales. Los heads se contrastaron antes de cada cierre y
+eliminación; cuando el bot eliminó automáticamente una referencia, se verificó
+su ausencia sin repetirla. Ningún PR bot se integró directamente sobre main.
+
+Ocho propuestas adaptadas: #14/#16/#17/#19/#21/#28/#29/#30. Ocho no adoptadas
+en este ciclo: #15/#18/#20/#22/#24/#25/#26/#27. Motivos y condiciones para retomar
+las evaluaciones permanecen en el inventario y en cada PR; cerrar una rama no
+demuestra compatibilidad de una versión descartada ni resuelve toda ACT-23.
+
+| Lote | CI del PR completo verde | CI posterior de develop completo verde |
+| --- | --- | --- |
+| #60 Interfaz | [38180973076](https://github.com/LuisVera22/ondexia/actions/runs/38180973076) | [38181295647](https://github.com/LuisVera22/ondexia/actions/runs/38181295647) |
+| #61 Maven | [38181482144](https://github.com/LuisVera22/ondexia/actions/runs/38181482144) | [38181894749](https://github.com/LuisVera22/ondexia/actions/runs/38181894749) |
+| #62 Acciones | [38182171587](https://github.com/LuisVera22/ondexia/actions/runs/38182171587) | [38182481524](https://github.com/LuisVera22/ondexia/actions/runs/38182481524) |
+
+Cada CI se contrastó con el commit exacto, todos sus jobs y sus pasos; los
+merges usaron expected_head_sha. El último commit de código verificado es
+`3c6cb284dea87adb5ac1f32c249907efd2749888`: 656 backend, 147 web, 8 panel,
+35 herramientas y seis análisis efectivos correctos. Tres jobs finales verdes.
+El transporte entre runners pasó tanto en PR como después del merge, con un
+tar y varias rutas, bytes literales y digests coincidentes; caché anterior NVD
+restaurada y analizada. No se provocó un digest remoto incorrecto.
+
+[Resultado estructurado con heads y resolución individual](2026-10-11-cierre-dependabot-resultado.json).
+Los tres feature de implementación terminaron y sus referencias remotas/locales
+se eliminaron de forma segura después del CI posterior. El registro documental
+final sigue el mismo ciclo de PR/CI y no añade pruebas de comportamiento.
+
+No se ejecutaron CD, AWS ni Windows real, ni auditoría independiente/móvil.
+Braces y smol-toml y los criterios de migración de las ocho no adoptadas siguen
+en el backlog. Dependabot sigue habilitado: esto resuelve las propuestas del
+ciclo, no impide nuevas propuestas semanales. La configuración de destino
+develop no se atribuye a la rama por defecto mientras no se publique allí.
+
+Los apartados siguientes conservan los cortes previos al CI; sus pendientes
+temporales se resuelven con los resultados exactos anteriores, sin reescribir
+la evidencia que existía al crear cada lote.
+
 Por autorización del propietario se completan las decisiones y cierres de las
 16 propuestas que estaban abiertas al comenzar este lote. No significa adoptar
 todas las versiones ni cerrar las actividades de deuda técnica relacionadas.

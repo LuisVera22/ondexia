@@ -1,0 +1,195 @@
+{
+  "fecha": "2026-10-11",
+  "base_final_codigo": "3c6cb284dea87adb5ac1f32c249907efd2749888",
+  "propuestas_cerradas": [
+    {
+      "numero": 30,
+      "estado": "closed",
+      "integrado_directamente": false,
+      "head": "b91dff7fee221c9e6979fb7287fbc950756e579b",
+      "url": "https://github.com/LuisVera22/ondexia/pull/30",
+      "resolucion": "adaptada e integrada",
+      "motivo": "Reporter2.3 admite Jasmine5 y Karma6; ambas suites y builds verificados. No se atribuye un arreglo de seguridad."
+    },
+    {
+      "numero": 29,
+      "estado": "closed",
+      "integrado_directamente": false,
+      "head": "19d30a0bd9a7bc5fb92be29cf402327877eeab4f",
+      "url": "https://github.com/LuisVera22/ondexia/pull/29",
+      "resolucion": "adaptada e integrada",
+      "motivo": "Zone0.16.3 admitido por Angular21.2.24; pruebas de promesas, tiempos, cancelación y eventos, con mutaciones."
+    },
+    {
+      "numero": 28,
+      "estado": "closed",
+      "integrado_directamente": false,
+      "head": "f1c2d8a0bfabe8356b1d5ec0135a470af4cc4cf3",
+      "url": "https://github.com/LuisVera22/ondexia/pull/28",
+      "resolucion": "adaptada e integrada",
+      "motivo": "PostCSS8.5.29 en ambos frontends; tres reproducciones reales de comentarios/escape, build y regresión."
+    },
+    {
+      "numero": 27,
+      "estado": "closed",
+      "integrado_directamente": false,
+      "head": "ffe80e160607077936e07195b8d140939cb22d1d",
+      "url": "https://github.com/LuisVera22/ondexia/pull/27",
+      "resolucion": "no adoptada en este ciclo",
+      "motivo": "CLI22 aislado con core/compiler/build21 y Node local22.22.0 inferior al mínimo22.22.3 declarado. Mantener21.2.26 actualizado; retomar F15/F20 con migración coordinada de Angular y Node."
+    },
+    {
+      "numero": 26,
+      "estado": "closed",
+      "integrado_directamente": false,
+      "head": "78139d4bacbeb9ec090b344999792731b3bbe168",
+      "url": "https://github.com/LuisVera22/ondexia/pull/26",
+      "resolucion": "no adoptada en este ciclo",
+      "motivo": "Cambio mayor de compilador solo en landing; check acepta TS6, pero no hay una necesidad identificada ni migración/configuración caracterizada. Mantener TS5.9.3 y retomar F20 con guía de migración y tipos. No se afirma incompatibilidad con Angular porque el PR no cambia Angular."
+    },
+    {
+      "numero": 25,
+      "estado": "closed",
+      "integrado_directamente": false,
+      "head": "af5feffaf9adc5e88613585cf45cd0d8af63ebe4",
+      "url": "https://github.com/LuisVera22/ondexia/pull/25",
+      "resolucion": "no adoptada en este ciclo",
+      "motivo": "Tipos Jasmine 7 con motor Jasmine 5 fijado: salto no coordinado. Mantener tipos compatibles; retomar F20 al migrar motor y comprobar suites."
+    },
+    {
+      "numero": 24,
+      "estado": "closed",
+      "integrado_directamente": false,
+      "head": "c7173e4ddd616c2eee2a805a236eaac2ee1dc0a1",
+      "url": "https://github.com/LuisVera22/ondexia/pull/24",
+      "resolucion": "no adoptada en este ciclo",
+      "motivo": "7.3.6 corrige principalmente SSR/server islands/adaptadores, middleware y HMR; la landing es estática y no usa esos adaptadores. No se ha reproducido ese problema aquí. Avisos transitivos se corrigieron por separado en #59; smol-toml sigue en backlog. Retomar ACT-23/F20 con una necesidad específica y regresión acumulada."
+    },
+    {
+      "numero": 22,
+      "estado": "closed",
+      "integrado_directamente": false,
+      "head": "77f78524641c99d58d36b8d2bcab52da7be97690",
+      "url": "https://github.com/LuisVera22/ondexia/pull/22",
+      "resolucion": "no adoptada en este ciclo",
+      "motivo": "Salto 2.32.14→2.55.11 amplio. El último parche anuncia servicios no usados y GZIP optativo que no usamos; no demuestra compatibilidad acumulada de S3/SQS/SSM. Mantener BOM actual, retomar ACT-23/F06 con revisión de clientes y originales sin suponer IAM/AWS real."
+    },
+    {
+      "numero": 21,
+      "estado": "closed",
+      "integrado_directamente": false,
+      "head": "1c15062a5d436eeab0526917953f321b58b99d09",
+      "url": "https://github.com/LuisVera22/ondexia/pull/21",
+      "resolucion": "adaptada e integrada",
+      "motivo": "Actualizar restore y save juntos en CI/CD, conservar claves y condiciones, comprobar caché restaurada y seis análisis efectivos."
+    },
+    {
+      "numero": 20,
+      "estado": "closed",
+      "integrado_directamente": false,
+      "head": "69ff095d930fe66e9b9e3c5c14eb36f78f72109c",
+      "url": "https://github.com/LuisVera22/ondexia/pull/20",
+      "resolucion": "no adoptada en este ciclo",
+      "motivo": "Las notas 3.40.1 no identifican una corrección de Qute usada por nuestros XML; describen Redis, RestEasy, WebSockets y proxy DNS. No usar el changelog global como prueba de beneficio del motor fiscal. Retomar F06/F20 con cambios acumulados de Qute y golden XML firmados; versión actual conservada."
+    },
+    {
+      "numero": 19,
+      "estado": "closed",
+      "integrado_directamente": false,
+      "head": "24a0e9b0bd538d1c621932654befc11fb82c3967",
+      "url": "https://github.com/LuisVera22/ondexia/pull/19",
+      "resolucion": "adaptada e integrada",
+      "motivo": "Coordinar upload 7 con download 8 y contrato archive=true; ensayo de intercambio con huellas en GitHub."
+    },
+    {
+      "numero": 18,
+      "estado": "closed",
+      "integrado_directamente": false,
+      "head": "fd046ef03139959a9426a06e5e1e2732ef3d2519",
+      "url": "https://github.com/LuisVera22/ondexia/pull/18",
+      "resolucion": "no adoptada en este ciclo",
+      "motivo": "Comparación oficial entre los dos SHAs vuelve a responder 404. Procedencia/diferencias del SHA propuesto no verificadas; conservar pin actual. Retomar ACT-23 cuando se pueda contrastar el commit completo; no se afirma que sea malicioso."
+    },
+    {
+      "numero": 17,
+      "estado": "closed",
+      "integrado_directamente": false,
+      "head": "a1890b3b510715a701d883f7d69739ec6fba82cd",
+      "url": "https://github.com/LuisVera22/ondexia/pull/17",
+      "resolucion": "adaptada e integrada",
+      "motivo": "Actualizar solo URL del wrapper a Maven 3.10, conservar comentarios y bytes de mvnw.cmd, probar reactor y modelos estrictos."
+    },
+    {
+      "numero": 16,
+      "estado": "closed",
+      "integrado_directamente": false,
+      "head": "7ab4db6967e72a4671d81c0ad3cafe99cd2900f5",
+      "url": "https://github.com/LuisVera22/ondexia/pull/16",
+      "resolucion": "adaptada e integrada",
+      "motivo": "setup-java 6 en Node 24; verificar runner, Java 21 y caché en CI real, sin atribuir verificación de firmas a valores por defecto."
+    },
+    {
+      "numero": 15,
+      "estado": "closed",
+      "integrado_directamente": false,
+      "head": "eae6d4082b61388ef9b4b6bc2b49f757847baf80",
+      "url": "https://github.com/LuisVera22/ondexia/pull/15",
+      "resolucion": "no adoptada en este ciclo",
+      "motivo": "13 introduce la transición de esquema de base 12.2.2 y cambios del escáner; la propuesta cambia solo la versión, sin ensayo de actualización/recuperación de caché H2. Mantener 12.1 con análisis efectivo. Retomar en ACT-19/F20 con cache completa, falla y recuperación; no es una excepción de CVE."
+    },
+    {
+      "numero": 14,
+      "estado": "closed",
+      "integrado_directamente": false,
+      "head": "ea9d6ec71273ea7080c2a6a9d7cba21ac081f3aa",
+      "url": "https://github.com/LuisVera22/ondexia/pull/14",
+      "resolucion": "adaptada e integrada",
+      "motivo": "Coordinar download 8 y upload 7; comprobar intercambio real de artefactos y huellas sin ejecutar CD."
+    }
+  ],
+  "conteos": {
+    "adaptadas": 8,
+    "no_adoptadas": 8,
+    "bot_abiertos": 0,
+    "ramas_bot_remotas": 0,
+    "ramas_bot_locales": 0
+  },
+  "lotes": [
+    {
+      "pr": 60,
+      "head": "e0689fefd49bc4e805c76e1078471a60229aed7e",
+      "merge": "87c583e5adf36ae608a2a8015bf20697174807ba",
+      "ci_pr": 38180973076,
+      "ci_develop": 38181295647
+    },
+    {
+      "pr": 61,
+      "head": "728d445be9e578cd539e81f7e5998eddf4c92d4f",
+      "merge": "94cf525552c867ce4b925baa4873060a9026f7b6",
+      "ci_pr": 38181482144,
+      "ci_develop": 38181894749
+    },
+    {
+      "pr": 62,
+      "head": "bcf8cd1a2ec6fd3c6212603ffaf08abaef5a3e99",
+      "merge": "3c6cb284dea87adb5ac1f32c249907efd2749888",
+      "ci_pr": 38182171587,
+      "ci_develop": 38182481524
+    }
+  ],
+  "pruebas_finales": {
+    "backend": 656,
+    "web": 147,
+    "panel": 8,
+    "herramientas": 35,
+    "analisis_dependencias_efectivos": 6,
+    "jobs_ci_final": 3
+  },
+  "limites": [
+    "No se ejecutó CD ni AWS ni se modificó main.",
+    "No se realizó auditoría independiente ni móvil.",
+    "Digest remoto incorrecto no provocado; controles negativos propios sí ejecutados.",
+    "Braces y smol-toml permanecen en backlog; las evaluaciones no adoptadas conservan su condición de reevaluación.",
+    "La configuración de target-branch en develop sigue pendiente de publicación en la rama por defecto; no se desactiva Dependabot."
+  ]
+}
