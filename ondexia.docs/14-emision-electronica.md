@@ -389,4 +389,7 @@ prioriza versiones S3 con acceso de lectura limitado a documentos y después
 respaldos/copias. La herramienta local inventaría candidatos y sus hashes sin
 modificarlos; no valida autenticidad ni declara un documento irrecuperable.
 Sin fuente fiable, conservar lo disponible y señalar faltantes es la política
-aprobada por el propietario. Acceso AWS, verificación y recuperación real pendientes.
+aprobada por el propietario. El [verificador local XML](especificaciones/2026-10-11-verificador-originales-xml.md)
+comprueba integridad e identidad esperada con certificado público independiente;
+no acredita confianza ni aceptación SUNAT. Acceso AWS, confianza del certificado,
+contraste de CDR y recuperación real pendientes.
