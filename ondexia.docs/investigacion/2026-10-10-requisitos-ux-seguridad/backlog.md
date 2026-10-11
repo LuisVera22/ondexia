@@ -160,7 +160,22 @@ los 18 PR, eludir protecciones, tocar main ni desplegar en AWS.
 
 ## 6. Avance de ACT-23
 
-Estado actual al preparar el lote sitemap: #13 cerrado como sustituido por
+[Direcciones de herramientas](../../evidencias/2026-10-11-direcciones-herramientas.md):
+fast-uri 3.1.6 → 3.1.8, con tres fallos previos y mismos tres tests correctos
+después. Los tres avisos desaparecen; la auditoría completa de landing pasa de
+dos altos/dos moderados a cero altos/un moderado (smol-toml pendiente).
+Instalación congelada, build y controles correctos. CI/integración de este lote
+pendientes al registrar; no cierra propuestas mayores de Astro/TypeScript.
+
+Estado actual: #23 cerrado como sustituido por
+[PR #58](https://github.com/LuisVera22/ondexia/pull/58), integrado en develop
+`117712f5fcd379d0abb60f15155ae00c9e717766`, con CI del PR
+[38177186125](https://github.com/LuisVera22/ondexia/actions/runs/38177186125)
+y CI posterior
+[38177539358](https://github.com/LuisVera22/ondexia/actions/runs/38177539358)
+completos y correctos. Quedan 16 propuestas bot abiertas (#14–#30 salvo #23).
+
+El corte anterior del lote sitemap registró #13 cerrado como sustituido por
 [PR #57](https://github.com/LuisVera22/ondexia/pull/57), integrado en develop
 `c550ebb744012f434be3d7bb74d247a004491271`. CI del PR
 [38173781557](https://github.com/LuisVera22/ondexia/actions/runs/38173781557)
@@ -174,8 +189,9 @@ su CI, integración y cierre están pendientes al registrar.
 Los siguientes párrafos conservan los cortes de evidencia de cada lote; los
 resultados de CI posteriores se contrastan en sus PR, no se atribuyen al commit
 que todavía no los había ejecutado. ACT-19/23 siguen parciales. La auditoría
-completa de landing mantiene dos altos y dos moderados; se prioriza su
-caracterización y remediación compatible antes de migraciones mayores.
+completa de landing mantenía dos altos y dos moderados en el corte del sitemap;
+ver la remediación de fast-uri arriba. Se priorizan los residuales compatibles
+antes de migraciones mayores.
 
 Lote ArchUnit 1.5.1: reproducción del defecto de
 resolución del tipo capturado (1 fallo en 1.5.0, mismo test correcto en 1.5.1),
@@ -255,7 +271,7 @@ La tabla mantiene los criterios de §1–3 y actualiza su estado; no crea otro c
 | ACT-20 | Parcial | SHA/TypeScript estricto/auditoría pnpm; sin SAST/IaC elegido/ejecutado ni cabeceras reales comprobadas | Selección proporcional y prueba; Terraform declarativo no es respuesta servida |
 | ACT-21 | Parcial | Procedimiento de originales preparado; no clasificación/soporte/retención/incidentes generales | Propuesta y decisiones del propietario; ensayos sintéticos, tiempos pendientes; caso histórico real diferido |
 | ACT-22 | Pendiente | Sin auditoría independiente de este commit; informes antiguos no sustituyen evaluación actual | Sesión/revisor separados, commit y reglas sin narrativa; contrastar hallazgos |
-| ACT-23 | Parcial | PR #35 triaje y revisión individual; #13 sustituido por #57, CI de develop verde y ambas ramas eliminadas; #14–#30 abiertos/base main; sitemap #23 preparado; ver §6 | Priorizar avisos residuales de landing/braces; ejecutar siguientes versiones seleccionadas en develop; contrastar configuración activa y mensajes españoles; cerrar solo ciclos terminados |
+| ACT-23 | Parcial | PR #35 triaje y revisión individual; #13 sustituido por #57 y #23 por #58, con CI posterior verde; 16 propuestas bot abiertas/base main; fast-uri preparado con tres fallos previos y éxito posterior; ver §6 | Priorizar smol-toml/braces; siguientes versiones seleccionadas en develop; contrastar configuración activa y mensajes españoles; cerrar solo ciclos terminados |
 
 **Balance ACT: 23 revisados, 1 cerrado en su alcance, 17 parciales, 5 pendientes.**
 Con Fxx: 51 entradas revisadas, 1 cerrada, 41 parciales y 9 pendientes. Son IDs

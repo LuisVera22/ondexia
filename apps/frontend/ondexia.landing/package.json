@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro check && astro build && node herramientas/comprobar-sitemap.mjs",
+    "build": "astro check && astro build && node herramientas/comprobar-sitemap.mjs && node herramientas/comprobar-direcciones.cjs",
     "preview": "astro preview",
     "astro": "astro"
   },

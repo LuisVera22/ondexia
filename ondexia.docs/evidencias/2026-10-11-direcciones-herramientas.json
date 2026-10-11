@@ -1,0 +1,72 @@
+{
+  "base": "117712f5fcd379d0abb60f15155ae00c9e717766",
+  "version_antes": "3.1.6",
+  "version_despues": "3.1.8",
+  "ids_objetivo": [
+    "GHSA-58mr-gqgx-xq4g",
+    "GHSA-hrr3-gc8f-f4qj",
+    "GHSA-qw65-cvwx-89v3"
+  ],
+  "salidas": {
+    "control_antes": 1,
+    "casos_previos_fallidos": 3,
+    "instalacion_congelada": 0,
+    "build_con_controles_despues": 0,
+    "casos_posteriores_correctos": 3,
+    "auditoria_completa_antes": 1,
+    "auditoria_completa_despues": 1,
+    "auditoria_produccion_umbral_alto": 0
+  },
+  "avisos_completos_antes": {
+    "info": 0,
+    "low": 0,
+    "moderate": 2,
+    "high": 2,
+    "critical": 0
+  },
+  "avisos_completos_despues": {
+    "info": 0,
+    "low": 0,
+    "moderate": 1,
+    "high": 0,
+    "critical": 0
+  },
+  "residual": [
+    "GHSA-r4xh-jqrq-34v2"
+  ],
+  "artefactos": [
+    {
+      "archivo": "2026-10-11-direcciones-antes-control.log.gz",
+      "sha256": "b065a88b19508515e4b92a9378fdb471b9409596f359a0fb7b7117628950bf2d"
+    },
+    {
+      "archivo": "2026-10-11-direcciones-antes-audit.json.gz",
+      "sha256": "8aa2258fde5cb1bc01fb4cef956ef69840ca38cdee66097bacfdac951f48e257"
+    },
+    {
+      "archivo": "2026-10-11-direcciones-install.log.gz",
+      "sha256": "f7eb9b461386b7cf8bc165ed69f6a2810f505b618cacf1c0afd91d1accec2231"
+    },
+    {
+      "archivo": "2026-10-11-direcciones-despues-build.log.gz",
+      "sha256": "e831dbe7760a62f3cb7c68492d34c62c2d7eff81cb9f3e1df3a3dc18c6ccd2f4"
+    },
+    {
+      "archivo": "2026-10-11-direcciones-despues-audit.json.gz",
+      "sha256": "f8342a4f623b097c65fb3d30a1d7a75be6f35bf4a3ed1d4e652a4e3078d91ecf"
+    },
+    {
+      "archivo": "2026-10-11-direcciones-despues-produccion-audit.json.gz",
+      "sha256": "e48c77bf1fe7476b450317c9ad03cb3a0dd9d127a7d0f4bdcfe9d5425f05f651"
+    }
+  ],
+  "fuentes_npm": {
+    "url": "https://registry.npmjs.org/fast-uri",
+    "integridad_3_1_8": "sha512-GZMtZUTNRpOVIECoXwLNZS5xUGE+mVNbTB8h/7Rwh2TFWcBQiPzTgyZi05BF9UMZKkLJv8XBRJTlU7zg8+ZfMg==",
+    "dependencias_3_1_8": {},
+    "ajv_instalado": "8.20.0",
+    "rango_ajv": "^3.0.1"
+  },
+  "ci": "pendiente al registrar",
+  "auditoria_independiente": "no ejecutada"
+}
