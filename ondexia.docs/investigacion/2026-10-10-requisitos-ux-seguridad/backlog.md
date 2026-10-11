@@ -160,12 +160,29 @@ los 18 PR, eludir protecciones, tocar main ni desplegar en AWS.
 
 ## 6. Avance de ACT-23
 
-Lote ArchUnit 1.5.1 preparado sobre develop: reproducción del defecto de
+Estado actual al preparar el lote sitemap: #13 cerrado como sustituido por
+[PR #57](https://github.com/LuisVera22/ondexia/pull/57), integrado en develop
+`c550ebb744012f434be3d7bb74d247a004491271`. CI del PR
+[38173781557](https://github.com/LuisVera22/ondexia/actions/runs/38173781557)
+y CI posterior
+[38174090034](https://github.com/LuisVera22/ondexia/actions/runs/38174090034)
+completos y correctos; feature y rama bot de #13 eliminadas con ausencia remota
+verificada. Quedan 17 propuestas abiertas (#14–#30). #23 se prepara con
+[reproducción y comprobación permanente de sitemap/canonical/Open Graph](../../especificaciones/2026-10-11-url-sitemap.md);
+su CI, integración y cierre están pendientes al registrar.
+
+Los siguientes párrafos conservan los cortes de evidencia de cada lote; los
+resultados de CI posteriores se contrastan en sus PR, no se atribuyen al commit
+que todavía no los había ejecutado. ACT-19/23 siguen parciales. La auditoría
+completa de landing mantiene dos altos y dos moderados; se prioriza su
+caracterización y remediación compatible antes de migraciones mayores.
+
+Lote ArchUnit 1.5.1: reproducción del defecto de
 resolución del tipo capturado (1 fallo en 1.5.0, mismo test correcto en 1.5.1),
 mutación de control detectada y restaurada, y 656 pruebas backend correctas.
 [Evidencia y límites](../../evidencias/2026-10-11-verificacion-arquitectura.md).
-CI e integración pendientes al registrar; #13 permanece abierto hasta su
-sustitución verificada. Braces 3.0.4 aún responde 404 en npm: sigue pendiente,
+CI e integración estaban pendientes al registrar esa evidencia; ver cierre
+verificado arriba. Braces 3.0.4 respondió 404 en npm en ese corte: sigue pendiente,
 sin excepción aprobada ni cierre por las observaciones preliminares.
 
 [Karma y cobertura](../../evidencias/2026-10-11-avisos-karma.md):
@@ -184,8 +201,9 @@ aplicación en herramientas Karma/cobertura; revisar parches transitivos compati
 en el siguiente corte. CI del lote pendiente al redactar; no cierra ACT-19/23.
 
 [Revisión individual y auditorías actuales](../../evidencias/2026-10-11-revision-dependabot.md):
-cinco candidatas a integrar, diez a adaptar y tres pospuestas. Los 18 PR siguen
-abiertos hacia main; ninguna versión propuesta se ha ejecutado en develop.
+cinco candidatas a integrar, diez a adaptar y tres pospuestas. En ese corte los
+18 PR estaban abiertos hacia main y ninguna versión propuesta se había ejecutado
+en develop; no describe el estado actual de #13.
 La auditoría completa de los lockfiles detecta avisos críticos en piscina y
 proxy-addr de herramientas Angular: priorizar su caracterización/remediación
 en ACT-19/23 antes de mantenimiento cosmético, sin afirmar explotación ni
@@ -237,7 +255,7 @@ La tabla mantiene los criterios de §1–3 y actualiza su estado; no crea otro c
 | ACT-20 | Parcial | SHA/TypeScript estricto/auditoría pnpm; sin SAST/IaC elegido/ejecutado ni cabeceras reales comprobadas | Selección proporcional y prueba; Terraform declarativo no es respuesta servida |
 | ACT-21 | Parcial | Procedimiento de originales preparado; no clasificación/soporte/retención/incidentes generales | Propuesta y decisiones del propietario; ensayos sintéticos, tiempos pendientes; caso histórico real diferido |
 | ACT-22 | Pendiente | Sin auditoría independiente de este commit; informes antiguos no sustituyen evaluación actual | Sesión/revisor separados, commit y reglas sin narrativa; contrastar hallazgos |
-| ACT-23 | Parcial | PR #35 triaje; #13–#30 siguen abiertos/base main; [revisión individual](../../evidencias/2026-10-11-revision-dependabot.md) con notas oficiales, compatibilidad declarada y auditorías actuales; configuración en develop declara destino y prefijo | Priorizar avisos críticos/altos de herramientas; ejecutar versiones seleccionadas en develop; contrastar operación real/publicación de configuración y mensajes españoles; cerrar solo ciclos terminados |
+| ACT-23 | Parcial | PR #35 triaje y revisión individual; #13 sustituido por #57, CI de develop verde y ambas ramas eliminadas; #14–#30 abiertos/base main; sitemap #23 preparado; ver §6 | Priorizar avisos residuales de landing/braces; ejecutar siguientes versiones seleccionadas en develop; contrastar configuración activa y mensajes españoles; cerrar solo ciclos terminados |
 
 **Balance ACT: 23 revisados, 1 cerrado en su alcance, 17 parciales, 5 pendientes.**
 Con Fxx: 51 entradas revisadas, 1 cerrada, 41 parciales y 9 pendientes. Son IDs
