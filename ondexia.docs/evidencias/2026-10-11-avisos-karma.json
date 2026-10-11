@@ -1,0 +1,197 @@
+{
+  "base_develop": "cc3222efb4c6ca6033f472c036566c83815be16c",
+  "oraculo": "2026-10-11-comprobar-avisos-karma.py",
+  "sha256_oraculo": "b8b4c2f6f21372c8459e7c454f32e3089eb749c19fceb67c04f46853f0bc7427",
+  "aplicaciones": [
+    {
+      "aplicacion": "ondexia.web",
+      "oraculo_antes": {
+        "avisos_objetivo_pendientes": [
+          "GHSA-2gc4-cqfq-p2gv",
+          "GHSA-4mjr-xmp4-gh2g",
+          "GHSA-6j4f-fj2g-mc7p",
+          "GHSA-q2hr-2g5m-vwhr",
+          "GHSA-qhr7-859c-m2p7",
+          "GHSA-x5fp-wj9c-mxmx"
+        ],
+        "cantidades_completas": {
+          "info": 0,
+          "low": 0,
+          "moderate": 3,
+          "high": 4,
+          "critical": 0
+        }
+      },
+      "oraculo_despues": {
+        "avisos_objetivo_pendientes": [],
+        "cantidades_completas": {
+          "info": 0,
+          "low": 0,
+          "moderate": 0,
+          "high": 1,
+          "critical": 0
+        }
+      },
+      "codigo_oraculo_antes": 1,
+      "codigo_oraculo_despues": 0,
+      "codigo_auditoria_completa_antes": 1,
+      "codigo_auditoria_completa_despues": 1,
+      "codigo_auditoria_prod_despues": 0,
+      "codigo_instalacion_build_pruebas": 0,
+      "pruebas_correctas": 144,
+      "importers_identicos": true,
+      "sha256_lock": "70d77946627fa30c35b33b8affa16498c8c046b1ac383f1fb575c0c376079863",
+      "residuales": [
+        {
+          "paquete": "braces",
+          "gravedad": "high",
+          "aviso": "GHSA-vfj7-8cjw-p6xm",
+          "versiones": [
+            "3.0.3"
+          ]
+        }
+      ]
+    },
+    {
+      "aplicacion": "ondexia.admin",
+      "oraculo_antes": {
+        "avisos_objetivo_pendientes": [
+          "GHSA-2gc4-cqfq-p2gv",
+          "GHSA-4mjr-xmp4-gh2g",
+          "GHSA-6j4f-fj2g-mc7p",
+          "GHSA-q2hr-2g5m-vwhr",
+          "GHSA-qhr7-859c-m2p7",
+          "GHSA-x5fp-wj9c-mxmx"
+        ],
+        "cantidades_completas": {
+          "info": 0,
+          "low": 0,
+          "moderate": 3,
+          "high": 4,
+          "critical": 0
+        }
+      },
+      "oraculo_despues": {
+        "avisos_objetivo_pendientes": [],
+        "cantidades_completas": {
+          "info": 0,
+          "low": 0,
+          "moderate": 0,
+          "high": 1,
+          "critical": 0
+        }
+      },
+      "codigo_oraculo_antes": 1,
+      "codigo_oraculo_despues": 0,
+      "codigo_auditoria_completa_antes": 1,
+      "codigo_auditoria_completa_despues": 1,
+      "codigo_auditoria_prod_despues": 0,
+      "codigo_instalacion_build_pruebas": 0,
+      "pruebas_correctas": 5,
+      "importers_identicos": true,
+      "sha256_lock": "5158db430c83266277ea94d1fcfd4306642dc9c11c48e1fa24766bffee57174b",
+      "residuales": [
+        {
+          "paquete": "braces",
+          "gravedad": "high",
+          "aviso": "GHSA-vfj7-8cjw-p6xm",
+          "versiones": [
+            "3.0.3"
+          ]
+        }
+      ]
+    }
+  ],
+  "archivos": [
+    {
+      "archivo": "2026-10-11-karma-web-antes.json.gz",
+      "sha256": "8e395dcac022826b5a51ccbf2c590ae5a3df3cd7542c46f8054291cacaf57eb7"
+    },
+    {
+      "archivo": "2026-10-11-karma-web-despues.json.gz",
+      "sha256": "f2eb3e868fb2adf638dec14cdb2d7bac2c1bbc94d1375e212c0eca4ec48b3218"
+    },
+    {
+      "archivo": "2026-10-11-karma-web-produccion.json.gz",
+      "sha256": "eb61c69e7b3603949819e808b603cc04f8c54615fbe6185b13cf15baf70fd1cb"
+    },
+    {
+      "archivo": "2026-10-11-karma-web-instalacion.log.gz",
+      "sha256": "f992f189ad0d745d93c1d1b0d5cc858e5f3157d6534e056e245de937cf272db6"
+    },
+    {
+      "archivo": "2026-10-11-karma-web-build.log.gz",
+      "sha256": "f508998ed092dd2306ee85eadb6695cbed779c998e1825231d91182623584531"
+    },
+    {
+      "archivo": "2026-10-11-karma-web-pruebas.log.gz",
+      "sha256": "c0a2741fb0cfbad851ca38b2e7e3641708a7b7172d934c2985394bb6027a1b7e"
+    },
+    {
+      "archivo": "2026-10-11-karma-web-resolucion.log.gz",
+      "sha256": "c17e8ffc448e65535cc06d0a844dd722ca9370a2e7b65669beeda584c97bffd0"
+    },
+    {
+      "archivo": "2026-10-11-karma-panel-antes.json.gz",
+      "sha256": "8e395dcac022826b5a51ccbf2c590ae5a3df3cd7542c46f8054291cacaf57eb7"
+    },
+    {
+      "archivo": "2026-10-11-karma-panel-despues.json.gz",
+      "sha256": "f2eb3e868fb2adf638dec14cdb2d7bac2c1bbc94d1375e212c0eca4ec48b3218"
+    },
+    {
+      "archivo": "2026-10-11-karma-panel-produccion.json.gz",
+      "sha256": "eb61c69e7b3603949819e808b603cc04f8c54615fbe6185b13cf15baf70fd1cb"
+    },
+    {
+      "archivo": "2026-10-11-karma-panel-instalacion.log.gz",
+      "sha256": "66d3e10a78647f3279a56022f93a2bd81dccd8a524145db914507c3a191515fb"
+    },
+    {
+      "archivo": "2026-10-11-karma-panel-build.log.gz",
+      "sha256": "29f21c0e4565771246cd4ff287d3aa3d14a4ff608dad3aad774d93f6d08aefcb"
+    },
+    {
+      "archivo": "2026-10-11-karma-panel-pruebas.log.gz",
+      "sha256": "7870b80b3a2568e5d24842f3345a54a58c595f52c1e674352b9affeff1968f8c"
+    },
+    {
+      "archivo": "2026-10-11-karma-panel-resolucion.log.gz",
+      "sha256": "a31367cd21ed5cddc0d0f1760cf57338fd901b7d6fd55e7c38e051debb54903a"
+    },
+    {
+      "archivo": "2026-10-11-karma-oraculo-filtrada.json",
+      "sha256": "960520d29c1ddceb8288e84ed32d42e789dd3a78603c2c7bb815fc2d5708b397"
+    },
+    {
+      "archivo": "2026-10-11-karma-oraculo-error.json",
+      "sha256": "f4b41d033cecfe33a2298536038d481735110459d5ca653271db550a1289ac50"
+    },
+    {
+      "archivo": "2026-10-11-karma-oraculo-critico_nuevo.json",
+      "sha256": "94190ef0be3c21ecb93ca37a9bffd20f2d5a84808a4cd746fc7f69b537b902de"
+    },
+    {
+      "archivo": "2026-10-11-avisos-karma-fuentes.json",
+      "sha256": "3fa8ce407fecca596cb2c68599b3c8a18afe6339656664691ac9537d47b4dde9"
+    }
+  ],
+  "casos_negativos_oraculo": [
+    {
+      "caso": "auditoria_filtrada",
+      "codigo_esperado": 2
+    },
+    {
+      "caso": "respuesta_error",
+      "codigo_esperado": 2
+    },
+    {
+      "caso": "critico_nuevo",
+      "codigo_esperado": 1
+    }
+  ],
+  "no_verificado": [
+    "Alcanzabilidad o explotación; auditoría independiente; AWS; ausencia de avisos futuros.",
+    "Braces 3.0.4 no disponible en el registro consultado; el aviso alto sigue pendiente."
+  ]
+}
