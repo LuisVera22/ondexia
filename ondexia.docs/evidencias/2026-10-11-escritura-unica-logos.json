@@ -1,0 +1,96 @@
+{
+  "fecha": "2026-10-11",
+  "base": "87c05bb145706a886b317e2f303b5193452c585d",
+  "bloque": "ACT-16/F06/F24",
+  "antes": {
+    "backend": {
+      "pruebas": 3,
+      "fallos": 3,
+      "errores": 0
+    },
+    "web": {
+      "pruebas": 1,
+      "fallos": 1
+    },
+    "cors": {
+      "pruebas": 2,
+      "fallos": 1
+    }
+  },
+  "despues": {
+    "backend_acotado": 60,
+    "web": 144,
+    "herramientas": 19
+  },
+  "mutaciones": [
+    {
+      "control": "origen CORS acotado",
+      "pruebas": 2,
+      "fallos": 1,
+      "restaurado_exacto": true
+    },
+    {
+      "control": "copia de bytes del emisor",
+      "pruebas": 5,
+      "fallos": 0,
+      "errores": 1,
+      "restaurado_exacto": true
+    }
+  ],
+  "no_verificado": [
+    "S3 efectivo",
+    "CORS desplegado y CDN",
+    "publicación anterior a confirmación",
+    "acciones privilegiadas de eliminación",
+    "auditoría independiente",
+    "Terraform local no instalado"
+  ],
+  "ci": "Pendiente; estado exacto y enlaces se registran en el PR al terminar",
+  "registros": [
+    {
+      "archivo": "2026-10-11-escritura-unica-logos-rojo-backend.log.gz",
+      "sha256": "184baa800b9c80f4885ef1c291071beb3e26c0f8f2420dec9173f115ec8ec8e0",
+      "extracto": true
+    },
+    {
+      "archivo": "2026-10-11-escritura-unica-logos-rojo-web.log.gz",
+      "sha256": "fbbc26e73e9441c2da8658e2d8b1da2c7cd0a31be1202b755bc3263ee3d76665",
+      "extracto": false
+    },
+    {
+      "archivo": "2026-10-11-escritura-unica-logos-rojo-cors.log.gz",
+      "sha256": "c080914a632c4bab90802de6e83127ca6d20c4f2a59348a25c704b2c61c60b0c",
+      "extracto": false
+    },
+    {
+      "archivo": "2026-10-11-escritura-unica-logos-verde-backend.log.gz",
+      "sha256": "9044e265ec9e8c7fd41da8891df2036d8581be88ddcfffe061fb02efb58c1d07",
+      "extracto": true
+    },
+    {
+      "archivo": "2026-10-11-escritura-unica-logos-verde-web.log.gz",
+      "sha256": "01116f7bb7ec082c5c25fe9414339d948550f89200a5e57ebd9a09f62f11cf80",
+      "extracto": false
+    },
+    {
+      "archivo": "2026-10-11-escritura-unica-logos-verde-herramientas.log.gz",
+      "sha256": "dcd26eee2faf63e8aa289f387983c33fbd7178e44502ceda6b2bb4bce94e251b",
+      "extracto": false
+    },
+    {
+      "archivo": "2026-10-11-escritura-unica-logos-mutacion-origen.log.gz",
+      "sha256": "6aa0e115218524799b422454ed262e71adac80d42c5963aac3988db133f74aeb",
+      "extracto": false
+    },
+    {
+      "archivo": "2026-10-11-escritura-unica-logos-mutacion-copia.log.gz",
+      "sha256": "7e8153c36a996fd4ae80725b618466888471b71e7a8c6107715d0eca8db231d4",
+      "extracto": true
+    },
+    {
+      "archivo": "2026-10-11-escritura-unica-logos-restauracion-copia.log.gz",
+      "sha256": "4226eba55ba7eb608435e76e612e79d49b5731afad627698e4e4b0016b0ec458",
+      "extracto": true
+    }
+  ]
+}

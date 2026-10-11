@@ -563,7 +563,7 @@ export class ConfiguracionApiService {
    */
   subirArchivo(url: string, archivo: File): Promise<unknown> {
     return firstValueFrom(
-      this.http.put(url, archivo, { headers: { 'Content-Type': archivo.type } })
+      this.http.put(url, archivo, { headers: { 'Content-Type': archivo.type, 'If-None-Match': '*' } })
     );
   }
 
