@@ -26,8 +26,9 @@ import java.util.UUID;
  *
  * <p>Un {@code ACEPTADO} no se toca: SUNAT ya tiene el comprobante y volver a
  * enviarlo produce un rechazo por duplicado o, peor, un CDR distinto para el
- * mismo número. Un resultado que llegue tarde para un comprobante que ya se
- * reintentó se ignora: lo dice {@link #aplicar} devolviendo {@code false}.
+ * mismo número. Si el comprobante ya no está en cola, otro resultado se ignora
+ * (ComprobanteElectronicoTest.aceptadoEsFinal). La correlación de respuestas
+ * por intento después de reencolar no está verificada; pendiente en F17.
  */
 public class ComprobanteElectronico {
 
@@ -107,14 +108,22 @@ public class ComprobanteElectronico {
      * Aplica lo que el Emisor devolvió.
      *
      * @return {@code false} si el resultado ya no corresponde —el comprobante
-     *         no estaba en cola— y se ignoró. Un resultado tardío de un intento
-     *         anterior no debe pisar lo que pasó después
+     *         no estaba en cola— y se ignoró. No discrimina intentos anteriores
+     *         cuando el comprobante vuelve a estar en cola.
      */
     public boolean aplicar(ResultadoDeEmision resultado) {
         Objects.requireNonNull(resultado, "resultado");
         if (!resultado.ordenId().equals(id)) {
             throw new IllegalArgumentException(
                     "El resultado " + resultado.ordenId() + " no es del comprobante " + id + ".");
+        }
+        // IdentidadResultadoEmisionTest y FronteraResultadosEmisionTest:
+        // la ruta consultada en el bus no acredita la identidad del mensaje.
+        if (!empresaId.equals(resultado.empresaId())) {
+            throw new IllegalArgumentException("El resultado no pertenece a la empresa del comprobante.");
+        }
+        if (resultado.operacion() != OrdenDeEmision.Operacion.EMITIR) {
+            throw new IllegalArgumentException("El resultado no corresponde a una emisión de comprobante.");
         }
         if (estado != EstadoSunat.EN_COLA) {
             return false;
