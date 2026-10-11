@@ -223,3 +223,9 @@ corregida con prueba previa fallida y posterior correcta. PostgreSQL real con bu
 simulado caracteriza rollback y fallo posterior al commit. ACT-14 y F17 siguen
 parciales: esto no resuelve refresco JWKS, entrega automática ni resultados tardíos
 de otro intento. No se añadieron infraestructura ni decisiones comerciales.
+
+F17: [duplicados y reintentos](../../evidencias/2026-10-11-reintentos-emision.md)
+cuentan con 18 casos nuevos, tres mutaciones detectadas y restauradas y 170
+pruebas de dominio correctas. Se corrige la afirmación documental de que el
+bloqueo fuera de EN_COLA discrimina intentos anteriores. Correlación/conciliación,
+recuperación y concurrencia siguen pendientes; el balance de estados no cambia.

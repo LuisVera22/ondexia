@@ -1,0 +1,72 @@
+{
+  "fecha": "2026-10-11",
+  "base": "e7f003ed0e56fd24fd0e338032990ff8f2d29134",
+  "bloque": "F17",
+  "clasificacion": "Sensibilidad de controles existentes; no corrección de transiciones",
+  "inicial": {
+    "pruebas": 18,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  "mutaciones": [
+    {
+      "cambio": "Retirar bloqueo de resultados fuera de EN_COLA",
+      "pruebas": 18,
+      "fallos": 9,
+      "errores": 0
+    },
+    {
+      "cambio": "Rechazar también el instante exacto de diez minutos",
+      "pruebas": 18,
+      "fallos": 0,
+      "errores": 2,
+      "causa": "ReglaDeNegocioViolada inesperada en dos caminos que deben admitir el reintento; no fallo de compilación ni entorno"
+    },
+    {
+      "cambio": "Permitir reintento de estados finales",
+      "pruebas": 18,
+      "fallos": 2,
+      "errores": 0
+    }
+  ],
+  "restauracion_byte_a_byte_por_mutacion": true,
+  "regresion": {
+    "pruebas_dominio": 170,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  "oraculo": "Estados, códigos, datos y fechas fijados en fixtures; límite independiente de 600000000000 nanosegundos según doc 14 §3.",
+  "sca_local": "Omitido explícitamente",
+  "ci": "Pendiente; registrar head, commit integrado y runs exactos en PR",
+  "no_verificado": [
+    "Correlación de intentos tras reencolar",
+    "Recuperación automática",
+    "Concurrencia entre peticiones",
+    "Consumo o entrega real del bus/SUNAT",
+    "Auditoría independiente"
+  ],
+  "registros": [
+    {
+      "archivo": "2026-10-11-reintentos-emision-inicial.log.gz",
+      "sha256": "c4753c45583c3414dddfe262f396b43beefbb11794bff3724c758d67891287a7"
+    },
+    {
+      "archivo": "2026-10-11-reintentos-emision-mutacion-respuesta.log.gz",
+      "sha256": "97899b5e9bbcfb8a6ab5914e16137ad0a7a1d71a45b74766b37d2d893d5446fe"
+    },
+    {
+      "archivo": "2026-10-11-reintentos-emision-mutacion-espera.log.gz",
+      "sha256": "216f6553b9ca0efcbd63fe4f98dd021681367fc69808e48971f8e5a8daf29a94"
+    },
+    {
+      "archivo": "2026-10-11-reintentos-emision-mutacion-final.log.gz",
+      "sha256": "ddb7dc0cec7604b617d46c69c2851c5b20dbfb9d89d5d958507620bf781853ca"
+    },
+    {
+      "archivo": "2026-10-11-reintentos-emision-regresion.log.gz",
+      "sha256": "cb20b63d730ec71af6d2ccce2045fe69dace3300cf7b1c6fea23054743d708a1"
+    }
+  ]
+}
