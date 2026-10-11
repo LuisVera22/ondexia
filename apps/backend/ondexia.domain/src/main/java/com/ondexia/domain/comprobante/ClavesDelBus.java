@@ -14,7 +14,8 @@ import java.util.UUID;
  *   resultados/{empresaId}/{ordenId}.json   el Emisor escribe, la API lee
  *   errores/{ordenId}.txt                   el Emisor escribe cuando ni siquiera
  *                                           pudo producir un resultado
- *   documentos/{ruc}/{nombre}.xml           XML firmado; el nombre es el de SUNAT
+ *   documentos/{ruc}/originales/{ordenId}/{intentoId}/  archivos y referencias nuevos
+ *   documentos/{ruc}/{nombre}.xml           XML firmado anterior; no se reemplaza
  *   documentos/{ruc}/R-{nombre}.zip         el CDR tal como llegó
  *   certificados/{ruc}.pfx                  sube el navegador; lee el Emisor
  *   credenciales/{ruc}.json                 clave SOL y contraseña del .pfx;
@@ -61,6 +62,11 @@ public final class ClavesDelBus {
      */
     public static String cdrDeTicket(String ruc, String ticket) {
         return DOCUMENTOS + ruc + "/R-ticket-" + ticket + ".zip";
+    }
+
+    /** Un intento tiene su carpeta propia; los anteriores nunca se reemplazan. */
+    public static String originales(String ruc, UUID ordenId, UUID intentoId) {
+        return DOCUMENTOS + ruc + "/originales/" + ordenId + "/" + intentoId + "/";
     }
 
     public static String certificado(String ruc) {

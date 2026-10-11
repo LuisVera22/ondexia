@@ -108,18 +108,21 @@ public class ProcesadorDeOrdenes {
         String nombre = orden.documento().nombreDeArchivo(ruc);
         String xml = constructor.construir(orden);
         FirmadorDeComprobante.Firmado firmado = firmador.firmar(xml, certificado);
-        String claveXml = ClavesDelBus.xml(ruc, nombre);
+        String prefijo = ClavesDelBus.originales(ruc, orden.id(), java.util.UUID.randomUUID());
+        String claveXml = prefijo + nombre + ".xml";
         bus.escribir(claveXml, firmado.xml(), "application/xml");
 
         byte[] zip = Empaquetador.comprimir(nombre + ".xml", firmado.xml());
+        guardarEnvio(orden, prefijo, nombre, firmado.xml(), zip);
         RespuestaSunat respuesta = sunat.enviar(urlPara(orden.modo()), ruc,
                 orden.emisor().usuarioSol(), credenciales.get().claveSol(), nombre + ".zip", zip);
 
         String claveCdr = null;
         if (respuesta.cdr() != null) {
-            claveCdr = ClavesDelBus.cdr(ruc, nombre);
+            claveCdr = prefijo + "R-" + nombre + ".zip";
             bus.escribir(claveCdr, respuesta.cdr(), "application/zip");
         }
+        guardarRecepcion(orden, prefijo, respuesta, claveCdr);
         EstadoSunat estado = respuesta.aceptado() ? EstadoSunat.ACEPTADO
                 : respuesta.rechazado() ? EstadoSunat.RECHAZADO
                 : EstadoSunat.ERROR_ENVIO;
@@ -151,13 +154,16 @@ public class ProcesadorDeOrdenes {
         String nombre = orden.baja().nombreDeArchivo(ruc);
         FirmadorDeComprobante.Firmado firmado =
                 firmador.firmar(constructorDeBaja.construir(orden), certificado);
-        String claveXml = ClavesDelBus.DOCUMENTOS + ruc + "/" + nombre + ".xml";
+        String prefijo = ClavesDelBus.originales(ruc, orden.id(), java.util.UUID.randomUUID());
+        String claveXml = prefijo + nombre + ".xml";
         bus.escribir(claveXml, firmado.xml(), "application/xml");
 
         byte[] zip = Empaquetador.comprimir(nombre + ".xml", firmado.xml());
+        guardarEnvio(orden, prefijo, nombre, firmado.xml(), zip);
         RespuestaSunat respuesta = sunat.enviarResumen(urlPara(orden.modo()), ruc,
                 orden.emisor().usuarioSol(), credenciales.get().claveSol(), nombre + ".zip", zip);
 
+        guardarRecepcion(orden, prefijo, respuesta, null);
         if (respuesta.tipo() == RespuestaSunat.Tipo.TICKET) {
             return new ResultadoDeEmision(orden.id(), orden.empresaId(), orden.operacion(),
                     EstadoSunat.EN_PROCESO, respuesta.codigo(), respuesta.descripcion(),
@@ -189,16 +195,19 @@ public class ProcesadorDeOrdenes {
         RespuestaSunat respuesta = sunat.consultarTicket(urlPara(orden.modo()), ruc,
                 orden.emisor().usuarioSol(), credenciales.get().claveSol(), ticket);
 
+        String prefijo = ClavesDelBus.originales(ruc, orden.id(), java.util.UUID.randomUUID());
         if (respuesta.tipo() == RespuestaSunat.Tipo.EN_PROCESO) {
+            guardarRecepcion(orden, prefijo, respuesta, null);
             return new ResultadoDeEmision(orden.id(), orden.empresaId(), orden.operacion(),
                     EstadoSunat.EN_PROCESO, ticket, respuesta.descripcion(), List.of(), null, null,
                     null, null, null, reloj.instant());
         }
         String claveCdr = null;
         if (respuesta.cdr() != null) {
-            claveCdr = ClavesDelBus.cdrDeTicket(ruc, ticket);
+            claveCdr = prefijo + "R-ticket.zip";
             bus.escribir(claveCdr, respuesta.cdr(), "application/zip");
         }
+        guardarRecepcion(orden, prefijo, respuesta, claveCdr);
         EstadoSunat estado = respuesta.aceptado() ? EstadoSunat.ACEPTADO
                 : respuesta.rechazado() ? EstadoSunat.RECHAZADO
                 : EstadoSunat.ERROR_ENVIO;
@@ -206,6 +215,52 @@ public class ProcesadorDeOrdenes {
                 respuesta.codigo(), respuesta.descripcion(), respuesta.notas(), null, claveCdr,
                 null, null, null, reloj.instant());
     }
+
+    private void guardarEnvio(OrdenDeEmision orden, String prefijo, String nombre,
+            byte[] xml, byte[] zip) {
+        bus.escribir(prefijo + nombre + ".zip", zip, "application/zip");
+        var referencia = new ReferenciaEnvio(orden.id(), orden.empresaId(), orden.operacion(),
+                reloj.instant(), prefijo + nombre + ".xml", prefijo + nombre + ".zip",
+                resumen(xml), resumen(zip));
+        bus.escribir(prefijo + "envio.json", json.writeValueAsBytes(referencia), "application/json");
+    }
+
+    private void guardarRecepcion(OrdenDeEmision orden, String prefijo,
+            RespuestaSunat respuesta, String claveCdr) {
+        if (respuesta.cdr() != null && claveCdr == null) {
+            claveCdr = prefijo + "R-cdr.zip";
+            bus.escribir(claveCdr, respuesta.cdr(), "application/zip");
+        }
+        byte[] original = respuesta.respuestaOriginal();
+        String claveRespuesta = original == null ? null : prefijo + "respuesta.xml";
+        if (original != null) {
+            bus.escribir(claveRespuesta, original, "application/xml");
+        }
+        var referencia = new ReferenciaRecepcion(orden.id(), orden.empresaId(), orden.operacion(),
+                reloj.instant(), respuesta.tipo(), respuesta.codigo(),
+                orden.consulta() == null ? null : orden.consulta().ticket(), claveCdr,
+                respuesta.cdr() == null ? null : resumen(respuesta.cdr()),
+                claveRespuesta, original == null ? null : resumen(original));
+        bus.escribir(prefijo + "recepcion.json", json.writeValueAsBytes(referencia), "application/json");
+    }
+
+    private static String resumen(byte[] contenido) {
+        try {
+            return java.util.HexFormat.of().formatHex(
+                    java.security.MessageDigest.getInstance("SHA-256").digest(contenido));
+        } catch (java.security.NoSuchAlgorithmException imposible) {
+            throw new IllegalStateException("No se pudo calcular SHA-256 del original.", imposible);
+        }
+    }
+
+    private record ReferenciaEnvio(java.util.UUID ordenId, java.util.UUID empresaId,
+            OrdenDeEmision.Operacion operacion, java.time.Instant registradoEn,
+            String claveXml, String claveZip, String resumenXml, String resumenZip) { }
+
+    private record ReferenciaRecepcion(java.util.UUID ordenId, java.util.UUID empresaId,
+            OrdenDeEmision.Operacion operacion, java.time.Instant registradoEn,
+            RespuestaSunat.Tipo tipo, String codigo, String ticket, String claveCdr, String resumenCdr,
+            String claveRespuesta, String resumenRespuesta) { }
 
     private ResultadoDeEmision verificar(OrdenDeEmision orden) {
         String ruc = orden.emisor().ruc();

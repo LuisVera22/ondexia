@@ -17,7 +17,25 @@ import java.util.List;
  * @param cdr el ZIP tal como llegó, para guardarlo; nulo si no hubo CDR
  */
 public record RespuestaSunat(Tipo tipo, String codigo, String descripcion, List<String> notas,
-        byte[] cdr) {
+        byte[] cdr, byte[] respuestaOriginal) {
+
+    public RespuestaSunat(Tipo tipo, String codigo, String descripcion, List<String> notas,
+            byte[] cdr) {
+        this(tipo, codigo, descripcion, notas, cdr, null);
+    }
+
+    /** Conserva el SOAP recibido únicamente cuando contiene una respuesta reconocida. */
+    public RespuestaSunat conOriginal(byte[] original) {
+        if (tipo == Tipo.FALLO || tipo == Tipo.SIN_RESPUESTA) {
+            return this;
+        }
+        return new RespuestaSunat(tipo, codigo, descripcion, notas, cdr, original);
+    }
+
+    @Override
+    public byte[] respuestaOriginal() {
+        return respuestaOriginal == null ? null : respuestaOriginal.clone();
+    }
 
     public enum Tipo {
         /** SUNAT procesó el comprobante y devolvió su constancia. */
@@ -34,6 +52,7 @@ public record RespuestaSunat(Tipo tipo, String codigo, String descripcion, List<
 
     public RespuestaSunat {
         notas = notas == null ? List.of() : List.copyOf(notas);
+        respuestaOriginal = respuestaOriginal == null ? null : respuestaOriginal.clone();
     }
 
     public static RespuestaSunat sinRespuesta(String codigo, String descripcion) {

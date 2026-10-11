@@ -12,6 +12,7 @@ public interface AlmacenDelBus {
     /** {@code empty} si el objeto no existe. */
     Optional<byte[]> leer(String clave);
 
+    /** Documentos se crean una vez; una clave existente se rechaza sin reemplazarla. */
     void escribir(String clave, byte[] contenido, String tipoContenido);
 
     /** Borrar una orden ya procesada. Si no existe, no pasa nada. */

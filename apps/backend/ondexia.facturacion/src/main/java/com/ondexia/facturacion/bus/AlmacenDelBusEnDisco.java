@@ -49,7 +49,12 @@ public class AlmacenDelBusEnDisco implements AlmacenDelBus {
         Path archivo = ruta(clave);
         try {
             Files.createDirectories(archivo.getParent());
-            Files.write(archivo, contenido);
+            if (clave.startsWith(com.ondexia.domain.comprobante.ClavesDelBus.DOCUMENTOS)) {
+                Files.write(archivo, contenido, java.nio.file.StandardOpenOption.CREATE_NEW,
+                        java.nio.file.StandardOpenOption.WRITE);
+            } else {
+                Files.write(archivo, contenido);
+            }
         } catch (IOException e) {
             throw new UncheckedIOException("No se pudo escribir " + archivo, e);
         }
@@ -57,6 +62,9 @@ public class AlmacenDelBusEnDisco implements AlmacenDelBus {
 
     @Override
     public void borrar(String clave) {
+        if (clave.startsWith(com.ondexia.domain.comprobante.ClavesDelBus.DOCUMENTOS)) {
+            throw new IllegalArgumentException("Un documento original no se borra del bus.");
+        }
         try {
             Files.deleteIfExists(ruta(clave));
         } catch (IOException e) {
