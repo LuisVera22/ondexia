@@ -10,6 +10,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Lee la respuesta SOAP de {@code sendBill} sin ninguna biblioteca de SOAP: es
@@ -23,6 +26,7 @@ import org.w3c.dom.NodeList;
  * repetir la credencial enviada).
  */
 public class LectorDeRespuestaSunat {
+    private static final int LIMITE_SOAP = 16 * 1024 * 1024;
 
     private static final String NS_CBC =
             "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2";
@@ -47,7 +51,7 @@ public class LectorDeRespuestaSunat {
         }
         Element respuesta = primero(soap, "*", "applicationResponse");
         if (respuesta != null) {
-            return leerCdr(Base64.getMimeDecoder().decode(texto(respuesta).trim())).conOriginal(cuerpo);
+            return leerCdrCodificado(texto(respuesta)).conOriginal(cuerpo);
         }
         Element estadoDelTicket = primero(soap, "*", "status");
         if (estadoDelTicket != null) {
@@ -105,7 +109,7 @@ public class LectorDeRespuestaSunat {
         }
         Element contenido = primero(estado, "*", "content");
         if (contenido != null && texto(contenido) != null && !texto(contenido).isBlank()) {
-            return leerCdr(Base64.getMimeDecoder().decode(texto(contenido).trim()));
+            return leerCdrCodificado(texto(contenido));
         }
         return RespuestaSunat.sinRespuesta(codigo.isBlank() ? "SIN_ESTADO" : codigo.trim(),
                 mensaje.isBlank() ? "SUNAT respondió al ticket sin constancia." : mensaje);
@@ -122,8 +126,7 @@ public class LectorDeRespuestaSunat {
         try {
             cdr = analizar(Empaquetador.primerXml(zip));
         } catch (Exception e) {
-            return RespuestaSunat.sinRespuesta("CDR_ILEGIBLE",
-                    "SUNAT devolvió un CDR que no se pudo leer: " + e.getMessage());
+            return cdrIlegible();
         }
         Element response = primero(cdr, NS_CAC, "Response");
         String codigo = response == null ? null : texto(primero(response, NS_CBC, "ResponseCode"));
@@ -141,6 +144,18 @@ public class LectorDeRespuestaSunat {
                 descripcion == null ? "" : descripcion.trim(), notas, zip);
     }
 
+    private RespuestaSunat leerCdrCodificado(String contenido) {
+        try {
+            return leerCdr(Base64.getMimeDecoder().decode(contenido.trim()));
+        } catch (IllegalArgumentException noAdmitido) {
+            return cdrIlegible();
+        }
+    }
+
+    private static RespuestaSunat cdrIlegible() {
+        return RespuestaSunat.sinRespuesta("CDR_ILEGIBLE", "SUNAT devolvió un CDR que no se pudo leer.");
+    }
+
     /** {@code soap-env:Client.2335} → {@code 2335}; {@code 0100} se queda como está. */
     static String codigoDe(String faultcode) {
         if (faultcode == null || faultcode.isBlank()) {
@@ -152,13 +167,29 @@ public class LectorDeRespuestaSunat {
     }
 
     private static Document analizar(byte[] xml) throws Exception {
+        if (xml == null || xml.length == 0 || xml.length > LIMITE_SOAP) {
+            throw new SAXException("Tamaño de XML no admitido.");
+        }
         var fabrica = DocumentBuilderFactory.newInstance();
         fabrica.setNamespaceAware(true);
-        // Sin entidades externas: el XML viene de fuera.
+        // Entradas externas: LecturaHostilDeCdrTest.dtdNoConvierteRespuestaEnTicket
+        // e inclusionExternaNoProduceTicket comprueban rechazo e inclusión desactivada;
+        // diagnosticoDelParserNoSeGuardaNiSeImprime comprueba ausencia de diagnósticos.
         fabrica.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
         fabrica.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        fabrica.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        fabrica.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
         fabrica.setExpandEntityReferences(false);
-        return fabrica.newDocumentBuilder().parse(new ByteArrayInputStream(xml));
+        fabrica.setXIncludeAware(false);
+        fabrica.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+        fabrica.setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+        var analizador = fabrica.newDocumentBuilder();
+        analizador.setEntityResolver((publico, sistema) -> { throw new SAXException("Recurso externo no admitido."); });
+        analizador.setErrorHandler(new DefaultHandler() {
+            @Override public void error(SAXParseException error) throws SAXException { throw error; }
+            @Override public void fatalError(SAXParseException error) throws SAXException { throw error; }
+        });
+        return analizador.parse(new ByteArrayInputStream(xml));
     }
 
     private static Element primero(Document documento, String ns, String nombre) {
