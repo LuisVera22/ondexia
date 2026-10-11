@@ -160,6 +160,14 @@ los 18 PR, eludir protecciones, tocar main ni desplegar en AWS.
 
 ## 6. Avance de ACT-23
 
+Lote ArchUnit 1.5.1 preparado sobre develop: reproducción del defecto de
+resolución del tipo capturado (1 fallo en 1.5.0, mismo test correcto en 1.5.1),
+mutación de control detectada y restaurada, y 656 pruebas backend correctas.
+[Evidencia y límites](../../evidencias/2026-10-11-verificacion-arquitectura.md).
+CI e integración pendientes al registrar; #13 permanece abierto hasta su
+sustitución verificada. Braces 3.0.4 aún responde 404 en npm: sigue pendiente,
+sin excepción aprobada ni cierre por las observaciones preliminares.
+
 [Karma y cobertura](../../evidencias/2026-10-11-avisos-karma.md):
 seis avisos objetivo desaparecen con comprobación previa fallida y posterior
 correcta. Solo locks; instalación congelada, builds, 144 pruebas web y cinco
