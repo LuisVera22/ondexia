@@ -1,0 +1,73 @@
+{
+  "fecha": "2026-10-11",
+  "base": "04076afda5012eb6fb61d083014fe733dd17549d",
+  "bloque": "ACT-23/F23",
+  "antes": {
+    "casos": 4,
+    "fallos_subcasos": 10,
+    "errores": 0
+  },
+  "despues": {
+    "casos_bloque": 4,
+    "herramientas": 30
+  },
+  "mutacion": {
+    "cambio": "weekly a daily en una entrada",
+    "casos": 1,
+    "fallos": 1,
+    "restauracion_byte_a_byte": true
+  },
+  "yaml_local": "Leído mediante PyYAML ya instalado; no dependencia nueva de CI",
+  "default_branch_verificada": "main",
+  "prs_existentes": {
+    "numeros": [
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30
+    ],
+    "base": "main",
+    "sin_modificar": true
+  },
+  "no_verificado": [
+    "propuesta futura real del bot",
+    "validación de opciones por GitHub",
+    "configuración operativa nueva",
+    "traducción nativa de títulos/mensajes",
+    "compatibilidad individual de paquetes",
+    "auditoría independiente"
+  ],
+  "ci": "Pendiente; registrar commit exacto y enlaces PR/develop en PR",
+  "registros": [
+    {
+      "archivo": "2026-10-11-propuestas-dependabot-rojo.log.gz",
+      "sha256": "2ed267fcc397c3cb83c3e4e11dea0edf791dc7d4311e84d08a9461886662c629"
+    },
+    {
+      "archivo": "2026-10-11-propuestas-dependabot-verde.log.gz",
+      "sha256": "ba0c3b2dce995e718a1e3ea8a41bc293249a49475c61355bba8a4ed379c9d266"
+    },
+    {
+      "archivo": "2026-10-11-propuestas-dependabot-mutacion-cadencia.log.gz",
+      "sha256": "d6e39c2fa0da1d618be5c1a4e05cbd7444e6d3e33e4b97cc3533488483263f74"
+    },
+    {
+      "archivo": "2026-10-11-propuestas-dependabot-restauradas.log.gz",
+      "sha256": "a138010479afc3225dadfe47855d6a85cb61c093eb26abad68b854ff5b597b04"
+    }
+  ]
+}

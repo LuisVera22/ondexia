@@ -7,6 +7,8 @@
 #
 # Semanal y no diario: con un solo desarrollador (R-13), un lunes de PR es
 # revisable y un goteo diario se acumula sin leer.
+# Contrato local: test_propuestas_dependabot.py. El prefijo no traduce al bot;
+# operación efectiva pendiente de propuesta real. No cambia los PR existentes.
 version: 2
 
 updates:
@@ -18,22 +20,24 @@ updates:
   # version.
   - package-ecosystem: github-actions
     directory: /
+    target-branch: develop
     schedule:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
     commit-message:
-      prefix: "Actualiza"
+      prefix: "build(dependencias)"
 
   # ── Backend ──────────────────────────────────────────────────────────────
   - package-ecosystem: maven
     directory: /apps/backend
+    target-branch: develop
     schedule:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
     commit-message:
-      prefix: "Actualiza"
+      prefix: "build(dependencias)"
 
   # ── Los tres frontends ───────────────────────────────────────────────────
   #
@@ -41,27 +45,30 @@ updates:
   # recorre subdirectorios por su cuenta.
   - package-ecosystem: npm
     directory: /apps/frontend/ondexia.web
+    target-branch: develop
     schedule:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
     commit-message:
-      prefix: "Actualiza"
+      prefix: "build(dependencias)"
 
   - package-ecosystem: npm
     directory: /apps/frontend/ondexia.admin
+    target-branch: develop
     schedule:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
     commit-message:
-      prefix: "Actualiza"
+      prefix: "build(dependencias)"
 
   - package-ecosystem: npm
     directory: /apps/frontend/ondexia.landing
+    target-branch: develop
     schedule:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
     commit-message:
-      prefix: "Actualiza"
+      prefix: "build(dependencias)"
