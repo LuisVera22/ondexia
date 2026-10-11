@@ -1,0 +1,94 @@
+{
+  "base": "3548944c92df1c5482a309e76780ad3385b2f8d2",
+  "rama": "feature/validar-contenido-logos",
+  "estado": "verificado localmente; CI pendiente",
+  "rojo": {
+    "pruebas": 4,
+    "fallos": 3,
+    "errores": 0
+  },
+  "final": {
+    "pruebas": 55,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0
+  },
+  "mutaciones": {
+    "empresa": 1,
+    "formato": 2,
+    "restauracion": "cmp byte a byte"
+  },
+  "no_verificado": [
+    "AWS efectivo",
+    "inmutabilidad del PUT",
+    "publicación por CDN",
+    "presupuesto global de recursos",
+    "auditoría independiente"
+  ],
+  "logs": [
+    {
+      "archivo": "2026-10-11-contenido-logos-rojo.log.gz",
+      "sha256": "0e499f8037f6271add326d91677a03699905dcbaa0c7f974bb9e5ce7a4dcf153",
+      "resumen": [
+        "[ERROR] Tests run: 4, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 11.68 s <<< FAILURE! -- in com.ondexia.pruebas.ContenidoDeLogoIT",
+        "[ERROR] Tests run: 4, Failures: 3, Errors: 0, Skipped: 0",
+        "[INFO] BUILD FAILURE"
+      ]
+    },
+    {
+      "archivo": "2026-10-11-contenido-logos-verde.log.gz",
+      "sha256": "32dac7c6408a3eed04b17696d69374ab5c82a86113b7cb9008a916389be46899",
+      "resumen": [
+        "[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.485 s -- in com.ondexia.pruebas.ArquitecturaTest",
+        "[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 12.01 s -- in com.ondexia.pruebas.IdentidadVisualIT",
+        "[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.327 s -- in com.ondexia.pruebas.PuntoDeVentaIT",
+        "[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.080 s -- in com.ondexia.pruebas.ContenidoDeLogoIT",
+        "[INFO] Tests run: 39, Failures: 0, Errors: 0, Skipped: 0",
+        "[INFO] BUILD SUCCESS"
+      ]
+    },
+    {
+      "archivo": "2026-10-11-contenido-logos-adaptadores.log.gz",
+      "sha256": "48ecd2c0c561347e72a69bf384e59655420c107e53a37db9a862cfa5e27e9239",
+      "resumen": [
+        "[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.167 s -- in com.ondexia.infrastructure.salida.marca.ValidadorDeImagenTest",
+        "[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.000 s -- in com.ondexia.infrastructure.salida.marca.AlmacenDeMarcaS3Test",
+        "[INFO] Tests run: 13, Failures: 0, Errors: 0, Skipped: 0",
+        "[INFO] BUILD SUCCESS"
+      ]
+    },
+    {
+      "archivo": "2026-10-11-contenido-logos-mutacion-empresa.log.gz",
+      "sha256": "010e099750e3723c3c6c1753b6a868eb3b4238630ee56daa305118668dec84bd",
+      "resumen": [
+        "[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 12.01 s <<< FAILURE! -- in com.ondexia.pruebas.IdentidadVisualIT",
+        "[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0",
+        "[INFO] BUILD FAILURE"
+      ]
+    },
+    {
+      "archivo": "2026-10-11-contenido-logos-mutacion-formato.log.gz",
+      "sha256": "50e0cc49599b26663c6411e69f792c5c0075cc8c70dab83c4267c8e26d3aca16",
+      "resumen": [
+        "[ERROR] Tests run: 9, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.191 s <<< FAILURE! -- in com.ondexia.infrastructure.salida.marca.ValidadorDeImagenTest",
+        "[ERROR] Tests run: 9, Failures: 2, Errors: 0, Skipped: 0",
+        "[INFO] BUILD FAILURE"
+      ]
+    },
+    {
+      "archivo": "2026-10-11-contenido-logos-final.log.gz",
+      "sha256": "65b5f54b83f7517e249158481edede64c1bb88d697ba89753be95f8935d9d17f",
+      "resumen": [
+        "[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.173 s -- in com.ondexia.infrastructure.salida.marca.ValidadorDeImagenTest",
+        "[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.227 s -- in com.ondexia.infrastructure.salida.marca.AlmacenDeMarcaS3Test",
+        "[INFO] Tests run: 9, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.831 s -- in com.ondexia.pruebas.ArquitecturaTest",
+        "[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 12.11 s -- in com.ondexia.pruebas.ExportarContratoIT",
+        "[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.774 s -- in com.ondexia.pruebas.IdentidadVisualIT",
+        "[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.305 s -- in com.ondexia.pruebas.PuntoDeVentaIT",
+        "[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.097 s -- in com.ondexia.pruebas.ContenidoDeLogoIT",
+        "[INFO] Tests run: 55, Failures: 0, Errors: 0, Skipped: 0",
+        "[INFO] BUILD SUCCESS"
+      ]
+    }
+  ]
+}

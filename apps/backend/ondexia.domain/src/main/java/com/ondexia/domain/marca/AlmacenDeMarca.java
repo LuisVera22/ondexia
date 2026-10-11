@@ -6,7 +6,7 @@ import java.util.Optional;
 /**
  * Puerto de salida: dónde viven los archivos de marca.
  *
- * <h2>El archivo nunca pasa por nuestra API</h2>
+ * <h2>La subida va directa al almacén</h2>
  *
  * <p>El servidor <strong>firma</strong> una autorización de subida y el navegador
  * del usuario sube el archivo directo al almacén. Tres razones, en orden de
@@ -25,8 +25,9 @@ import java.util.Optional;
  * <h2>Y por eso hay que comprobar después</h2>
  *
  * <p>Como el archivo no pasa por aquí, lo que el cliente <em>dijo</em> que iba a
- * subir y lo que subió pueden no coincidir. {@link #describir} existe para eso:
- * se pregunta al almacén qué llegó de verdad antes de dar la subida por buena.
+ * subir y lo que subió pueden no coincidir. {@link #describir} comprueba metadata;
+ * {@link #validarImagen} comprueba contenido con lectura acotada antes de guardar
+ * la referencia (ContenidoDeLogoIT y AlmacenDeMarcaS3Test, módulo API).
  */
 public interface AlmacenDeMarca {
 
@@ -42,7 +43,7 @@ public interface AlmacenDeMarca {
     record AutorizacionDeSubida(String url, String clave, Duration validaPor) {
     }
 
-    /** Lo que el almacén dice que recibió. La verdad, frente a lo que se prometió. */
+    /** Metadata del objeto; por sí sola no acredita contenido válido. */
     record ObjetoDeMarca(long bytes, String tipoContenido) {
     }
 
@@ -56,6 +57,13 @@ public interface AlmacenDeMarca {
 
     /** Vacío si el objeto no existe — es decir, si la subida nunca ocurrió. */
     Optional<ObjetoDeMarca> describir(String clave);
+
+    /**
+     * Comprueba bytes, formato anunciado y decodificación antes de referenciar.
+     * Lee como máximo el límite más un byte; rechaza imágenes no válidas y
+     * limita expansión antes de decodificar. No promete inmutabilidad del objeto.
+     */
+    void validarImagen(String clave, String tipoContenido, long maximoBytes);
 
     void eliminar(String clave);
 
