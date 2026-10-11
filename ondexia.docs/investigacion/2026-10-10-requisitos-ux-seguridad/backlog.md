@@ -160,6 +160,13 @@ los 18 PR, eludir protecciones, tocar main ni desplegar en AWS.
 
 ## 6. Avance de ACT-23
 
+Once propuestas y sus ramas resueltas después del CI posterior de #60:
+#28/#29/#30 adaptadas; #15/#18/#20/#22/#24/#25/#26/#27 no adoptadas con motivo
+y condición de reevaluación. Maven #17 integrado mediante #61, CI posterior
+pendiente al registrar. Quedan cuatro adaptaciones de acciones
+[preparadas con transporte entre jobs y 35 controles locales](../../evidencias/2026-10-11-cierre-dependabot-acciones.md).
+No se ha verificado todavía cero ramas bot ni la ejecución remota de ese ensayo.
+
 [Wrapper Maven 3.10.0](../../evidencias/2026-10-11-cierre-dependabot-maven.md):
 adaptación #17 preparada con 656 pruebas correctas en Java 21; wrapper Windows
 intacto byte a byte (Windows no ejecutado). Es compatibilidad, no un fallo de
