@@ -1,0 +1,65 @@
+{
+  "fecha_utc": "2026-10-11T18:55:42.625672+00:00",
+  "base_develop": "a0980e25382fbeefab47128498d2afaf2ef8036b",
+  "comando": "pnpm audit --json",
+  "codigos_salida": {
+    "ondexia.web": 1,
+    "ondexia.admin": 1,
+    "ondexia.landing": 1
+  },
+  "auditorias": [
+    {
+      "aplicacion": "ondexia.web",
+      "archivo": "2026-10-11-dependabot-auditoria-ondexia.web.json.gz",
+      "sha256": "5d1dc6144e552930ee647066460a9aa7b742d32754083b5b1993cc0226643324",
+      "sha256_json": "015320c42d5a936e19884d4f6034094bd7cb1c3ac4aee62f070d59f9bd4c1840",
+      "conteos": {
+        "info": 0,
+        "low": 4,
+        "moderate": 23,
+        "high": 17,
+        "critical": 2
+      },
+      "avisos": 46,
+      "fuente": "registro npm mediante pnpm; las URL GHSA están en cada aviso",
+      "sha256_lock": "a5b2f922d6df549288b42152c4663c00a61e03c57bb0afaf6a57591d0a43f2ed"
+    },
+    {
+      "aplicacion": "ondexia.admin",
+      "archivo": "2026-10-11-dependabot-auditoria-ondexia.admin.json.gz",
+      "sha256": "37b8c6b73d7f62bd3b5d92913d05151a3d6265092f4a9f75fc726c5bd06937d6",
+      "sha256_json": "c42f0c3374c6871829feaa1e21d4ceab566ea60f52d781d41a7e9419089785e5",
+      "conteos": {
+        "info": 0,
+        "low": 4,
+        "moderate": 19,
+        "high": 16,
+        "critical": 2
+      },
+      "avisos": 41,
+      "fuente": "registro npm mediante pnpm; las URL GHSA están en cada aviso",
+      "sha256_lock": "18a2c822e4cf135687df51a640381ad6820814cf9400b2b73587f7cfff39527b"
+    },
+    {
+      "aplicacion": "ondexia.landing",
+      "archivo": "2026-10-11-dependabot-auditoria-ondexia.landing.json.gz",
+      "sha256": "1e911ec5071bb0ca3b506ebae6f68149acc6b82eb51e76320ae59b49f52b6767",
+      "sha256_json": "66008558f344bb1d8cdcefc54227b4f50138982635a19b7d6ee25adeab14418c",
+      "conteos": {
+        "info": 0,
+        "low": 0,
+        "moderate": 2,
+        "high": 2,
+        "critical": 0
+      },
+      "avisos": 4,
+      "fuente": "registro npm mediante pnpm; las URL GHSA están en cada aviso",
+      "sha256_lock": "cee3416d616e7259a10d2bc7b66aa3b9366d934db286d407c84a8ad968e212dc"
+    }
+  ],
+  "metadatos": {
+    "archivo": "2026-10-11-dependabot-metadatos-npm.json",
+    "sha256": "60a9468f5dc0045bb01caca1ca4de6d5ec6fbee23553df7bedc34009e29b7794",
+    "integridad_paquetes_verificada": false
+  }
+}

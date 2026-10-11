@@ -1,0 +1,659 @@
+{
+  "fecha": "2026-10-11",
+  "base_develop": "a0980e25382fbeefab47128498d2afaf2ef8036b",
+  "naturaleza": "Revisión; ninguna actualización integrada ni compatibilidad ejecutada de los paquetes propuestos.",
+  "propuestas": [
+    {
+      "numero": 13,
+      "titulo": "Actualiza: Bump com.tngtech.archunit:archunit-junit5 from 1.5.0 to 1.5.1 in /apps/backend",
+      "base": "main",
+      "head": "3def5cdb79d9fa75fdb47dcf9397ef2ef9f83ed5",
+      "rama": "dependabot/maven/apps/backend/com.tngtech.archunit-archunit-junit5-1.5.1",
+      "url": "https://github.com/LuisVera22/ondexia/pull/13",
+      "actualizado": "2026-10-09T17:14:48Z",
+      "decision": "integrar",
+      "prioridad": "P1",
+      "dependencia": "ArchUnit 1.5.1",
+      "esfuerzo_relativo": "Bajo",
+      "motivo_y_pruebas": "Corrige detección de dependencias, incluidas excepciones capturadas; ejecutar reglas arquitectónicas y regresión backend.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964895568/job/113936681285"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": "apps/backend/pom.xml",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 14,
+      "titulo": "Actualiza: Bump actions/download-artifact from 4.3.0 to 8.0.1",
+      "base": "main",
+      "head": "ea9d6ec71273ea7080c2a6a9d7cba21ac081f3aa",
+      "rama": "dependabot/github_actions/actions/download-artifact-8.0.1",
+      "url": "https://github.com/LuisVera22/ondexia/pull/14",
+      "actualizado": "2026-10-09T17:14:55Z",
+      "decision": "adaptar",
+      "prioridad": "P1",
+      "dependencia": "download-artifact 8.0.1",
+      "esfuerzo_relativo": "Medio",
+      "motivo_y_pruebas": "Coordinar con #19; comprobar nombres, formatos y descarga. Mantener rechazo ante huella incorrecta; sin despliegue.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964909180/job/113936728151"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": ".github/workflows/deploy.yml",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 15,
+      "titulo": "Actualiza: Bump org.owasp:dependency-check-maven from 12.1.0 to 13.0.0 in /apps/backend",
+      "base": "main",
+      "head": "eae6d4082b61388ef9b4b6bc2b49f757847baf80",
+      "rama": "dependabot/maven/apps/backend/org.owasp-dependency-check-maven-13.0.0",
+      "url": "https://github.com/LuisVera22/ondexia/pull/15",
+      "actualizado": "2026-10-09T17:14:58Z",
+      "decision": "adaptar",
+      "prioridad": "P1",
+      "dependencia": "Dependency-Check 13.0.0",
+      "esfuerzo_relativo": "Medio",
+      "motivo_y_pruebas": "Validar caché H2 y transición de esquema de 12.2.2, ejecución efectiva del escáner y recuperación; no omitir análisis.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964915726/job/113936750543"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": "apps/backend/pom.xml",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 16,
+      "titulo": "Actualiza: Bump actions/setup-java from 5.7.0 to 6.0.1",
+      "base": "main",
+      "head": "7ab4db6967e72a4671d81c0ad3cafe99cd2900f5",
+      "rama": "dependabot/github_actions/actions/setup-java-6.0.1",
+      "url": "https://github.com/LuisVera22/ondexia/pull/16",
+      "actualizado": "2026-10-09T17:15:06Z",
+      "decision": "adaptar",
+      "prioridad": "P1",
+      "dependencia": "setup-java 6.0.1",
+      "esfuerzo_relativo": "Bajo",
+      "motivo_y_pruebas": "Comprobar runtime Node 24 de la acción, Java 21, caché Maven y verificación de distribución en runner real.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964929591/job/113936792913"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": ".github/workflows/ci.yml",
+          "estado": "modified"
+        },
+        {
+          "ruta": ".github/workflows/deploy.yml",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 17,
+      "titulo": "Actualiza: Bump org.apache.maven:apache-maven from 3.9.16 to 3.10.0 in /apps/backend",
+      "base": "main",
+      "head": "a1890b3b510715a701d883f7d69739ec6fba82cd",
+      "rama": "dependabot/maven/apps/backend/org.apache.maven-apache-maven-3.10.0",
+      "url": "https://github.com/LuisVera22/ondexia/pull/17",
+      "actualizado": "2026-10-09T17:15:07Z",
+      "decision": "adaptar",
+      "prioridad": "P1",
+      "dependencia": "Maven 3.10.0",
+      "esfuerzo_relativo": "Medio",
+      "motivo_y_pruebas": "Endurece modelos y credenciales; preservar comentarios españoles y finales de línea del wrapper. Verificar reactor, repositorios y herramientas.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964934138/job/113936807943"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": "apps/backend/.mvn/wrapper/maven-wrapper.properties",
+          "estado": "modified"
+        },
+        {
+          "ruta": "apps/backend/mvnw.cmd",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 18,
+      "titulo": "Actualiza: Bump pnpm/action-setup from f520eceda224fe1a4aed5a2a27a194379a409996 to 0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+      "base": "main",
+      "head": "fd046ef03139959a9426a06e5e1e2732ef3d2519",
+      "rama": "dependabot/github_actions/pnpm/action-setup-0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+      "url": "https://github.com/LuisVera22/ondexia/pull/18",
+      "actualizado": "2026-10-09T17:15:10Z",
+      "decision": "adaptar",
+      "prioridad": "P1",
+      "dependencia": "pnpm/action-setup nuevo SHA",
+      "esfuerzo_relativo": "Bajo",
+      "motivo_y_pruebas": "Validar procedencia del commit y diferencias; conservar packageManager, orden setup y lock congelado. Comparación oficial recibió 404.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964940176/job/113936827078"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": ".github/workflows/ci.yml",
+          "estado": "modified"
+        },
+        {
+          "ruta": ".github/workflows/deploy.yml",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 19,
+      "titulo": "Actualiza: Bump actions/upload-artifact from 4.6.2 to 7.0.1",
+      "base": "main",
+      "head": "24a0e9b0bd538d1c621932654befc11fb82c3967",
+      "rama": "dependabot/github_actions/actions/upload-artifact-7.0.1",
+      "url": "https://github.com/LuisVera22/ondexia/pull/19",
+      "actualizado": "2026-10-09T17:15:15Z",
+      "decision": "adaptar",
+      "prioridad": "P1",
+      "dependencia": "upload-artifact 7.0.1",
+      "esfuerzo_relativo": "Medio",
+      "motivo_y_pruebas": "Coordinar con #14; archive=true conserva contrato, pero requiere ensayo de intercambio de artefactos y múltiples rutas.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964951266/job/113936863006"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": ".github/workflows/ci.yml",
+          "estado": "modified"
+        },
+        {
+          "ruta": ".github/workflows/deploy.yml",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 20,
+      "titulo": "Actualiza: Bump io.quarkus.qute:qute-core from 3.39.2 to 3.40.1 in /apps/backend",
+      "base": "main",
+      "head": "69ff095d930fe66e9b9e3c5c14eb36f78f72109c",
+      "rama": "dependabot/maven/apps/backend/io.quarkus.qute-qute-core-3.40.1",
+      "url": "https://github.com/LuisVera22/ondexia/pull/20",
+      "actualizado": "2026-10-09T17:15:18Z",
+      "decision": "adaptar",
+      "prioridad": "P2",
+      "dependencia": "Qute 3.40.1",
+      "esfuerzo_relativo": "Medio",
+      "motivo_y_pruebas": "Notas de 3.40.1 no prueban beneficio específico de Qute; revisar cambios acumulados y renderizados de XML/documentos con datos fijados.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964954670/job/113936873419"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": "apps/backend/ondexia.facturacion/pom.xml",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 21,
+      "titulo": "Actualiza: Bump actions/cache/restore from 4.3.0 to 6.1.0",
+      "base": "main",
+      "head": "1c15062a5d436eeab0526917953f321b58b99d09",
+      "rama": "dependabot/github_actions/actions/cache/restore-6.1.0",
+      "url": "https://github.com/LuisVera22/ondexia/pull/21",
+      "actualizado": "2026-10-09T17:15:22Z",
+      "decision": "adaptar",
+      "prioridad": "P1",
+      "dependencia": "cache/restore 6.1.0",
+      "esfuerzo_relativo": "Medio",
+      "motivo_y_pruebas": "La propuesta deja save en v4; revisar ambas acciones y ensayo de caché completa/fallo previo. No duplicar arreglo de caché existente.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964966341/job/113936910796"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": ".github/workflows/ci.yml",
+          "estado": "modified"
+        },
+        {
+          "ruta": ".github/workflows/deploy.yml",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 22,
+      "titulo": "Actualiza: Bump software.amazon.awssdk:bom from 2.32.14 to 2.55.11 in /apps/backend",
+      "base": "main",
+      "head": "77f78524641c99d58d36b8d2bcab52da7be97690",
+      "rama": "dependabot/maven/apps/backend/software.amazon.awssdk-bom-2.55.11",
+      "url": "https://github.com/LuisVera22/ondexia/pull/22",
+      "actualizado": "2026-10-09T17:15:29Z",
+      "decision": "adaptar",
+      "prioridad": "P1",
+      "dependencia": "AWS SDK BOM 2.55.11",
+      "esfuerzo_relativo": "Medio",
+      "motivo_y_pruebas": "Salto amplio; contrastar cambios acumulados, S3/originales y firma. Pruebas locales no demuestran IAM ni funcionamiento AWS.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37964980609/job/113936957323"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": "apps/backend/pom.xml",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 23,
+      "titulo": "Actualiza: Bump @astrojs/sitemap from 3.7.3 to 3.7.4 in /apps/frontend/ondexia.landing",
+      "base": "main",
+      "head": "f12a7df346899b8949a0861ba0e56ab7ccea923a",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.landing/astrojs/sitemap-3.7.4",
+      "url": "https://github.com/LuisVera22/ondexia/pull/23",
+      "actualizado": "2026-10-09T17:15:48Z",
+      "decision": "integrar",
+      "prioridad": "P1",
+      "dependencia": "sitemap 3.7.4",
+      "esfuerzo_relativo": "Bajo",
+      "motivo_y_pruebas": "Corrección aplicable a trailingSlash=never; comprobar sitemap/canonical con URL esperada fijada, además de build.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37965016957/job/113937077316"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": "apps/frontend/ondexia.landing/package.json",
+          "estado": "modified"
+        },
+        {
+          "ruta": "apps/frontend/ondexia.landing/pnpm-lock.yaml",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 24,
+      "titulo": "Actualiza: Bump astro from 7.2.10 to 7.3.6 in /apps/frontend/ondexia.landing",
+      "base": "main",
+      "head": "c7173e4ddd616c2eee2a805a236eaac2ee1dc0a1",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.landing/astro-7.3.6",
+      "url": "https://github.com/LuisVera22/ondexia/pull/24",
+      "actualizado": "2026-10-09T17:16:04Z",
+      "decision": "adaptar",
+      "prioridad": "P1",
+      "dependencia": "Astro 7.3.6",
+      "esfuerzo_relativo": "Medio",
+      "motivo_y_pruebas": "Comprobar cambios acumulados, salida estática, rutas y activos. Corregir dependencias transitivas verificadas; no atribuir exposición SSR a landing estática.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37965053550/job/113937196985"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": "apps/frontend/ondexia.landing/package.json",
+          "estado": "modified"
+        },
+        {
+          "ruta": "apps/frontend/ondexia.landing/pnpm-lock.yaml",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 25,
+      "titulo": "Actualiza: Bump @types/jasmine from 5.1.15 to 7.0.0 in /apps/frontend/ondexia.admin",
+      "base": "main",
+      "head": "af5feffaf9adc5e88613585cf45cd0d8af63ebe4",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.admin/types/jasmine-7.0.0",
+      "url": "https://github.com/LuisVera22/ondexia/pull/25",
+      "actualizado": "2026-10-09T17:16:22Z",
+      "decision": "posponer",
+      "prioridad": "P2",
+      "dependencia": "@types/jasmine 7",
+      "esfuerzo_relativo": "Medio",
+      "motivo_y_pruebas": "Motor Jasmine 5 actual: no aceptar API de tipos 7 sin coordinación y compatibilidad demostrada. Reevaluar al migrar motor o necesitar corrección concreta.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37965087616/job/113937309651"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": "apps/frontend/ondexia.admin/package.json",
+          "estado": "modified"
+        },
+        {
+          "ruta": "apps/frontend/ondexia.admin/pnpm-lock.yaml",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 26,
+      "titulo": "Actualiza: Bump typescript from 5.9.3 to 6.0.3 in /apps/frontend/ondexia.landing",
+      "base": "main",
+      "head": "78139d4bacbeb9ec090b344999792731b3bbe168",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.landing/typescript-6.0.3",
+      "url": "https://github.com/LuisVera22/ondexia/pull/26",
+      "actualizado": "2026-10-09T17:16:23Z",
+      "decision": "posponer",
+      "prioridad": "P2",
+      "dependencia": "TypeScript 6 landing",
+      "esfuerzo_relativo": "Medio",
+      "motivo_y_pruebas": "check 0.9.10 acepta TS6, pero faltan revisión de migración/configuración y beneficio concreto. No afecta Angular; reevaluar con necesidad o fin de soporte.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37965090516/job/113937319711"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": "apps/frontend/ondexia.landing/package.json",
+          "estado": "modified"
+        },
+        {
+          "ruta": "apps/frontend/ondexia.landing/pnpm-lock.yaml",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 27,
+      "titulo": "Actualiza: Bump @angular/cli from 21.2.21 to 22.2.1 in /apps/frontend/ondexia.admin",
+      "base": "main",
+      "head": "ffe80e160607077936e07195b8d140939cb22d1d",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.admin/angular/cli-22.2.1",
+      "url": "https://github.com/LuisVera22/ondexia/pull/27",
+      "actualizado": "2026-10-09T17:16:41Z",
+      "decision": "posponer",
+      "prioridad": "P2",
+      "dependencia": "Angular CLI 22 aislado",
+      "esfuerzo_relativo": "Alto",
+      "motivo_y_pruebas": "Angular restante sigue en 21; Node local 22.22.0 es inferior al mínimo 22.22.3 declarado. No usar este salto aislado para resolver avisos; reevaluar migración coordinada.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37965127452/job/113937446658"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": "apps/frontend/ondexia.admin/package.json",
+          "estado": "modified"
+        },
+        {
+          "ruta": "apps/frontend/ondexia.admin/pnpm-lock.yaml",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 28,
+      "titulo": "Actualiza: Bump postcss from 8.5.26 to 8.5.29 in /apps/frontend/ondexia.admin",
+      "base": "main",
+      "head": "f1c2d8a0bfabe8356b1d5ec0135a470af4cc4cf3",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.admin/postcss-8.5.29",
+      "url": "https://github.com/LuisVera22/ondexia/pull/28",
+      "actualizado": "2026-10-09T17:17:17Z",
+      "decision": "integrar",
+      "prioridad": "P1",
+      "dependencia": "PostCSS 8.5.29",
+      "esfuerzo_relativo": "Bajo",
+      "motivo_y_pruebas": "Parche compatible de correcciones CSS; validar ambos manifiestos/rangos del panel, lock, build y vistas pertinentes.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37965195853/job/113937681358"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": "apps/frontend/ondexia.admin/package.json",
+          "estado": "modified"
+        },
+        {
+          "ruta": "apps/frontend/ondexia.admin/pnpm-lock.yaml",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 29,
+      "titulo": "Actualiza: Bump zone.js from 0.15.1 to 0.16.3 in /apps/frontend/ondexia.admin",
+      "base": "main",
+      "head": "19d30a0bd9a7bc5fb92be29cf402327877eeab4f",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.admin/zone.js-0.16.3",
+      "url": "https://github.com/LuisVera22/ondexia/pull/29",
+      "actualizado": "2026-10-09T17:17:35Z",
+      "decision": "integrar",
+      "prioridad": "P1",
+      "dependencia": "Zone 0.16.3",
+      "esfuerzo_relativo": "Medio",
+      "motivo_y_pruebas": "Angular core 21.2.24 acepta ~0.15.0 o ~0.16.0. Probar async/fakeAsync, temporizadores, eventos y navegadores; no afirmar soporte de navegadores abandonados.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37965230104/job/113937799055"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": "apps/frontend/ondexia.admin/package.json",
+          "estado": "modified"
+        },
+        {
+          "ruta": "apps/frontend/ondexia.admin/pnpm-lock.yaml",
+          "estado": "modified"
+        }
+      ]
+    },
+    {
+      "numero": 30,
+      "titulo": "Actualiza: Bump karma-jasmine-html-reporter from 2.1.0 to 2.3.0 in /apps/frontend/ondexia.admin",
+      "base": "main",
+      "head": "b91dff7fee221c9e6979fb7287fbc950756e579b",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.admin/karma-jasmine-html-reporter-2.3.0",
+      "url": "https://github.com/LuisVera22/ondexia/pull/30",
+      "actualizado": "2026-10-09T17:17:48Z",
+      "decision": "integrar",
+      "prioridad": "P2",
+      "dependencia": "reporter Jasmine 2.3.0",
+      "esfuerzo_relativo": "Bajo",
+      "motivo_y_pruebas": "Peers admiten motor Jasmine 5; verificar suite del panel y reporte. No es arreglo de seguridad demostrado.",
+      "checks_consultados": [
+        {
+          "nombre": "build",
+          "estado": "completed",
+          "conclusion": "success",
+          "url": "https://github.com/LuisVera22/ondexia/actions/runs/37965256263/job/113937888096"
+        }
+      ],
+      "archivos": [
+        {
+          "ruta": "apps/frontend/ondexia.admin/package.json",
+          "estado": "modified"
+        },
+        {
+          "ruta": "apps/frontend/ondexia.admin/pnpm-lock.yaml",
+          "estado": "modified"
+        }
+      ]
+    }
+  ],
+  "fuentes": [
+    {
+      "clave": "release-archunit",
+      "url": "https://github.com/TNG/ArchUnit/releases/tag/v1.5.1"
+    },
+    {
+      "clave": "release-dependency-check",
+      "url": "https://github.com/dependency-check/DependencyCheck/releases/tag/v13.0.0"
+    },
+    {
+      "clave": "release-dc-schema",
+      "url": "https://github.com/dependency-check/DependencyCheck/releases/tag/v12.2.2"
+    },
+    {
+      "clave": "dc-notas",
+      "url": "https://api.github.com/repos/dependency-check/DependencyCheck/contents/CHANGELOG.md?ref=v13.0.0"
+    },
+    {
+      "clave": "release-java6major",
+      "url": "https://github.com/actions/setup-java/releases/tag/v6.0.0"
+    },
+    {
+      "clave": "release-setup-java",
+      "url": "https://github.com/actions/setup-java/releases/tag/v6.0.1"
+    },
+    {
+      "clave": "release-uploadmajor",
+      "url": "https://github.com/actions/upload-artifact/releases/tag/v7.0.0"
+    },
+    {
+      "clave": "release-upload-artifact",
+      "url": "https://github.com/actions/upload-artifact/releases/tag/v7.0.1"
+    },
+    {
+      "clave": "release-downloadmajor",
+      "url": "https://github.com/actions/download-artifact/releases/tag/v8.0.0"
+    },
+    {
+      "clave": "release-download-artifact",
+      "url": "https://github.com/actions/download-artifact/releases/tag/v8.0.1"
+    },
+    {
+      "clave": "release-cachemajor",
+      "url": "https://github.com/actions/cache/releases/tag/v6.0.0"
+    },
+    {
+      "clave": "release-cache",
+      "url": "https://github.com/actions/cache/releases/tag/v6.1.0"
+    },
+    {
+      "clave": "release-qute",
+      "url": "https://github.com/quarkusio/quarkus/releases/tag/3.40.1"
+    },
+    {
+      "clave": "release-aws-sdk",
+      "url": "https://github.com/aws/aws-sdk-java-v2/releases/tag/2.55.11"
+    },
+    {
+      "clave": "release-astro",
+      "url": "https://github.com/withastro/astro/releases/tag/astro%407.3.6"
+    },
+    {
+      "clave": "release-typescript",
+      "url": "https://github.com/microsoft/TypeScript/releases/tag/v6.0.3"
+    },
+    {
+      "clave": "release-angular-cli",
+      "url": "https://github.com/angular/angular-cli/releases/tag/v22.2.1"
+    },
+    {
+      "clave": "release-postcss",
+      "url": "https://github.com/postcss/postcss/releases/tag/8.5.29"
+    },
+    {
+      "clave": "release-reporter",
+      "url": "https://github.com/dfederm/karma-jasmine-html-reporter/releases/tag/v2.3.0"
+    },
+    {
+      "clave": "release-maven",
+      "url": "https://github.com/apache/maven/releases/tag/maven-3.10.0"
+    },
+    {
+      "clave": "sitemap-notas",
+      "url": "https://api.github.com/repos/withastro/astro/contents/packages/integrations/sitemap/CHANGELOG.md?ref=main"
+    },
+    {
+      "clave": "zone-notas",
+      "url": "https://api.github.com/repos/angular/angular/contents/packages/zone.js/CHANGELOG.md?ref=main"
+    }
+  ],
+  "limitaciones": [
+    "Alertas privadas del repositorio no disponibles por este conector.",
+    "Comparación oficial pnpm recibió 404.",
+    "CI bot de main no acredita develop; en #15 el análisis fue omitido.",
+    "No se ejecutaron los paquetes propuestos, ni auditoría independiente ni pruebas AWS."
+  ]
+}
