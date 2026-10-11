@@ -155,7 +155,18 @@ export interface ClienteDocumentoApi {
   readonly direccion: string | null;
 }
 
+export interface DatosHistoricosDocumentoApi {
+  readonly emisor: { readonly ruc: string; readonly razonSocial: string;
+    readonly nombreComercial: string | null; readonly domicilioFiscal: string; readonly ubigeo: string | null };
+  readonly local: { readonly id: string; readonly nombre: string; readonly direccion: string;
+    readonly ubigeo: string | null; readonly codigo: string };
+  readonly cliente: { readonly id: string; readonly tipoDocumento: string;
+    readonly numeroDocumento: string; readonly nombre: string; readonly direccion: string | null } | null;
+}
+
 export interface DocumentoVentaApi {
+  /** Ausente o null: legado sin datos originales verificados; no sustituir por maestros actuales. */
+  readonly datosHistoricos?: DatosHistoricosDocumentoApi | null;
   /** Versiones guardadas al emitir; null en documentos sin logo histórico. */
   readonly logoPrincipal: string | null;
   readonly logoTicket: string | null;

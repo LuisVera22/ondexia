@@ -32,6 +32,12 @@ async def comprobar():
         'pagos': [{'forma': 'EFECTIVO', 'monto': 450, 'referencia': None, 'entregado': None, 'vuelto': 0}],
         'lineas': [{'orden': 1, 'productoId': 'p-simulado', 'codigo': 'CAJ', 'descripcion': 'Cajas de envío '+ 'CODIGOEXTENSO'*10, 'unidad': 'NIU', 'cantidad': 3,
             'precioUnitario': 150, 'valorUnitario': Decimal('127.118644'), 'descuento': 0, 'afectacion': 'GRAVADO', 'valorVenta': Decimal('381.36'), 'igv': Decimal('68.64'), 'total': 450}]}
+    nota['datosHistoricos'] = {
+        'emisor': {'ruc': '20100000033', 'razonSocial': 'Ondexia al emitir',
+                   'nombreComercial': 'Ondexia', 'domicilioFiscal': 'Lima al emitir', 'ubigeo': '150101'},
+        'local': {'id': 'local-simulado', 'nombre': 'Local al emitir',
+                  'direccion': 'Dirección al emitir', 'ubigeo': '150101', 'codigo': '0000'},
+        'cliente': None}
     comprobar_logos = os.environ.get('LOGOS_PRUEBA') == '1'
     if comprobar_logos:
         nota['logoPrincipal'] = '/apple-touch-icon.png?version=principal-A'

@@ -115,6 +115,15 @@ public class DocumentoVentaJpa extends EntidadJpaBase {
         return logoTicket;
     }
 
+    @org.hibernate.annotations.Generated(event = org.hibernate.generator.EventType.INSERT)
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "datos_historicos", insertable = false, updatable = false)
+    private com.ondexia.domain.ventas.DatosHistoricosDocumento datosHistoricos;
+
+    public com.ondexia.domain.ventas.DatosHistoricosDocumento getDatosHistoricos() {
+        return datosHistoricos;
+    }
+
     @Column(name = "estado", nullable = false, length = 12)
     private String estado;
 

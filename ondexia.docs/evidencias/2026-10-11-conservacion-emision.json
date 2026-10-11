@@ -1,0 +1,41 @@
+{
+  "base": "408a68f19151564854acd152bdd97f4bc9d2639d",
+  "regresion_api_sin_arreglo": {
+    "pruebas": 1,
+    "fallos": 1,
+    "esperado": "Cliente al emitir",
+    "obtenido": "Cliente después de emitir"
+  },
+  "regresion_ui_sin_arreglo": {
+    "pruebas": 15,
+    "fallos": 2
+  },
+  "backend_completo": {
+    "pruebas": 527,
+    "fallos": 0,
+    "errores": 0
+  },
+  "web_completo": {
+    "pruebas": 142,
+    "fallos": 0
+  },
+  "movil_sintetico": {
+    "pantallas": 21,
+    "impresion": 8,
+    "fallos": 0
+  },
+  "mutacion_sql": {
+    "pruebas": 1,
+    "fallos": 1,
+    "base_efimera": true,
+    "restauracion_sha256": "8e4fd29311be5e56b67e49752cf2ac1829ebfcd32f21e4de2fa8335dc64d66c4"
+  },
+  "limites": [
+    "SCA local omitido",
+    "AWS no probado",
+    "recuperacion del legado pendiente",
+    "archivos originales pendientes del segundo bloque",
+    "auditoria independiente pendiente",
+    "CI pendiente al registrar"
+  ]
+}

@@ -2937,6 +2937,56 @@ components:
           maxLength: 500
           minLength: 0
           type: string
+    ClienteHistorico:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tipoDocumento:
+          type: string
+        numeroDocumento:
+          type: string
+        nombre:
+          type: string
+        direccion:
+          type: string
+    DatosHistoricosDocumento:
+      type: object
+      properties:
+        emisor:
+          $ref: "#/components/schemas/EmisorHistorico"
+        local:
+          $ref: "#/components/schemas/LocalHistorico"
+        cliente:
+          $ref: "#/components/schemas/ClienteHistorico"
+    EmisorHistorico:
+      type: object
+      properties:
+        ruc:
+          type: string
+        razonSocial:
+          type: string
+        nombreComercial:
+          type: string
+        domicilioFiscal:
+          type: string
+        ubigeo:
+          type: string
+    LocalHistorico:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        nombre:
+          type: string
+        direccion:
+          type: string
+        ubigeo:
+          type: string
+        codigo:
+          type: string
     RespuestaDocumento:
       type: object
       properties:
@@ -3012,6 +3062,8 @@ components:
           type: string
         logoTicket:
           type: string
+        datosHistoricos:
+          $ref: "#/components/schemas/DatosHistoricosDocumento"
     RespuestaLinea:
       type: object
       properties:
