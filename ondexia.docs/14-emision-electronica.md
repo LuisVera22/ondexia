@@ -93,9 +93,18 @@ volvió al correlativo. La siguiente venta reutilizaría ese número, SUNAT la
 rechazaría por duplicada, y la primera estaría aceptada para una venta que no
 existió.
 
+La publicación exige tanto transacción real como sincronización activa. Si falta
+cualquiera, rechaza la llamada con IllegalStateException; no publica directamente
+ni deja un callback sin confirmación real. `PublicacionTrasConfirmarIT` comprueba
+los tres contextos inválidos, commit, rollback por excepción o explícito y fallo
+de commit por restricción diferida en PostgreSQL, con bus simulado.
+
 El precio: si la publicación falla justo después de confirmar, el comprobante
-queda `EN_COLA` sin orden. No se pierde —pasados diez minutos se puede
-reintentar, §3— pero se acepta a sabiendas.
+queda `EN_COLA` sin orden. El error del bus se propaga y no deshace la venta ya
+confirmada. Pasados diez minutos se puede invocar el reintento, §3. Esto no
+garantiza recuperación automática ni entrega exactamente una vez. El ensayo
+comprueba persistencia de una fila temporal tras ese fallo; no acredita entrega
+real del Emisor, S3 o SUNAT. Véase la evidencia de F17 de 2026-10-11.
 
 ### 2.2 El resultado se lee, no se recibe
 

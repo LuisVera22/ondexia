@@ -217,3 +217,9 @@ Orden actualizado en §12.3 del plan: logos, sensibilidad DevSecOps/bot, dinero,
 recuperación, convenciones y casos de uso/UX. Economía, participantes y auditoría
 requieren fuentes pertinentes. La revisión documental de todos los IDs está
 realizada; implementar y aceptar sus pendientes sigue siendo trabajo del backlog.
+
+F17: [frontera transaccional de publicación](../../evidencias/2026-10-11-confirmacion-emision.md)
+corregida con prueba previa fallida y posterior correcta. PostgreSQL real con bus
+simulado caracteriza rollback y fallo posterior al commit. ACT-14 y F17 siguen
+parciales: esto no resuelve refresco JWKS, entrega automática ni resultados tardíos
+de otro intento. No se añadieron infraestructura ni decisiones comerciales.
