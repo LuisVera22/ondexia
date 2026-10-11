@@ -1,0 +1,67 @@
+{
+  "bloque": "ACT-17 · F24 — lectura acotada de CDR",
+  "base": "2d22377e419489f9aa44dedc8f8fd994655cfe44",
+  "rojo": {
+    "pruebas": 10,
+    "fallos": 5,
+    "errores": 2,
+    "observacion": "siete casos fallan sobre la implementación previa; no se afirma siete vulnerabilidades distintas ni explotación"
+  },
+  "verde_inicial": 22,
+  "pruebas_nuevas_finales": 17,
+  "suite_final": {
+    "dominio": 130,
+    "facturacion": 69,
+    "fallos": 0,
+    "errores": 0
+  },
+  "mutaciones": {
+    "admitir_dtd": {
+      "fallos": 1
+    },
+    "ignorar_codigo_de_cdr": {
+      "fallos": 2
+    },
+    "activar_xinclude": {
+      "fallos": 1,
+      "limite": "cambia clasificación SIN_TICKET a HTTP_200; respuesta sigue bloqueada, no demuestra acceso o filtración"
+    }
+  },
+  "restauracion": "lector comparado byte por byte después de cada mutación; suite final verde",
+  "oraculos": "tamaños/conteos especificados, fixtures públicos y resultados de dominio existentes; no derivados de la salida",
+  "no_verificado": [
+    "límite durante descarga HTTP",
+    "presupuesto global de CPU/memoria",
+    "vinculación/esquema/firma de CDR",
+    "XML interno de firma",
+    "AWS/SUNAT/originales reales",
+    "auditoría independiente"
+  ],
+  "ci": "pendiente al registrar",
+  "registros": [
+    {
+      "archivo": "2026-10-11-lectura-cdr-acotada/rojo-ampliado.log.gz",
+      "sha256": "894b3998b2d0792ad11b95b7c0472136b9f96769d2908105647963ad408140f2"
+    },
+    {
+      "archivo": "2026-10-11-lectura-cdr-acotada/verde.log.gz",
+      "sha256": "b37290fa811edb1095ab46d5f6867cffff1c72eb5dfd9821a298dd09c59f0f3c"
+    },
+    {
+      "archivo": "2026-10-11-lectura-cdr-acotada/mutacion-dtd.log.gz",
+      "sha256": "44e83c7257306dca2a43c146fd7c308d37b567c2452543283c2e9b0a6c222124"
+    },
+    {
+      "archivo": "2026-10-11-lectura-cdr-acotada/mutacion-codigo.log.gz",
+      "sha256": "7cffee37b212ae3098e7492db8670f927383e235a15a6a5e160782ebdcb15d9b"
+    },
+    {
+      "archivo": "2026-10-11-lectura-cdr-acotada/mutacion-inclusion.log.gz",
+      "sha256": "772fcb23e2a4d8d6b9292a12942853ff6e3938ec12ebc34777c2d861974c0b25"
+    },
+    {
+      "archivo": "2026-10-11-lectura-cdr-acotada/final.log.gz",
+      "sha256": "2921943f84eb66542ba9d87df91eec1383a39e288d99fbedb3d84eebc773cf81"
+    }
+  ]
+}

@@ -1,6 +1,10 @@
 # F06 — búsqueda y recuperación de originales antiguos
 
 Estado: procedimiento preparado; no ejecutado contra AWS ni documentos reales.
+Decisión del propietario, 2026-10-11: el proyecto sigue en desarrollo; la validación
+con originales reales se realizará cuando exista un caso en producción. Mientras
+tanto se verifican escenarios y archivos sintéticos, sin bloquear el desarrollo
+ni dar por comprobada la recuperación real.
 Complementa las especificaciones de conservación; no sustituye el backlog ni
 permite reemitir o corregir un documento enviado a SUNAT.
 

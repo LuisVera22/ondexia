@@ -393,3 +393,20 @@ aprobada por el propietario. El [verificador local XML](especificaciones/2026-10
 comprueba integridad e identidad esperada con certificado público independiente;
 no acredita confianza ni aceptación SUNAT. Acceso AWS, confianza del certificado,
 contraste de CDR y recuperación real pendientes.
+
+### ACT-17: lectura acotada de respuestas externas
+
+[Especificación del corte](especificaciones/2026-10-11-lectura-cdr-acotada.md).
+El lector mantiene las respuestas válidas y la elección del primer XML dentro
+del ZIP. Limita ZIP comprimido a 8 MiB, bytes descomprimidos consumidos hasta ese
+XML a 8 MiB y entradas examinadas a 32; cuenta bytes reales también al descartar
+entradas previas. El SOAP ya recibido por el lector se limita a 16 MiB. Son
+límites operativos, no fiscales: sobrepasarlos da respuesta ilegible, no rechazo
+tributario. El HTTP todavía materializa el cuerpo antes de estos controles.
+
+`LecturaHostilDeCdrTest` ejercita exceso/frontera, base64 inválido, carpeta/extensión,
+DTD y ausencia de diagnóstico del parser en descripción/stderr. Parser sin DTD
+ni recursos externos; errores CDR con código y descripción fijos, sin copiar
+mensajes internos. `LectorDeRespuestaSunatTest` mantiene CDR/ticket/estado válidos
+y sus originales. No se afirma validación de firma, vínculo ni esquema del CDR;
+ACT-17 sigue parcial y no se probó SUNAT/AWS real.
