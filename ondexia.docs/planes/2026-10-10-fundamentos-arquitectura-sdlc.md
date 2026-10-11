@@ -1,9 +1,10 @@
 # Plan de fundamentos de arquitectura, código y desarrollo de producto
 
 Fecha: 2026-10-10. Estado: ejecución progresiva autorizada por el propietario;
-primer lote en curso, decisiones pendientes explícitas.
+primer lote en curso, decisiones pendientes explícitas. Revisión de las 28
+actividades actualizada en §12 al 2026-10-11.
 
-Base inspeccionada: `/workspace/ondexia`, rama `develop`, commit
+Base de la inspección inicial (histórica): `/workspace/ondexia`, rama `develop`, commit
 `6f7ae796af30dc10ccb6307c482097a24e3c53de`.
 
 Este documento propone actividades y criterios; no modifica las reglas de negocio
@@ -180,7 +181,7 @@ afecta decisiones de implementación; **P1** para diseño y controles del proces
 un defecto demostrado ni que todas las funcionalidades deban detenerse.
 
 Estado inicial: elementos pendientes salvo la inspección preliminar y las nueve
-pruebas descritas arriba. El avance posterior se registra en §10; no implica
+pruebas descritas arriba. El estado actual por ID se registra en §12; no implica
 cierre del conjunto. Una actividad se cierra con su
 entregable y evidencia, no con la afirmación de haber seguido una práctica.
 
@@ -373,6 +374,9 @@ No se cambia código ni configuración de Dependabot en este lote documental.
 
 ## 11. Ejecución autorizada del primer lote, 2026-10-10
 
+Registro histórico del inicio. El estado vigente se contrasta en §12; los estados
+«local» o «CI pendiente» de esta sección no sustituyen el seguimiento posterior.
+
 El propietario autorizó comenzar el backlog. Se conserva este catálogo y los
 IDs ACT del backlog detallado. La revisión completa y la auditoría independiente
 no están realizadas. Base: develop `0df3f6d57a8b0dcece6f7667ce605c7fa307dc15`.
@@ -410,3 +414,119 @@ consumidores y configuración efectiva. ACT-13 se registra en su
 [especificación](../especificaciones/2026-10-10-audiencia-jwt.md) y
 [evidencia](../evidencias/2026-10-10-audiencia-jwt.md). Los demás puntos conservan
 estado pendiente; no se deduce un defecto funcional solo por observar código.
+
+## 12. Revisión completa de actividades, 2026-10-11
+
+Solicitud del propietario: revisar todas las actividades del backlog. Base:
+`develop`, `be941b68d75263fba8bf7d8429c7bd696254de91`. Se contrastaron los
+28 criterios Fxx y los 23 ACT con documentos, archivos pertinentes, evidencia
+registrada y estado de los PR en GitHub. Es revisión del trabajo y sus controles,
+**no lectura exhaustiva de cada línea de producción ni auditoría independiente**.
+No se repitieron todas las pruebas anteriores en esta revisión documental.
+
+El [CI de develop del commit base](https://github.com/LuisVera22/ondexia/actions/runs/38115322102)
+está completado en verde y corresponde a un push de ese commit. Los PR #31–#46
+figuran integrados hacia develop; son procedencia de los cortes, no certificación
+del conjunto de requisitos. Los PR de Dependabot #13–#30 siguen abiertos hacia
+main: sus resultados no autorizan integrar una versión distinta sobre develop.
+
+Estados: **parcial** = hay un entregable/control, pero falta aceptación completa;
+**pendiente** = no se entregó el resultado exigido; **cerrado** = aceptación
+comprobada en el alcance escrito. «Revisado» significa que se contrastó el ID,
+no que se completó. Las decisiones y verificaciones externas se registran aparte
+del estado y no bloquean todas las tareas independientes.
+
+### 12.1 Estado y siguiente trabajo por actividad
+
+Los nombres de archivos son referencias de ubicación en este checkout. Los PR
+se consultan en [el repositorio](https://github.com/LuisVera22/ondexia/pulls?q=is%3Apr).
+Las especificaciones y evidencias citadas en §4 conservan comandos y límites.
+
+| ID | Estado | Contraste y falta concreta | Siguiente trabajo / dependencia |
+|---|---|---|---|
+| F01 | Parcial | §11 inventaría fronteras; esta sección contrasta todos los IDs, pero no cada regla/ruta del sistema. Hay cinco módulos backend, no dos | Inventariar rutas, consumidores, reglas y control por área; empezar ventas/configuración. Codex |
+| F02 | Parcial | Docs 03/08 discrepan en nombres y granularidad. Se retira de CLAUDE la instrucción superada de commits directos en develop; manual 717246d sigue local | Publicar manual sin convertir propuestas en reglas aprobadas; propietario decide paquetes heredados y granularidad |
+| F03 | Parcial | PR #37 reproduce cuatro divergencias web con oráculo independiente; dominio caracterizado. No cubre todo API/pagos mixtos/límites | Matriz de importes de caja, crédito y respuesta histórica, con reglas de redondeo ya aprobadas |
+| F04 | Parcial | PR #38 corrige catálogo y mostrador con decimal textual/exacto. `almacen.modelos.ts` ya usa string; `ventas.api.service.ts` conserva importes number en caja, pagos y documento consultado | Caracterizar y corregir un contrato consumidor por lote; OpenAPI/modelos juntos. No renombrar campos ajenos |
+| F05 | Parcial | PR #39 caracteriza cliente/líneas por HTTP; #40 añade pruebas de historia. No hay matriz final de todos los campos/representaciones | Contrastar emisión, consulta, reimpresión y XML contra valores fijados al emitir, incluyendo legado sin datos |
+| F06 | Parcial | PR #31/#40 conservan logo/datos; #41 originales por intento; #42/#43 inventario/verificador local. No acreditan originales reales ni PDF almacenado | Conservar regla aprobada; caso real diferido por propietario. PDF servidor requiere decidir fase; no reconstruir datos irrecuperables |
+| F07 | Parcial | Requisitos de ajustes de ventas recogen observación real, actor, alternativa y valor hipotético; plantillas disponibles | Completar ficha enlazada al piloto con frecuencia/impacto conocidos o pendientes, sin inventar beneficios |
+| F08 | Pendiente | No hay evaluación económica del piloto con datos del propietario, escenarios y umbral de decisión | Obtener frecuencia, tiempo/soporte, costos e hipótesis comerciales; separar cliente y Ondexia |
+| F09 | Parcial | Docs 13/14 describen vender/emitir/canjear/anular; no hay mapa completo AS-IS/TO-BE con responsables y excepciones | Consolidar proceso del piloto usando reglas vigentes; consultar solo políticas faltantes |
+| F10 | Parcial | Investigación incluye plantilla completa y especificación de ajustes; no cubre todas las extensiones del alta contextual | ACT-02: completar flujo, estados, permisos y guardado incierto; revisión funcional pertinente |
+| F11 | Parcial | Hay límites de archivos, tiempos y criterios móvil; faltan fuentes/umbrales aprobados de servicio, recuperación y costo | Distinguir límites técnicos ejecutados de objetivos comerciales pendientes; evitar SLO inventados |
+| F12 | Parcial | Reactor real: domain/api/admin/consultas/facturacion. Doc 08 aún presenta dos módulos; manual local no publicado | Reconciliar vistas y dependencias reales; explicar entradas/salidas y límites sin nuevos servicios |
+| F13 | Parcial | Entidades de dominio y puertos separan tecnología; no existe matriz completa de dueño de invariantes/transacción por área | Revisar venta/stock/caja/emisión/identidad y dependencias/ciclos antes de refactorizar |
+| F14 | Parcial | Manual local 717246d prepara ejemplos de puertos, sustitución y errores; no se publicó ni revisaron todas las clases representativas | Publicar corte documental compatible; revisar encapsulamiento, reconstitución e igualdad con pruebas semánticas |
+| F15 | Parcial | Doc 10 y funciones decimales puras; componentes/servicios/DTO con límites incompletamente documentados | Inventario de estados del piloto, ciclo de vida, errores y responsabilidades; ACT-06/07 |
+| F16 | Parcial | Contratos de catálogo generados, ventas parcialmente manuales; RLS/migraciones/instantáneas comprobados por cortes | Inventariar DTO, escala, null, tiempo, permisos, idempotencia y transacción en cada frontera |
+| F17 | Parcial | PR #46 valida empresa/operación antes de transición. `afterCommit` publica; sincronización ausente publica inmediatamente; resultado no identifica intento | Caracterizar rollback, falla poscommit, duplicado/tardío/reintento antes de decidir recuperación/outbox |
+| F18 | Parcial | SDD y rojo/verde/mutaciones registrados por cortes; no hay catálogo completo regla/extensión/prueba del piloto | ACT-03/04: contrastar cobertura, límites, concurrencia y oráculos, sin contar test por nombre como cobertura |
+| F19 | Parcial | Nueve controles ArchUnit y sensibilidad de controles de negocio; no hay reglas nuevas completas de ciclos ni todos los módulos/frontend | Acordar dependencias y añadir una regla con mutación detectada/restaurada por corte |
+| F20 | Pendiente | Web tiene compilación estricta y controles existentes, pero no scripts de lint/formato ni selección completa SAST/IaC | Elegir herramienta y alcance incremental con costo/compatibilidad; evitar reformateo global |
+| F21 | Parcial | Especificaciones/evidencias/JSON/logs/PR trazan cortes; estados documentales antiguos pendientes de reconciliación | Mantener enlaces regla→prueba→commit/CI y resultado; no deducir impacto de negocio del CI |
+| F22 | Parcial | Harness/setup/auditoría externos presentes; harness offline `can_execute=false`; guías en repo. Restauración en nube nueva no verificada | Versionar selección reutilizable y probar restauración limpia sin secretos/caches/volúmenes |
+| F23 | Parcial | GitFlow/Conventional Commits y ciclos PR→develop→CI→cierre usados; bot aún apunta a main con prefijo Actualiza | Corregir configuración del bot en lote aparte; documentar soporte/release con controles exactos |
+| F24 | Parcial | Cortes JWT, SQL, mensajes, archivos y puerta de producción; sin selección completa ASVS ni controles AWS efectivos | ACT-12/16/19/20/21; priorizar frontera de archivos/credenciales sobre estilo |
+| F25 | Parcial | Cortes de ventas, historia y móvil implementados; falta demostrar aceptación integrada del piloto completo y extensiones UX | Completar casos/controles pendientes, sin añadir funcionalidad comercial implícita |
+| F26 | Pendiente | No hay auditoría independiente del commit actual; informes anteriores pertenecen a otras bases | Otra sesión/revisor con reglas y commit, sin narrativa heredada; no simular independencia aquí |
+| F27 | Parcial | Se revisaron/corrigieron cortes de API, dominio y facturación; no el resto de cada área | Extender por riesgo y cerrar aceptación por lote; auditoría del patrón antes de expansión general |
+| F28 | Pendiente | No hay línea base/periodicidad aprobada de resultados comerciales ni soporte del piloto | Recoger fuentes, dueño y periodicidad; usar resultados observados, no ROI inferido |
+
+**Balance Fxx: 28 revisados, 24 parciales, 4 pendientes, 0 cerrados completos.**
+No se suman los ACT como 23 funcionalidades adicionales: son desgloses vinculados.
+
+### 12.2 Inventario técnico reproducible y límites
+
+Conteo del checkout base (archivos, no casos ni cobertura):
+
+| Módulo backend | Java producción | Java pruebas |
+|---|---:|---:|
+| domain | 102 | 16 |
+| api | 153 | 48 |
+| admin | 18 | 10 |
+| consultas | 19 | 6 |
+| facturacion | 20 | 13 |
+
+Frontend: web 149 archivos `.ts`, 19 `.spec.ts`; admin 12 y 1 respectivamente.
+El conteo `.ts` incluye specs; no cuenta vistas `.astro` como TypeScript ni mide
+casos ejecutados. Método: contar archivos por extensión bajo `src/main/java`,
+`src/test/java` y `src` de cada aplicación. No equiparar número de archivos,
+número de tests y reglas cubiertas.
+
+Capacidades observadas: checkout/ramas y GitHub disponibles; harness offline y
+setup presentes; perfil de red restringido. No se da por instalada una flota de
+agentes, SAST/IaC, conectores comerciales ni acceso efectivo a AWS. El manual
+`717246d` se conserva local; aún no acredita persistencia remota ni cierre F14.
+
+### 12.3 Orden actualizado, decisiones y estimación
+
+1. **ACT-12/16 y F01/F24:** caracterizar validación de bytes/dimensiones y
+   publicación de logos, distinguiendo referencia histórica y contenido inmutable.
+   Primero pruebas locales; no ensayo AWS ni explotación afirmados.
+2. **ACT-19/F23:** demostrar puerta existente sin credencial/scanner fallido;
+   configurar Dependabot hacia develop con convención. Revisar actualizaciones
+   compatibles por dependencia antes de saltos mayores; no reutilizar CI de main.
+3. **F03/F04/F16:** contrato monetario de consulta/caja/crédito; un consumidor
+   por PR, sin asumir nueva política fiscal/redondeo.
+4. **F17/ACT-14:** recuperación y correlación de intentos; rotación JWKS sin
+   presumir acceso de red desde Lambda. Decidir costo antes de infraestructura.
+5. **F02/F12/F14/F19 y ACT-01/02/03/06/07:** publicar manual y corregir
+   convenciones/fronteras acordadas; especificar y comprobar piloto/teclado/móvil.
+   No iniciar renombrado masivo. Las tareas documentales independientes continúan.
+6. **F08/F11/F26/F28 y ACT-05/09/11/21/22:** datos económicos, políticas,
+   participantes, contraste independiente y medidas; registrar dependencias,
+   no tratarlos como errores que un cambio de código pueda resolver.
+
+Pendientes del propietario: excepción temporal o migración de paquetes técnicos;
+granularidad de casos de uso; fase de PDF servidor; datos económicos/objetivos
+operativos; participantes y políticas de retención/soporte. **Historia al emitir,
+originales y tratamiento de datos irrecuperables ya están decididos.** La
+validación de un caso antiguo real se difirió hasta que exista en producción.
+
+La estimación del programa permanece abierta. Cada fila delimita siguiente
+entregable y dependencia; un plazo o costo global sería ficticio sin resolver
+alcance/riesgo y datos. Antes de cada implementación se presentará el corte,
+pruebas y rango de esfuerzo basado en la caracterización, sin prometer semanas.
+Este lote solo actualiza documentación: no afirma nuevas pruebas roja/verde,
+auditoría completa, conformidad WCAG/ASVS ni rentabilidad comprobada.
