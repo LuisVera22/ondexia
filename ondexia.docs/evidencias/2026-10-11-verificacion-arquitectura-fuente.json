@@ -1,0 +1,9 @@
+{
+  "url": "https://github.com/TNG/ArchUnit/releases/tag/v1.5.1",
+  "tag": "v1.5.1",
+  "publicada": "2026-09-25T07:27:04Z",
+  "notas": "# Bug fixes\r\n\r\n## Core\r\n\r\n* fix: include java.lang.IO in ACCESS_STANDARD_STREAMS (#1687; thanks to @arimu1 👋)\r\n* Count caught exception types as type dependencies (#1725; by @schulzjo-tng)\r\n\r\n# Internal Improvements\r\n\r\n* publish archunit-junit-relocation (#1684; thanks to @hankem 👋)",
+  "cambio": "https://github.com/TNG/ArchUnit/commit/058f709a1579daca48b7d052ace91dc92f0d2055",
+  "propuesta": 13,
+  "head_propuesta": "3def5cdb79d9fa75fdb47dcf9397ef2ef9f83ed5"
+}
