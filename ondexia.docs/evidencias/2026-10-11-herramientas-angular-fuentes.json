@@ -1,0 +1,30 @@
+{
+  "fecha": "2026-10-11",
+  "fuentes_oficiales": [
+    {
+      "version": "v21.2.22",
+      "url": "https://github.com/angular/angular-cli/releases/tag/v21.2.22",
+      "notas_originales": "### @angular-devkit/build-angular\n| Commit | Description |\n| -- | -- |\n| [![fix - b0047b04f5](https://img.shields.io/badge/b0047b04f5-fix-green)](https://github.com/angular/angular-cli/commit/b0047b04f56f5cb3fb8e4465ba0fad777497144a) | update webpack-dev-server to 5.2.6 |\n"
+    },
+    {
+      "version": "v21.2.23",
+      "url": "https://github.com/angular/angular-cli/releases/tag/v21.2.23",
+      "notas_originales": "### @angular-devkit/build-angular\n| Commit | Description |\n| -- | -- |\n| [![fix - d3aaa48ef](https://img.shields.io/badge/d3aaa48ef-fix-green)](https://github.com/angular/angular-cli/commit/d3aaa48ef35b80c3297ee3050cd239f84d051899) | update less to 4.9.0 |\n### @angular/ssr\n| Commit | Description |\n| -- | -- |\n| [![fix - 645e41a47](https://img.shields.io/badge/645e41a47-fix-green)](https://github.com/angular/angular-cli/commit/645e41a47d21b7651837a4250de99af0509626e2) | ensure public directory containment in CommonEngine |\n"
+    },
+    {
+      "version": "v21.2.24",
+      "url": "https://github.com/angular/angular-cli/releases/tag/v21.2.24",
+      "notas_originales": "### @angular/build\n| Commit | Description |\n| -- | -- |\n| [![fix - dbaadc2f6e](https://img.shields.io/badge/dbaadc2f6e-fix-green)](https://github.com/angular/angular-cli/commit/dbaadc2f6e73b611e292b3337066fd5b3b631397) | update undici to 7.29.1 |\n"
+    },
+    {
+      "version": "v21.2.25",
+      "url": "https://github.com/angular/angular-cli/releases/tag/v21.2.25",
+      "notas_originales": "### @angular/build\n| Commit | Description |\n| -- | -- |\n| [![fix - 7e6d2da084](https://img.shields.io/badge/7e6d2da084-fix-green)](https://github.com/angular/angular-cli/commit/7e6d2da08406f240b18b1d7e692cad27f29af314) | bump piscina to 5.3.2 |\n"
+    },
+    {
+      "version": "v21.2.26",
+      "url": "https://github.com/angular/angular-cli/releases/tag/v21.2.26",
+      "notas_originales": "### @angular/cli\n| Commit | Description |\n| -- | -- |\n| [![fix - 9d2987f354](https://img.shields.io/badge/9d2987f354-fix-green)](https://github.com/angular/angular-cli/commit/9d2987f354df7718ec76992cf28a0ab6cbf96539) | bump @modelcontextprotocol/sdk to 1.31.0 |\n"
+    }
+  ]
+}

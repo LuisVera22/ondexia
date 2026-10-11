@@ -160,6 +160,13 @@ los 18 PR, eludir protecciones, tocar main ni desplegar en AWS.
 
 ## 6. Avance de ACT-23
 
+[Herramientas Angular 21](../../evidencias/2026-10-11-herramientas-angular.md):
+build/CLI 21.2.26 eliminan los dos avisos críticos de cada lockfile con auditoría
+previa fallida y posterior correcta. Instalación congelada, builds, 144 pruebas
+web y cinco panel correctos localmente. Quedan cuatro altos y tres moderados por
+aplicación en herramientas Karma/cobertura; revisar parches transitivos compatibles
+en el siguiente corte. CI del lote pendiente al redactar; no cierra ACT-19/23.
+
 [Revisión individual y auditorías actuales](../../evidencias/2026-10-11-revision-dependabot.md):
 cinco candidatas a integrar, diez a adaptar y tres pospuestas. Los 18 PR siguen
 abiertos hacia main; ninguna versión propuesta se ha ejecutado en develop.
