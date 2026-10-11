@@ -78,6 +78,8 @@ public class AlmacenDeMarcaS3 implements AlmacenDeMarca {
                 .bucket(bucket)
                 .key(clave)
                 .contentType(tipoContenido)
+                // La condición queda firmada: EscrituraUnicaDeLogoTest (SDK local; S3 real no verificado).
+                .ifNoneMatch("*")
                 .build();
 
         var firmada = firmador.presignPutObject(PutObjectPresignRequest.builder()

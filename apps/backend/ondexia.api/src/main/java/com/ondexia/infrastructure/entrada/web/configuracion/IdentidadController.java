@@ -4,6 +4,7 @@ import com.ondexia.application.configuracion.Identidad;
 import com.ondexia.domain.marca.AlmacenDeMarca;
 import com.ondexia.infrastructure.seguridad.RequierePermiso;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -134,7 +135,9 @@ public class IdentidadController {
         }
     }
 
-    public record RespuestaAutorizacion(String url, String clave, long validaSegundos) {
+    public record RespuestaAutorizacion(
+            @Schema(description = "Destino PUT: enviar Content-Type autorizado e If-None-Match: * para crear sin reemplazar.")
+            String url, String clave, long validaSegundos) {
 
         static RespuestaAutorizacion desde(AlmacenDeMarca.AutorizacionDeSubida autorizacion) {
             return new RespuestaAutorizacion(
