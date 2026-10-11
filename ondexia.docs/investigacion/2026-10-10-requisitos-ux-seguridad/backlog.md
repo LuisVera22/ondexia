@@ -83,11 +83,11 @@ existente y priorizarla junto con la deuda. Responsable del análisis y de la
 recomendación técnica: Codex. Estado: **pendiente de evaluación individual**;
 registrar una propuesta no acredita su compatibilidad ni autoriza integrar en main.
 
-### Línea base verificada
+### Línea base del triaje, 2026-10-10
 
-GitHub muestra 18 ramas `dependabot/*`, asociadas a los PR abiertos #13–#30,
+En ese triaje GitHub mostró 18 ramas `dependabot/*`, asociadas a los PR abiertos #13–#30,
 creados por `dependabot[bot]` el 2026-10-09. Todos apuntan a `main` y ninguno
-tiene integración automática activada. La configuración actual no declara
+tiene integración automática activada. La configuración de esa base no declara
 `target-branch`, programa revisiones semanales y permite hasta cinco propuestas
 por ecosistema/directorio; utiliza el prefijo `Actualiza`.
 
@@ -166,6 +166,8 @@ pospuestas. Confirmado en el log de #15: análisis Dependency-Check omitido aunq
 build esté verde. Se coordina con ACT-19. Faltan avisos oficiales/release notes,
 aplicabilidad, pruebas en develop y decisión final; no se integró ni cerró un PR.
 
+[Corte de configuración de propuestas](../../especificaciones/2026-10-11-propuestas-dependabot.md), 2026-10-11: develop y prefijo convencional comprobados localmente; no traduce el texto nativo del bot ni actualiza los 18 PR existentes. Configuración activa/propuesta real pendientes; no se cambia main.
+
 ## 7. Seguimiento actualizado de las 23 actividades, 2026-10-11
 
 ACT-13: regresión de cuatro configuraciones inválidas y diez casos JWT previos;
@@ -204,7 +206,7 @@ La tabla mantiene los criterios de §1–3 y actualiza su estado; no crea otro c
 | ACT-20 | Parcial | SHA/TypeScript estricto/auditoría pnpm; sin SAST/IaC elegido/ejecutado ni cabeceras reales comprobadas | Selección proporcional y prueba; Terraform declarativo no es respuesta servida |
 | ACT-21 | Parcial | Procedimiento de originales preparado; no clasificación/soporte/retención/incidentes generales | Propuesta y decisiones del propietario; ensayos sintéticos, tiempos pendientes; caso histórico real diferido |
 | ACT-22 | Pendiente | Sin auditoría independiente de este commit; informes antiguos no sustituyen evaluación actual | Sesión/revisor separados, commit y reglas sin narrativa; contrastar hallazgos |
-| ACT-23 | Parcial | PR #35 triaje; #13–#30 siguen abiertos/base main; configuración sin target-branch | Corregir destino/convención; notas oficiales y pruebas develop por actualización; cerrar solo ciclos terminados |
+| ACT-23 | Parcial | PR #35 triaje; #13–#30 siguen abiertos/base main; [configuración de propuestas en develop](../../evidencias/2026-10-11-propuestas-dependabot.md) declara destino y prefijo convencional | Contrastar operación real/publicación de configuración y mensajes españoles; notas oficiales y pruebas develop por actualización; cerrar solo ciclos terminados |
 
 **Balance ACT: 23 revisados, 1 cerrado en su alcance, 17 parciales, 5 pendientes.**
 Con Fxx: 51 entradas revisadas, 1 cerrada, 41 parciales y 9 pendientes. Son IDs
