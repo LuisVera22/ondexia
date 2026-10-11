@@ -160,6 +160,14 @@ los 18 PR, eludir protecciones, tocar main ni desplegar en AWS.
 
 ## 6. Avance de ACT-23
 
+[Karma y cobertura](../../evidencias/2026-10-11-avisos-karma.md):
+seis avisos objetivo desaparecen con comprobación previa fallida y posterior
+correcta. Solo locks; instalación congelada, builds, 144 pruebas web y cinco
+panel correctos. Queda un aviso alto de braces por aplicación, cero moderados
+y críticos; la versión corregida citada no está publicada según consulta npm.
+Caracterizar alcanzabilidad y alternativa proporcional, sin excepción silenciosa.
+CI del lote pendiente al redactar; ACT-19/23 parciales, sin cierre de PR del bot.
+
 [Herramientas Angular 21](../../evidencias/2026-10-11-herramientas-angular.md):
 build/CLI 21.2.26 eliminan los dos avisos críticos de cada lockfile con auditoría
 previa fallida y posterior correcta. Instalación congelada, builds, 144 pruebas
