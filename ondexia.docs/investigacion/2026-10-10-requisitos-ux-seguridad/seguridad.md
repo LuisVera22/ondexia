@@ -172,6 +172,16 @@ retención, clasificación y procedimiento de incidente con evidencias sanitizad
 
 ## 6. Evidencia observada y trabajo pendiente
 
+La tabla siguiente conserva la observación inicial del commit indicado al inicio.
+No describe por sí sola el estado actual. Al 2026-10-11, SEC-02 fue corregido
+en PR #33; SEC-03 fue caracterizado y su premisa externa corregida en #34;
+SEC-04 tiene cortes de SQL/mensajes en #36/#46; SEC-07 tiene límites y pruebas
+CDR/HTTP en #44/#45. SEC-10 ya tiene puerta de producción sin NVD_API_KEY en
+deploy.yml; falta sensibilidad del control, no añadir otra puerta. Terraform
+identidad/panel declara revocación y rotación de refresco (SEC-08). Los demás
+alcances, AWS efectivo y auditoría siguen pendientes según
+[el seguimiento vigente](backlog.md#7-seguimiento-actualizado-de-las-23-actividades-2026-10-11).
+
 «Prueba localizada» indica lectura de su código, **no ejecución en esta investigación**.
 «Configurado» indica repositorio, **no configuración efectiva comprobada en AWS**.
 

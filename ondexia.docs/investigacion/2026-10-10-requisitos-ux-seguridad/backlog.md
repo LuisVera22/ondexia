@@ -1,7 +1,8 @@
 # Aplicación de la investigación al backlog de fundamentos
 
-Estado: ejecución progresiva autorizada; ACT-13 en verificación local, demás
-actividades pendientes salvo evidencia específica. La investigación documental y la
+Estado: ejecución progresiva autorizada; revisión de las 23 actividades actualizada
+en §7 al 2026-10-11. ACT-13 cerrado en su alcance; las demás conservan pendientes.
+La investigación documental y la
 inspección estática descritas en README están realizadas; no se confunden con
 ejecutar las actividades siguientes. No se inicia funcionalidad nueva.
 
@@ -165,12 +166,52 @@ pospuestas. Confirmado en el log de #15: análisis Dependency-Check omitido aunq
 build esté verde. Se coordina con ACT-19. Faltan avisos oficiales/release notes,
 aplicabilidad, pruebas en develop y decisión final; no se integró ni cerró un PR.
 
-## 6. Seguimiento del primer lote
+## 7. Seguimiento actualizado de las 23 actividades, 2026-10-11
 
 ACT-13: regresión de cuatro configuraciones inválidas y diez casos JWT previos;
 fallo sin arreglo y verificación local después. Ver
 [especificación](../../especificaciones/2026-10-10-audiencia-jwt.md) y
 [evidencia](../../evidencias/2026-10-10-audiencia-jwt.md).
-CI, integración y auditoría independiente pendientes. F01 tiene inventario inicial
-en §11 del plan; no está completo. ACT-14/15 y los demás puntos no se cierran
+CI e integración de ACT-13 comprobados en el PR #33. La auditoría independiente
+permanece pendiente en ACT-22/F26. F01 tiene inventario inicial
+en §11 del plan y revisión actual en §12; no está completo. ACT-14/15 y los demás puntos no se cierran
 por esta corrección. No se ha probado configuración desplegada en AWS.
+
+Base y método: [plan, §12](../../planes/2026-10-10-fundamentos-arquitectura-sdlc.md).
+La tabla mantiene los criterios de §1–3 y actualiza su estado; no crea otro catálogo.
+
+| ID | Estado | Contraste / alcance | Próximo entregable y dependencia |
+|---|---|---|---|
+| ACT-01 | Parcial | Plantillas y requisitos/diseno/tareas de ajustes de ventas: necesidad real y decisiones; cadena incompleta | Aplicar matriz hasta regla, extensión, prueba y medida |
+| ACT-02 | Parcial | Alta contextual: consulta exacta, revisar antes de guardar, permisos, duplicado y cambio de contexto | Especificación íntegra con tabla de decisiones, cancelación y guardado incierto; no inferir políticas nuevas |
+| ACT-03 | Parcial | Spec de alta: 13 casos sobre revisión, permisos, respuesta tardía/otro RUC, existente/inactivo, manual, 409, doble pulsación y atestación | Trazar cada regla/extensión; fallo tras guardar sin respuesta, reintento, conservación de venta y efectos API |
+| ACT-04 | Parcial | Cortes de dinero/historia/JWT/SQL/CDR/HTTP/resultado registran rojo-verde o mutación pertinente | Completar negativos, límites y concurrencia según ACT-03; oráculos independientes |
+| ACT-05 | Pendiente | Valor hipotético escrito; sin ficha económica con frecuencia/costos reales | Datos del propietario y análisis cliente/Ondexia; no inventar adopción ni tarifa |
+| ACT-06 | Parcial | Fuentes de mostrador/alta/registro/previsualización identificadas; estados consultando/guardando/revisando/fallo | Matriz tarea→componente→estado→recuperación, permisos y dispositivos |
+| ACT-07 | Parcial | Modal implementa Escape, foco inicial, ciclo Tab y retorno; alta tiene labels/alert/status. Inspección no prueba interacción/contraste | Ensayo teclado/lector/reflujo/errores; asociar errores al campo y probar estados dinámicos; objetivo WCAG 2.2 AA |
+| ACT-08 | Pendiente | No hay prototipo nuevo contrastado con ACT-06/07; vistas actuales no sustituyen ese entregable | Prototipo de fricción prioritaria después del diagnóstico |
+| ACT-09 | Pendiente | No hubo ronda con participantes; capturas del implementador no son estudio de usuarios | Acordar participantes y tareas neutrales; registrar ayuda/error/recuperación |
+| ACT-10 | Parcial | Registro/previsualización y responsividad tienen pruebas/capturas de sus cortes | Seleccionar ajustes por diagnóstico/ronda; demostrar interacción y sensibilidad afectada |
+| ACT-11 | Pendiente | Sin línea base comparable ni resultado de ronda | Medir antes/después en condiciones equivalentes; ACT-05/09/10 |
+| ACT-12 | Parcial | Seguridad inventaría activos y SEC-01–12; no selecciona todos los IDs ASVS/configuración/prueba | Matriz priorizada ASVS 5.0.0 y límites; no declarar nivel 2 por selección parcial |
+| ACT-13 | Cerrado | PR #33 integrado: cuatro configuraciones inválidas y diez casos JWT; falla cerrada/regresión y sensibilidad en alcance local/CI | Mantener regresión; AWS efectivo/auditoría siguen fuera de este cierre, ACT-22/F24 |
+| ACT-14 | Parcial | PR #34 caracteriza claves nuevas/JWKS inmutable; reconstruir decoder local recupera; refresco automático/panel pendientes | Recuperación compatible con red privada/costos y prueba, sin añadir NAT por defecto |
+| ACT-15 | Parcial | PR #36 rol restringido/almacen; #46 empresa/operación de resultados; no todas las rutas/objetos | Matriz negativa lectura/escritura/contexto/objeto; distinguir SQL, mensaje y AWS |
+| ACT-16 | Parcial | PR #31/#40 conservan versión histórica; MIME/metadata no demuestran bytes/dimensiones válidos | Ensayo falso PNG/recursos antes de publicar; contrastar reutilización de subida e inmutabilidad actual |
+| ACT-17 | Parcial | PR #44/#45 limitan CDR y recepción HTTP con entradas hostiles locales; #43 verifica XML local | XML interno, presupuesto global y vinculación/autenticidad del resultado; no SUNAT real |
+| ACT-18 | Parcial | SesionService usa PKCE/sessionStorage; Terraform declara revocación y refresh rotation; JWT offline tiene límites | Precisar políticas/contratos y comparar SPA/BFF con costo; no dar rotación por ausente |
+| ACT-19 | Parcial | CI advierte/omite SCA sin credencial; deploy ya bloquea producción sin NVD_API_KEY; caché corregida | Sensibilidad de ausencia/scanner fallido sin desplegar; no duplicar puerta ni confundir verde con SCA ejecutado |
+| ACT-20 | Parcial | SHA/TypeScript estricto/auditoría pnpm; sin SAST/IaC elegido/ejecutado ni cabeceras reales comprobadas | Selección proporcional y prueba; Terraform declarativo no es respuesta servida |
+| ACT-21 | Parcial | Procedimiento de originales preparado; no clasificación/soporte/retención/incidentes generales | Propuesta y decisiones del propietario; ensayos sintéticos, tiempos pendientes; caso histórico real diferido |
+| ACT-22 | Pendiente | Sin auditoría independiente de este commit; informes antiguos no sustituyen evaluación actual | Sesión/revisor separados, commit y reglas sin narrativa; contrastar hallazgos |
+| ACT-23 | Parcial | PR #35 triaje; #13–#30 siguen abiertos/base main; configuración sin target-branch | Corregir destino/convención; notas oficiales y pruebas develop por actualización; cerrar solo ciclos terminados |
+
+**Balance ACT: 23 revisados, 1 cerrado en su alcance, 17 parciales, 5 pendientes.**
+Con Fxx: 51 entradas revisadas, 1 cerrada, 41 parciales y 9 pendientes. Son IDs
+vinculados, no 51 funcionalidades independientes ni 50 defectos. Un ACT cerrado
+no cierra automáticamente el criterio amplio Fxx.
+
+Orden actualizado en §12.3 del plan: logos, sensibilidad DevSecOps/bot, dinero,
+recuperación, convenciones y casos de uso/UX. Economía, participantes y auditoría
+requieren fuentes pertinentes. La revisión documental de todos los IDs está
+realizada; implementar y aceptar sus pendientes sigue siendo trabajo del backlog.

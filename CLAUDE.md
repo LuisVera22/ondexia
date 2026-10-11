@@ -28,8 +28,10 @@ Los commits no llevan marca de herramienta: nada de `Co-Authored-By` ni
 **GitFlow** es el flujo del proyecto: `feature/*` parte de `develop` y vuelve a
 `develop`; `release/*` parte de `develop` y se integra en `main` y `develop`;
 `hotfix/*` parte de `main` y se integra en ambas. `main` se reserva para publicar
-y no recibe commits directos. En esta sesión, por instrucción del propietario,
-se trabaja directamente sobre `develop`; no se crea otra rama por defecto.
+y no recibe commits directos. Para los lotes autorizados se utiliza una rama
+`feature/*` desde `develop` actualizado y un PR hacia `develop`. Integrar solo
+tras comprobar el CI y los controles requeridos del mismo head; cerrar la rama
+cuando pase el CI del commit integrado y no tenga cambios nuevos sin integrar.
 
 **Conventional Commits es obligatorio para los commits nuevos.** Formato:
 `tipo(ámbito opcional)!: descripción`. El ámbito y `!` son opcionales; `!` indica
