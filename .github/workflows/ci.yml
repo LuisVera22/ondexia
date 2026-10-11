@@ -194,6 +194,8 @@ jobs:
         # build colgado hasta agotar el tiempo. Un control de seguridad que
         # nadie puede ejecutar acaba desactivado de todas formas; mejor que
         # conste que está desactivado.
+        # Omisión, aplazamiento y propagación de fallo: test_puerta_dependencias.py.
+        # Ensayo local con Maven sustituido; no acredita NVD ni el runner real.
         run: |
           if [ -z "$NVD_API_KEY" ]; then
             echo "::warning title=Análisis de dependencias omitido::Falta el secreto NVD_API_KEY. OWASP Dependency-Check no se ejecutó. Pídela en https://nvd.nist.gov/developers/request-an-api-key"
