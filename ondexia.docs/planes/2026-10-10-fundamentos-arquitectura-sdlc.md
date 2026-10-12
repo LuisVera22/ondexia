@@ -539,3 +539,12 @@ alcance/riesgo y datos. Antes de cada implementación se presentará el corte,
 pruebas y rango de esfuerzo basado en la caracterización, sin prometer semanas.
 Este lote solo actualiza documentación: no afirma nuevas pruebas roja/verde,
 auditoría completa, conformidad WCAG/ASVS ni rentabilidad comprobada.
+
+### Preparación del único entorno AWS productivo
+
+Decisión posterior del propietario: desarrollo local y una pila AWS productiva,
+sin duplicar RDS. El corte F23/F24 prepara conservación de identificadores,
+protecciones, DNS y puertas de despliegue; no cierra estos puntos ni acredita
+producción. Especificación: [promoción productiva](../especificaciones/2026-10-12-promocion-productiva.md).
+Pendientes: titularidad real del estado, identidades, cuota, plan AWS y verificación
+de recuperación. No se modifica el modo SUNAT ni se limpian datos existentes.

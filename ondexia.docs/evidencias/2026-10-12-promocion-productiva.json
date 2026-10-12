@@ -1,0 +1,60 @@
+{
+  "base": "f63d04f0739d65288947f8168fe8d68e65db19e2",
+  "terraform": "1.15.8",
+  "proveedores": "Versiones fijadas conservadas; cuatro hashes h1 Linux añadidos por init tras verificar los archivos de los proveedores.",
+  "sin_arreglo": {
+    "alcance": "Copias temporales con red.tf y consultas.tf originales; demás controles del corte conservados.",
+    "resultado": "Tres aserciones fallan: RDS, pool y SSM; los tres negativos productivos pasan."
+  },
+  "con_arreglo": {
+    "terraform": {
+      "correctas": 4,
+      "fallidas": 0
+    },
+    "herramientas": {
+      "correctas": 49,
+      "fallidas": 0
+    }
+  },
+  "mutaciones": [
+    {
+      "control": "dns",
+      "codigo": 1,
+      "detectada": true,
+      "restaurada": true
+    },
+    {
+      "control": "mfa",
+      "codigo": 1,
+      "detectada": true,
+      "restaurada": true
+    },
+    {
+      "control": "borrado",
+      "codigo": 1,
+      "detectada": true,
+      "restaurada": true
+    },
+    {
+      "control": "borrado-plan",
+      "detectada": true,
+      "original_intacto": true
+    },
+    {
+      "control": "segunda-pila",
+      "detectada": true,
+      "original_intacto": true
+    }
+  ],
+  "no_verificado": [
+    "Plan, estado, recursos y permisos reales de AWS",
+    "Titularidad del estado y retiro efectivo de dev",
+    "Cuota Lambda y concurrencia",
+    "DNS autoritativo y emisión/renovación ACM",
+    "Protecciones efectivas, respaldos y restauración",
+    "Depuración de datos demo y contraseña maestra",
+    "Auditoría independiente",
+    "Envío real a SUNAT"
+  ],
+  "ci": "Pendiente al registrar evidencia local; consultar el head del PR y el commit integrado por separado."
+}

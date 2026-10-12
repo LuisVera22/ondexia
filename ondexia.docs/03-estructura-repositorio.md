@@ -222,12 +222,14 @@ Aplica igual a los **catálogos de SUNAT** (tipos de documento, unidades de medi
 
 GitFlow suele considerarse pesado para equipos pequeños, pero aquí resuelve un problema real: **Ondexia emite documentos con valor tributario**. Una versión defectuosa en producción no produce una pantalla rota, produce comprobantes inválidos ante SUNAT. La separación estricta entre lo que está integrándose y lo que está emitiendo es exactamente la garantía que hace falta.
 
-Además calza sin fricción con los dos entornos ya definidos (DTE §10.3):
+La decisión vigente del propietario es desarrollo local y una única pila AWS
+productiva; conserva GitFlow. La promoción y sus requisitos están en
+[la especificación](especificaciones/2026-10-12-promocion-productiva.md).
 
 | Rama | Entorno | Significado |
 |---|---|---|
-| `main` | Producción | **Lo que está emitiendo comprobantes reales ahora mismo** |
-| `develop` | `dev` | Integración continua contra la beta de SUNAT |
+| `main` | Producción AWS | Versión publicable; el modo SUNAT depende de la empresa |
+| `develop` | Desarrollo local y CI | Integración y pruebas con datos sintéticos |
 
 Esa correspondencia es la que da valor: `main` deja de ser "la última versión" y pasa a ser "la versión con la que hay comprobantes emitidos", que es una afirmación con consecuencias legales.
 
@@ -271,7 +273,7 @@ La etiqueta es la que permite responder la pregunta que va a llegar tarde o temp
 | Evento | Consecuencia |
 |---|---|
 | Push a `feature/*` o PR | CI: construir y probar |
-| Merge a `develop` | CI + despliegue automático a `dev` (desde Fase 1) |
+| Merge a `develop` | CI; desarrollo local, sin despliegue AWS dev |
 | Merge a `main` | CI + despliegue a producción **con aprobación manual** (DTE §10.2) |
 
 ### 6.6 Qué parte de GitFlow rinde más aquí
@@ -407,6 +409,12 @@ Requiere, al llegar la Fase 1:
 El DTE §10.2 exige aprobación manual antes de producción. Se implementa con **GitHub Environments**: el entorno `prod` se configura con revisor requerido. Aunque el revisor seas tú (R-13), es la pausa deliberada que evita desplegar una versión rota que emita comprobantes con valor legal.
 
 Los entornos `dev-plan` y `prod-plan` **no llevan revisor**, y eso es parte del diseño: son los que calculan el plan que el revisor lee antes de aprobar, y pedirles aprobación devolvería el problema que resuelven. Que estén desprotegidos es aceptable porque su rol es de solo lectura.
+
+En la promoción del único entorno AWS se retiran las entradas dev/dev-plan;
+prod-plan conserva lectura y prod aplicación protegida. Los cuatro roles
+históricos no se fusionan ni se eliminan por comodidad. El operador prepara sus
+políticas y etiquetas fuera del pipeline, que no debe modificar su identidad.
+Se migra la titularidad del estado, no se comparte un estado activo entre entornos.
 
 ### 9.4 Análisis de dependencias
 

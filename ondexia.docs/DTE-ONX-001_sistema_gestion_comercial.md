@@ -941,18 +941,26 @@ Ley 29733 y su reglamento aplican: se tratan nombre, documento de identidad y do
 
 ### 10.1 Entornos
 
+**Decisión vigente del propietario:** desarrollo local y una sola pila AWS
+productiva. Sustituye la recomendación anterior de mantener dev en AWS o
+detenerlo por horario; no se programa la parada de producción. La preparación
+conserva nombres físicos heredados y exige migrar la titularidad del estado,
+respaldar datos y revisar el plan, sin duplicar RDS. Véase
+[promoción productiva](especificaciones/2026-10-12-promocion-productiva.md).
+
 | Entorno | Dominio | SUNAT | Datos |
 |---|---|---|---|
-| `dev` | `*.dev.ondexia.com` | **Beta** | Sintéticos. Prohibido copiar producción. **Instancia RDS detenida fuera de horario** por planificador (R-12) |
-| `prod` | `*.ondexia.com` | Producción | Reales |
+| `dev` | localhost | Pruebas autorizadas con certificado de prueba | Sintéticos, PostgreSQL local; sin copia de producción |
+| `prod` | ondexia.com y subdominios | Modo configurado por empresa; la promoción no activa emisión real | AWS, una única RDS; protección y recuperación verificadas antes de clientes |
 
-> La capa gratuita de RDS cubre **una sola** instancia. Con dos entornos encendidos de forma permanente ya hay factura, de ahí el apagado programado de `dev`. Alternativa válida durante el desarrollo temprano: PostgreSQL en contenedor local y `dev` en AWS solo para pruebas de integración contra la beta de SUNAT.
+> No se crea una segunda RDS permanente. Una prueba temporal AWS requiere su
+> alcance, costo y retirada documentados; no reutiliza datos productivos.
 
 ### 10.2 Pipeline
 
 **CI** (automático, en cada push): build de pnpm y pruebas del frontend → build de Maven, pruebas de integración contra PostgreSQL real y Dependency-Check → `terraform fmt`, `init` y `validate`.
 
-**Despliegue** (manual, eligiendo entorno): verificar backend → construir frontend → `terraform plan` a un archivo → **aprobación manual del entorno `prod`** → `terraform apply` sobre ese plan → publicar la SPA en S3 e invalidar CloudFront → sondear `/salud`.
+**Despliegue** (manual, únicamente prod en AWS): verificar backend → construir frontend → `terraform plan` a un archivo → **aprobación manual del entorno `prod`** → `terraform apply` sobre ese plan → publicar la SPA en S3 e invalidar CloudFront → sondear `/salud`.
 
 > La versión 0.9 de este documento describía aquí `cdk synth` + `cdk-nag`. DT-16 retiró CDK y la línea quedó atrás. Corregido en 0.11.
 

@@ -23,6 +23,7 @@ resource "aws_acm_certificate" "principal" {
 
   domain_name = var.dominio
   subject_alternative_names = [
+    "www.${var.dominio}",
     "app.${var.dominio}",
     "api.${var.dominio}",
     "cdn.${var.dominio}",
@@ -100,6 +101,30 @@ resource "aws_route53_record" "cdn" {
   alias {
     name                   = aws_cloudfront_distribution.marca.domain_name
     zone_id                = aws_cloudfront_distribution.marca.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "www" {
+  count   = var.gestionar_dns ? 1 : 0
+  zone_id = aws_route53_zone.principal[0].zone_id
+  name    = "www.${var.dominio}"
+  type    = "A"
+  alias {
+    name                   = aws_cloudfront_distribution.sitio["landing"].domain_name
+    zone_id                = aws_cloudfront_distribution.sitio["landing"].hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "panel" {
+  count   = var.gestionar_dns ? 1 : 0
+  zone_id = aws_route53_zone.principal[0].zone_id
+  name    = "panel.${var.dominio}"
+  type    = "A"
+  alias {
+    name                   = aws_cloudfront_distribution.sitio["panel"].domain_name
+    zone_id                = aws_cloudfront_distribution.sitio["panel"].hosted_zone_id
     evaluate_target_health = false
   }
 }

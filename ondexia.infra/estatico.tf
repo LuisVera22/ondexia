@@ -409,9 +409,9 @@ resource "aws_cloudfront_distribution" "sitio" {
   # la de latencia no.
   price_class = "PriceClass_All"
 
-  aliases = var.gestionar_dns ? [
-    each.value.subdominio == "" ? var.dominio : "${each.value.subdominio}.${var.dominio}"
-  ] : []
+  aliases = var.gestionar_dns ? (
+    each.key == "landing" ? [var.dominio, "www.${var.dominio}"] : ["${each.value.subdominio}.${var.dominio}"]
+  ) : []
 
   origin {
     origin_id                = "s3"
