@@ -10,6 +10,7 @@
  * El plan completo está en ondexia.docs/landing-propuesta/SEO.md.
  */
 import '../styles/global.css';
+import { planes } from '../datos/planes';
 
 interface Props {
   titulo: string;
@@ -24,18 +25,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const imagenSocial = new URL('/og-ondexia.png', Astro.site).href;
 
 /**
- * Los precios en un solo sitio.
- *
- * Alimentan el dato estructurado de abajo; las tarjetas visibles los repiten en
- * Precios.astro. Es una duplicación consciente y acotada: unirlos exigiría pasar
- * datos entre componentes para ahorrar tres números. Lo que no se puede es
- * cambiarlos aquí y no allá — de eso avisa el comentario de aquel archivo.
+ * La propuesta comercial se comparte con Precios.astro desde datos/planes.ts.
+ * Su validación sigue pendiente; el rediseño no aprueba importes ni condiciones.
  */
-const planes = [
-  { nombre: 'Base', precio: '89', descripcion: '1 empresa (RUC) y 2 usuarios' },
-  { nombre: 'Intermedio', precio: '199', descripcion: '2 empresas (RUC) y 5 usuarios' },
-  { nombre: 'A demanda', precio: '390', descripcion: 'Empresas y usuarios negociables' },
-];
 
 /**
  * Datos estructurados.
@@ -53,21 +45,19 @@ const datosEstructurados = {
   '@type': 'SoftwareApplication',
   name: 'Ondexia',
   applicationCategory: 'BusinessApplication',
-  applicationSubCategory: 'Facturación electrónica y gestión de inventario',
+  applicationSubCategory: 'Ventas, caja y gestión de inventario',
   operatingSystem: 'Web',
   url: 'https://ondexia.com',
   inLanguage: 'es-PE',
   description:
-    'Sistema de gestión comercial con facturación electrónica ante SUNAT para empresas peruanas: almacén, compras y ventas en un solo lugar.',
+    'Sistema de gestión comercial para empresas peruanas: ventas, clientes, caja, catálogo y existencias.',
   areaServed: { '@type': 'Country', name: 'Perú' },
   featureList: [
     'Factura electrónica (01)',
     'Boleta de venta electrónica (03)',
-    'Resumen diario de boletas (RC)',
-    'Liquidación de compra (04)',
-    'Nota de crédito (07) y nota de débito (08)',
-    'Guía de remisión electrónica (09)',
-    'Comunicación de baja',
+    'Nota de venta interna',
+    'Registro y cierre de caja',
+    'Catálogos de bienes y servicios',
     'Control de inventario por establecimiento',
   ],
   offers: planes.map((plan) => ({
@@ -107,9 +97,7 @@ const datosEstructurados = {
     />
 
     {/*
-      Compartir por WhatsApp es el canal real en Perú, y ahí lo único que se ve
-      es esta tarjeta. `og:image` apunta a un PNG de 1200×630 que hay que
-      generar: ver el pendiente del README.
+      La imagen social se sirve desde public/, sin dependencia de un proveedor.
     */}
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Ondexia" />

@@ -187,6 +187,46 @@
 }
 
 @layer components {
+  .contenedor {
+    width: min(100% - 64px, 1200px);
+    margin-inline: auto;
+  }
+
+  .seccion {
+    padding-block: 96px;
+    scroll-margin-top: 24px;
+  }
+
+  .encabezado-seccion {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 60px;
+    margin-bottom: 48px;
+  }
+
+  .titulo-seccion {
+    margin-top: 20px;
+    font-size: clamp(30px, 3.4vw, 44px);
+    line-height: 1.18;
+    letter-spacing: -0.035em;
+    font-weight: 500;
+    text-wrap: balance;
+  }
+
+  .introduccion-seccion {
+    max-width: 365px;
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--color-gray-600);
+  }
+
+  @media (max-width: 767px) {
+    .contenedor { width: calc(100% - 40px); }
+    .seccion { padding-block: 60px; }
+    .encabezado-seccion { flex-direction: column; align-items: flex-start; gap: 22px; margin-bottom: 32px; }
+  }
+
   /*
    * El titular. Sigue siendo una pieza y no una cadena de utilidades porque
    * aparece en varias secciones con tres tamaños distintos, y lo que tiene que

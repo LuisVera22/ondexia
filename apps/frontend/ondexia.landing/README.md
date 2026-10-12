@@ -1,174 +1,82 @@
 # ondexia.landing
 
-La página pública de `ondexia.com`. Astro, estática, sin JavaScript de cliente.
+Página pública de Ondexia: Astro estático, sin JavaScript de cliente ni acceso a
+la API, la base de datos o Cognito. La frontera se conserva conforme a doc 03 §3.
 
-Es el único desplegable que **no habla con nadie**: ni API, ni base de datos, ni
-Cognito. Esa frontera está en [doc 03 §3](../../../ondexia.docs/03-estructura-repositorio.md)
-y conviene no cruzarla — el día que la landing necesite el backend deja de poder
-desplegarse sola, que es justo lo que la hace barata y rápida.
-
-## Arrancar
+## Desarrollo y revisión
 
 ```bash
-pnpm install && pnpm dev
+pnpm install --frozen-lockfile
+pnpm dev
+pnpm build
+pnpm preview
 ```
 
-Queda en `http://localhost:4321`. Para ver lo que se va a publicar de verdad:
+El desarrollo utiliza `http://localhost:4321`. El build ejecuta Astro check,
+compilación estática y controles de sitemap y direcciones. Desde la raíz del
+repositorio, con web y landing compiladas:
 
 ```bash
-pnpm build && pnpm preview
+node herramientas/comprobar-tono-y-forma.mjs
 ```
 
-`pnpm build` corre `astro check` antes de compilar, así que valida los tipos de
-las plantillas. Es lo mismo que ejecuta el CI.
+## Composición
 
-## Cómo está armada
+| Archivo | Responsabilidad |
+|---|---|
+| `layouts/Base.astro` | Metadatos, canonical, Open Graph y JSON-LD |
+| `pages/index.astro` | Ensamblaje de secciones |
+| `components/Barra.astro` | Navegación y separación de ingreso/solicitud comercial |
+| `components/Cartel.astro` | Portada y propuesta del producto |
+| `components/VistaProducto.astro` | Ilustración identificada con datos de ejemplo |
+| `components/Modulos.astro` | Ventas, caja, catálogo y existencias |
+| `components/Proceso.astro` | Preparación, cobro y consulta de una venta |
+| `components/Precios.astro` | Propuesta comercial pendiente de validación |
+| `components/Estado.astro` | Alcance actual, ensayo tributario y evolución |
+| `components/Preguntas.astro` | Preguntas mediante details nativo |
+| `components/Cierre.astro` | Contacto con destino configurado o alternativa de correo |
+| `components/Pie.astro` | Identidad, navegación y pendientes legales |
+| `datos/planes.ts` | Cifras compartidas con sección y datos estructurados |
+| `styles/global.css` | Tokens de marca, foco, botones y composición compartida |
 
-```
-src/
-├── layouts/Base.astro       <head> entero: título, meta, Open Graph, JSON-LD
-├── pages/index.astro        La única página. Ensambla las secciones
-├── components/
-│   ├── Barra.astro          Barra superior. El menú de móvil es un <details>
-│   ├── Cartel.astro         La portada
-│   ├── VistaProducto.astro  La maqueta de la app que asoma bajo la portada
-│   ├── Modulos.astro        El bento de Ventas, Almacén y Compras
-│   ├── Anular.astro         «No te paltees» — nota de crédito y baja
-│   ├── Precios.astro        Los tres planes
-│   ├── Estado.astro         Los cortes C1 a C5
-│   ├── Cierre.astro         Llamada a la acción
-│   ├── Pie.astro            Pie
-│   └── Logo.astro           El logotipo en línea, claro y oscuro
-└── styles/global.css        Tokens y las cuatro piezas con estado
-```
+## Diseño vigente de la propuesta
 
-### Los tokens son los mismos que los de la app
+El [rediseño del 2026-10-12](../../../ondexia.docs/landing-propuesta/2026-10-12-rediseno.md)
+complementa el trabajo anterior. Conserva índigo, grises azulados, Outfit
+400/500/600, radio 6 px y fuentes locales. La separación se consigue con espacio
+y bordes; no hay sombras en superficies. La portada es clara, el recorrido de
+venta oscuro y las secciones evitan repetir tarjetas con iconos decorativos.
 
-`global.css` repite los nombres de `ondexia.web/src/styles.css` a propósito:
-`--color-brand-500` vale lo mismo en los dos sitios. Hoy son dos archivos porque
-los frontends no comparten paquete —la decisión sigue abierta en el doc 03 §3—,
-así que **un cambio de marca hay que hacerlo en los dos**.
+La vista del producto es una ilustración, no una captura de producción. Importes
+como cadenas, sin cálculos monetarios en coma flotante. No hay testimonios,
+certificaciones, cifras de clientes ni demanda de planes inventados.
 
-Lo exclusivo de aquí son tres: `--font-cartel`, `--color-fluor` y
-`--color-fucsia`. No van en la app porque en una pantalla de trabajo no pintan
-nada.
+Menú y preguntas funcionan con HTML nativo y teclado. El foco permanece visible
+y se respeta movimiento reducido. La [evidencia local](../../../ondexia.docs/evidencias/2026-10-12-rediseno-landing.md)
+distingue las comprobaciones ejecutadas de conformidad WCAG o conversión no medidas.
 
-### De dónde sale el diseño
+## Configuración y decisiones pendientes
 
-Del lenguaje del cartel chicha: una palabra gigante, tinta plana, cero párrafos.
-Se roba la jerarquía, no el disfraz. Los bocetos y las notas están en
-[`ondexia.docs/landing-propuesta/`](../../../ondexia.docs/landing-propuesta/).
+`.env.example` documenta las variables públicas del build. No deben contener
+secretos. Sin `PUBLIC_ENDPOINT_LISTA` se utiliza el enlace de correo existente.
+Configurar un endpoint requiere revisar la CSP: `form-action 'none'` impediría
+el envío. Una variable configurada no demuestra funcionamiento del canal.
 
-Tres reglas que conviene no romper al editar:
+Los datos del titular proceden de variables públicas; si faltan, no se inventan.
+Política de privacidad, términos y Libro de Reclamaciones siguen pendientes de
+contenido real. Tampoco se supone que `hola@ondexia.com` esté habilitado solo por
+haber configurado el dominio: su recepción necesita verificarse por el operador.
 
-- **El fluorescente va poco y siempre sobre fondo oscuro.** Sobre blanco no
-  llega al mínimo legible.
-- **El fucsia, una vez por pantalla.** Es el banderín rotado. A la tercera deja
-  de señalar y se vuelve ruido.
-- **Nada de degradados de fondo.** La serigrafía imprime tintas planas, y un
-  degradado delata la imitación. Para dar textura está `.trama`.
+El propietario debe decidir CTA final y publicación de precios. Los importes
+previos S/ 89, S/ 199 y desde S/ 390 se conservan en la propuesta; doc 04 §2.3
+los considera hipótesis. No se aprueban nuevas condiciones comerciales por diseño.
+La emisión electrónica continúa «en ensayo» hasta obtener evidencia tributaria real.
 
-### El movimiento
+`public/og-ondexia.png` contiene la imagen social de 1200 × 630. Los metadatos
+y el sitemap derivan de `site` en astro.config.mjs.
 
-Todo es CSS. No hay observadores, ni escuchas de `scroll`, ni una línea de
-script — la promesa de cero JavaScript sigue en pie.
+## Publicación
 
-**Al pasar por encima y al pulsar.** El lenguaje es la sombra dura, sin
-difuminar: el registro desplazado de la serigrafía, que es el mismo accidente
-que en el cómic acabó siendo lenguaje. Las tarjetas suben y su sombra crece
-(`.pop`); los botones bajan hasta meterse dentro de su propia sombra al pulsar.
-La curva es `--ease-resorte`, que pasa de largo y vuelve.
-
-Tres reglas que sostienen esto y no son negociables:
-
-- **`@media (hover: hover)` en todo efecto de puntero.** Sin eso, una pantalla
-  táctil deja el `:hover` pegado después de tocar y la tarjeta se queda
-  levantada hasta que toques otra cosa. Parece un fallo, y lo es.
-- **`:focus-visible` recibe lo mismo que `:hover`.** Un efecto solo para ratón
-  le dice a quien tabula que ahí no hay nada.
-- **La curva de rebote solo responde a gestos.** En una aparición por
-  desplazamiento marea, porque nadie pidió que eso se moviera.
-
-**Al desplazar.** `animation-timeline: view()`: el progreso lo marca la posición
-del elemento en la ventana, no un reloj. El escalonado del bento va por
-posición y no por tiempo —con una línea de tiempo de desplazamiento
-`animation-delay` no significa nada—, así que cada ficha lleva un
-`--retardo: N` que corre su rango un poco más abajo.
-
-> **Lo importante: nada se esconde con CSS estático.** `.revelar` no tiene
-> `opacity: 0` de base; la opacidad cero vive únicamente dentro del fotograma
-> inicial de la animación. Si el navegador no soporta líneas de tiempo de
-> desplazamiento, o si la línea queda inactiva por cualquier motivo, el
-> resultado es **contenido visible sin animación** — nunca una página en
-> blanco. Esa es la razón del `@supports`, y la razón de no invertir la lógica
-> por comodidad.
->
-> `prefers-reduced-motion` se comprueba aparte y explícitamente. No basta con la
-> regla global que acorta duraciones: con una línea de tiempo de desplazamiento
-> la duración se ignora, así que aquella regla no haría nada.
-
-### El SEO no es un añadido
-
-Cada encabezado lleva dos pisos dentro del mismo `<h1>`/`<h2>`: el rótulo
-pequeño con el término que se busca, y el cartel que se ve. El buscador lee los
-dos. Si separas el rótulo a un `<p>` aparte, deja de pesar.
-
-El plan completo —title, meta, datos estructurados y qué contenido rinde más—
-está en [`ondexia.docs/landing-propuesta/SEO.md`](../../../ondexia.docs/landing-propuesta/SEO.md).
-
-**Los precios están en dos sitios**: las tarjetas de `Precios.astro` y el
-`SoftwareApplication` de `Base.astro`. Cambiar uno y no el otro hace que el
-buscador muestre una cifra distinta a la de la página, que es peor que no
-mostrar ninguna.
-
-## Desplegar
-
-No se despliega desde aquí. Lo hace `.github/workflows/deploy.yml`, que compila,
-sincroniza `dist/` contra el bucket `landing` e invalida la distribución de
-CloudFront. La infraestructura ya existe en `ondexia.infra/estatico.tf`
-(`sitio["landing"]`, con `es_spa = false`: aquí un 404 es un 404).
-
-El HTML se publica sin caché y todo lo de `_astro/` y `fonts/` con un año, porque
-lleva hash en el nombre.
-
-El workflow trae la casilla **«Solo la landing»**, que acota el plan de Terraform
-al sitio estático y se salta el backend, las migraciones, la SPA y el panel. Es
-la forma de tener esta página en línea sin levantar RDS, que es el 90 % de la
-factura. El orden exacto del primer despliegue —incluido el paso que hay que
-hacer desde tu equipo porque el rol de GitHub lo crea Terraform— está en
-[`ondexia.infra/README.md`](../../../ondexia.infra/README.md), sección «Solo la
-landing».
-
-Con `gestionar_dns = false` no hace falta el dominio: CloudFront sirve por el
-suyo, y sirve para comprobar la cadena entera antes de gastar en `ondexia.com`.
-
-> **Si algún día hay más de una página**, hay que añadir una función de
-> CloudFront que reescriba `/precios` a `/precios/index.html`. Con OAC, S3 no
-> resuelve el índice de directorio solo. Hoy no hace falta: solo existe `/`, y de
-> eso se encarga `default_root_object`.
-
-## Pendientes
-
-| Qué | Por qué importa | Dónde |
-|---|---|---|
-| **Datos del titular** | Salen de `PUBLIC_TITULAR_RAZON_SOCIAL`, `PUBLIC_TITULAR_RUC` y `PUBLIC_TITULAR_DIRECCION`; sin ellos el pie no pinta nada. Siguen siendo obligatorios para publicar | `.env`, ver `.env.example` |
-| **Política de privacidad** | El consentimiento del formulario (Ley 29733) dice finalidad, responsable y cómo borrarse, pero no enlaza a ninguna política porque no existe. Hace falta texto legal de verdad, no inventado | `src/components/Cierre.astro`, y una página `/privacidad` |
-| **Bricolage Grotesque** | Falta el `.woff2`. Mientras tanto los titulares caen en Outfit 800: se ve digno, pero pierde el carácter del cartel | `src/styles/global.css`, bloque comentado |
-| **Imagen social** | `og:image` apunta a `/og-ondexia.png`, que no existe. Es lo único que se ve al compartir por WhatsApp | `public/og-ondexia.png`, 1200×630 |
-| **Destino del formulario** | Sin `PUBLIC_ENDPOINT_LISTA` se muestra el enlace de correo en vez del formulario, a propósito: un formulario que no envía a ninguna parte pierde correos en silencio | `.env`, ver `.env.example` |
-| **Enlaces del pie** | `ver`, `docs` y `status` salen como «pronto» porque esos subdominios aún no existen (doc 01 §2) | `src/components/Pie.astro` |
-| **Validar los precios** | Las cifras son la hipótesis del doc 04 §2.3, no un estudio. El método para validarlas está en §2.5 | `src/components/Precios.astro` |
-| **Cambiar la llamada a la acción** | Dice «Quiero mi acceso» porque C1 sigue en obra. Cuando salga a producción pasa a «Empieza tu prueba de 30 días», y la sección de estado se retira | Toda la página |
-
-## Lo que no lleva y es deliberado
-
-- **Ni un byte de JavaScript.** El menú de móvil es un `<details>`; el navegador
-  ya sabe abrirlo, lo anuncia como plegable y funciona aunque falle todo lo
-  demás.
-- **Ninguna fuente desde un CDN.** Outfit se sirve desde `public/fonts/`. Un
-  tercero en la ruta crítica de la portada es latencia que no controlamos, y
-  además cuenta en la métrica con la que Google posiciona.
-- **Sin analítica de terceros.** Cuando haga falta medir, conviene decidirlo a
-  propósito y no heredarlo de una plantilla.
-- **Sin testimonios ni logos de clientes.** No hay clientes todavía, y
-  fabricarlos en un producto tributario es la peor primera impresión posible.
+La publicación sigue el workflow del repositorio y el procedimiento de
+infraestructura. Este rediseño local no ejecuta CD ni autoriza apply, sincronizar
+S3 o invalidar CloudFront. Revisar las decisiones pendientes antes de publicar.
