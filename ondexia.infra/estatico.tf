@@ -184,6 +184,7 @@ locals {
    * mejoran a la vez al activar el dominio.
    */
   origen_api       = var.gestionar_dns ? "https://api.${var.dominio}" : "https://*.execute-api.${var.region}.amazonaws.com"
+  origen_api_panel = var.gestionar_dns ? "https://api-panel.${var.dominio}" : "https://*.execute-api.${var.region}.amazonaws.com"
   origen_cdn_marca = var.gestionar_dns ? "https://cdn.${var.dominio}" : "https://*.cloudfront.net"
 
   csp_app = join("; ", [
@@ -205,12 +206,13 @@ locals {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:",
     "font-src 'self'",
-    # El comodin de execute-api SIEMPRE, tambien con dominio propio: la pasarela
-    # del panel no tiene nombre a medida —solo lo tienen la app, la API de
-    # clientes y el CDN de marca—, asi que no hay un valor exacto que poner. Es
-    # una consola interna de dos o tres personas; el dia que se le ponga dominio,
-    # esta linea se estrecha.
-    "connect-src 'self' https://*.execute-api.${var.region}.amazonaws.com ${local.cognito_idp} ${local.cognito_hosted_personal}",
+    # Estrechada. La version anterior dejaba el comodin de execute-api SIEMPRE,
+    # tambien con dominio propio, y lo justificaba asi: «la pasarela del panel no
+    # tiene nombre a medida, asi que no hay un valor exacto que poner… el dia que
+    # se le ponga dominio, esta linea se estrecha». Ya lo tiene (dns.tf), y con
+    # el comodin cualquier pasarela de la cuenta —o de la region— valia como
+    # destino de una peticion del panel.
+    "connect-src 'self' ${local.origen_api_panel} ${local.cognito_idp} ${local.cognito_hosted_personal}",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
