@@ -20,6 +20,14 @@
 locals {
   hay_panel = var.artefacto_panel != ""
 
+  # La URL por la que el SPA del panel llama a su API. Con dominio propio es el
+  # nombre a medida (dns.tf); sin el, la URL cruda de la pasarela. De aqui salen
+  # `output api_panel` y el `config.json`, para que no puedan decir cosas
+  # distintas: el artefacto no lleva ninguna URL dentro.
+  url_api_panel = local.hay_panel ? (
+    var.gestionar_dns ? "https://api-panel.${var.dominio}" : aws_apigatewayv2_api.panel[0].api_endpoint
+  ) : ""
+
   # Los metodos que el panel usa. Alimentan las rutas y `allow_methods` del
   # CORS, para que no puedan divergir. Ver el comentario del preflight en
   # api.tf: OPTIONS NO va aqui, lo contesta la pasarela.
