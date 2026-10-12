@@ -1,5 +1,10 @@
 # Landing — notas de SEO
 
+> Documento histórico de la maqueta del 2026-08-23. Sus titulares, supuestos
+> comerciales y reglas de composición no son el diseño vigente. Consultar
+> [la propuesta del 2026-10-12](2026-10-12-rediseno.md), los criterios de tono
+> del documento 10 y `layouts/Base.astro` para la implementación actual.
+
 Lo que la maqueta no puede llevar y hay que escribir al portarla a Astro
 (`apps/frontend/ondexia.landing`). Fecha: 2026-08-23.
 

@@ -1,137 +1,426 @@
 ---
-/**
- * La app asomando por el borde inferior de la portada.
- *
- * Sigue las convenciones de ondexia.web (doc 10): rayado cebra sin líneas
- * divisorias, punto de color MÁS palabra en el estado, importes a la derecha
- * con cifras de ancho fijo, y tabla por encima de 640 px / tarjetas por debajo.
- * Es una maqueta, pero si no se pareciera a la aplicación de verdad estaría
- * mintiendo sobre el producto.
- *
- * Los datos son de ejemplo y no representan a ninguna empresa real.
- */
-const comprobantes = [
+import Logo from './Logo.astro';
+
+// Los importes se presentan como cadenas: esta ilustración no calcula una venta.
+const lineas = [
   {
-    serie: 'F001-0142',
-    cliente: 'Distribuidora Andina S.A.C.',
-    tipo: 'Factura',
-    estado: 'Aceptado',
-    total: 'S/ 4 820.00',
+    descripcion: 'Caja de envío',
+    tipo: 'Bien',
+    cantidad: '3',
+    precio: '150.00',
+    importe: '450.00',
   },
   {
-    serie: 'B001-0871',
-    cliente: 'Cliente varios · DNI 4•••••21',
-    tipo: 'Boleta',
-    estado: 'Aceptado',
-    total: 'S/ 96.50',
-  },
-  {
-    serie: 'RC-20260823',
-    cliente: 'Resumen diario · 31 boletas',
-    tipo: 'Resumen',
-    estado: 'Con ticket',
-    total: 'S/ 2 104.30',
+    descripcion: 'Servicio de embalaje',
+    tipo: 'Servicio',
+    cantidad: '1',
+    precio: '35.00',
+    importe: '35.00',
   },
 ];
-
-// El color depende del estado, pero la palabra va siempre: el color solo nunca
-// comunica un estado (doc 10 §4).
-const tonos: Record<string, { punto: string; texto: string }> = {
-  Aceptado: { punto: 'bg-success-500', texto: 'text-success-600' },
-  'Con ticket': { punto: 'bg-warning-500', texto: 'text-warning-700' },
-  Anulado: { punto: 'bg-error-500', texto: 'text-error-600' },
-};
 ---
 
-<div
-  class="mt-10 overflow-hidden rounded-t-base border border-b-0 border-brand-400 bg-white md:mt-[52px]"
->
-  <div
-    class="flex h-[42px] items-center gap-2 border-b border-gray-200 bg-gray-25 px-4"
-    aria-hidden="true"
-  >
-    <span class="size-2.5 rounded-full bg-gray-300"></span>
-    <span class="size-2.5 rounded-full bg-gray-300"></span>
-    <span class="size-2.5 rounded-full bg-gray-300"></span>
-    <span class="ml-2.5 truncate text-menudo text-gray-500">
-      app.ondexia.com · Ventas / Comprobantes
-    </span>
-  </div>
+<figure class="vista-producto">
+  <figcaption>Vista ilustrativa · datos de ejemplo</figcaption>
 
-  <div class="p-4 md:px-6 md:pb-6 md:pt-5">
-    {/* Desde 640 px, tabla */}
-    <table class="hidden w-full border-collapse sm:table">
-      <caption class="sr-only">
-        Ejemplo de comprobantes emitidos en Ondexia
-      </caption>
-      <thead>
-        <tr class="border-b border-gray-200">
-          <th class="rotulo w-[118px] px-2.5 pb-2.5 text-left tracking-[0.1em] text-gray-500">
-            Serie
-          </th>
-          <th class="rotulo px-2.5 pb-2.5 text-left tracking-[0.1em] text-gray-500">Cliente</th>
-          <th
-            class="rotulo hidden w-[110px] px-2.5 pb-2.5 text-left tracking-[0.1em] text-gray-500 lg:table-cell"
-          >
-            Tipo
-          </th>
-          <th class="rotulo w-[124px] px-2.5 pb-2.5 text-left tracking-[0.1em] text-gray-500">
-            Estado
-          </th>
-          <th class="rotulo w-[118px] px-2.5 pb-2.5 text-right tracking-[0.1em] text-gray-500">
-            Total
-          </th>
-        </tr>
-      </thead>
-      <tbody>
+  <div class="producto-marco">
+    <div class="producto-barra">
+      <Logo ancho={102} />
+      <span class="producto-local">Local principal</span>
+    </div>
+
+    <div class="producto-secciones" aria-hidden="true">
+      <span class="producto-seccion-actual">Ventas</span>
+      <span>Caja</span>
+      <span>Almacén</span>
+    </div>
+
+    <div class="producto-contenido">
+      <div class="producto-titulo">
+        <div>
+          <p class="producto-rotulo">Registro de venta</p>
+          <h2>Nota de venta</h2>
+        </div>
+        <span class="producto-estado"><span aria-hidden="true"></span>Caja abierta</span>
+      </div>
+
+      <dl class="producto-documento">
+        <div>
+          <dt>Documento</dt>
+          <dd>NV01-00000024</dd>
+        </div>
+        <div>
+          <dt>Cliente</dt>
+          <dd>Cliente de ejemplo</dd>
+        </div>
+      </dl>
+
+      <table class="producto-tabla">
+        <caption class="sr-only">Líneas de una venta ilustrativa de bienes y servicios</caption>
+        <thead>
+          <tr>
+            <th scope="col">Descripción</th>
+            <th scope="col" class="producto-numero">Cant.</th>
+            <th scope="col" class="producto-numero">P. unit.</th>
+            <th scope="col" class="producto-numero">Importe</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            lineas.map((linea) => (
+              <tr>
+                <td>
+                  <span class="producto-descripcion">{linea.descripcion}</span>
+                  <span class="producto-tipo">{linea.tipo}</span>
+                </td>
+                <td class="producto-numero">{linea.cantidad}</td>
+                <td class="producto-numero">{linea.precio}</td>
+                <td class="producto-numero">{linea.importe}</td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+
+      <ul class="producto-lineas-movil" aria-label="Líneas de la venta ilustrativa">
         {
-          comprobantes.map((fila, indice) => (
-            <tr class={indice % 2 === 1 ? 'bg-gray-25' : ''}>
-              <td class="px-2.5 py-3 text-[15px] font-semibold text-gray-900">{fila.serie}</td>
-              <td class="truncate px-2.5 py-3 text-[15px] text-gray-600">{fila.cliente}</td>
-              <td class="hidden px-2.5 py-3 text-[15px] text-gray-500 lg:table-cell">
-                {fila.tipo}
-              </td>
-              <td class={`px-2.5 py-3 text-[15px] font-medium ${tonos[fila.estado].texto}`}>
-                <span class="inline-flex items-center gap-1.5">
-                  <span class={`size-2 shrink-0 rounded-full ${tonos[fila.estado].punto}`} />
-                  {fila.estado}
-                </span>
-              </td>
-              <td class="px-2.5 py-3 text-right text-[15px] font-semibold tabular-nums text-gray-900">
-                {fila.total}
-              </td>
-            </tr>
+          lineas.map((linea) => (
+            <li>
+              <div>
+                <span class="producto-descripcion">{linea.descripcion}</span>
+                <span class="producto-tipo">{linea.tipo} · {linea.cantidad} × S/ {linea.precio}</span>
+              </div>
+              <span class="producto-numero producto-importe">S/ {linea.importe}</span>
+            </li>
           ))
         }
-      </tbody>
-    </table>
+      </ul>
 
-    {/* Por debajo, tarjetas. Seis columnas apretadas en 375 px son ilegibles. */}
-    <ul class="flex flex-col sm:hidden">
-      {
-        comprobantes.map((fila, indice) => (
-          <li
-            class={`flex flex-col gap-2 py-3 ${indice > 0 ? 'border-t border-gray-100' : 'pt-0'}`}
-          >
-            <div class="flex items-start justify-between gap-3">
-              <span class="text-[15px] font-semibold leading-6 text-gray-900">{fila.cliente}</span>
-              <span
-                class={`inline-flex shrink-0 items-center gap-1.5 text-menudo font-medium ${tonos[fila.estado].texto}`}
-              >
-                <span class={`size-[7px] rounded-full ${tonos[fila.estado].punto}`} />
-                {fila.estado}
-              </span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-dato text-gray-500">
-                {fila.tipo} · {fila.serie}
-              </span>
-              <span class="text-[15px] font-semibold tabular-nums text-gray-900">{fila.total}</span>
-            </div>
-          </li>
-        ))
-      }
-    </ul>
+      <div class="producto-resumen">
+        <span>Importe de venta</span>
+        <strong>S/ 485.00</strong>
+      </div>
+
+      <dl class="producto-cobro">
+        <div>
+          <dt>Medio de pago</dt>
+          <dd>Efectivo</dd>
+        </div>
+        <div>
+          <dt>Total</dt>
+          <dd>S/ 485.00</dd>
+        </div>
+      </dl>
+    </div>
   </div>
-</div>
+
+  <p class="producto-pie">Una venta. Su documento, su cobro y sus líneas de detalle.</p>
+</figure>
+
+<style>
+  .vista-producto {
+    min-width: 0;
+    margin: 0;
+  }
+
+  figcaption {
+    margin-bottom: 12px;
+    color: var(--color-gray-600);
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: right;
+  }
+
+  .producto-marco {
+    overflow: hidden;
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-base);
+    background: var(--color-white);
+  }
+
+  .producto-barra {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 65px;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--color-gray-200);
+  }
+
+  .producto-local {
+    color: var(--color-gray-600);
+    font-size: 11px;
+  }
+
+  .producto-secciones {
+    display: flex;
+    gap: 24px;
+    padding-inline: 24px;
+    border-bottom: 1px solid var(--color-gray-200);
+    background: var(--color-gray-25);
+    color: var(--color-gray-600);
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .producto-secciones > span {
+    padding-block: 13px;
+  }
+
+  .producto-seccion-actual {
+    border-bottom: 2px solid var(--color-brand-500);
+    color: var(--color-brand-700);
+  }
+
+  .producto-contenido {
+    padding: 28px 24px 24px;
+  }
+
+  .producto-titulo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .producto-rotulo {
+    margin-bottom: 4px;
+    color: var(--color-gray-600);
+    font-size: 11px;
+  }
+
+  h2 {
+    color: var(--color-gray-900);
+    font-size: 21px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .producto-estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-success-600);
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .producto-estado > span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-success-600);
+  }
+
+  .producto-documento {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-base);
+    background: var(--color-gray-25);
+  }
+
+  dt {
+    margin-bottom: 5px;
+    color: var(--color-gray-600);
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--color-gray-900);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .producto-tabla {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  th {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-gray-200);
+    color: var(--color-gray-600);
+    font-size: 10px;
+    font-weight: 500;
+    text-align: left;
+  }
+
+  td {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--color-gray-200);
+    color: var(--color-gray-800);
+    vertical-align: middle;
+  }
+
+  th:not(:first-child),
+  td:not(:first-child) {
+    padding-left: 12px;
+  }
+
+  .producto-descripcion {
+    display: block;
+    color: var(--color-gray-900);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .producto-tipo {
+    display: block;
+    margin-top: 5px;
+    color: var(--color-gray-600);
+    font-size: 10px;
+    line-height: 1.5;
+  }
+
+  .producto-numero {
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .producto-resumen {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 22px;
+    font-size: 12px;
+  }
+
+  .producto-resumen > span {
+    color: var(--color-gray-600);
+  }
+
+  .producto-resumen > strong {
+    color: var(--color-gray-900);
+    font-size: 24px;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.025em;
+  }
+
+  .producto-cobro {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 20px;
+    padding-top: 18px;
+    border-top: 1px solid var(--color-gray-200);
+  }
+
+  .producto-cobro > div:last-child {
+    text-align: right;
+  }
+
+  .producto-cobro dd {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .producto-lineas-movil {
+    display: none;
+  }
+
+  .producto-pie {
+    margin-top: 12px;
+    color: var(--color-gray-600);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  @media (min-width: 851px) and (max-width: 1050px) {
+    .producto-tabla {
+      display: none;
+    }
+
+    .producto-lineas-movil {
+      display: block;
+    }
+  }
+
+  @media (max-width: 500px) {
+    figcaption {
+      text-align: left;
+    }
+
+    .producto-barra {
+      padding: 16px;
+    }
+
+    .producto-secciones {
+      gap: 22px;
+      padding-inline: 16px;
+    }
+
+    .producto-contenido {
+      padding: 22px 16px 20px;
+    }
+
+    .producto-titulo {
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      font-size: 20px;
+    }
+
+    .producto-documento {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+      padding: 12px;
+    }
+
+    .producto-tabla {
+      display: none;
+    }
+
+    .producto-lineas-movil {
+      display: block;
+    }
+
+    .producto-resumen > strong {
+      font-size: 22px;
+    }
+  }
+
+  .producto-lineas-movil {
+    margin-top: 12px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .producto-lineas-movil > li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-block: 16px;
+    border-bottom: 1px solid var(--color-gray-200);
+  }
+
+  .producto-lineas-movil > li > div {
+    min-width: 0;
+  }
+
+  .producto-importe {
+    color: var(--color-gray-900);
+    font-size: 12px;
+    font-weight: 500;
+  }
+</style>
