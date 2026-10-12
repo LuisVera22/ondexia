@@ -174,6 +174,44 @@ data "aws_iam_policy_document" "estado" {
     }
   }
 
+  /**
+   * Los respaldos no son del pipeline, ni para leerlos.
+   *
+   * Bajo `respaldos/` viven las copias que se toman antes de una operacion de
+   * riesgo —la promocion del 2026-10-12 es la primera—. Ningun rol de
+   * despliegue ni de plan las necesita, y en cambio `PowerUserAccess` les daba
+   * `s3:DeleteObjectVersion` sobre ellas: es decir, el rol de despliegue de dev
+   * podia destruir el respaldo del estado sin recuperacion posible. Medido con
+   * el simulador de IAM el 2026-10-12, no deducido.
+   *
+   * Se deniega tambien la LECTURA, que es lo que los distingue de los dos
+   * prefijos de arriba: un respaldo del estado lleva los mismos secretos en
+   * claro que el estado, y aqui no hay ningun backend que necesite abrirlo.
+   */
+  statement {
+    sid    = "RespaldosSoloElOperador"
+    effect = "Deny"
+
+    principals {
+      type        = "AWS"
+      identifiers = ["*"]
+    }
+
+    actions = [
+      "s3:GetObject*",
+      "s3:PutObject*",
+      "s3:DeleteObject*",
+      "s3:BypassGovernanceRetention",
+    ]
+    resources = ["${aws_s3_bucket.estado.arn}/respaldos/*"]
+
+    condition {
+      test     = "ArnNotLike"
+      variable = "aws:PrincipalArn"
+      values   = concat([local.raiz_cuenta], var.principales_con_acceso_total)
+    }
+  }
+
   statement {
     sid    = "NadaSinTls"
     effect = "Deny"
@@ -204,10 +242,40 @@ resource "aws_s3_bucket_policy" "estado" {
   # Despues del bloqueo de acceso publico: S3 rechaza poner una politica en un
   # bucket mientras `block_public_policy` se esta aplicando.
   depends_on = [aws_s3_bucket_public_access_block.estado]
+
+  /**
+   * Con la lista vacia, esta politica deja fuera a la persona que opera.
+   *
+   * Los tres Deny eximen a los roles del pipeline y al usuario raiz, y a nadie
+   * mas. Aplicarla con `principales_con_acceso_total = []` quita al operador el
+   * acceso a los dos prefijos de estado y a los respaldos —y el operador es
+   * justo quien ejecuta `init -migrate-state` y quien recupera una version—.
+   * Quedaria la raiz de la cuenta, que es la credencial que no se usa.
+   *
+   * La regla 4 de CLAUDE.md pide codificar la obligacion previa o comprobarla
+   * con `precondition`, y no dejarla de recordatorio. Esto es lo segundo: el
+   * apply falla antes de tocar nada si la lista esta vacia.
+   */
+  lifecycle {
+    precondition {
+      condition     = length(var.principales_con_acceso_total) > 0
+      error_message = "principales_con_acceso_total vacio: la politica dejaria al operador sin acceso al estado ni a los respaldos. Pasa el ARN de quien administra la cuenta."
+    }
+  }
 }
 
-# Las versiones antiguas del estado no sirven para nada pasado un tiempo, pero
-# ocupan. Se retiran solas a los 90 días.
+/**
+ * Las versiones antiguas del estado se retiran solas a los 90 dias.
+ *
+ * El filtro va acotado a `ondexia/` y no vacio, y la diferencia importa. Con
+ * `filter {}` la regla alcanzaba a TODO el bucket, `respaldos/` incluido: una
+ * copia tomada antes de una operacion de riesgo perdia sus versiones a los 90
+ * dias por una regla pensada para otra cosa. Un respaldo que caduca solo no es
+ * un respaldo.
+ *
+ * Los objetos de `respaldos/` se retiran a mano cuando ya no hacen falta, que
+ * es una decision, no un temporizador.
+ */
 resource "aws_s3_bucket_lifecycle_configuration" "estado" {
   bucket = aws_s3_bucket.estado.id
 
@@ -215,7 +283,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "estado" {
     id     = "retirar-versiones-antiguas"
     status = "Enabled"
 
-    filter {}
+    filter {
+      prefix = "ondexia/"
+    }
 
     noncurrent_version_expiration {
       noncurrent_days = 90
