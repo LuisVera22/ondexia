@@ -197,7 +197,7 @@ output "api_panel" {
     jar: el sitio estatico existe siempre, la funcion solo cuando hay que
     desplegarla.
   TEXTO
-  value       = local.hay_panel ? aws_apigatewayv2_api.panel[0].api_endpoint : ""
+  value       = local.url_api_panel
 }
 
 output "configuracion_panel" {
@@ -209,7 +209,7 @@ output "configuracion_panel" {
       terraform output -json configuracion_panel > .../dist/ondexia-admin/browser/config.json
   TEXTO
   value = {
-    api = local.hay_panel ? aws_apigatewayv2_api.panel[0].api_endpoint : ""
+    api = local.url_api_panel
     cognito = {
       dominio   = "https://${aws_cognito_user_pool_domain.personal.domain}.auth.${var.region}.amazoncognito.com"
       clienteId = aws_cognito_user_pool_client.panel.id
