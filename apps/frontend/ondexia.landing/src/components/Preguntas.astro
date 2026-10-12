@@ -1,0 +1,42 @@
+---
+const preguntas = [
+  { titulo: '¿Qué se puede gestionar en Ondexia?', respuesta: 'El trabajo de ventas, clientes, caja, catálogo y existencias por establecimiento. Compras, guías de remisión y reportes adicionales forman parte de la evolución del producto; no se presentan como funciones disponibles.' },
+  { titulo: '¿Se puede utilizar desde un celular?', respuesta: 'La aplicación se utiliza desde el navegador y sus pantallas se adaptan al móvil. La impresión depende del equipo y de la impresora disponibles.' },
+  { titulo: '¿Una nota de venta se envía a SUNAT?', respuesta: 'No. Es un documento interno de venta. La emisión electrónica de boletas y facturas está en ensayo, pendiente de validación real ante SUNAT; no se presenta como un servicio tributario ya habilitado.' },
+  { titulo: '¿Se puede ver el documento antes de imprimir?', respuesta: 'Sí. El detalle abre primero el registro de la venta. Desde allí se puede acceder a la vista del documento en A4 o ticket de 80 mm.' },
+];
+---
+
+<section id="preguntas" class="seccion" aria-labelledby="titulo-preguntas">
+  <div class="contenedor bloque-preguntas">
+    <div>
+      <p class="rotulo text-brand-600">Antes de comenzar</p>
+      <h2 id="titulo-preguntas" class="titulo-seccion">Preguntas concretas.<br />Respuestas claras.</h2>
+      <p class="texto-preguntas">El alcance del sistema y los detalles que conviene conocer antes de incorporarlo al negocio.</p>
+    </div>
+    <div class="preguntas">
+      {preguntas.map((pregunta) => (
+        <details>
+          <summary>{pregunta.titulo}<span class="indicador" aria-hidden="true"></span></summary>
+          <p>{pregunta.respuesta}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .bloque-preguntas { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 90px; }
+  .texto-preguntas { margin-top: 22px; max-width: 350px; color: var(--color-gray-600); font-size: 16px; line-height: 1.7; }
+  .preguntas { border-top: 1px solid var(--color-gray-300); }
+  details { border-bottom: 1px solid var(--color-gray-300); }
+  summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 25px 0; font-size: 17px; font-weight: 500; list-style: none; cursor: pointer; }
+  summary::-webkit-details-marker { display: none; }
+  .indicador { width: 16px; height: 16px; position: relative; flex-shrink: 0; }
+  .indicador::before, .indicador::after { content: ''; position: absolute; background: var(--color-gray-700); }
+  .indicador::before { width: 14px; height: 1px; top: 7px; left: 1px; }
+  .indicador::after { width: 1px; height: 14px; top: 1px; left: 7px; }
+  details[open] .indicador::after { display: none; }
+  details p { padding: 0 32px 25px 0; font-size: 15px; line-height: 1.8; color: var(--color-gray-600); }
+  @media (max-width: 767px) { .bloque-preguntas { grid-template-columns: 1fr; gap: 35px; } summary { padding: 22px 0; font-size: 16px; } }
+</style>

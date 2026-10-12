@@ -1,0 +1,32 @@
+[
+  {
+    "ancho": 320,
+    "desbordamiento": false,
+    "menu_teclado": true,
+    "preguntas_teclado": true
+  },
+  {
+    "ancho": 390,
+    "desbordamiento": false,
+    "menu_teclado": true,
+    "preguntas_teclado": true
+  },
+  {
+    "ancho": 768,
+    "desbordamiento": false,
+    "menu_teclado": true,
+    "preguntas_teclado": true
+  },
+  {
+    "ancho": 1024,
+    "desbordamiento": false,
+    "menu_teclado": false,
+    "preguntas_teclado": true
+  },
+  {
+    "ancho": 1440,
+    "desbordamiento": false,
+    "menu_teclado": false,
+    "preguntas_teclado": true
+  }
+]
