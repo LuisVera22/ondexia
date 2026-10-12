@@ -1,3 +1,4 @@
+import { CabeceraComprobanteComponent } from '../../../shared/components/comunes/cabecera-comprobante/cabecera-comprobante.component';
 import { Component, computed, inject, signal } from '@angular/core';
 import { EncabezadoPaginaComponent } from '../../../shared/components/comunes/encabezado-pagina/encabezado-pagina.component';
 import {
@@ -52,7 +53,7 @@ type Formato = 'a4' | 'ticket';
  */
 @Component({
   selector: 'app-identidad',
-  imports: [EncabezadoPaginaComponent],
+  imports: [CabeceraComprobanteComponent, EncabezadoPaginaComponent],
   templateUrl: './identidad.component.html',
 })
 export class IdentidadComponent {

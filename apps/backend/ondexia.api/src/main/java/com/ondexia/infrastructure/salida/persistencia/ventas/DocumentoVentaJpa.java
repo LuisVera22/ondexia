@@ -99,6 +99,31 @@ public class DocumentoVentaJpa extends EntidadJpaBase {
     @Column(name = "origen_numero", updatable = false)
     private Long origenNumero;
 
+    @org.hibernate.annotations.Generated(event = org.hibernate.generator.EventType.INSERT)
+    @Column(name = "logo_principal", insertable = false, updatable = false, length = 400)
+    private String logoPrincipal;
+
+    @org.hibernate.annotations.Generated(event = org.hibernate.generator.EventType.INSERT)
+    @Column(name = "logo_ticket", insertable = false, updatable = false, length = 400)
+    private String logoTicket;
+
+    public String getLogoPrincipal() {
+        return logoPrincipal;
+    }
+
+    public String getLogoTicket() {
+        return logoTicket;
+    }
+
+    @org.hibernate.annotations.Generated(event = org.hibernate.generator.EventType.INSERT)
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "datos_historicos", insertable = false, updatable = false)
+    private com.ondexia.domain.ventas.DatosHistoricosDocumento datosHistoricos;
+
+    public com.ondexia.domain.ventas.DatosHistoricosDocumento getDatosHistoricos() {
+        return datosHistoricos;
+    }
+
     @Column(name = "estado", nullable = false, length = 12)
     private String estado;
 

@@ -342,6 +342,14 @@ pagos y totales. «Previsualizar comprobante» abre ticket de 80 mm o A4 y permi
 imprimir desde el navegador (doc 12 §5.4) o volver al registro. La nota de venta
 muestra «Importe de venta» y «Total», sin fila de IGV ni leyenda interna al pie.
 Sus importes guardados no se modifican. Las leyendas fiscales se conservan.
+La cabecera se comparte con Identidad visual: A4 usa el logo principal y el
+recuadro de RUC/tipo/número; ticket usa su logo en gris y datos centrados. Desde
+V27 cada emisión fija ambas claves. Cambiar o quitar el logo conserva los
+archivos y no cambia el historial. Documentos sin referencia guardada se
+imprimen sin logo, según la decisión del propietario del 2026-10-10. La consulta
+entrega las URLs históricas bajo los permisos de ventas, sin pedir permisos de
+Configuración. Ver `PuntoDeVentaIT.versionesDeLogoEnLaEmision` e `inmutable`,
+`IdentidadVisualIT.quitarConservaHistoria` y la especificación de logos históricos.
 Desde cada listado se abre el formulario compartido con tipo fijo: nueva nota,
 boleta o factura solo emite ese tipo. El mostrador general conserva su selector
 según permisos/régimen. `rutas-emision.spec.ts` contrasta las rutas reales y
@@ -571,3 +579,18 @@ plazo, no una arquitectura.
 - **v1.3 (2026-09-08)** — §4.4 y la regla del almacén del local, con la iteración 5.
 - **v1.4 (2026-09-08)** — §5 (canje y nota de crédito) y §6 (comunicación de
   baja), con la iteración 6.
+
+## Conservación del momento de emisión · F06
+
+Decisión del propietario, 2026-10-11: cliente, emisor, local y logos conservan los
+datos exactos al emitir. V28 copia los campos públicos en datos_historicos y V27
+impide cambiar el registro completo salvo estado. PuntoDeVentaIT.conservaClienteYLineaHistorica,
+conservaEmisorYLocal e inmutable ejercitan el primer bloque; detalle-documento.component.spec.ts
+verifica cabecera ticket/A4 y estado de legado. API, contrato y Angular se actualizan juntos.
+
+Las filas antiguas permanecen sin copia y se muestran como datos originales no
+disponibles; no significa cliente anónimo. No se genera una orden con maestros
+actuales para aparentar una emisión original. Recuperar desde XML exige verificar
+original y vínculo antes de cualquier reconstrucción; esa recuperación está pendiente.
+El almacenamiento de originales enviados/recibidos se aborda en el siguiente bloque
+F06. Ver especificación y evidencia 2026-10-11-conservacion-emision.

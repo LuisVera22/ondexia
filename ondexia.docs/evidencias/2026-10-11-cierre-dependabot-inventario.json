@@ -1,0 +1,151 @@
+{
+  "base": "2c0b23a50ef47de2cf6dfff2255467ba880b4221",
+  "propuestas": [
+    {
+      "numero": 30,
+      "url": "https://github.com/LuisVera22/ondexia/pull/30",
+      "head": "b91dff7fee221c9e6979fb7287fbc950756e579b",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.admin/karma-jasmine-html-reporter-2.3.0",
+      "base": "main",
+      "decision": "adaptar",
+      "motivo": "Reporter2.3 admite Jasmine5 y Karma6; ambas suites y builds verificados. No se atribuye un arreglo de seguridad."
+    },
+    {
+      "numero": 29,
+      "url": "https://github.com/LuisVera22/ondexia/pull/29",
+      "head": "19d30a0bd9a7bc5fb92be29cf402327877eeab4f",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.admin/zone.js-0.16.3",
+      "base": "main",
+      "decision": "adaptar",
+      "motivo": "Zone0.16.3 admitido por Angular21.2.24; pruebas de promesas, tiempos, cancelación y eventos, con mutaciones."
+    },
+    {
+      "numero": 28,
+      "url": "https://github.com/LuisVera22/ondexia/pull/28",
+      "head": "f1c2d8a0bfabe8356b1d5ec0135a470af4cc4cf3",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.admin/postcss-8.5.29",
+      "base": "main",
+      "decision": "adaptar",
+      "motivo": "PostCSS8.5.29 en ambos frontends; tres reproducciones reales de comentarios/escape, build y regresión."
+    },
+    {
+      "numero": 27,
+      "url": "https://github.com/LuisVera22/ondexia/pull/27",
+      "head": "ffe80e160607077936e07195b8d140939cb22d1d",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.admin/angular/cli-22.2.1",
+      "base": "main",
+      "decision": "no adoptar en este ciclo",
+      "motivo": "CLI22 aislado con core/compiler/build21 y Node local22.22.0 inferior al mínimo22.22.3 declarado. Mantener21.2.26 actualizado; retomar F15/F20 con migración coordinada de Angular y Node."
+    },
+    {
+      "numero": 26,
+      "url": "https://github.com/LuisVera22/ondexia/pull/26",
+      "head": "78139d4bacbeb9ec090b344999792731b3bbe168",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.landing/typescript-6.0.3",
+      "base": "main",
+      "decision": "no adoptar en este ciclo",
+      "motivo": "Cambio mayor de compilador solo en landing; check acepta TS6, pero no hay una necesidad identificada ni migración/configuración caracterizada. Mantener TS5.9.3 y retomar F20 con guía de migración y tipos. No se afirma incompatibilidad con Angular porque el PR no cambia Angular."
+    },
+    {
+      "numero": 25,
+      "url": "https://github.com/LuisVera22/ondexia/pull/25",
+      "head": "af5feffaf9adc5e88613585cf45cd0d8af63ebe4",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.admin/types/jasmine-7.0.0",
+      "base": "main",
+      "decision": "no adoptar en este ciclo",
+      "motivo": "Tipos Jasmine 7 con motor Jasmine 5 fijado: salto no coordinado. Mantener tipos compatibles; retomar F20 al migrar motor y comprobar suites."
+    },
+    {
+      "numero": 24,
+      "url": "https://github.com/LuisVera22/ondexia/pull/24",
+      "head": "c7173e4ddd616c2eee2a805a236eaac2ee1dc0a1",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.landing/astro-7.3.6",
+      "base": "main",
+      "decision": "no adoptar en este ciclo",
+      "motivo": "7.3.6 corrige principalmente SSR/server islands/adaptadores, middleware y HMR; la landing es estática y no usa esos adaptadores. No se ha reproducido ese problema aquí. Avisos transitivos se corrigieron por separado en #59; smol-toml sigue en backlog. Retomar ACT-23/F20 con una necesidad específica y regresión acumulada."
+    },
+    {
+      "numero": 22,
+      "url": "https://github.com/LuisVera22/ondexia/pull/22",
+      "head": "77f78524641c99d58d36b8d2bcab52da7be97690",
+      "rama": "dependabot/maven/apps/backend/software.amazon.awssdk-bom-2.55.11",
+      "base": "main",
+      "decision": "no adoptar en este ciclo",
+      "motivo": "Salto 2.32.14→2.55.11 amplio. El último parche anuncia servicios no usados y GZIP optativo que no usamos; no demuestra compatibilidad acumulada de S3/SQS/SSM. Mantener BOM actual, retomar ACT-23/F06 con revisión de clientes y originales sin suponer IAM/AWS real."
+    },
+    {
+      "numero": 21,
+      "url": "https://github.com/LuisVera22/ondexia/pull/21",
+      "head": "1c15062a5d436eeab0526917953f321b58b99d09",
+      "rama": "dependabot/github_actions/actions/cache/restore-6.1.0",
+      "base": "main",
+      "decision": "adaptar",
+      "motivo": "Actualizar restore y save juntos en CI/CD, conservar claves y condiciones, comprobar caché restaurada y seis análisis efectivos."
+    },
+    {
+      "numero": 20,
+      "url": "https://github.com/LuisVera22/ondexia/pull/20",
+      "head": "69ff095d930fe66e9b9e3c5c14eb36f78f72109c",
+      "rama": "dependabot/maven/apps/backend/io.quarkus.qute-qute-core-3.40.1",
+      "base": "main",
+      "decision": "no adoptar en este ciclo",
+      "motivo": "Las notas 3.40.1 no identifican una corrección de Qute usada por nuestros XML; describen Redis, RestEasy, WebSockets y proxy DNS. No usar el changelog global como prueba de beneficio del motor fiscal. Retomar F06/F20 con cambios acumulados de Qute y golden XML firmados; versión actual conservada."
+    },
+    {
+      "numero": 19,
+      "url": "https://github.com/LuisVera22/ondexia/pull/19",
+      "head": "24a0e9b0bd538d1c621932654befc11fb82c3967",
+      "rama": "dependabot/github_actions/actions/upload-artifact-7.0.1",
+      "base": "main",
+      "decision": "adaptar",
+      "motivo": "Coordinar upload 7 con download 8 y contrato archive=true; ensayo de intercambio con huellas en GitHub."
+    },
+    {
+      "numero": 18,
+      "url": "https://github.com/LuisVera22/ondexia/pull/18",
+      "head": "fd046ef03139959a9426a06e5e1e2732ef3d2519",
+      "rama": "dependabot/github_actions/pnpm/action-setup-0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+      "base": "main",
+      "decision": "no adoptar en este ciclo",
+      "motivo": "Comparación oficial entre los dos SHAs vuelve a responder 404. Procedencia/diferencias del SHA propuesto no verificadas; conservar pin actual. Retomar ACT-23 cuando se pueda contrastar el commit completo; no se afirma que sea malicioso."
+    },
+    {
+      "numero": 17,
+      "url": "https://github.com/LuisVera22/ondexia/pull/17",
+      "head": "a1890b3b510715a701d883f7d69739ec6fba82cd",
+      "rama": "dependabot/maven/apps/backend/org.apache.maven-apache-maven-3.10.0",
+      "base": "main",
+      "decision": "adaptar",
+      "motivo": "Actualizar solo URL del wrapper a Maven 3.10, conservar comentarios y bytes de mvnw.cmd, probar reactor y modelos estrictos."
+    },
+    {
+      "numero": 16,
+      "url": "https://github.com/LuisVera22/ondexia/pull/16",
+      "head": "7ab4db6967e72a4671d81c0ad3cafe99cd2900f5",
+      "rama": "dependabot/github_actions/actions/setup-java-6.0.1",
+      "base": "main",
+      "decision": "adaptar",
+      "motivo": "setup-java 6 en Node 24; verificar runner, Java 21 y caché en CI real, sin atribuir verificación de firmas a valores por defecto."
+    },
+    {
+      "numero": 15,
+      "url": "https://github.com/LuisVera22/ondexia/pull/15",
+      "head": "eae6d4082b61388ef9b4b6bc2b49f757847baf80",
+      "rama": "dependabot/maven/apps/backend/org.owasp-dependency-check-maven-13.0.0",
+      "base": "main",
+      "decision": "no adoptar en este ciclo",
+      "motivo": "13 introduce la transición de esquema de base 12.2.2 y cambios del escáner; la propuesta cambia solo la versión, sin ensayo de actualización/recuperación de caché H2. Mantener 12.1 con análisis efectivo. Retomar en ACT-19/F20 con cache completa, falla y recuperación; no es una excepción de CVE."
+    },
+    {
+      "numero": 14,
+      "url": "https://github.com/LuisVera22/ondexia/pull/14",
+      "head": "ea9d6ec71273ea7080c2a6a9d7cba21ac081f3aa",
+      "rama": "dependabot/github_actions/actions/download-artifact-8.0.1",
+      "base": "main",
+      "decision": "adaptar",
+      "motivo": "Coordinar download 8 y upload 7; comprobar intercambio real de artefactos y huellas sin ejecutar CD."
+    }
+  ],
+  "integracion": "pendiente para propuestas adaptadas",
+  "cierre": "pendiente; verificar de nuevo cada head antes de cerrar"
+}

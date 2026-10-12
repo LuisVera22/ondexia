@@ -1,0 +1,100 @@
+{
+  "base": "2c0b23a50ef47de2cf6dfff2255467ba880b4221",
+  "postcss": {
+    "antes": "8.5.26",
+    "despues": "8.5.29",
+    "casos_previos_fallidos": 3,
+    "casos_posteriores_correctos": 3
+  },
+  "zone": {
+    "antes": "0.15.1",
+    "despues": "0.16.3",
+    "controles_previos_correctos": 3,
+    "mutaciones": {
+      "resultados": [
+        {
+          "mutacion": "plazo",
+          "salida": 1,
+          "caso": "resuelve promesas"
+        },
+        {
+          "mutacion": "cancelacion",
+          "salida": 1,
+          "caso": "no ejecuta un temporizador"
+        },
+        {
+          "mutacion": "evento",
+          "salida": 1,
+          "caso": "mantiene el contexto"
+        }
+      ],
+      "sha256_restaurado": "42db312d125513270d69f4292bcf4d0b63b577324e9348a5949ec49acd157d9b"
+    }
+  },
+  "reporter": "2.3.0",
+  "pruebas": {
+    "web": 147,
+    "panel": 8
+  },
+  "avisos_residuales": "braces: un alto por aplicación, sin moderados/críticos",
+  "artefactos": [
+    {
+      "archivo": "2026-10-11-cierre-postcss-antes.log.gz",
+      "sha256": "98e664ed1a30da2da6eb74d0144a0f74cae136d9cebc8739455d49f9d1cb7ad7"
+    },
+    {
+      "archivo": "2026-10-11-cierre-zone-antes.log.gz",
+      "sha256": "ebee462ac790f4d6e1c2f6c55ddeea759f0fb1d5a22e78fa27e9f8978d003e91"
+    },
+    {
+      "archivo": "2026-10-11-cierre-zone-restaurado.log.gz",
+      "sha256": "2fc72dc12ca6308e94425509c37930fedf14036d7f85421c00183a3ee81c635a"
+    },
+    {
+      "archivo": "2026-10-11-cierre-web-audit.json.gz",
+      "sha256": "5538e120328881149128d0530d56b666fba5ecac4ce9c68757d065e44e5e9934"
+    },
+    {
+      "archivo": "2026-10-11-cierre-panel-audit.json.gz",
+      "sha256": "5538e120328881149128d0530d56b666fba5ecac4ce9c68757d065e44e5e9934"
+    },
+    {
+      "archivo": "2026-10-11-cierre-zone-mutacion-plazo.log.gz",
+      "sha256": "b4d9cbeec7287c565f4ab9a3b70e610d106836c61f643afbf0330221cc6b2d00"
+    },
+    {
+      "archivo": "2026-10-11-cierre-zone-mutacion-cancelacion.log.gz",
+      "sha256": "84c3df83304a62dbd8f6f23eeed4ac087c32b75b625879311f8b18f5e7a94fda"
+    },
+    {
+      "archivo": "2026-10-11-cierre-zone-mutacion-evento.log.gz",
+      "sha256": "db27ad08a07ccd95af1da535b8eb1af5c761b8861905d792bd24dd7dc9dd16bb"
+    },
+    {
+      "archivo": "2026-10-11-cierre-ondexia.web-install.log.gz",
+      "sha256": "d8efc556d452248e64c27c61687043d21aa0c6e2016fc8a03f238145bfe62439"
+    },
+    {
+      "archivo": "2026-10-11-cierre-ondexia.web-build.log.gz",
+      "sha256": "29eeab7febebb6aeeec52a3256ef0778df06e784579f1e3a33478189fa603786"
+    },
+    {
+      "archivo": "2026-10-11-cierre-ondexia.web-tests.log.gz",
+      "sha256": "7ad60973ab041087e712dbb786951780af588436c97700e75b07aea79fadea87"
+    },
+    {
+      "archivo": "2026-10-11-cierre-ondexia.admin-install.log.gz",
+      "sha256": "22afa3a52a8e7dac9bd991821a39b9d84b342f409f071a8a085b2fa74cf86a29"
+    },
+    {
+      "archivo": "2026-10-11-cierre-ondexia.admin-build.log.gz",
+      "sha256": "f1c2ca2fc175ba7750b835937ebdcd473cb9ced0e4519de91f7a85270b7c62d2"
+    },
+    {
+      "archivo": "2026-10-11-cierre-ondexia.admin-tests.log.gz",
+      "sha256": "b7909b350ca89ffaea163652da3aed42aaaae972e2846827cac5e21f4a52b4b3"
+    }
+  ],
+  "ci": "pendiente al registrar",
+  "auditoria_independiente": "no ejecutada"
+}

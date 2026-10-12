@@ -235,14 +235,14 @@ public class ProductoController {
 
     /** @param existencia {@code null}: no controla existencias, o el local no tiene almacén */
     public record RespuestaDisponible(UUID id, String codigo, String nombre, String unidad,
-            String unidadNombre, String afectacion, boolean llevaIgv, BigDecimal precio,
-            boolean controlaStock, @io.swagger.v3.oas.annotations.media.Schema(nullable = true) BigDecimal existencia) {
+            String unidadNombre, String afectacion, boolean llevaIgv, String precio,
+            boolean controlaStock, @io.swagger.v3.oas.annotations.media.Schema(nullable = true) String existencia) {
 
         static RespuestaDisponible desde(Productos.ProductoDisponible d) {
             var p = d.producto();
             return new RespuestaDisponible(p.id(), p.codigo(), p.nombre(), p.unidad().codigo(),
-                    p.unidad().nombre(), p.afectacion().name(), p.afectacion().llevaIgv(), d.precio(),
-                    p.controlaStock(), d.existencia());
+                    p.unidad().nombre(), p.afectacion().name(), p.afectacion().llevaIgv(), d.precio().toPlainString(),
+                    p.controlaStock(), d.existencia() == null ? null : d.existencia().toPlainString());
         }
     }
 

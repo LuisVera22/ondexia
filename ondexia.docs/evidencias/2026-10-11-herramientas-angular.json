@@ -1,0 +1,286 @@
+{
+  "base_develop": "3f97241acc26f6da237869a0ef2247e8a0d10508",
+  "oraculo": "Avisos npm GHSA-67c8-pqhq-4rmx y GHSA-jqcg-44mw-7w3h; puerta crítica cero fijada antes del arreglo",
+  "aplicaciones": [
+    {
+      "aplicacion": "ondexia.web",
+      "codigo_critica_antes": 1,
+      "codigo_critica_despues": 0,
+      "codigo_completa_despues": 1,
+      "codigo_prod_despues": 0,
+      "codigo_instalacion_congelada": 0,
+      "codigo_build": 0,
+      "codigo_pruebas": 0,
+      "pruebas_correctas": 144,
+      "conteos_antes": {
+        "info": 0,
+        "low": 4,
+        "moderate": 23,
+        "high": 17,
+        "critical": 2
+      },
+      "conteos_despues": {
+        "info": 0,
+        "low": 0,
+        "moderate": 3,
+        "high": 4,
+        "critical": 0
+      },
+      "cambios_directos": [
+        {
+          "dependencia": "@angular/build",
+          "antes": "21.2.20",
+          "despues": "21.2.26"
+        },
+        {
+          "dependencia": "@angular/cli",
+          "antes": "21.2.20",
+          "despues": "21.2.26"
+        }
+      ],
+      "residuales": [
+        {
+          "paquete": "qs",
+          "gravedad": "moderate",
+          "aviso": "GHSA-x5fp-wj9c-mxmx",
+          "corregido_desde": ">=6.15.4",
+          "versiones": [
+            "6.15.3"
+          ]
+        },
+        {
+          "paquete": "qs",
+          "gravedad": "moderate",
+          "aviso": "GHSA-4mjr-xmp4-gh2g",
+          "corregido_desde": ">=6.16.0",
+          "versiones": [
+            "6.15.3"
+          ]
+        },
+        {
+          "paquete": "brace-expansion",
+          "gravedad": "moderate",
+          "aviso": "GHSA-q2hr-2g5m-vwhr",
+          "corregido_desde": ">=1.1.21",
+          "versiones": [
+            "1.1.18"
+          ]
+        },
+        {
+          "paquete": "brace-expansion",
+          "gravedad": "high",
+          "aviso": "GHSA-qhr7-859c-m2p7",
+          "corregido_desde": ">=1.1.20",
+          "versiones": [
+            "1.1.18"
+          ]
+        },
+        {
+          "paquete": "brace-expansion",
+          "gravedad": "high",
+          "aviso": "GHSA-6j4f-fj2g-mc7p",
+          "corregido_desde": ">=1.1.19",
+          "versiones": [
+            "1.1.18"
+          ]
+        },
+        {
+          "paquete": "engine.io",
+          "gravedad": "high",
+          "aviso": "GHSA-2gc4-cqfq-p2gv",
+          "corregido_desde": ">=6.6.10",
+          "versiones": [
+            "6.6.9"
+          ]
+        },
+        {
+          "paquete": "braces",
+          "gravedad": "high",
+          "aviso": "GHSA-vfj7-8cjw-p6xm",
+          "corregido_desde": ">=3.0.4",
+          "versiones": [
+            "3.0.3"
+          ]
+        }
+      ],
+      "sha256_lock": "2a716eeb354643330d61a3822a71f94b59bcc19b79b76866f3b59286c6358819"
+    },
+    {
+      "aplicacion": "ondexia.admin",
+      "codigo_critica_antes": 1,
+      "codigo_critica_despues": 0,
+      "codigo_completa_despues": 1,
+      "codigo_prod_despues": 0,
+      "codigo_instalacion_congelada": 0,
+      "codigo_build": 0,
+      "codigo_pruebas": 0,
+      "pruebas_correctas": 5,
+      "conteos_antes": {
+        "info": 0,
+        "low": 4,
+        "moderate": 19,
+        "high": 16,
+        "critical": 2
+      },
+      "conteos_despues": {
+        "info": 0,
+        "low": 0,
+        "moderate": 3,
+        "high": 4,
+        "critical": 0
+      },
+      "cambios_directos": [
+        {
+          "dependencia": "@angular/build",
+          "antes": "21.2.21",
+          "despues": "21.2.26"
+        },
+        {
+          "dependencia": "@angular/cli",
+          "antes": "21.2.21",
+          "despues": "21.2.26"
+        }
+      ],
+      "residuales": [
+        {
+          "paquete": "qs",
+          "gravedad": "moderate",
+          "aviso": "GHSA-x5fp-wj9c-mxmx",
+          "corregido_desde": ">=6.15.4",
+          "versiones": [
+            "6.15.3"
+          ]
+        },
+        {
+          "paquete": "qs",
+          "gravedad": "moderate",
+          "aviso": "GHSA-4mjr-xmp4-gh2g",
+          "corregido_desde": ">=6.16.0",
+          "versiones": [
+            "6.15.3"
+          ]
+        },
+        {
+          "paquete": "brace-expansion",
+          "gravedad": "moderate",
+          "aviso": "GHSA-q2hr-2g5m-vwhr",
+          "corregido_desde": ">=1.1.21",
+          "versiones": [
+            "1.1.18"
+          ]
+        },
+        {
+          "paquete": "brace-expansion",
+          "gravedad": "high",
+          "aviso": "GHSA-qhr7-859c-m2p7",
+          "corregido_desde": ">=1.1.20",
+          "versiones": [
+            "1.1.18"
+          ]
+        },
+        {
+          "paquete": "brace-expansion",
+          "gravedad": "high",
+          "aviso": "GHSA-6j4f-fj2g-mc7p",
+          "corregido_desde": ">=1.1.19",
+          "versiones": [
+            "1.1.18"
+          ]
+        },
+        {
+          "paquete": "engine.io",
+          "gravedad": "high",
+          "aviso": "GHSA-2gc4-cqfq-p2gv",
+          "corregido_desde": ">=6.6.10",
+          "versiones": [
+            "6.6.9"
+          ]
+        },
+        {
+          "paquete": "braces",
+          "gravedad": "high",
+          "aviso": "GHSA-vfj7-8cjw-p6xm",
+          "corregido_desde": ">=3.0.4",
+          "versiones": [
+            "3.0.3"
+          ]
+        }
+      ],
+      "sha256_lock": "c8c75e476bcaed4276d40a98db46fe0354848ab4e383ab531b767aba8f34338e"
+    }
+  ],
+  "archivos": [
+    {
+      "archivo": "2026-10-11-angular-web-antes.json.gz",
+      "sha256": "b7c9715cfd1273301cb5fa114636cc7ddf5acbb2ee776668e418ff3bd79bf93e"
+    },
+    {
+      "archivo": "2026-10-11-angular-web-despues.json.gz",
+      "sha256": "52c6b1334541da4fca74e4baf71636a9a35c6e1bb1376ac067153243b85fbd2c"
+    },
+    {
+      "archivo": "2026-10-11-angular-web-completa.json.gz",
+      "sha256": "8e395dcac022826b5a51ccbf2c590ae5a3df3cd7542c46f8054291cacaf57eb7"
+    },
+    {
+      "archivo": "2026-10-11-angular-web-produccion.json.gz",
+      "sha256": "eb61c69e7b3603949819e808b603cc04f8c54615fbe6185b13cf15baf70fd1cb"
+    },
+    {
+      "archivo": "2026-10-11-angular-web-instalacion.log.gz",
+      "sha256": "702e86b30213a5563391a378f9699c5792f2c0bd43f2e27082dde30782018342"
+    },
+    {
+      "archivo": "2026-10-11-angular-web-build.log.gz",
+      "sha256": "4fb9237f9c86bc3831e3f4710e7a9e93ddc76444f449c18593e377a917433d74"
+    },
+    {
+      "archivo": "2026-10-11-angular-web-pruebas.log.gz",
+      "sha256": "4a56fc34775605649fa108aea1e0d52951e9bfa381d762d1ba1f934215c31b99"
+    },
+    {
+      "archivo": "2026-10-11-angular-web-resolucion.log.gz",
+      "sha256": "e5851206cfcca31235a71d1c164dcebd3fa6a636c124f23037485926c464d8f5"
+    },
+    {
+      "archivo": "2026-10-11-angular-panel-antes.json.gz",
+      "sha256": "f77d06be85090fb5eb388c7a9bb6cbcf86493aa9e33dd829f476ad6f8529c643"
+    },
+    {
+      "archivo": "2026-10-11-angular-panel-despues.json.gz",
+      "sha256": "52c6b1334541da4fca74e4baf71636a9a35c6e1bb1376ac067153243b85fbd2c"
+    },
+    {
+      "archivo": "2026-10-11-angular-panel-completa.json.gz",
+      "sha256": "8e395dcac022826b5a51ccbf2c590ae5a3df3cd7542c46f8054291cacaf57eb7"
+    },
+    {
+      "archivo": "2026-10-11-angular-panel-produccion.json.gz",
+      "sha256": "eb61c69e7b3603949819e808b603cc04f8c54615fbe6185b13cf15baf70fd1cb"
+    },
+    {
+      "archivo": "2026-10-11-angular-panel-instalacion.log.gz",
+      "sha256": "322722df1abac8763894c56a989ad88fa33bda9cecf3840518b520088352ab7e"
+    },
+    {
+      "archivo": "2026-10-11-angular-panel-build.log.gz",
+      "sha256": "755f57e4924f478aca20055ee1d313d3e61c720b92f98ab33f13c3c1b58d2402"
+    },
+    {
+      "archivo": "2026-10-11-angular-panel-pruebas.log.gz",
+      "sha256": "beb52fa6d474d0bf85941eb2a0c82a85051f726b6fa15d3d0b3af6fee3bc679f"
+    },
+    {
+      "archivo": "2026-10-11-angular-panel-resolucion.log.gz",
+      "sha256": "1c2f546fdcc7efd9837d50e5812650fdb4a1acb4028af58f260e4faed8f15808"
+    },
+    {
+      "archivo": "2026-10-11-herramientas-angular-metadatos.json",
+      "sha256": "bdb5e3619e288323699859a7a39708e42c965886ddb323a5dafb9e20717d8e28"
+    }
+  ],
+  "limitaciones": [
+    "Sin auditoría independiente, explotación ni AWS; avisos altos/moderados residuales no aceptados como excepción.",
+    "Los JSON con --audit-level filtran avisos impresos; los metadatos cuentan todos. Se conserva completa posterior por separado."
+  ]
+}

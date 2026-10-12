@@ -1,0 +1,37 @@
+{
+  "bloque": "F06 — preparación de inventario y recuperación del legado",
+  "base": "98d7d6f8c6e168eb48f4bfb76729b7024ef99fb7",
+  "pruebas_nuevas": 11,
+  "pruebas_python_completas": 17,
+  "tdd": "stub inicial: siete fallos de ocho pruebas; capacidad nueva, no defecto previo demostrado",
+  "mutacion": "declarar autenticidad sin verificar: dos fallos; restauración byte por byte y suite verde",
+  "oraculo": "bytes abc y SHA-256 literal conocido; archivos temporales, sin documentos de clientes",
+  "acceso_aws": "sin identidad configurada, sin CLI AWS, S3 no permitido por red",
+  "no_verificado": [
+    "originales reales",
+    "versionado AWS efectivo",
+    "autenticidad XML/certificado",
+    "recuperación y vinculación de datos históricos",
+    "PDF persistido",
+    "auditoría independiente"
+  ],
+  "ci": "pendiente al registrar",
+  "registros": [
+    {
+      "archivo": "2026-10-11-inventario-legado/rojo.log.gz",
+      "sha256": "fb2708c09b112482b9c973a9cad15e8943ca8fafbdbcdaca79adeece13ace7f1"
+    },
+    {
+      "archivo": "2026-10-11-inventario-legado/completo.log.gz",
+      "sha256": "e41651afe3ada27b453f727f723154088c6eaca0d5a04cc58fb9e4c32420e45e"
+    },
+    {
+      "archivo": "2026-10-11-inventario-legado/mutacion.log.gz",
+      "sha256": "20417aa24f7e76b7da3637c2fccebbc40030aa77424551b7e3c70631cf9dfde4"
+    },
+    {
+      "archivo": "2026-10-11-inventario-legado/restaurado.log.gz",
+      "sha256": "e41651afe3ada27b453f727f723154088c6eaca0d5a04cc58fb9e4c32420e45e"
+    }
+  ]
+}

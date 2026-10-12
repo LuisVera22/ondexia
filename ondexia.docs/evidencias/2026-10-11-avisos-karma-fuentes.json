@@ -1,0 +1,202 @@
+[
+  {
+    "paquete": "body-parser",
+    "version": "1.20.8",
+    "url": "https://registry.npmjs.org/body-parser/1.20.8",
+    "engines": {
+      "npm": "1.2.8000 || >= 1.4.16",
+      "node": ">= 0.8"
+    },
+    "dependencies": {
+      "qs": "~6.16.0",
+      "depd": "2.0.0",
+      "bytes": "~3.1.2",
+      "debug": "2.6.9",
+      "unpipe": "~1.0.0",
+      "destroy": "~1.2.0",
+      "type-is": "~1.6.18",
+      "raw-body": "~2.5.3",
+      "iconv-lite": "~0.4.24",
+      "http-errors": "~2.0.1",
+      "on-finished": "~2.4.1",
+      "content-type": "~1.0.5"
+    },
+    "dist": {
+      "shasum": "328d51ce46cb19c983f3d9661016df2765283a37",
+      "tarball": "https://registry.npmjs.org/body-parser/-/body-parser-1.20.8.tgz",
+      "fileCount": 10,
+      "integrity": "sha512-JNcyFQ64OiijEkPzUBTCe+hyPXUD/3LEldGQ6iF5LR1w00mx9o7xtDWHXBY2iItjdCFGoilOLNQbH943ut7pHA==",
+      "signatures": [
+        {
+          "sig": "MEUCIQCieAbOd5njnKpEKcF7frENerqt3kSG4V/LgYYYJBfB8gIgXx8KF87niCSSjelpnwEzYG5N+pTUPu0G7VctOam101M=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/body-parser@1.20.8",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 60814
+    }
+  },
+  {
+    "paquete": "brace-expansion",
+    "version": "1.1.21",
+    "url": "https://registry.npmjs.org/brace-expansion/1.1.21",
+    "engines": null,
+    "dependencies": {
+      "concat-map": "0.0.1",
+      "balanced-match": "^1.0.0"
+    },
+    "dist": {
+      "shasum": "edf4fab5c64d051aea5a8def49aba1c7522279f3",
+      "tarball": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.21.tgz",
+      "fileCount": 4,
+      "integrity": "sha512-9zeA+KLZNNzglF2TPKRQEDyx6Yby7daAkuy8MiPzpXPsYDWi/DRM8jmwUDxokQjYqBpv5DgPiwD4h4ZZSy1Ujw==",
+      "signatures": [
+        {
+          "sig": "MEUCIEpGNO6Ap5gYaU6eqeOpeU4bhJKXytH4Lqv+qn8tWP70AiEAgmtv6dYJ/sbiMeioq8VTAvlpDMIOF2bV7ojJ6qTtCIk=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEUCIQCsE4a0+wmILmbniwNtbsZAwHHlEiC/u0HpBs9/R0pwvgIgATLztBHUYS81VxfEvVfmSjwIFwwRSJAP8SlYYJWwn3A=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "unpackedSize": 21359
+    }
+  },
+  {
+    "paquete": "engine.io",
+    "version": "6.6.11",
+    "url": "https://registry.npmjs.org/engine.io/6.6.11",
+    "engines": {
+      "node": ">=10.2.0"
+    },
+    "dependencies": {
+      "ws": "~8.21.0",
+      "cors": "~2.8.5",
+      "debug": "~4.4.1",
+      "cookie": "~0.7.2",
+      "accepts": "~1.3.4",
+      "@types/ws": "^8.5.12",
+      "@types/cors": "^2.8.12",
+      "@types/node": ">=10.0.0",
+      "engine.io-parser": "~5.2.1"
+    },
+    "dist": {
+      "shasum": "05203f76be9c63489cdf52aadab4200a201315fd",
+      "tarball": "https://registry.npmjs.org/engine.io/-/engine.io-6.6.11.tgz",
+      "fileCount": 40,
+      "integrity": "sha512-z34mGpLoY/82ZbkX1LqGMIaf3wjVMPL6gVC681QDqnmzJ26synI8qAE32P+a7UazmpJZ8UGrFIeAavgRfXzYrg==",
+      "signatures": [
+        {
+          "sig": "MEQCIE1OerSMdlb0YD237Whcv+okjUzzXTRbMqbdkwWc5tkhAiBqvGV+B6l/dhonGIKHTnMVXHspwJsLGr2/AxtrzrS0yA==",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/engine.io@6.6.11",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 162973
+    }
+  },
+  {
+    "paquete": "qs",
+    "version": "6.16.0",
+    "url": "https://registry.npmjs.org/qs/6.16.0",
+    "engines": {
+      "node": ">=0.6"
+    },
+    "dependencies": {
+      "side-channel": "^1.1.1",
+      "es-define-property": "^1.0.1"
+    },
+    "dist": {
+      "shasum": "c22c723a28a920f3aacdce8289fabd43eccb79fd",
+      "tarball": "https://registry.npmjs.org/qs/-/qs-6.16.0.tgz",
+      "fileCount": 20,
+      "integrity": "sha512-h6fhOIaRrID2CbEY2fqs+7t+UXZo+MLAnU5gRIq85uFtdiUPCdsApMlHhXogKVM4HM2DVbIjGNTTYH2OcmP1vA==",
+      "signatures": [
+        {
+          "sig": "MEQCIDcXxHA/2DS8Om9SgY8t+eqRdsYeC+Uc2+iEe3NXP0+XAiB0/3l9cWlRCjapUW22OkxtDy6cSfQ2/arNN4nxGUMEvQ==",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "unpackedSize": 374851
+    }
+  },
+  {
+    "paquete": "braces",
+    "version": "3.0.4",
+    "url": "https://registry.npmjs.org/braces/3.0.4",
+    "codigo_http": 404
+  },
+  {
+    "paquete": "karma",
+    "version": "6.4.4",
+    "url": "https://registry.npmjs.org/karma/6.4.4",
+    "dependencies": {
+      "di": "^0.0.1",
+      "tmp": "^0.2.1",
+      "glob": "^7.1.7",
+      "mime": "^2.5.2",
+      "qjobs": "^1.2.0",
+      "yargs": "^16.1.1",
+      "braces": "^3.0.2",
+      "lodash": "^4.17.21",
+      "log4js": "^6.4.1",
+      "mkdirp": "^0.5.5",
+      "rimraf": "^3.0.2",
+      "connect": "^3.7.0",
+      "chokidar": "^3.5.1",
+      "minimatch": "^3.0.4",
+      "socket.io": "^4.7.2",
+      "http-proxy": "^1.18.1",
+      "source-map": "^0.6.1",
+      "body-parser": "^1.19.0",
+      "graceful-fs": "^4.2.6",
+      "isbinaryfile": "^4.0.8",
+      "range-parser": "^1.2.1",
+      "ua-parser-js": "^0.7.30",
+      "dom-serialize": "^2.2.1",
+      "@colors/colors": "1.5.0"
+    },
+    "engines": {
+      "node": ">= 10"
+    }
+  },
+  {
+    "paquete": "minimatch",
+    "version": "3.1.5",
+    "url": "https://registry.npmjs.org/minimatch/3.1.5",
+    "dependencies": {
+      "brace-expansion": "^1.1.7"
+    },
+    "engines": {
+      "node": "*"
+    }
+  },
+  {
+    "paquete": "socket.io",
+    "version": "4.8.3",
+    "url": "https://registry.npmjs.org/socket.io/4.8.3",
+    "dependencies": {
+      "cors": "~2.8.5",
+      "debug": "~4.4.1",
+      "accepts": "~1.3.4",
+      "base64id": "~2.0.0",
+      "engine.io": "~6.6.0",
+      "socket.io-parser": "~4.2.4",
+      "socket.io-adapter": "~2.5.2"
+    },
+    "engines": {
+      "node": ">=10.2.0"
+    }
+  }
+]

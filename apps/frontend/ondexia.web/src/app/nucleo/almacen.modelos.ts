@@ -26,9 +26,9 @@ export interface ProductoDisponibleApi {
   readonly unidadNombre: string;
   readonly afectacion: string;
   readonly llevaIgv: boolean;
-  readonly precio: number;
+  readonly precio: string;
   readonly controlaStock: boolean;
-  readonly existencia: number | null;
+  readonly existencia: string | null;
 }
 
 export interface DisponibilidadApi {

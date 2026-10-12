@@ -1,0 +1,38 @@
+{
+  "base": "9b5d90ecc6416a080c924a8fade56bd46aa7d779",
+  "rama": "develop",
+  "decision": "Sin referencia histórica no se muestra logo. Cada nueva emisión guarda las versiones vigentes.",
+  "rojo": {
+    "backend": {
+      "pruebas": 2,
+      "fallos": 2,
+      "errores": 0
+    },
+    "web": {
+      "pruebas": 123,
+      "fallos": 2
+    }
+  },
+  "verde": {
+    "backend": 502,
+    "web": 123,
+    "pantallas": 21,
+    "impresiones": 8,
+    "cabeceras_configuracion": 8,
+    "compilacion_produccion": true
+  },
+  "mutacion": {
+    "cambio": "Añadir logo de respaldo a documentos sin versión",
+    "detectada": true,
+    "fallos": 2,
+    "restaurada": true
+  },
+  "no_verificado": [
+    "S3 y CloudFront reales",
+    "Dispositivos físicos y Safari",
+    "Impresoras físicas",
+    "Migración sobre una copia de datos de producción",
+    "Auditoría independiente",
+    "CI remoto y despliegue"
+  ]
+}

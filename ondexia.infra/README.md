@@ -197,8 +197,9 @@ entera —bucket, control de acceso de origen, distribución, caché— antes de
 gastar en un dominio.
 
 Para que responda en `ondexia.com` hay que poner `gestionar_dns = true`, y eso
-arrastra el dominio registrado en Route 53, el certificado de ACM y la zona
-alojada (doc 01 §8). Es un paso aparte y con su propio coste.
+crea los certificados de ACM y la zona DNS en Route 53. El registro del dominio
+puede permanecer en Namecheap: allí se delegan los servidores de nombres de la
+zona AWS. La zona DNS tiene costo aparte; no hay que comprar otro dominio.
 
 > **La distribución tarda.** Entre 5 y 15 minutos la primera vez. La sonda del
 > workflow reintenta diez veces con diez segundos de pausa, así que puede
@@ -254,9 +255,9 @@ igual si se decide operar desde Ohio.
 
 ## El backend
 
-`dev.tfvars` ya apunta al artefacto real. `prod.tfvars` sigue con la función de
-relleno que responde `501`, a la espera de que dev demuestre que el despliegue
-funciona.
+`dev.tfvars` conserva la configuración histórica; el desarrollo vigente es
+local. `prod.tfvars` ya apunta a los artefactos reales para promover la única
+pila AWS. Leer el procedimiento de promoción antes de cualquier plan o apply.
 
 Antes de aplicar hay que construirlo:
 
@@ -525,3 +526,102 @@ comprueba sintaxis y coherencia de referencias; no comprueba que AWS acepte cada
 combinación de argumentos, ni que las cuotas den, ni que los identificadores de
 políticas gestionadas de CloudFront sigan vigentes. El primer `plan` es parte
 del trabajo, no un trámite.
+
+## Promoción del único entorno AWS a producción
+
+Decisión del propietario: desarrollo local, una única pila productiva AWS. La
+[especificación](../ondexia.docs/especificaciones/2026-10-12-promocion-productiva.md)
+y las pruebas `tests/promocion.tftest.hcl` acompañan esta preparación. No hay
+migración, DNS ni despliegue AWS ejecutados como parte del cambio de código.
+
+### Identidad conservada y políticas productivas
+
+`prod.tfvars` fija `entorno = prod` y `entorno_recursos = dev`: RDS, buckets,
+Lambdas, pools y rutas SSM conservan sus nombres. Las etiquetas, protecciones,
+perfiles, respaldos, retención y autenticación usan prod. No renombrar objetos
+para mejorar su presentación: un nombre heredado no define su seguridad.
+
+El workflow solo permite prod; aplicar exige main y el entorno GitHub prod.
+`solo_plan` permite revisar sin aplicar. Los roles siguen separados, con lectura
+antes de escritura. Al aplicar prod se deniega la confianza OIDC de los roles
+dev heredados sin borrarlos. La protección efectiva de environments/roles debe
+comprobarse: un control de workflow no protege contra otros workflows o sesiones.
+
+### Antes de planificar con el estado prod
+
+1. Un operador con acceso autorizado inventaría el estado `ondexia/dev/terraform.tfstate`,
+   RDS, pools, distribuciones, buckets, secretos y datos demo. Preservar los datos;
+   no ejecutar limpieza ni sembrado durante la promoción.
+2. Suspender todos los despliegues y desactivar la entrada OIDC dev. Esperar a
+   que caduquen sus sesiones ya emitidas; una nueva política de confianza no las
+   revoca. Verificar permisos mínimos del operador y entornos prod/prod-plan.
+3. Guardar respaldos cifrados de estado y datos fuera del repositorio. El estado
+   contiene secretos; no imprimirlo, adjuntarlo al PR ni enviarlo por chat.
+4. Verificar que el destino prod no gestiona otra pila. Con los despliegues
+   detenidos y autorización sobre ambos prefijos, usar la migración de backend
+   de Terraform hacia `ondexia/prod/terraform.tfstate` (`init -migrate-state`),
+   revisando el aviso interactivo. Nunca usar `-force-copy` ni sobrescribir otro
+   estado. La operación requiere una identidad de mantenimiento, no ampliar el
+   rol prod para leer libremente dev.
+5. Verificar recursos, lineage y serial en destino. Archivar y retirar el objeto
+   antiguo como estado activo antes de reabrir despliegues. Conservar el respaldo
+   y versiones para recuperación; dos estados activos no deben poseer la pila.
+   No ejecutar `destroy` sobre el estado antiguo ni eliminar los recursos.
+6. El checker `comprobar_promocion.py estado` valida anclas sintéticas conocidas;
+   no acredita titularidad, cuenta AWS, igualdad completa de estados ni backup.
+   El operador contrasta todos los identificadores. El workflow falla cerrado
+   si falta el estado o no coincide la pila esperada; no quitar esa puerta.
+
+Este documento no ejecuta ni automatiza la migración de titularidad. El plan AWS
+real y su resultado quedan pendientes hasta disponer de acceso.
+
+Después de migrar, un operador prepara con plan revisado las identidades OIDC,
+frontera y roles del pipeline usando la configuración prod, incluidas sus
+etiquetas. El pipeline no puede cambiar su propia identidad. Su checker rechaza
+esas modificaciones si siguen pendientes; no ampliar permisos para evitarlas.
+Confirmar retiro de confianza dev y expiración de sesiones antes de delegar la
+aplicación al workflow. Los recursos productivos conservan sus roles propios.
+
+### DNS y certificados por etapas
+
+No crear otra zona manualmente si ya existe una para este dominio: verificar
+estado y AWS primero; importar una zona existente exige revisar su titularidad.
+Con el estado promovido y prod.tfvars, preparar un plan excepcional acotado a
+`aws_route53_zone.principal`, `aws_acm_certificate.principal`,
+`aws_acm_certificate.api`, `aws_route53_record.validacion` y
+`aws_route53_record.validacion_api`. Revisar todos los recursos arrastrados y
+pasar el checker con `--parcial`; aplicar solo el archivo guardado aprobado.
+Esta etapa no incluye `aws_acm_certificate_validation`, que espera delegación.
+
+Leer los cuatro servidores de la zona y cargarlos en Namecheap → Domain →
+Nameservers → Custom DNS. Si hay correo u otros registros existentes, trasladarlos
+antes de delegar; Advanced DNS de Namecheap dejará de ser la fuente autoritativa.
+Comprobar resolución y validación ACM. Después generar el plan completo, sin
+`-target`, y revisarlo antes de continuar. El workflow bloquea solo_landing
+porque la promoción no puede omitir los controles del resto de la pila.
+
+El certificado principal está en us-east-1; la API usa su región. Se configuran
+raíz y www en landing, app, panel, cdn y api. Se mantienen los CNAME de validación
+para renovación. No configurar DNS antes de preparar aliases y certificados.
+
+### Comprobaciones pendientes antes de clientes
+
+- Cuota Lambda real: prod propone reserva API 20; no quitar el límite para salvar
+  un apply. Solicitar cuota suficiente para las reservas y el fondo compartido.
+- NVD_API_KEY efectiva y análisis de dependencias; la puerta productiva bloquea
+  ausencia. No desactivar análisis ni aceptar riesgos pendientes sin evaluación.
+- RDS privada, respaldo de siete días, protección contra borrado y snapshot
+  final. Confirmar `PendingModifiedValues`: los cambios pueden esperar mantenimiento.
+- MFA personal, callbacks de Cognito, CORS, CSP, HTTPS y configuración generada
+  desde outputs; no subir config.json con URLs fijas.
+- Originales y versiones históricas en S3, permisos, recuperación y usuarios demo.
+- La rotación de la contraseña maestra y su uso por migraciones requiere revisión
+  adicional; no está resuelta por activar prod ni por IAM en la API.
+- SUNAT se habilita por empresa con certificado verificado y series aprobadas;
+  no cambia automáticamente al promover infraestructura.
+- Sondas funcionales y de aislamiento y ensayo de restauración; CI verde y
+  planes con proveedores simulados no acreditan esos controles en AWS.
+
+Conservar una RDS micro Single-AZ evita duplicar su costo fijo. Respaldos,
+retención y DNS pueden aumentar cargos por almacenamiento/uso. No se promete
+alta disponibilidad ni un costo final sin contrastar la cuenta.

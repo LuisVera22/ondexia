@@ -1,0 +1,10 @@
+{
+  "base": "94cf525552c867ce4b925baa4873060a9026f7b6",
+  "pruebas_locales": 35,
+  "archivo": "2026-10-11-cierre-acciones-pruebas.log.gz",
+  "sha256": "07a0eacde4c5e268065436712bdd3ceaec52b565527d76a7642d669bc8b08991",
+  "transporte_remoto": "pendiente en CI; no se sustituye por simulación",
+  "digest_remoto_incorrecto": "no provocado",
+  "despliegue": "no ejecutado",
+  "ci": "pendiente"
+}

@@ -50,6 +50,21 @@ public class LectorDeRespuestaSunatTest {
     }
 
     @Test
+    @DisplayName("El SOAP exitoso se conserva exactamente y no expone su arreglo interno")
+    void conservaSoapOriginal() {
+        byte[] cuerpo = sobreConCdr(cdr("0", "Aceptada"));
+        byte[] esperado = cuerpo.clone();
+        var respuesta = lector.leer(200, cuerpo);
+        assertThat(respuesta.respuestaOriginal()).isEqualTo(esperado);
+        cuerpo[0] = 0;
+        byte[] copia = respuesta.respuestaOriginal();
+        copia[1] = 0;
+        assertThat(respuesta.respuestaOriginal()).isEqualTo(esperado);
+        assertThat(RespuestaSunat.sinRespuesta("HTTP_500", "Error")
+                .conOriginal(esperado).respuestaOriginal()).isNull();
+    }
+
+    @Test
     @DisplayName("Un CDR con código 0 es aceptado, con sus observaciones")
     void aceptado() {
         var respuesta = lector.leer(200, sobreConCdr(cdr("0",
@@ -83,6 +98,8 @@ public class LectorDeRespuestaSunatTest {
         assertThat(respuesta.aceptado()).isFalse();
         assertThat(respuesta.descripcion()).contains("alterado");
         assertThat(respuesta.cdr()).isNull();
+        assertThat(respuesta.respuestaOriginal()).isNull();
+        assertThat(respuesta.conOriginal(cuerpo).respuestaOriginal()).isNull();
     }
 
     @Test

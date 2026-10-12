@@ -6,6 +6,13 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.parameters.HeaderParameter;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.media.ComposedSchema;
+import io.swagger.v3.oas.models.media.NumberSchema;
+import io.swagger.v3.oas.models.media.StringSchema;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,6 +28,34 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class OpenApiConfig {
+
+    /** Texto decimal para clientes nuevos; números admitidos para peticiones anteriores. */
+    @Bean
+    public OpenApiCustomizer decimalesDeLaVenta() {
+        return contrato -> {
+            for (var entrada : Map.of("LineaPedida", List.of("cantidad", "descuento"),
+                    "PagoPedido", List.of("monto", "entregado")).entrySet()) {
+                var esquema = contrato.getComponents().getSchemas().get(entrada.getKey());
+                for (String campo : entrada.getValue()) {
+                    int escala = campo.equals("cantidad") ? 6 : 2;
+                    boolean positivo = !campo.equals("descuento");
+                    var textual = new StringSchema().pattern("^" + (positivo ? "(?!0+(?:\\.0+)?$)" : "")
+                            + "[0-9]{1,12}(\\.[0-9]{1," + escala + "})?$");
+                    // En OpenAPI 3.0 nullable necesita un type explícito: solo esta
+                    // variante admite null, para que oneOf no lo acepte dos veces.
+                    if (campo.equals("descuento") || campo.equals("entregado")) textual.setNullable(true);
+                    var numerico = new NumberSchema();
+                    numerico.setMinimum(BigDecimal.ZERO);
+                    numerico.setExclusiveMinimum(positivo);
+                    var decimal = new ComposedSchema().oneOf(List.of(textual, numerico))
+                            .description("Decimal exacto como texto; se admiten números por compatibilidad. "
+                                    + "Hasta 12 cifras enteras y " + escala + " decimales.");
+                    decimal.setNullable(campo.equals("descuento") || campo.equals("entregado"));
+                    esquema.addProperty(campo, decimal);
+                }
+            }
+        };
+    }
 
     @Bean
     public OpenAPI documentacionApi() {

@@ -20,11 +20,11 @@ describe('PuntoDeVentaComponent · totales, cobro y reglas', () => {
   const CAJA: CajaApi = { id: 'caja-1', sucursalId: 'suc-1', codigo: 'CAJA1', nombre: 'Caja 1', activa: true, sesionAbierta: null };
   const CEMENTO: ProductoDisponibleApi = {
     id: 'p-cem', codigo: 'CEM-001', nombre: 'Cemento', unidad: 'BG', unidadNombre: 'Bolsa', afectacion: 'GRAVADO',
-    llevaIgv: true, precio: 32.5, controlaStock: true, existencia: 10,
+    llevaIgv: true, precio: '32.5', controlaStock: true, existencia: '10',
   };
   const SERVICIO: ProductoDisponibleApi = {
     id: 'p-srv', codigo: 'SRV', nombre: 'Instalación', unidad: 'ZZ', unidadNombre: 'Servicio', afectacion: 'GRAVADO',
-    llevaIgv: true, precio: 80, controlaStock: false, existencia: null,
+    llevaIgv: true, precio: '80', controlaStock: false, existencia: null,
   };
 
   let empresaContexto: ReturnType<typeof signal<{ id: string }>>;
@@ -81,9 +81,60 @@ describe('PuntoDeVentaComponent · totales, cobro y reglas', () => {
   });
 
   it('el total de la línea es cantidad por precio menos descuento, en céntimos', () => {
-    expect(totalDeLinea({ cantidad: 2, precio: 32.5, descuento: 0 })).toBe(65);
-    expect(totalDeLinea({ cantidad: 3, precio: 0.1, descuento: 0 })).toBe(0.3);
-    expect(totalDeLinea({ cantidad: 1, precio: 10, descuento: 12 })).toBe(0);
+    expect(totalDeLinea({ cantidad: '2', precio: '32.5', descuento: '0' })).toBe('65.00');
+    expect(totalDeLinea({ cantidad: '3', precio: '0.1', descuento: '0' })).toBe('0.30');
+    expect(totalDeLinea({ cantidad: '1', precio: '10', descuento: '12' })).toBe('0.00');
+  });
+
+  for (const [precio, cantidad, descuento, esperado] of [
+    ['10.075000', '1', '0', '10.08'],
+    ['20.150000', '0.5', '0', '10.08'],
+    ['20.075000', '1', '10', '10.08'],
+    ['123456789012.344999', '1', '0', '123456789012.34'],
+  ]) {
+    it(`conserva el total decimal de ${cantidad} × ${precio} − ${descuento}`, async () => {
+      const c = crear(); await asentar();
+      almacen.disponibles.and.resolveTo([{ ...SERVICIO, precio }]);
+      await c.buscarProducto('srv'); c.agregarProducto({ id: 'p-srv', titulo: 'Instalación' });
+      c.cambiarCantidad(c.lineas()[0], cantidad);
+      c.cambiarDescuento(c.lineas()[0], descuento);
+      expect(String(c.total())).toBe(esperado);
+    });
+  }
+
+  it('acepta la coma decimal móvil y conserva pagos mixtos y vuelto', async () => {
+    const c = crear(); await asentar();
+    await c.buscarProducto('srv'); c.agregarProducto({ id: 'p-srv', titulo: 'Instalación' });
+    c.cambiarCantidad(c.lineas()[0], '0,500000');
+    c.cambiarDescuento(c.lineas()[0], '0,10');
+    c.cambiarFormaDePago(c.pagos()[0], 'TARJETA');
+    c.cambiarMonto(c.pagos()[0], '10,00');
+    c.agregarPago(); c.cambiarMonto(c.pagos()[1], '50,00');
+    expect(c.total()).toBe('39.90');
+    expect(c.vuelto()).toBe('20.10');
+    expect(c.impedimento()).toBeNull();
+    expect(c.peticion().lineas[0].cantidad).toBe('0.500000');
+    expect(c.peticion().pagos).toEqual([
+      { forma: 'TARJETA', monto: '10.00', referencia: null, entregado: null },
+      { forma: 'EFECTIVO', monto: '29.90', referencia: null, entregado: '50.00' },
+    ]);
+  });
+
+  it('bloquea entradas ambiguas y excesos de escala sin corregirlos a cero', async () => {
+    const c = crear(); await asentar();
+    await c.buscarProducto('srv'); c.agregarProducto({ id: 'p-srv', titulo: 'Instalación' });
+    for (const cantidad of ['0', '-1', '1e3', '0.0000001', '1,2.3']) {
+      c.cambiarCantidad(c.lineas()[0], cantidad);
+      expect(c.impedimento()).toContain('cantidad');
+    }
+    c.agregarProducto({ id: 'p-srv', titulo: 'Instalación' });
+    expect(c.lineas()[0].cantidad).toBe('1.2.3');
+    c.cambiarCantidad(c.lineas()[0], '1');
+    c.cambiarDescuento(c.lineas()[0], '-1');
+    expect(c.impedimento()).toContain('descuento');
+    c.cambiarDescuento(c.lineas()[0], '0');
+    c.cambiarMonto(c.pagos()[0], '80.001');
+    expect(c.impedimento()).toContain('dos decimales');
   });
 
   it('repetir un producto suma cantidad, el total incluye IGV y «Resto» completa el cobro', async () => {
@@ -96,18 +147,18 @@ describe('PuntoDeVentaComponent · totales, cobro y reglas', () => {
     componente.agregarProducto({ id: 'p-srv', titulo: 'Instalación' });
 
     expect(componente.lineas().length).toBe(2);
-    expect(componente.lineas()[0].cantidad).toBe(2);
-    expect(componente.total()).toBe(145);
+    expect(componente.lineas()[0].cantidad).toBe('2');
+    expect(componente.total()).toBe('145.00');
     // 65 → 55.08 + 9.92; 80 → 67.80 + 12.20.
-    expect(componente.igvEstimado()).toBe(22.12);
+    expect(componente.igvEstimado()).toBe('22.12');
 
     componente.cambiarMonto(componente.pagos()[0], 100);
-    expect(componente.porCobrar()).toBe(45);
+    expect(componente.porCobrar()).toBe('45.00');
     expect(componente.impedimento()).toContain('Falta cobrar');
 
     componente.agregarPago();
     componente.completarPago(componente.pagos()[1]);
-    expect(componente.cobrado()).toBe(145);
+    expect(componente.cobrado()).toBe('145.00');
     expect(componente.impedimento()).toBeNull();
   });
 
@@ -122,11 +173,11 @@ describe('PuntoDeVentaComponent · totales, cobro y reglas', () => {
     const peticion = componente.peticion();
     expect(peticion.cajaId).toBe('caja-1');
     expect(peticion.serieId).toBe('ser-1');
-    expect(peticion.lineas).toEqual([{ productoId: 'p-cem', cantidad: 1, descuento: 2.5 }]);
+    expect(peticion.lineas).toEqual([{ productoId: 'p-cem', cantidad: '1', descuento: '2.5' }]);
     // `entregado` en null es «pagó justo». Va explícito y no ausente para que
     // la forma del cuerpo no dependa de si hubo vuelto.
     expect(peticion.pagos).toEqual([
-      { forma: 'EFECTIVO', monto: 30, referencia: null, entregado: null },
+      { forma: 'EFECTIVO', monto: '30.00', referencia: null, entregado: null },
     ]);
     expect(JSON.stringify(peticion)).not.toContain('precio');
   });
@@ -141,13 +192,13 @@ describe('PuntoDeVentaComponent · totales, cobro y reglas', () => {
     // de 32.50.
     componente.cambiarMonto(componente.pagos()[0], 50);
 
-    expect(componente.cobrado()).toBe(32.5);
-    expect(componente.vuelto()).toBe(17.5);
+    expect(componente.cobrado()).toBe('32.50');
+    expect(componente.vuelto()).toBe('17.50');
     // Pasarse en efectivo ya no impide registrar: es vuelto, no un cobro de más.
     expect(componente.impedimento()).toBeNull();
 
     expect(componente.peticion().pagos).toEqual([
-      { forma: 'EFECTIVO', monto: 32.5, referencia: null, entregado: 50 },
+      { forma: 'EFECTIVO', monto: '32.50', referencia: null, entregado: '50.00' },
     ]);
   });
 
@@ -160,7 +211,7 @@ describe('PuntoDeVentaComponent · totales, cobro y reglas', () => {
     componente.cambiarFormaDePago(componente.pagos()[0], 'TARJETA');
     componente.cambiarMonto(componente.pagos()[0], 50);
 
-    expect(componente.vuelto()).toBe(0);
+    expect(componente.vuelto()).toBe('0.00');
     expect(componente.impedimento()).toContain('superan el total');
   });
 
@@ -172,7 +223,7 @@ describe('PuntoDeVentaComponent · totales, cobro y reglas', () => {
       componente.agregarProducto({ id: 'p-cem', titulo: 'Cemento' });
     }
     componente.completarPago(componente.pagos()[0]);
-    expect(componente.total()).toBe(715);
+    expect(componente.total()).toBe('715.00');
 
     componente.cambiarTipo('BOLETA');
     expect(componente.impedimento()).toContain('700');
@@ -247,6 +298,13 @@ describe('PuntoDeVentaComponent · totales, cobro y reglas', () => {
     const c = crear(); await asentar(); c.cambiarTipo('FACTURA'); await asentar();
     resolver([{ id: 'serie-nota', serie: 'N001', siguienteNumero: 'N001-00000001' }]); await asentar();
     expect(c.serieId()).toBe('serie-factura');
+  });
+
+  it('bloquea una cantidad cero sin reemplazarla por uno', async () => {
+    const c = crear(); await asentar();
+    await c.buscarProducto('srv'); c.agregarProducto({ id: 'p-srv', titulo: 'Instalación' });
+    c.cambiarCantidad(c.lineas()[0], 0);
+    expect(c.impedimento()).toContain('cantidad');
   });
 
 });

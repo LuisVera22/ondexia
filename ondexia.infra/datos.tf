@@ -25,7 +25,7 @@ resource "random_password" "bd" {
 resource "aws_db_parameter_group" "principal" {
   name        = "${local.nombre}-pg"
   family      = "postgres17"
-  description = "Ondexia ${var.entorno}"
+  description = "Ondexia ${local.entorno_recursos}"
 
   # Registra las sentencias que tardan más de un segundo. Con una instancia
   # pequeña, una consulta sin índice es la primera causa de que la aplicación

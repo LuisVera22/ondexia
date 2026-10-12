@@ -1,0 +1,66 @@
+{
+  "fecha": "2026-10-10",
+  "base": "0df3f6d57a8b0dcece6f7667ce605c7fa307dc15",
+  "rama": "feature/caracterizar-rotacion-jwt",
+  "directorio": "/workspace/ondexia-rotacion-jwt/apps/backend",
+  "comando_base_y_restauracion": "./mvnw -o -B -s /workspace/.ondexia-setup/maven.xml -pl ondexia.api -am -Ddependency-check.skip=true -Dtest=RotacionDeClavesIT,FirmaDelTokenIT,ArquitecturaTest -Dsurefire.failIfNoSpecifiedTests=false test",
+  "comando_mutacion": "./mvnw -o -B -s /workspace/.ondexia-setup/maven.xml -pl ondexia.api -am -Ddependency-check.skip=true -Dtest=RotacionDeClavesIT -Dsurefire.failIfNoSpecifiedTests=false test",
+  "mutacion": "Selector de producción conserva solo la primera clave del JWKS; falta la clave nueva. Detectado por nuevaConfiguracionAceptaAmbasClavesPublicadasSinCambiarLaInstanciaAnterior con BadJwtException.",
+  "restauracion_byte_a_byte": true,
+  "resultados": [
+    {
+      "fase": "base",
+      "casos": 22,
+      "fallos": 0,
+      "errores": 0,
+      "omitidos": 0,
+      "salida": 0,
+      "archivo": "ondexia.docs/evidencias/2026-10-10-rotacion-jwt/base.log.gz",
+      "sha256_original": "e83639005e172672d1fbe128365dc1d5c0f678c4c8e1cf015577dce7930ffe03",
+      "sha256_comprimido": "362431ae7bbe01c18aaba9fdfc6fa220854260d1fc1f075d496a16f54c6cad21"
+    },
+    {
+      "fase": "mutacion",
+      "casos": 3,
+      "fallos": 0,
+      "errores": 1,
+      "omitidos": 0,
+      "salida": 1,
+      "archivo": "ondexia.docs/evidencias/2026-10-10-rotacion-jwt/mutacion.log.gz",
+      "sha256_original": "207cd3efbd3c1dcd6462d351b8439992ef4bb2680238e8ca453844a2a785f2b1",
+      "sha256_comprimido": "588a20d79c0779b01f8b92404858c46ec620b83a1e2c4d646958040ebeaac445"
+    },
+    {
+      "fase": "restaurado",
+      "casos": 22,
+      "fallos": 0,
+      "errores": 0,
+      "omitidos": 0,
+      "salida": 0,
+      "archivo": "ondexia.docs/evidencias/2026-10-10-rotacion-jwt/restaurado.log.gz",
+      "sha256_original": "8010bf5415241da1dace52527263644a96b4889a505d386416a6682aad0e1936",
+      "sha256_comprimido": "0a243ab145310e821971675929bf162ca9277826e587103d63f9861662f313bf"
+    }
+  ],
+  "sha256_codigo_restaurado": "34867fe8114bc980d0e441b7eb1fc2a84e6d5ba4ba1891123449895132b7fc90",
+  "no_verificado": [
+    "Recuperación automática",
+    "Cognito real",
+    "Despliegue y SnapStart",
+    "Panel interno",
+    "IAM y alarmas",
+    "Revocación",
+    "CI completo",
+    "Dependency-Check local: omitido explícitamente",
+    "Auditoría independiente"
+  ],
+  "reconciliacion_audiencia": {
+    "develop": "9e262d7fa9a63eacb8ffa3879b61323e97f8fb40",
+    "pruebas": 26,
+    "fallos": 0,
+    "errores": 0,
+    "omitidas": 0,
+    "archivo": "2026-10-10-rotacion-jwt/combinado-audiencia.log.gz",
+    "sha256_comprimido": "e13974a69b9c5d0dd4658e678566cf94758c03fc7bf372a9f2f15958738fbbb4"
+  }
+}

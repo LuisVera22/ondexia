@@ -1,0 +1,20 @@
+{
+  "versiones": [
+    {
+      "url": "https://github.com/fastify/fast-uri/releases/tag/v3.1.7",
+      "version": "v3.1.7",
+      "notas": "## ⚠️ Security Warning\n\nThis is a security release that fixes the following high-severity security advisories:\n\n- [GHSA-qw65-cvwx-89v3](https://github.com/fastify/fast-uri/security/advisories/GHSA-qw65-cvwx-89v3) — authority injection via an unvalidated port in `serialize()`\n- [GHSA-58mr-gqgx-xq4g](https://github.com/fastify/fast-uri/security/advisories/GHSA-58mr-gqgx-xq4g) — host confusion via unbalanced or misplaced IP-literal brackets\n\nUsers of the v3.x release line should upgrade to v3.1.7.\n\n**Full Changelog**: https://github.com/fastify/fast-uri/compare/v3.1.6...v3.1.7\n"
+    },
+    {
+      "url": "https://github.com/fastify/fast-uri/releases/tag/v3.1.8",
+      "version": "v3.1.8",
+      "notas": "## ⚠️ Security Warning\n\nThis security release fixes the following medium-severity security advisory:\n\n- [GHSA-hrr3-gc8f-f4qj](https://github.com/fastify/fast-uri/security/advisories/GHSA-hrr3-gc8f-f4qj) — inconsistent host case normalization via percent-encoded octets\n\nUsers of the v3.x release line should upgrade to v3.1.8.\n\n**Full Changelog**: https://github.com/fastify/fast-uri/compare/v3.1.7...v3.1.8\n"
+    }
+  ],
+  "cambios": "https://github.com/fastify/fast-uri/compare/v3.1.6...v3.1.8",
+  "pruebas": [
+    "test/component-safe-serialization.test.js",
+    "test/ipv6-validation.test.js",
+    "test/security-normalization.test.js"
+  ]
+}

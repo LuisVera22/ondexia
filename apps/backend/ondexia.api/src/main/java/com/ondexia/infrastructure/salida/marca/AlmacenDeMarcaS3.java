@@ -1,6 +1,8 @@
 package com.ondexia.infrastructure.salida.marca;
 
 import com.ondexia.domain.marca.AlmacenDeMarca;
+import com.ondexia.domain.comun.error.ReglaDeNegocioViolada;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Component;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -24,7 +27,7 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
  * que es la razón por la que esta pantalla no necesitaba la NAT que el plan
  * temía.
  *
- * <p>Lo que sí sale a la red es {@link #describir} y {@link #eliminar}, y salen
+ * <p>Lo que sí sale a la red es {@link #describir}, {@link #validarImagen} y {@link #eliminar}, y salen
  * por el <strong>endpoint de puerta de enlace</strong> de S3 que ya está en la
  * VPC. Es gratuito y no cruza internet.
  *
@@ -39,7 +42,8 @@ import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignReques
  * este SDK no genera— así que se comprueba de dos maneras: antes de firmar,
  * sobre lo que el cliente declara, y después de la subida con
  * {@link #describir}, sobre lo que S3 recibió de verdad. Un archivo que se pase
- * queda en el bucket pero nunca se referencia.
+ * queda en el bucket pero nunca se referencia. La validación por bytes y límites
+ * se prueba con dobles en AlmacenDeMarcaS3Test; IAM/CDN efectivos no verificados.
  */
 @Component
 @Profile("aws")
@@ -74,6 +78,8 @@ public class AlmacenDeMarcaS3 implements AlmacenDeMarca {
                 .bucket(bucket)
                 .key(clave)
                 .contentType(tipoContenido)
+                // La condición queda firmada: EscrituraUnicaDeLogoTest (SDK local; S3 real no verificado).
+                .ifNoneMatch("*")
                 .build();
 
         var firmada = firmador.presignPutObject(PutObjectPresignRequest.builder()
@@ -98,6 +104,31 @@ public class AlmacenDeMarcaS3 implements AlmacenDeMarca {
             // La subida no llegó a ocurrir. No es un fallo del sistema: es la
             // respuesta a «¿está ahí?».
             return Optional.empty();
+        }
+    }
+
+    @Override
+    public void validarImagen(String clave, String tipoContenido, long maximoBytes) {
+        if (maximoBytes < 1 || maximoBytes > 1_048_576L) {
+            throw new IllegalArgumentException("El límite de lectura no corresponde a un logo.");
+        }
+        try (var entrada = s3.getObject(GetObjectRequest.builder().bucket(bucket).key(clave).build())) {
+            byte[] contenido;
+            try {
+                contenido = entrada.readNBytes((int) maximoBytes + 1);
+            } catch (IOException fallo) {
+                entrada.abort();
+                throw fallo;
+            }
+            if (contenido.length > maximoBytes) {
+                // Evita que close drene un cuerpo que ya excedió el límite (AlmacenDeMarcaS3Test).
+                entrada.abort();
+            }
+            ValidadorDeImagen.validar(contenido, tipoContenido, maximoBytes);
+        } catch (NoSuchKeyException fallo) {
+            throw new ReglaDeNegocioViolada("subida_no_completada", "No se encontró el archivo. Vuelve a intentar la subida.");
+        } catch (IOException fallo) {
+            throw new IllegalStateException("No se pudo comprobar el archivo de marca.");
         }
     }
 

@@ -51,9 +51,12 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
  * un secreto: son claves públicas.
  *
  * <p>La fuente es inmutable ({@link ImmutableJWKSet}): no hay red en ejecución,
- * no hay caché que expire, no hay tiempo de espera que agotar. Si Cognito rotara
- * las claves —hoy no lo hace por su cuenta— el síntoma sería un 401 en toda
- * petición y se arregla volviendo a aplicar.
+ * no hay caché que expire, no hay tiempo de espera que agotar. Cognito puede
+ * rotar sus claves: una firma cuya clave no está configurada se rechaza.
+ * Construir otra instancia con el JWKS actualizado permite verificar las claves
+ * publicadas, sin actualizar la instancia anterior.
+ * Ver {@link com.ondexia.pruebas.RotacionDeClavesIT}; recuperación automática y
+ * aplicación de la configuración en AWS: no verificadas (ACT-14).
  *
  * <h2>Qué se exige, además de la firma</h2>
  *
@@ -78,10 +81,19 @@ public class SeguridadPasarelaConfig {
     private final String clienteEsperado;
     private final String jwks;
 
+    /**
+     * Sin cliente esperado no es posible comprobar la audiencia: se impide el arranque.
+     *
+     * @see com.ondexia.pruebas.FirmaDelTokenIT#sinClienteConfiguradoFallaAntesDeAceptarTokens(String)
+     */
     public SeguridadPasarelaConfig(
             @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}") String emisorEsperado,
             @Value("${ondexia.cognito.cliente}") String clienteEsperado,
             @Value("${ondexia.cognito.jwks}") String jwks) {
+        if (clienteEsperado == null || clienteEsperado.isBlank()) {
+            throw new IllegalStateException(
+                    "COGNITO_CLIENTE_ID debe identificar la aplicación esperada.");
+        }
         this.emisorEsperado = emisorEsperado;
         this.clienteEsperado = clienteEsperado;
         this.jwks = jwks;
@@ -189,16 +201,6 @@ public class SeguridadPasarelaConfig {
             if (!"access".equals(uso) && !"id".equals(uso)) {
                 return OAuth2TokenValidatorResult.failure(new OAuth2Error(
                         "invalid_token", "token_use no es 'access' ni 'id'.", null));
-            }
-
-            /*
-             * Sin cliente configurado no se comprueba la audiencia, y se dice
-             * aqui por que no es un agujero: `ondexia.cognito.cliente` viene de
-             * COGNITO_CLIENTE_ID, que Terraform pone siempre en el perfil `aws`.
-             * Vacio solo ocurre en una prueba que no ejercita esto.
-             */
-            if (clienteEsperado == null || clienteEsperado.isBlank()) {
-                return OAuth2TokenValidatorResult.success();
             }
 
             boolean nuestro = "access".equals(uso)

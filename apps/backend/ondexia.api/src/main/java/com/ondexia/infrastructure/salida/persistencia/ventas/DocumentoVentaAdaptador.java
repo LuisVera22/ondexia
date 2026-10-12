@@ -4,8 +4,8 @@ import com.ondexia.domain.almacen.AfectacionIgv;
 import com.ondexia.domain.almacen.UnidadDeMedida;
 import com.ondexia.domain.comprobante.TipoDocumento;
 import com.ondexia.domain.comun.ProveedorDeContexto;
+import com.ondexia.domain.marca.AlmacenDeMarca;
 import com.ondexia.domain.ventas.Cliente;
-import com.ondexia.domain.ventas.ClienteRepositorio;
 import com.ondexia.domain.ventas.DocumentoVenta;
 import com.ondexia.domain.ventas.DocumentoVentaRepositorio;
 import com.ondexia.domain.ventas.EstadoDocumento;
@@ -26,14 +26,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class DocumentoVentaAdaptador implements DocumentoVentaRepositorio {
 
     private final DocumentoVentaJpaRepository filas;
-    private final ClienteRepositorio clientes;
     private final ProveedorDeContexto contexto;
+    private final AlmacenDeMarca almacenMarca;
 
-    public DocumentoVentaAdaptador(DocumentoVentaJpaRepository filas, ClienteRepositorio clientes,
-            ProveedorDeContexto contexto) {
+    public DocumentoVentaAdaptador(DocumentoVentaJpaRepository filas,
+            ProveedorDeContexto contexto, AlmacenDeMarca almacenMarca) {
         this.filas = filas;
-        this.clientes = clientes;
         this.contexto = contexto;
+        this.almacenMarca = almacenMarca;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class DocumentoVentaAdaptador implements DocumentoVentaRepositorio {
             // Lo único que cambia después de emitido. El disparador lo vigila.
             var fila = existente.get();
             fila.cambiarEstado(d.estado().name());
-            return aDominio(filas.save(fila));
+            return aDominio(filas.saveAndFlush(fila));
         }
         var fila = new DocumentoVentaJpa(d.id(), empresaId, d.sucursalId(), d.sesionCajaId(),
                 d.tipo().codigo(), d.esFiscal(), d.serie(), d.numero(),
@@ -88,12 +88,16 @@ public class DocumentoVentaAdaptador implements DocumentoVentaRepositorio {
             fila.agregarPago(new PagoJpa(UUID.randomUUID(), empresaId, p.forma().name(), p.monto(),
                     p.referencia(), p.entregado()));
         }
-        return aDominio(filas.save(fila));
+        return aDominio(filas.saveAndFlush(fila));
     }
 
     private DocumentoVenta aDominio(DocumentoVentaJpa fila) {
-        Cliente cliente = fila.getClienteId() == null ? null
-                : clientes.buscarPorId(fila.getClienteId()).orElse(null);
+        var historicos = fila.getDatosHistoricos();
+        var adquirente = historicos == null ? null : historicos.cliente();
+        Cliente cliente = adquirente == null ? null : new Cliente(adquirente.id(),
+                fila.getEmpresaId(), com.ondexia.domain.ventas.TipoDocumentoIdentidad.porCodigo(
+                        adquirente.tipoDocumento()), adquirente.numeroDocumento(), adquirente.nombre(),
+                adquirente.direccion(), null, null, null, true);
         return DocumentoVenta.reconstruir(fila.getId(), fila.getEmpresaId(), fila.getSucursalId(),
                 fila.getSesionCajaId(), TipoDocumento.porCodigo(fila.getTipoDocumento()),
                 fila.getSerie(), fila.getNumero(), cliente, fila.getFechaEmision(),
@@ -106,7 +110,9 @@ public class DocumentoVentaAdaptador implements DocumentoVentaRepositorio {
                 fila.getOrigenTipo() == null ? null : new ReferenciaDocumento(
                         TipoDocumento.porCodigo(fila.getOrigenTipo()), fila.getOrigenSerie(),
                         fila.getOrigenNumero()),
-                EstadoDocumento.valueOf(fila.getEstado()));
+                EstadoDocumento.valueOf(fila.getEstado()),
+                fila.getLogoPrincipal() == null ? null : almacenMarca.urlPublica(fila.getLogoPrincipal()),
+                fila.getLogoTicket() == null ? null : almacenMarca.urlPublica(fila.getLogoTicket()), historicos);
     }
 
     private static LineaDeVenta aLinea(DetalleVentaJpa l) {

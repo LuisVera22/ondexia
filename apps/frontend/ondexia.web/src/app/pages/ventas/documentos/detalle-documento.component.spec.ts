@@ -10,7 +10,7 @@ import { AvisosService } from '../../../shared/services/avisos.service';
 
 describe('Detalle del documento · presentación interna y fiscal', () => {
   const nota: DocumentoVentaApi = {
-    id: 'nota-1', tipoNombre: 'Nota de venta', serie: 'NV01', numero: 2, sucursalId: 'suc-1', sesionCajaId: 'ses-1', fechaEmision: '2026-10-08', emitidoPor: 'vendedor', moneda: 'PEN', documentoOrigenId: null, motivo: null, motivoNombre: null, tipo: 'NV', fiscal: false, numeroCompleto: 'NV01-00000002', estado: 'EMITIDO',
+    logoPrincipal: null, logoTicket: null, id: 'nota-1', tipoNombre: 'Nota de venta', serie: 'NV01', numero: 2, sucursalId: 'suc-1', sesionCajaId: 'ses-1', fechaEmision: '2026-10-08', emitidoPor: 'vendedor', moneda: 'PEN', documentoOrigenId: null, motivo: null, motivoNombre: null, tipo: 'NV', fiscal: false, numeroCompleto: 'NV01-00000002', estado: 'EMITIDO',
     emitidoEn: '2026-10-08T18:00:00Z', cliente: null, pagos: [], origen: null, observaciones: 'PRUEBA',
     totalGravado: 381.36, totalIgv: 68.64, totalExonerado: 0, totalInafecto: 0,
     totalDescuento: 0, total: 450, lineas: [{ orden: 1, descripcion: 'Cajas', codigo: 'CAJ', unidad: 'NIU',
@@ -118,6 +118,49 @@ describe('Detalle del documento · presentación interna y fiscal', () => {
       expect(resumen.textContent).not.toContain('Importe de venta');
     });
   }
+
+  for (const formato of ['ticket', 'a4'] as const) {
+    it(`muestra exclusivamente la versión guardada para ${formato}`, () => {
+      const documento = { ...nota, logoPrincipal: '/logos/principal-A.png', logoTicket: '/logos/ticket-A.png' };
+      const hoja = mostrar(documento, formato);
+      const imagen = hoja.querySelector('header img') as HTMLImageElement;
+      expect(imagen).not.toBeNull();
+      expect(imagen?.getAttribute('src')).toBe(formato === 'a4' ? '/logos/principal-A.png' : '/logos/ticket-A.png');
+      expect(hoja.querySelector('header')?.classList.contains('cabecera--a4')).toBe(formato === 'a4');
+    });
+
+    it(`un documento sin versión no añade logo en ${formato}`, () => {
+      const hoja = mostrar(nota, formato);
+      expect(hoja.querySelector('header img')).toBeNull();
+    });
+  }
+
+  for (const formato of ['ticket', 'a4'] as const) {
+    it(`la cabecera ${formato} usa los datos del momento de emisión`, () => {
+      const hoja = mostrar({ ...nota, datosHistoricos: {
+        emisor: { ruc: '20100000009', razonSocial: 'Emisor al emitir', nombreComercial: 'Marca al emitir',
+          domicilioFiscal: 'Domicilio al emitir', ubigeo: '150101' },
+        local: { id: 'suc-1', nombre: 'Local al emitir', direccion: 'Dirección del local al emitir',
+          ubigeo: '150101', codigo: '0000' }, cliente: null,
+      } }, formato);
+      expect(hoja.querySelector('header')?.textContent).toContain('Emisor al emitir');
+      expect(hoja.querySelector('header')?.textContent).toContain('Dirección del local al emitir');
+      expect(hoja.querySelector('header')?.textContent).toContain('20100000009');
+    });
+  }
+
+  it('distingue el legado y no presenta la falta de datos como cliente anónimo', () => {
+    const vista = TestBed.createComponent(DetalleDocumentoComponent);
+    vista.componentInstance.documento.set(nota);
+    vista.componentInstance.cargando.set(false);
+    vista.componentInstance.error.set(null);
+    vista.detectChanges();
+    expect(vista.nativeElement.querySelector('[role="status"]')?.textContent).toContain('datos originales');
+    expect(vista.nativeElement.querySelector('[aria-label="Registro de venta"]')?.textContent)
+      .toContain('Datos originales no disponibles');
+    expect(vista.nativeElement.querySelector('[aria-label="Registro de venta"]')?.textContent)
+      .not.toContain('Cliente varios');
+  });
 
   it('no resta de nuevo descuentos ni reclasifica afectaciones mixtas en la nota', () => {
     const hoja = mostrar({ ...nota, totalGravado: 100, totalIgv: 18, totalExonerado: 50,

@@ -28,8 +28,10 @@ Los commits no llevan marca de herramienta: nada de `Co-Authored-By` ni
 **GitFlow** es el flujo del proyecto: `feature/*` parte de `develop` y vuelve a
 `develop`; `release/*` parte de `develop` y se integra en `main` y `develop`;
 `hotfix/*` parte de `main` y se integra en ambas. `main` se reserva para publicar
-y no recibe commits directos. En esta sesión, por instrucción del propietario,
-se trabaja directamente sobre `develop`; no se crea otra rama por defecto.
+y no recibe commits directos. Para los lotes autorizados se utiliza una rama
+`feature/*` desde `develop` actualizado y un PR hacia `develop`. Integrar solo
+tras comprobar el CI y los controles requeridos del mismo head; cerrar la rama
+cuando pase el CI del commit integrado y no tenga cambios nuevos sin integrar.
 
 **Conventional Commits es obligatorio para los commits nuevos.** Formato:
 `tipo(ámbito opcional)!: descripción`. El ámbito y `!` son opcionales; `!` indica
@@ -46,6 +48,37 @@ No reescribir commits históricos para adaptar sus mensajes. Antes de confirmar,
 revisar rama, estado, diff y verificaciones pertinentes; conservar cambios
 ajenos y confirmar juntos los cambios de API, OpenAPI y modelos Angular.
 El detalle del flujo está en `ondexia.docs/03-estructura-repositorio.md`, §6.
+
+## Desarrollo guiado por negocio y evidencia
+
+Los complementos del [documento 03, §11](ondexia.docs/03-estructura-repositorio.md#11-desarrollo-soporte-y-evidencia-del-harness-existente),
+[documento 08, §10](ondexia.docs/08-arquitectura-backend.md) y
+[documento 10, §15](ondexia.docs/10-convenciones-de-interfaz.md), aprobados por el
+propietario el 2026-10-10, forman parte del contrato y del harness existente.
+Aplicar su profundidad según alcance y riesgo, reutilizando decisiones vigentes.
+
+Antes de una funcionalidad, presentar el plan y resolver con el propietario las
+decisiones de negocio pendientes. Evaluar problema, proceso, alternativas,
+impacto y rentabilidad; no confundir viabilidad técnica con retorno demostrado.
+Especificar casos de uso con flujo y extensiones: cada validación tiene regla,
+autoridad, momento y respuestas de aceptación, rechazo e incertidumbre.
+Vincular aceptación, casos de prueba y evidencia mediante SDD/BDD/TDD según la tarea.
+
+Cada corrección demuestra fallo sin arreglo y éxito con él. Para controles ya
+correctos, comprobar sensibilidad con una mutación aislada y restaurada. Los
+esperados provienen de reglas y datos independientes de los resultados observados.
+Declarar explícitamente lo no verificado; no inventar pruebas para cambios documentales.
+
+En UX/UI, verificar las tareas afectadas en móvil/escritorio, estados, recuperación,
+teclado y foco; WCAG 2.2 AA es el objetivo, no una conformidad ya demostrada.
+En seguridad, seleccionar controles versionados de OWASP ASVS 5.0.0 según activos
+y amenazas, apoyados en Top 10:2025 y API Top 10:2023. Verificar configuración y
+pruebas efectivas, con costo proporcional al riesgo y sin relajar invariantes.
+La auditoría requiere una sesión independiente sin narrativa del implementador.
+
+Estas reglas no dan por resuelto el backlog, no convierten ejemplos en políticas
+y no autorizan despliegues. El harness existente distingue reglas de trabajo,
+capacidades operativas y propuestas pendientes.
 
 ## Las cuatro reglas que salieron de la auditoría
 
@@ -116,6 +149,14 @@ transacción que falla cerrado. La aplicación NUNCA se conecta como superusuari
 un superusuario no está sujeto a RLS y el aislamiento quedaría activo y sin
 efecto.
 
+**Los documentos conservan los datos exactos del momento de emisión.** Cliente,
+emisor, local y versión del logo se fijan al emitir; las ediciones de maestros no
+cambian consulta, reimpresión ni datos documentales de envío. Los archivos originales
+enviados y recibidos de SUNAT se conservan vinculados al documento, sin sobrescritura;
+una representación regenerada se distingue del original. El legado solo se recupera
+de originales verificables; no se rellena con valores actuales. El avance y los
+límites de F06 están en `ondexia.docs/especificaciones/2026-10-11-conservacion-emision.md`.
+
 **Las bitácoras son de solo inserción**, por disparador y no solo por permisos.
 Los privilegios los concede quien es dueño de la tabla y se pueden volver a
 conceder.
@@ -176,6 +217,9 @@ todavía no ha corrido en ningún sitio.
 | Qué se construye primero y en qué orden | `ondexia.docs/12-plan-primer-producto.md` |
 | Estructura del repositorio y CI/CD | `ondexia.docs/03-estructura-repositorio.md` |
 | Arquitectura del backend | `ondexia.docs/08-arquitectura-backend.md` |
+| Negocio, requisitos, pruebas y seguridad del desarrollo | `ondexia.docs/03-estructura-repositorio.md`, §11 |
+| UX/UI, móvil y accesibilidad | `ondexia.docs/10-convenciones-de-interfaz.md`, §15 |
+| Formatos de especificación, pruebas y evidencia | `ondexia.docs/investigacion/2026-10-10-requisitos-ux-seguridad/plantillas.md` |
 | Panel interno | `ondexia.docs/09-panel-administrativo.md` |
 | Caja, nota de venta y existencias | `ondexia.docs/13-ventas-en-punto-de-venta.md` |
 | Emisión electrónica ante SUNAT | `ondexia.docs/14-emision-electronica.md` |

@@ -1,0 +1,38 @@
+{
+  "base": "87c583e5adf36ae608a2a8015bf20697174807ba",
+  "version_anterior": "3.9.16",
+  "version_probada": "3.10.0",
+  "jdk": "21.0.12.1",
+  "pruebas": {
+    "dominio": 170,
+    "api": 327,
+    "panel": 41,
+    "consultas": 41,
+    "emisor": 77,
+    "total": 656
+  },
+  "wrapper_windows_sha256_intacto": "4a361e1374a3e5ad6d03e18e9adc0cf181ac5058ac6203b76f0ba3b456b56481",
+  "artefactos": [
+    {
+      "archivo": "2026-10-11-cierre-maven-version.log.gz",
+      "sha256": "f9e8052ba462a52561599d3a2542b9a3ece8352253a5e6f3b33bad84900754ea",
+      "resumen": false,
+      "sha256_log_completo": "e590f75f4884754f70f290a605e4cf0b6648bd8afb1bd1b63736cdb6272dea42"
+    },
+    {
+      "archivo": "2026-10-11-cierre-maven-reactor.log.gz",
+      "sha256": "370e417806da1ba9ce7a542d8e63df8aabad7d490bff6fe55b52d9608578c563",
+      "resumen": true,
+      "sha256_log_completo": "eb81efe7935deae47027618efbf984a9e5c1f0b6338432e7116330347e308eed"
+    },
+    {
+      "archivo": "2026-10-11-cierre-maven-emisor.log.gz",
+      "sha256": "36b305f7e989eb0e1598fb6af03b7ea8b8fda2bd6a08ea9cbf7b77b3b324f4fa",
+      "resumen": true,
+      "sha256_log_completo": "eaee505b2a55ff24098a17dc39fd064848abb52f88dc63629b1c43bfec2152b4"
+    }
+  ],
+  "nvd_local": "omitido; pendiente de análisis efectivo en CI",
+  "windows_real": "no ejecutado",
+  "ci": "pendiente al registrar"
+}

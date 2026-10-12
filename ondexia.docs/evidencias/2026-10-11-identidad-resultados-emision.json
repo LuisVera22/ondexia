@@ -1,0 +1,86 @@
+{
+  "bloque": "ACT-15 · F17/F18 — identidad de resultados de emisión",
+  "base": "99ddbabd2aa9eea4bc0f4baea035df5626aa6a26",
+  "rojo": {
+    "dominio": {
+      "pruebas": 21,
+      "fallos": 18,
+      "errores": 0
+    },
+    "aplicacion": {
+      "pruebas": 4,
+      "fallos": 4,
+      "errores": 0
+    },
+    "limite": "Combinaciones de dos validaciones ausentes, no 22 vulnerabilidades ni explotación AWS demostrada"
+  },
+  "verde_inicial": {
+    "dominio": 29,
+    "aplicacion": 4,
+    "fallos": 0,
+    "errores": 0
+  },
+  "mutaciones": [
+    {
+      "control": "ID del comprobante; misma empresa",
+      "pruebas": 1,
+      "fallos": 1
+    },
+    {
+      "control": "Estado final aceptado",
+      "pruebas": 1,
+      "fallos": 1
+    }
+  ],
+  "restauracion": "Agregado comparado byte por byte con copia previa después de cada mutación",
+  "final": {
+    "dominio_completo": 152,
+    "dominio_focal": 30,
+    "aplicacion": 4,
+    "arquitectura": 9,
+    "fallos": 0,
+    "errores": 0
+  },
+  "entorno": "JDK 21, Maven offline. Mockito requiere permiso para adjuntar agente; el bloqueo inicial del sandbox no cuenta como defecto. Puertos con dobles, sin base/AWS/SUNAT. dependency-check omitido localmente; CI pendiente al registrar.",
+  "oraculos": "IDs y empresa fijados, operación de emisión, transiciones existentes y ausencia de cambios/persistencia. Esperados definidos antes de ejecutar.",
+  "no_verificado": [
+    "RLS/permisos reales en este corte",
+    "transacciones/rollback y fallo poscommit",
+    "correlación por intento y resultados tardíos",
+    "otras operaciones: credenciales/bajas",
+    "firma/esquema/vinculación CDR y propiedad de claves de archivo",
+    "autenticidad del productor y AWS/SUNAT",
+    "auditoría independiente"
+  ],
+  "ci": "pendiente al registrar",
+  "registros": [
+    {
+      "archivo": "2026-10-11-identidad-resultados-emision/rojo.log.gz",
+      "sha256": "6ad507d9bf38c661f865b0a3d1eca016f7d0c83d51b6410e46a70191bb8c4efe"
+    },
+    {
+      "archivo": "2026-10-11-identidad-resultados-emision/rojo-aplicacion.log.gz",
+      "sha256": "c88352b53afb0ab507cd140c0e381898feeabe111cf9909fcf1a23f99528e667"
+    },
+    {
+      "archivo": "2026-10-11-identidad-resultados-emision/verde.log.gz",
+      "sha256": "044d42b4b86fde915d995c6c3b882752001c951af32fc38be2cbbdb8d4b20f1f"
+    },
+    {
+      "archivo": "2026-10-11-identidad-resultados-emision/mutacion-id.log.gz",
+      "sha256": "d0150c422703d16a9fad5e8dbfee6bd4e6d146d62086e5addc618f1c65f2720c"
+    },
+    {
+      "archivo": "2026-10-11-identidad-resultados-emision/mutacion-final.log.gz",
+      "sha256": "561fa9bbcdbd8e05f6b4114789f6b0468806c65e7d5e456294455042d295faab"
+    },
+    {
+      "archivo": "2026-10-11-identidad-resultados-emision/final-dominio.log.gz",
+      "sha256": "806c8142969d1c5172321f37bf6f6d30a5e2b5b2de1332dd6e981e7cd1795bb0"
+    },
+    {
+      "archivo": "2026-10-11-identidad-resultados-emision/final-aplicacion.log.gz",
+      "sha256": "ab5733147b4c007723039f2d0d76e4136cec228c9cf96ca90268f1c657a7d233"
+    }
+  ]
+}

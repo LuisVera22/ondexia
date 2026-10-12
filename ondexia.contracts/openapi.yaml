@@ -2849,13 +2849,26 @@ components:
           type: string
           format: uuid
         cantidad:
-          minimum: 0
-          exclusiveMinimum: true
-          type: number
+          description: Decimal exacto como texto; se admiten números por compatibilidad.
+            Hasta 12 cifras enteras y 6 decimales.
+          nullable: false
+          oneOf:
+          - pattern: "^(?!0+(?:\\.0+)?$)[0-9]{1,12}(\\.[0-9]{1,6})?$"
+            type: string
+          - minimum: 0
+            exclusiveMinimum: true
+            type: number
         descuento:
-          minimum: 0
-          exclusiveMinimum: false
-          type: number
+          description: Decimal exacto como texto; se admiten números por compatibilidad.
+            Hasta 12 cifras enteras y 2 decimales.
+          nullable: true
+          oneOf:
+          - pattern: "^[0-9]{1,12}(\\.[0-9]{1,2})?$"
+            type: string
+            nullable: true
+          - minimum: 0
+            exclusiveMinimum: false
+            type: number
     PagoPedido:
       required:
       - forma
@@ -2870,17 +2883,30 @@ components:
           - TRANSFERENCIA
           - BILLETERA_DIGITAL
         monto:
-          minimum: 0
-          exclusiveMinimum: true
-          type: number
+          description: Decimal exacto como texto; se admiten números por compatibilidad.
+            Hasta 12 cifras enteras y 2 decimales.
+          nullable: false
+          oneOf:
+          - pattern: "^(?!0+(?:\\.0+)?$)[0-9]{1,12}(\\.[0-9]{1,2})?$"
+            type: string
+          - minimum: 0
+            exclusiveMinimum: true
+            type: number
         referencia:
           maxLength: 100
           minLength: 0
           type: string
         entregado:
-          minimum: 0
-          exclusiveMinimum: true
-          type: number
+          description: Decimal exacto como texto; se admiten números por compatibilidad.
+            Hasta 12 cifras enteras y 2 decimales.
+          nullable: true
+          oneOf:
+          - pattern: "^(?!0+(?:\\.0+)?$)[0-9]{1,12}(\\.[0-9]{1,2})?$"
+            type: string
+            nullable: true
+          - minimum: 0
+            exclusiveMinimum: true
+            type: number
     PeticionVenta:
       required:
       - cajaId
@@ -2910,6 +2936,56 @@ components:
         observaciones:
           maxLength: 500
           minLength: 0
+          type: string
+    ClienteHistorico:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tipoDocumento:
+          type: string
+        numeroDocumento:
+          type: string
+        nombre:
+          type: string
+        direccion:
+          type: string
+    DatosHistoricosDocumento:
+      type: object
+      properties:
+        emisor:
+          $ref: "#/components/schemas/EmisorHistorico"
+        local:
+          $ref: "#/components/schemas/LocalHistorico"
+        cliente:
+          $ref: "#/components/schemas/ClienteHistorico"
+    EmisorHistorico:
+      type: object
+      properties:
+        ruc:
+          type: string
+        razonSocial:
+          type: string
+        nombreComercial:
+          type: string
+        domicilioFiscal:
+          type: string
+        ubigeo:
+          type: string
+    LocalHistorico:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        nombre:
+          type: string
+        direccion:
+          type: string
+        ubigeo:
+          type: string
+        codigo:
           type: string
     RespuestaDocumento:
       type: object
@@ -2982,6 +3058,12 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/RespuestaPago"
+        logoPrincipal:
+          type: string
+        logoTicket:
+          type: string
+        datosHistoricos:
+          $ref: "#/components/schemas/DatosHistoricosDocumento"
     RespuestaLinea:
       type: object
       properties:
@@ -3419,6 +3501,8 @@ components:
       properties:
         url:
           type: string
+          description: "Destino PUT: enviar Content-Type autorizado e If-None-Match:\
+            \ * para crear sin reemplazar."
         clave:
           type: string
         validaSegundos:
@@ -3823,11 +3907,11 @@ components:
         llevaIgv:
           type: boolean
         precio:
-          type: number
+          type: string
         controlaStock:
           type: boolean
         existencia:
-          type: number
+          type: string
           nullable: true
     RespuestaCatalogos:
       type: object

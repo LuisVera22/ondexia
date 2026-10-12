@@ -1,7 +1,10 @@
 # Ondexia — Convenciones de interfaz
 
+
 Lo que la aplicación ya hace y por qué. No es una guía de estilo aspiracional:
-cada regla de aquí está implementada, y la mayoría tiene una prueba detrás.
+las convenciones históricas de los apartados 1–14 describen la implementación
+y su evidencia registrada. El apartado 15 incorpora criterios de trabajo nuevos;
+su aprobación no demuestra que toda la interfaz ya los cumpla.
 
 Escrito para el momento en que haya que tocar algo dentro de seis meses y la
 pregunta sea «¿esto está así por un motivo o porque salió así?».
@@ -385,3 +388,32 @@ medían nada:
    no clonando el `<link>`: un `<link>` carga de forma asíncrona y la prueba
    mediría el DOM sin CSS — el resultado que pasa en verde sin significar nada.
    Se cuentan las reglas copiadas y se falla si son pocas.
+
+
+## 15. UX/UI y accesibilidad
+
+Diseñar para completar tareas, entender estados y recuperar errores. Reutilizar
+el sistema visual del presente documento. Especificar
+estados vacío, carga, éxito, rechazo, permisos, fallo e incertidumbre; conservar
+trabajo del usuario y evitar acciones financieras duplicadas.
+
+Adoptar **WCAG 2.2 AA como objetivo de accesibilidad**, sin afirmar conformidad
+hasta comprobar los criterios aplicables y el proceso completo. Verificar teclado,
+foco visible y su retorno, semántica, etiquetas, contraste, errores vinculados a
+campos, mensajes de estado y reflujo. Para diálogos, aplicar patrones W3C APG y
+probar teclado/foco, no solo capturas.
+
+En cambios de interfaz, comprobar las tareas afectadas en móvil y escritorio:
+320, 390, 768 y 1440 píxeles CSS, altura reducida, orientación y zoom cuando sean
+pertinentes. El mínimo AA de objetivos es 24 × 24 píxeles CSS con sus excepciones;
+44 × 44 es nuestra referencia de diseño táctil, no el mínimo AA.
+
+Evaluar prototipos y cambios importantes con tareas neutrales y usuarios pertinentes,
+consentimiento y datos seguros. Registrar éxito, errores, comprensión, recuperación
+y fricción; distinguir revisión heurística de investigación con usuarios reales.
+No inventar participantes ni conclusiones estadísticas. Medir resultados y costo
+antes de ampliar alcance; no rediseñar todo el producto por preferencia estética.
+
+Complemento aprobado el 2026-10-10, respaldado por la
+[investigación de UX/UI](investigacion/2026-10-10-requisitos-ux-seguridad/ux-ui.md)
+y los [formatos de evaluación](investigacion/2026-10-10-requisitos-ux-seguridad/plantillas.md).

@@ -1,0 +1,89 @@
+{
+  "base": "99a9a3dc8595cbd3534fe0472131fdaa0aebe8ee",
+  "rama": "feature/corregir-precision-mostrador",
+  "rojo": {
+    "componente": {
+      "casos": 19,
+      "fallos": 4
+    },
+    "api_precio": {
+      "casos": 1,
+      "fallos": 1
+    },
+    "cantidad_cero_base_original": {
+      "casos": 133,
+      "fallos": 1
+    },
+    "nulabilidad_contrato": {
+      "base": "c060ee2e909b0456bd3de3ad47824064bf1a120a",
+      "casos": 1,
+      "fallos": 1,
+      "esperado": "nullable true en la variante textual de los campos opcionales",
+      "observado": "false",
+      "sha256_antes": "6e2c8200e919ade54cb51a1133d7f39ceb358c71ae641ff6d38606f57b9b6501",
+      "sha256_despues": "6e2c8200e919ade54cb51a1133d7f39ceb358c71ae641ff6d38606f57b9b6501"
+    }
+  },
+  "sensibilidad": {
+    "mutacion": "Truncar monto de pago con RoundingMode.DOWN a escala cero en el adaptador de entrada.",
+    "casos": 1,
+    "fallos": 1,
+    "controlador_sha256_antes": "a687e66736fa92d1b9c0449f802191fa6356ea6950d566ec619cbce79180a787",
+    "controlador_sha256_despues": "a687e66736fa92d1b9c0449f802191fa6356ea6950d566ec619cbce79180a787"
+  },
+  "restauracion_entrada": {
+    "apps/frontend/ondexia.web/src/app/pages/ventas/punto-de-venta/punto-de-venta.component.ts": {
+      "antes": "3b736fe8fe55becd24f4bda2dc946ae629bf315475e09b336506d4018723a958",
+      "despues": "3b736fe8fe55becd24f4bda2dc946ae629bf315475e09b336506d4018723a958"
+    },
+    "apps/frontend/ondexia.web/src/app/pages/ventas/punto-de-venta/punto-de-venta.component.spec.ts": {
+      "antes": "d718d51ff06d8561786bca13a0fdb1ebb092f48e4f47c94b556e70239327832f",
+      "despues": "d718d51ff06d8561786bca13a0fdb1ebb092f48e4f47c94b556e70239327832f"
+    },
+    "apps/frontend/ondexia.web/src/app/pages/ventas/punto-de-venta/punto-de-venta.component.html": {
+      "antes": "ebc40a4c54c2f8c57699360914a8953211e8e4380eb2f6738e6d5d5e8d947046",
+      "despues": "ebc40a4c54c2f8c57699360914a8953211e8e4380eb2f6738e6d5d5e8d947046"
+    },
+    "apps/frontend/ondexia.web/src/app/nucleo/almacen.modelos.ts": {
+      "antes": "e3c2d133f7f37d5d5a8d6d36752f8ce15a0e280f17907c57387a9e1c2a3cd235",
+      "despues": "e3c2d133f7f37d5d5a8d6d36752f8ce15a0e280f17907c57387a9e1c2a3cd235"
+    }
+  },
+  "verde": {
+    "backend_seleccionado": 29,
+    "backend_completo": 525,
+    "web": 139,
+    "oraculos_f03": 7,
+    "pantallas": 21,
+    "impresiones": 8,
+    "compilacion_produccion": true,
+    "contrato_tras_restauracion": 2
+  },
+  "ci_pr": "pendiente al registrar",
+  "ci_develop": "pendiente al registrar",
+  "limites": [
+    "Dependency-Check local omitido explícitamente.",
+    "Auditoría independiente pendiente.",
+    "Dispositivos físicos y teclados reales no verificados.",
+    "API sintéticas en comprobación visual; bases efímeras en integración.",
+    "No hay emisión SUNAT, despliegue AWS ni modificación de datos existentes.",
+    "Otras pantallas y respuesta/consulta del documento mantienen campos numéricos; F04 parcial."
+  ],
+  "archivos": {
+    "api-mutacion.log.gz": "e72d313292ee1c216b8fc74c2bcaa6fcb48140b0f1bd6d96d20367a558367b70",
+    "api-rojo.log.gz": "8a8426d6238c51438443ef771cd5e42785cf4e51dc4606f0822c3d3f7b7865b9",
+    "api-verde.log.gz": "2992174d40893017f588214fd8cb4cdd4832760e111a2a135b4d696002f94c2c",
+    "backend-completo.log.gz": "8080932d0f4579d817ed3bc0ff35cc72d7f8378d2050870959d7ed4336bd1e7b",
+    "caracterizacion.json": "b97c69188d1427eb547fbf77e3a8878a1e763148a957da5d501a13eff7c8f708",
+    "compilacion.log.gz": "ac481b20d34e2944df3d9591579292edc203879c5b6500f1b2364ad43237075e",
+    "entrada-rojo.log.gz": "5de2b04b0f1189b15ec44b8f773eb46963ae58655762cde117fc1b082faf1665",
+    "movil.json": "40277c0e90c91552e0bf7d9e781ca0a5f87b2f58c4227d2cc1b3eb6ad740b795",
+    "nulabilidad-rojo.log.gz": "7de365b4996a31d70794bdeca5d90b780fe9f4f6c4cd45470fc865ed06be19f8",
+    "nulabilidad-verde.log.gz": "9f3ccd2c642213ef4b1d3ee1fa3b4d6580953939b7d85b7b8c4d0c04e64c9f13",
+    "venta-1440.png": "27969d184ea270c34d3902dda56e6a7beed3066df174a4a2cfb65509f6840635",
+    "venta-320.png": "949c01effcf94a40fe9affa1f03a625427b58e70e17986c98c5131397e2ef0a3",
+    "venta-390.png": "299aac8a54e941d8d1871ce7f18599538a385fe8e2becfb36e4ecb7d2deaa908",
+    "web-rojo.log.gz": "e1c83be9fcdae06abe86319cd8a22df62b115bdb0272d4f2d613c8a55a617468",
+    "web-verde.log.gz": "e8fe01ece237ed10de6c6f2ed87598be72217e2a95751845ee87e251b598b153"
+  }
+}

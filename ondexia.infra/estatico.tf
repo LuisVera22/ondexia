@@ -367,7 +367,9 @@ resource "aws_s3_bucket_cors_configuration" "marca" {
   cors_rule {
     allowed_methods = ["PUT"]
     allowed_origins = [local.origen_app]
-    allowed_headers = ["content-type"]
+    # La creación exclusiva queda en la firma y el cliente la envía (subida-logo.spec.ts).
+    # CORS desplegado pendiente de comprobar; prueba de configuración en test_cors_marca.py.
+    allowed_headers = ["content-type", "if-none-match"]
     expose_headers  = ["ETag"]
 
     # Cachea el preflight una hora: la subida son dos peticiones y sin esto la
@@ -407,9 +409,9 @@ resource "aws_cloudfront_distribution" "sitio" {
   # la de latencia no.
   price_class = "PriceClass_All"
 
-  aliases = var.gestionar_dns ? [
-    each.value.subdominio == "" ? var.dominio : "${each.value.subdominio}.${var.dominio}"
-  ] : []
+  aliases = var.gestionar_dns ? (
+    each.key == "landing" ? [var.dominio, "www.${var.dominio}"] : ["${each.value.subdominio}.${var.dominio}"]
+  ) : []
 
   origin {
     origin_id                = "s3"

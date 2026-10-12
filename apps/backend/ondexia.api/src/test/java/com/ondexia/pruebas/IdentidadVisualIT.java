@@ -60,7 +60,7 @@ class IdentidadVisualIT extends PruebaIntegracion {
     /** Firma, sube y confirma: el recorrido completo, como lo haría el navegador. */
     private String subirYConfirmar(String logo, String tipo, long bytes) {
         var autorizacion = identidad.autorizarSubida(logo, tipo, bytes);
-        almacen.simularSubida(autorizacion.clave(), tipo, bytes);
+        almacen.simularSubida(autorizacion.clave(), tipo, ImagenDePrueba.de("image/png".equals(tipo) ? "png" : "jpeg"));
         identidad.confirmarSubida(logo, autorizacion.clave());
         return autorizacion.clave();
     }
@@ -114,7 +114,7 @@ class IdentidadVisualIT extends PruebaIntegracion {
         assertThat(clave).startsWith("empresas/" + EMPRESA_ADMINISTRADA + "/logo_principal/");
 
         // Lo que hace el navegador.
-        almacen.simularSubida(clave, PNG, UN_PNG_RAZONABLE);
+        almacen.simularSubida(clave, PNG, ImagenDePrueba.de("png"));
 
         mockMvc.perform(put(IDENTIDAD + "/logo_principal")
                         .header("Authorization", autorizacionDemo())
@@ -179,7 +179,7 @@ class IdentidadVisualIT extends PruebaIntegracion {
         comoDemo();
         String ajena = "empresas/%s/logo_principal/%s.png"
                 .formatted(EMPRESA_COMO_VENDEDOR, UUID.randomUUID());
-        almacen.simularSubida(ajena, PNG, UN_PNG_RAZONABLE);
+        almacen.simularSubida(ajena, PNG, ImagenDePrueba.de("png"));
 
         assertThatThrownBy(() -> identidad.confirmarSubida("logo_principal", ajena))
                 .isInstanceOf(ReglaDeNegocioViolada.class)
@@ -250,10 +250,9 @@ class IdentidadVisualIT extends PruebaIntegracion {
     }
 
     @Test
-    @DisplayName("Quitar sí borra el archivo")
-    void quitarBorra() throws Exception {
-        // «Quitar» significa «no quiero logo», no «cambié de logo». Dejar el
-        // objeto huérfano sería acumular archivos que nadie referencia.
+    @DisplayName("Quitar conserva el archivo para los documentos históricos")
+    void quitarConservaHistoria() throws Exception {
+        // Retirar de nuevas emisiones no debe romper las referencias históricas.
         comoDemo();
         String clave = subirYConfirmar("logo_principal", PNG, UN_PNG_RAZONABLE);
         ContextoDePrueba.limpiar();
@@ -268,7 +267,7 @@ class IdentidadVisualIT extends PruebaIntegracion {
                         .value(org.hamcrest.Matchers.everyItem(
                                 org.hamcrest.Matchers.nullValue())));
 
-        assertThat(almacen.describir(clave)).isEmpty();
+        assertThat(almacen.describir(clave)).isPresent();
     }
 
     @Test

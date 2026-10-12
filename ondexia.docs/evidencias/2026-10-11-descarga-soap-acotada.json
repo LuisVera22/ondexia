@@ -1,0 +1,60 @@
+{
+  "bloque": "ACT-17 · F24 — recepción HTTP acotada",
+  "base": "fb90213416fc1bfc7d9ab5192fe23b990b8f4d03",
+  "rojo": {
+    "pruebas": 8,
+    "fallos": 4,
+    "errores": 0,
+    "observacion": "ClienteSunat original: descarga excesiva abierta y cuerpo lento vencen las ventanas independientes de 4/3 segundos; longitud declarada excesiva llega al lector; cuerpo truncado expone detalle técnico. No son cuatro vulnerabilidades independientes."
+  },
+  "verde": {
+    "pruebas": 8,
+    "fallos": 0,
+    "errores": 0
+  },
+  "mutacion": {
+    "control": "HttpClient.Redirect.NEVER → ALWAYS",
+    "pruebas": 1,
+    "fallos": 1,
+    "restauracion": "ClienteSunat comparado byte por byte con copia previa"
+  },
+  "suite_final": {
+    "dominio": 130,
+    "facturacion": 77,
+    "fallos": 0,
+    "errores": 0
+  },
+  "limites": {
+    "cuerpo_bytes": 16777216,
+    "tiempo": "tiempoDeEspera de configuración hasta completar recepción"
+  },
+  "entorno": "JDK 21; servidor 127.0.0.1 efímero. Primera ejecución bloqueada por sandbox/socket, repetida con permiso de ejecución local; no cuenta como fallo de producto. Maven offline, dependency-check omitido localmente; CI pendiente al registrar.",
+  "no_verificado": [
+    "presupuesto global de CPU/memoria/concurrencia",
+    "límite de interpretación DOM por tiempo",
+    "cabeceras y tamaño de solicitud",
+    "firma/vinculación/esquema CDR",
+    "XML interno",
+    "AWS/SUNAT/originales reales",
+    "auditoría independiente"
+  ],
+  "ci": "pendiente al registrar",
+  "registros": [
+    {
+      "archivo": "2026-10-11-descarga-soap-acotada/rojo.log.gz",
+      "sha256": "25a1892fbe1e3ba21551d8d314ef9db7063f51d5f7e9a86c4eb7da55cac43422"
+    },
+    {
+      "archivo": "2026-10-11-descarga-soap-acotada/verde.log.gz",
+      "sha256": "a775e4f4207d8844f74b4e4f9d6f8247d32bd6c8d5932c0890d19fb6bbf67eb5"
+    },
+    {
+      "archivo": "2026-10-11-descarga-soap-acotada/mutacion-redireccion.log.gz",
+      "sha256": "afaadcee47460b97e570d65bc3d46c05cb7d10ec4903879e399182c40676879c"
+    },
+    {
+      "archivo": "2026-10-11-descarga-soap-acotada/final.log.gz",
+      "sha256": "ebaaaf400a16d891b5e810a5bdd970e571446e849b4983f7ee0ea53463165158"
+    }
+  ]
+}

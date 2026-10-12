@@ -47,8 +47,10 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * {@code afterCommit}: si la transacción no confirma, la orden no sale.
  *
  * <p>El precio de eso: si la publicación falla después de confirmar, el
- * comprobante queda {@code EN_COLA} sin orden. No se pierde: pasada la espera
- * máxima, {@link #reintentar} lo vuelve a publicar.
+ * comprobante queda {@code EN_COLA} sin orden. El error se propaga y no deshace
+ * la venta confirmada. Pasada la espera máxima puede invocarse {@link #reintentar};
+ * este callback no ofrece recuperación automática. Frontera transaccional
+ * comprobada por {@code PublicacionTrasConfirmarIT}, con bus simulado.
  *
  * <h2>El resultado se lee cuando alguien pregunta</h2>
  *
@@ -217,14 +219,15 @@ public class EmisionElectronica {
     }
 
     /**
-     * Engancha la publicación al final feliz de la transacción en curso. Sin
-     * transacción —no debería pasar— publica en el acto, que es lo que hacía
-     * antes de existir esta clase y es mejor que perder la orden en silencio.
+     * Exige transacción real y sincronización: fuera de esa frontera no existe
+     * confirmación que permita entregar la orden. PublicacionTrasConfirmarIT
+     * comprueba rechazo, commit, rollback y fallo posterior del bus.
      */
     static void publicarTrasConfirmar(BusDeEmision bus, OrdenDeEmision orden) {
-        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            bus.publicar(orden);
-            return;
+        if (!TransactionSynchronizationManager.isActualTransactionActive()
+                || !TransactionSynchronizationManager.isSynchronizationActive()) {
+            throw new IllegalStateException(
+                    "La publicación de emisión requiere una transacción real con sincronización activa.");
         }
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
@@ -236,14 +239,19 @@ public class EmisionElectronica {
 
     /** Todo lo que el XML necesita, copiado y ya calculado: el Emisor no suma nada. */
     OrdenDeEmision construirOrden(ComprobanteElectronico comprobante, DocumentoVenta d, Empresa e) {
-        Sucursal sucursal = sucursales.buscarPorId(d.sucursalId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "El documento " + d.numeroCompleto() + " apunta a un establecimiento que no existe."));
-        var emisor = new OrdenDeEmision.Emisor(e.ruc().valor(), e.razonSocial(), e.nombreComercial(),
-                sucursal.direccion() == null ? e.domicilioFiscal() : sucursal.direccion(),
-                sucursal.ubigeo() != null ? sucursal.ubigeo().valor()
-                        : e.ubigeo() == null ? null : e.ubigeo().valor(),
-                sucursal.codigo(), e.usuarioSol());
+        var historicos = d.datosHistoricos();
+        if (historicos == null) {
+            throw new com.ondexia.domain.comun.error.ReglaDeNegocioViolada(
+                    "datos_historicos_no_disponibles",
+                    "Se requieren los datos originales del documento para preparar su envío.");
+        }
+        var emisorHistorico = historicos.emisor();
+        var localHistorico = historicos.local();
+        var emisor = new OrdenDeEmision.Emisor(emisorHistorico.ruc(),
+                emisorHistorico.razonSocial(), emisorHistorico.nombreComercial(),
+                localHistorico.direccion() == null ? emisorHistorico.domicilioFiscal() : localHistorico.direccion(),
+                localHistorico.ubigeo() == null ? emisorHistorico.ubigeo() : localHistorico.ubigeo(),
+                localHistorico.codigo(), e.usuarioSol());
         var cliente = d.cliente();
         var adquirente = cliente == null ? null : new OrdenDeEmision.Adquirente(
                 cliente.tipoDocumento().codigo(), cliente.numeroDocumento(), cliente.nombre(),

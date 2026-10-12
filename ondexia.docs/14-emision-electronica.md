@@ -93,9 +93,18 @@ volvió al correlativo. La siguiente venta reutilizaría ese número, SUNAT la
 rechazaría por duplicada, y la primera estaría aceptada para una venta que no
 existió.
 
+La publicación exige tanto transacción real como sincronización activa. Si falta
+cualquiera, rechaza la llamada con IllegalStateException; no publica directamente
+ni deja un callback sin confirmación real. `PublicacionTrasConfirmarIT` comprueba
+los tres contextos inválidos, commit, rollback por excepción o explícito y fallo
+de commit por restricción diferida en PostgreSQL, con bus simulado.
+
 El precio: si la publicación falla justo después de confirmar, el comprobante
-queda `EN_COLA` sin orden. No se pierde —pasados diez minutos se puede
-reintentar, §3— pero se acepta a sabiendas.
+queda `EN_COLA` sin orden. El error del bus se propaga y no deshace la venta ya
+confirmada. Pasados diez minutos se puede invocar el reintento, §3. Esto no
+garantiza recuperación automática ni entrega exactamente una vez. El ensayo
+comprueba persistencia de una fila temporal tras ese fallo; no acredita entrega
+real del Emisor, S3 o SUNAT. Véase la evidencia de F17 de 2026-10-11.
 
 ### 2.2 El resultado se lee, no se recibe
 
@@ -132,10 +141,18 @@ medias, el comprobante electrónico puede haber ido y vuelto varias veces.
 | `ERROR_ENVIO` | No llegó o SUNAT no respondió: red, servicio caído (0100–1999), certificado que no abre | Reintentar tal cual |
 | `ANULADO` | Iteración 6 | — |
 
-Un resultado que llega tarde para un comprobante que ya se reintentó **se
-ignora**: `ComprobanteElectronico.aplicar` devuelve `false` si el comprobante no
-estaba en cola. Sin eso, la respuesta de un intento viejo podría pisar la del
-nuevo.
+Un resultado compatible recibido cuando el comprobante está fuera de `EN_COLA`
+se ignora: `ComprobanteElectronico.aplicar` devuelve `false` y conserva los
+datos de la respuesta registrada. `ReintentosYDuplicadosEmisionTest` comprueba
+las nueve combinaciones de ACEPTADO/RECHAZADO/ERROR_ENVIO y los límites del
+reintento, incluyendo el instante exacto de diez minutos y el reinicio de espera.
+
+Esto **no discrimina respuestas de intentos anteriores después de reencolar**.
+La orden y el resultado comparten el identificador del comprobante, sin un
+identificador de intento que el agregado pueda contrastar. Si vuelve a `EN_COLA`,
+una respuesta antigua compatible puede aplicarse. La correlación, conciliación
+y recuperación siguen pendientes en F17; no se acredita entrega exactamente
+una vez ni resolución de esa limitación con estas pruebas.
 
 El XML se conserva aunque SUNAT rechace: es lo que hay que mirar para entender
 el rechazo. El CDR se limpia al reintentar, porque el que había era del intento
@@ -357,3 +374,78 @@ compilación en algo que depende del disco de quien la ejecuta.
 - **v2 (2026-09-08)** — §6.1: el certificado de las pruebas lo genera la
   compilación. Once pruebas del Emisor pasaban en local y fallaban en el CI
   porque el `.pfx` estaba en el disco y no en el repositorio.
+
+## Conservación de archivos originales · F06
+
+La regla aprobada el 2026-10-11 exige conservar los artefactos exactos. Cada intento
+tiene carpeta independiente bajo documentos/{ruc}/originales/{ordenId}/{intentoId}/.
+Se guarda XML firmado, ZIP exacto de envío y CDR recibido; envio.json y recepcion.json
+fijan asociación y hashes sin contraseñas. Los resultados operativos pueden cambiar
+o expirar; los originales quedan en el prefijo de documentos. Las rutas anteriores
+no se rellenan ni se sobrescriben. La API descarga la clave referenciada por el resultado.
+
+ProcesadorDeOrdenesTest.reintentoConservaOriginales y sinArchivoOriginalNoEnvia
+comprueban conservación y frontera de envío. OriginalesEnDiscoTest comprueba
+rechazo de sobrescritura/borrado. OriginalesEnS3Test verifica If-None-Match y rechazo
+de borrado en la petición SDK. Estas pruebas no acreditan condición aplicada en AWS
+ni protección ante administradores: ensayo AWS no realizado. El flujo no genera
+PDF original persistido; la impresión es una representación. Recuperación del legado,
+listado de intentos y auditoría independiente pendientes. Especificación/evidencia:
+2026-10-11-archivos-originales. No se cambia retención por esta implementación.
+
+Las respuestas SOAP reconocidas (CDR, ticket y estado 98) se guardan sin
+regeneración en `respuesta.xml`, con referencia y SHA-256. Fault y cuerpos no
+reconocidos no se archivan: pueden repetir credenciales. El ZIP CDR permanece
+como archivo independiente recibido. Pruebas: `conservaSoapOriginal`,
+`comunicacionDeBaja` y `consultaDelTicket`.
+
+### F06: recuperación del legado
+
+El [procedimiento de recuperación de originales](operacion-recuperacion-originales.md)
+prioriza versiones S3 con acceso de lectura limitado a documentos y después
+respaldos/copias. La herramienta local inventaría candidatos y sus hashes sin
+modificarlos; no valida autenticidad ni declara un documento irrecuperable.
+Sin fuente fiable, conservar lo disponible y señalar faltantes es la política
+aprobada por el propietario. El [verificador local XML](especificaciones/2026-10-11-verificador-originales-xml.md)
+comprueba integridad e identidad esperada con certificado público independiente;
+no acredita confianza ni aceptación SUNAT. Acceso AWS, confianza del certificado,
+contraste de CDR y recuperación real pendientes.
+
+### ACT-17: lectura acotada de respuestas externas
+
+[Especificación del corte](especificaciones/2026-10-11-lectura-cdr-acotada.md).
+El lector mantiene las respuestas válidas y la elección del primer XML dentro
+del ZIP. Limita ZIP comprimido a 8 MiB, bytes descomprimidos consumidos hasta ese
+XML a 8 MiB y entradas examinadas a 32; cuenta bytes reales también al descartar
+entradas previas. El SOAP ya recibido por el lector se limita a 16 MiB. Son
+límites operativos, no fiscales: sobrepasarlos da respuesta ilegible, no rechazo
+tributario. La [recepción HTTP](especificaciones/2026-10-11-descarga-soap-acotada.md)
+cuenta bytes antes de acumular: cancela al superar 16 MiB y aplica el tiempo
+configurado hasta terminar el cuerpo, además de la espera de cabeceras.
+`ClienteSunatHttpTest` verifica frontera, exceso por bloques/con longitud declarada,
+cuerpo abierto/truncado, redirección e interrupción. Exceso devuelve
+`RESPUESTA_DEMASIADO_GRANDE`; transporte/tiempo, `SIN_CONEXION` con diagnóstico
+fijo. Ninguno conserva un original parcial ni declara rechazo tributario.
+
+`LecturaHostilDeCdrTest` ejercita exceso/frontera, base64 inválido, carpeta/extensión,
+DTD y ausencia de diagnóstico del parser en descripción/stderr. Parser sin DTD
+ni recursos externos; errores CDR con código y descripción fijos, sin copiar
+mensajes internos. `LectorDeRespuestaSunatTest` mantiene CDR/ticket/estado válidos
+y sus originales. No se afirma validación de firma, vínculo ni esquema del CDR;
+ACT-17 sigue parcial y no se probó SUNAT/AWS real.
+
+### ACT-15 / F17: identidad de resultados de comprobantes
+
+[Especificación y límites](especificaciones/2026-10-11-identidad-resultados-emision.md).
+`ComprobanteElectronico.aplicar` comprueba ID, empresa y operación EMITIR antes
+de cualquier modificación. Un resultado de verificación de credenciales no
+puede acreditar un comprobante. La ruta de S3 consultada no sustituye este
+control del mensaje. `IdentidadResultadoEmisionTest` verifica los estados y
+campos; `FronteraResultadosEmisionTest` verifica ausencia de persistencia y
+acceso al documento ante mensajes incompatibles, con dobles de puertos.
+
+Un comprobante fuera de EN_COLA ignora otro resultado compatible. Al volver a
+EN_COLA, el control actual no discrimina el intento anterior: correlación,
+duplicados y respuesta tardía siguen pendientes de F17. Tampoco este corte
+valida firma/esquema del CDR, propiedad de claves de archivos, autenticidad del
+productor ni configuración AWS/RLS.

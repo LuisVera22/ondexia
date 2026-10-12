@@ -21,9 +21,9 @@ import org.springframework.transaction.annotation.Transactional;
  * <ol>
  *   <li>{@link #autorizarSubida} firma un permiso para subir <em>ese</em>
  *       archivo, con su tipo y su tamaño dentro de la firma.</li>
- *   <li>El navegador sube directo al almacén. Nuestra API no ve el archivo.</li>
- *   <li>{@link #confirmarSubida} pregunta al almacén qué llegó de verdad y, solo
- *       entonces, guarda la clave.</li>
+ *   <li>El navegador sube directo al almacén.</li>
+ *   <li>{@link #confirmarSubida} comprueba metadata y contenido mediante el
+ *       puerto de almacenamiento antes de guardar la clave (ContenidoDeLogoIT).</li>
  * </ol>
  *
  * <p>El tercer paso es el que hace honesto al primero. Entre la firma y la
@@ -38,8 +38,8 @@ import org.springframework.transaction.annotation.Transactional;
  * el logo — reescribir la historia en silencio es justo lo que el versionado del
  * bucket pretende evitar (DTE §5.8).
  *
- * <p>«Quitar» sí borra: significa «no quiero logo», no «cambié de logo», y en ese
- * caso lo que hay que retirar es el archivo.
+ * <p>«Quitar» retira la referencia actual y conserva el archivo histórico
+ * (IdentidadVisualIT.quitarConservaHistoria).
  */
 @Service
 public class Identidad {
@@ -122,6 +122,8 @@ public class Identidad {
         // Segunda validación, ahora contra lo que el almacén dice que tiene. La
         // primera fue sobre lo que el cliente prometía.
         logo.exigirValido(objeto.tipoContenido(), objeto.bytes());
+        // Contenido falso/truncado no se publica: ContenidoDeLogoIT.
+        almacen.validarImagen(clave, objeto.tipoContenido(), logo.maximoBytes());
 
         var identidad = identidades.buscar()
                 .orElseGet(() -> new IdentidadVisual(UUID.randomUUID(), empresaActiva()));
@@ -137,13 +139,7 @@ public class Identidad {
         return consultar();
     }
 
-    /**
-     * Retira el logo y <strong>sí</strong> borra el archivo.
-     *
-     * <p>A diferencia de reemplazar, esto significa «no quiero logo». Dejar el
-     * objeto huérfano en el almacén sería acumular archivos que nadie referencia
-     * y que nadie va a revisar.
-     */
+    /** Retira el logo de nuevas emisiones; conserva el archivo para el historial. */
     @Transactional
     public List<EstadoDeLogo> quitar(String columna) {
         var logo = LogoDeEmpresa.porColumna(columna);
@@ -163,7 +159,7 @@ public class Identidad {
         }
 
         identidades.guardar(identidad);
-        almacen.eliminar(quitada.get());
+
 
         auditoria.registrar("identidad_visual", identidad.id(), "QUITAR_LOGO",
                 new Instantanea(logo.columna(), quitada.get()),

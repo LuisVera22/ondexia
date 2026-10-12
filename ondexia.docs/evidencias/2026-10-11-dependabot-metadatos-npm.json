@@ -1,0 +1,416 @@
+[
+  {
+    "paquete": "@angular/core",
+    "version": "21.2.24",
+    "fuente": "https://registry.npmjs.org/%40angular%2Fcore/21.2.24",
+    "engines": {
+      "node": "^20.19.0 || ^22.12.0 || >=24.0.0"
+    },
+    "peerDependencies": {
+      "rxjs": "^6.5.3 || ^7.4.0",
+      "zone.js": "~0.15.0 || ~0.16.0",
+      "@angular/compiler": "21.2.24"
+    },
+    "deprecated": null,
+    "repository": {
+      "url": "git+https://github.com/angular/angular.git",
+      "type": "git",
+      "directory": "packages/core"
+    },
+    "dist": {
+      "shasum": "632a6761af41a2edd6a9b6916adcc4478d7ebb55",
+      "tarball": "https://registry.npmjs.org/@angular/core/-/core-21.2.24.tgz",
+      "fileCount": 95,
+      "integrity": "sha512-wCSCNrcBolr2iws6eX8yMnePXvXMHzi3kFla7EoHiKGJBhKHz4g2+p5f4z/Q5mHVCglTsXEOldDhgFTv5pDDoQ==",
+      "signatures": [
+        {
+          "sig": "MEUCIEBmJPbPTytgVR8/mqpXnup4rGOXOYmBtKqz87DTLAxxAiEAyL4PSV6SoTBvK7or+MNhqiglt44evjZ/RECIAGM9jak=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEUCIHtWdGUQ4tWZUxR6fNQgc6MNKmQp5Tp2LrohPwyEI3gBAiEA7uMzViiq7IlEDMIworcvHRDkUWeszofWEIaopgozMFM=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "unpackedSize": 6813959
+    }
+  },
+  {
+    "paquete": "@angular/build",
+    "version": "21.2.2",
+    "fuente": "https://registry.npmjs.org/%40angular%2Fbuild/21.2.2",
+    "engines": {
+      "npm": "^6.11.0 || ^7.5.6 || >=8.0.0",
+      "node": "^20.19.0 || ^22.12.0 || >=24.0.0",
+      "yarn": ">= 1.13.0"
+    },
+    "peerDependencies": {
+      "less": "^4.2.0",
+      "karma": "^6.4.0",
+      "tslib": "^2.3.0",
+      "vitest": "^4.0.8",
+      "postcss": "^8.4.0",
+      "ng-packagr": "^21.0.0",
+      "typescript": ">=5.9 <6.0",
+      "tailwindcss": "^2.0.0 || ^3.0.0 || ^4.0.0",
+      "@angular/ssr": "^21.2.2",
+      "@angular/core": "^21.0.0",
+      "@angular/compiler": "^21.0.0",
+      "@angular/localize": "^21.0.0",
+      "@angular/compiler-cli": "^21.0.0",
+      "@angular/service-worker": "^21.0.0",
+      "@angular/platform-server": "^21.0.0",
+      "@angular/platform-browser": "^21.0.0"
+    },
+    "deprecated": null,
+    "repository": {
+      "url": "git+https://github.com/angular/angular-cli.git",
+      "type": "git"
+    },
+    "dist": {
+      "shasum": "2860127125d43aa46003cd478fdea7a518de7de8",
+      "tarball": "https://registry.npmjs.org/@angular/build/-/build-21.2.2.tgz",
+      "fileCount": 601,
+      "integrity": "sha512-Vq2eIneNxzhHm1MwEmRqEJDwHU9ODfSRDaMWwtysGMhpoMQmLdfTqkQDmkC2qVUr8mV8Z1i5I+oe5ZJaMr/PlQ==",
+      "signatures": [
+        {
+          "sig": "MEUCIF48upDiBmxW8loNmk9IRAqt2XtWRtvgPgHLewVKZWFwAiEAsnLDu+dwhV+oU5a/mn8BLlVMn5liLWrU60TDufHv5K4=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "unpackedSize": 1965165
+    }
+  },
+  {
+    "paquete": "@angular/cli",
+    "version": "22.2.1",
+    "fuente": "https://registry.npmjs.org/%40angular%2Fcli/22.2.1",
+    "engines": {
+      "npm": "^6.11.0 || ^7.5.6 || >=8.0.0",
+      "node": "^22.22.3 || ^24.15.0 || >=26.0.0",
+      "yarn": ">= 1.13.0"
+    },
+    "peerDependencies": null,
+    "deprecated": null,
+    "repository": {
+      "url": "git+https://github.com/angular/angular-cli.git",
+      "type": "git"
+    },
+    "dist": {
+      "shasum": "ab9a9dc7fd0e0e08830d3757b71d39fcc30b0f7d",
+      "tarball": "https://registry.npmjs.org/@angular/cli/-/cli-22.2.1.tgz",
+      "fileCount": 345,
+      "integrity": "sha512-tKMP68SZP+A9YCSRg0c+2e/+yWp7qiFrjCuQAomHK7owNaxHnLigAbra+8QA4xmWHoGaQk89NMmUPyA1BsBp8w==",
+      "signatures": [
+        {
+          "sig": "MEUCIQCrna5lcFW52CBa3lvv89vGJ4c6S5+hZec1AMmfCb5SrAIgesUnuOGZv+Vd+98fChQJgNcobnwN8Y7CfKnKWmfjtb0=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEUCIQCdQYYAz54XfR6xqmQoJHOpSPnSAWt/ikyWU8LdX78jVgIgN71NgM7GcJOry/PTboR7VwZuHeTJniHfOxWTBFf/2AM=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "unpackedSize": 1506767
+    }
+  },
+  {
+    "paquete": "zone.js",
+    "version": "0.16.3",
+    "fuente": "https://registry.npmjs.org/zone.js/0.16.3",
+    "engines": null,
+    "peerDependencies": null,
+    "deprecated": null,
+    "repository": {
+      "url": "git://github.com/angular/angular.git",
+      "type": "git",
+      "directory": "packages/zone.js"
+    },
+    "dist": {
+      "shasum": "1c7b8b063376e14cb1e90e53d2f3d02186025c4c",
+      "tarball": "https://registry.npmjs.org/zone.js/-/zone.js-0.16.3.tgz",
+      "fileCount": 138,
+      "integrity": "sha512-ihXL9+vhYyEhXz4TDNpHeAOZN9FVrbog0Il64OIEI28UP/n5AaI6gsccRuOHBfx+206agzyoK527bYIO0Foy6A==",
+      "signatures": [
+        {
+          "sig": "MEUCICq2WUSkXWgVLVRgICkyRJQrQ8fKuksOBEbfnmXwG5KoAiEA3uEF91bhAiNnVlRZqN5k8KEvvlTHhjkgy/pda80/ayw=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEUCIQCd3ucbKEQZ532duP5a9V3KF0odp40AhmSOL7nROJTlXQIge7pLVLMnFdhKpbBqssj9oVJj75CNUKOp3ujzgJyWb4Y=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "unpackedSize": 1801322
+    }
+  },
+  {
+    "paquete": "@types/jasmine",
+    "version": "7.0.0",
+    "fuente": "https://registry.npmjs.org/%40types%2Fjasmine/7.0.0",
+    "engines": null,
+    "peerDependencies": {},
+    "deprecated": null,
+    "repository": {
+      "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+      "type": "git",
+      "directory": "types/jasmine"
+    },
+    "dist": {
+      "shasum": "ba760841e7d9a2111ed9ffbc134c95b60bd5e60a",
+      "tarball": "https://registry.npmjs.org/@types/jasmine/-/jasmine-7.0.0.tgz",
+      "fileCount": 5,
+      "integrity": "sha512-6yNx9BsBSKiXO2yqLXs/GZDuD58Gkn6Ty26254FFOuw6B4XU5Xq8mAR0xFy8zHgAhqQd++y41fSJ8BdwrWXhqQ==",
+      "signatures": [
+        {
+          "sig": "MEUCIQC5OXPP/bwJa+sremUJp+3zSQ9rqZDgCxJOZZl6h3UaigIgU0ceW9ueVIn8aKSNhqf073Lv0q/XmVb1endSFb3PHjg=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEQCIBIul0iGM80JFIByukr/NjJXej3DPoF6nvGJR5dVp7JXAiBUf9bVYRmBzXTBlatuPn8iGFuvqsjZDOLmlyOzUr4f+A==",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "unpackedSize": 71009
+    }
+  },
+  {
+    "paquete": "jasmine-core",
+    "version": "5.6.0",
+    "fuente": "https://registry.npmjs.org/jasmine-core/5.6.0",
+    "engines": null,
+    "peerDependencies": null,
+    "deprecated": null,
+    "repository": {
+      "url": "git+https://github.com/jasmine/jasmine.git",
+      "type": "git"
+    },
+    "dist": {
+      "shasum": "4b979c254e7d9b1fe8e767ab00c5d2901c00bd4f",
+      "tarball": "https://registry.npmjs.org/jasmine-core/-/jasmine-core-5.6.0.tgz",
+      "fileCount": 20,
+      "integrity": "sha512-niVlkeYVRwKFpmfWg6suo6H9CrNnydfBLEqefM5UjibYS+UoTjZdmvPJSiuyrRLGnFj1eYRhFd/ch+5hSlsFVA==",
+      "signatures": [
+        {
+          "sig": "MEQCIANde5WG8ronxZDz5KxYQ1V2p2fmqhineNDvZCo+gre3AiARC8tNQCZoIyLezDRUZLLQJkGyA+Uxn3NaGTNyajN9UQ==",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "unpackedSize": 403185
+    }
+  },
+  {
+    "paquete": "karma-jasmine-html-reporter",
+    "version": "2.3.0",
+    "fuente": "https://registry.npmjs.org/karma-jasmine-html-reporter/2.3.0",
+    "engines": null,
+    "peerDependencies": {
+      "karma": "^6.0.0",
+      "jasmine-core": "^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0",
+      "karma-jasmine": "^5.0.0"
+    },
+    "deprecated": null,
+    "repository": {
+      "url": "git+https://github.com/dfederm/karma-jasmine-html-reporter.git"
+    },
+    "dist": {
+      "shasum": "c3408c5b8127be74de1c16714b30ece8ac16ed5f",
+      "tarball": "https://registry.npmjs.org/karma-jasmine-html-reporter/-/karma-jasmine-html-reporter-2.3.0.tgz",
+      "fileCount": 5,
+      "integrity": "sha512-iFDjVpcWHnupRoJfnjuAeNF68sAGk+7RfceCzm33HHYNV6OgBa6EC1nPgJUFM+tVDHLlQ5NhgcTKz7AbdrV3AQ==",
+      "signatures": [
+        {
+          "sig": "MEUCIFptqpZAtYNYJOpnLiYHgmPLrhvxSJqbm7AuHHgJDCj0AiEA4y7aABFn93zZq2TWDdfNs4Ll2X5oDkqmLH1AogS59N0=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEUCIGNQvDxgry3k+MJ+hRSeLFTrz9UicPqpS9oJ3QRn8HitAiEAwbcDVOxwl6RGEmRquU1pJMeQcV9oqEeKWjsENNtbXG0=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/karma-jasmine-html-reporter@2.3.0",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 13514
+    }
+  },
+  {
+    "paquete": "@astrojs/check",
+    "version": "0.9.10",
+    "fuente": "https://registry.npmjs.org/%40astrojs%2Fcheck/0.9.10",
+    "engines": null,
+    "peerDependencies": {
+      "typescript": "^5.0.0 || ^6.0.0"
+    },
+    "deprecated": null,
+    "repository": {
+      "url": "git+https://github.com/withastro/astro.git",
+      "type": "git",
+      "directory": "packages/language-tools/astro-check"
+    },
+    "dist": {
+      "shasum": "76595cdb9ea990e155bf5be695a65ecb3ece334d",
+      "tarball": "https://registry.npmjs.org/@astrojs/check/-/check-0.9.10.tgz",
+      "fileCount": 8,
+      "integrity": "sha512-zgx/UQMozdjOa3bOxjgeCFdtpE3c9rRX6xHwa+2QXvy8z8Akifu2AtubHyv/zzC2znO8dl8fFWL4K+Ba9kS8HQ==",
+      "signatures": [
+        {
+          "sig": "MEYCIQDYf0ROaYRZjWol1Zk0levjH16Pt4sXfk4Oz573tz33yAIhAN64CB5n/OiirhFMWwSgMhgXiOOoi5Zyxii2KlWlGlQX",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEUCICnu90r6SdlsdJ7PXCb4Lwddx+IegqWuRsSQYCxqRQpRAiEApIJXQhQ2PvrXFYsy2wCgIPULwNQvKQMqsGBWDIdhroQ=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/@astrojs%2fcheck@0.9.10",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 14860
+    }
+  },
+  {
+    "paquete": "@astrojs/sitemap",
+    "version": "3.7.4",
+    "fuente": "https://registry.npmjs.org/%40astrojs%2Fsitemap/3.7.4",
+    "engines": null,
+    "peerDependencies": null,
+    "deprecated": null,
+    "repository": {
+      "url": "git+https://github.com/withastro/astro.git",
+      "type": "git",
+      "directory": "packages/integrations/sitemap"
+    },
+    "dist": {
+      "shasum": "92ab986b9e107da82f71f470d9b4020915f6a34b",
+      "tarball": "https://registry.npmjs.org/@astrojs/sitemap/-/sitemap-3.7.4.tgz",
+      "fileCount": 21,
+      "integrity": "sha512-LbKNC24bdUWcQf/pThB6qLlSqHojxGjZDURIzFocY8rlWnAn2t74nnhnK6S5x0NHriHoAduLEpVjRykmeGiVvA==",
+      "signatures": [
+        {
+          "sig": "MEQCIGhu2lUdobuV/qnzHLRLlz0ttc4EpMj4ndqGewTP1QSgAiApRdGxeu0ry9ulnVg4WdL2HMehL+OMh/xaTKs1rwIVzg==",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEYCIQCRgT/Dyzwvd1DDfhw8qSL2uIjut1rMwp/jr0XT3fQ6agIhAIprZr/7YIzrBWeEE2d5ozx1Lgwt5cEBPCdhRi+4tKlz",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/@astrojs%2fsitemap@3.7.4",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 28182
+    }
+  },
+  {
+    "paquete": "astro",
+    "version": "7.3.6",
+    "fuente": "https://registry.npmjs.org/astro/7.3.6",
+    "engines": {
+      "npm": ">=9.6.5",
+      "node": ">=22.12.0",
+      "pnpm": ">=7.1.0"
+    },
+    "peerDependencies": {
+      "@astrojs/markdown-remark": "^7.3.0"
+    },
+    "deprecated": null,
+    "repository": {
+      "url": "git+https://github.com/withastro/astro.git",
+      "type": "git",
+      "directory": "packages/astro"
+    },
+    "dist": {
+      "shasum": "41639d433b2594db82f3a98ca7ba504549946781",
+      "tarball": "https://registry.npmjs.org/astro/-/astro-7.3.6.tgz",
+      "fileCount": 1379,
+      "integrity": "sha512-3q0MKxfE4cpr5IoQ9EWrN0gwxeT5tkCaSVe3SrGlLR5fnTIywHqjVqFokQkQiZexfwpNtB9dtBdUcXV9FuD+4w==",
+      "signatures": [
+        {
+          "sig": "MEYCIQCfjQrB1V6pphaSIEPZ2EzvXtPvkhHr8g8pUoYr5DlyUQIhALqsSCLLtfcFFFZvTcSVmOpCeKWBhpkBTGmja0Yl57sk",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        },
+        {
+          "sig": "MEUCIQCAsato4DUxRrzWNDjgnLtPfP10YIg3DALPAeHzenPqxQIgYwOLNZvY9nA57ZXoI0UykyuqZdxPUyj7b51WzgyShbI=",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/astro@7.3.6",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 3067075
+    }
+  },
+  {
+    "paquete": "typescript",
+    "version": "6.0.3",
+    "fuente": "https://registry.npmjs.org/typescript/6.0.3",
+    "engines": {
+      "node": ">=14.17"
+    },
+    "peerDependencies": null,
+    "deprecated": null,
+    "repository": {
+      "url": "git+https://github.com/microsoft/TypeScript.git",
+      "type": "git"
+    },
+    "dist": {
+      "shasum": "90251dc007916e972786cb94d74d15b185577d21",
+      "tarball": "https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz",
+      "fileCount": 140,
+      "integrity": "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==",
+      "signatures": [
+        {
+          "sig": "MEYCIQDv8tVB8x5z1EeS+UHLgSqOywErEEFERRmMNef6kTXsPQIhAMO+L+ktR6FwCDSc+z0KD68md8mvKukeVzgjuBhoie9i",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "unpackedSize": 24346827
+    }
+  },
+  {
+    "paquete": "postcss",
+    "version": "8.5.29",
+    "fuente": "https://registry.npmjs.org/postcss/8.5.29",
+    "engines": {
+      "node": "^10 || ^12 || >=14"
+    },
+    "peerDependencies": null,
+    "deprecated": null,
+    "repository": {
+      "url": "git+https://github.com/postcss/postcss.git",
+      "type": "git"
+    },
+    "dist": {
+      "shasum": "086a0ded2c0257c71efb8c68776b477774714b4a",
+      "tarball": "https://registry.npmjs.org/postcss/-/postcss-8.5.29.tgz",
+      "fileCount": 55,
+      "integrity": "sha512-49cGhUbXj8Qenv0iTMxA1cFBzxXoctpC9Ujd77t1WcbJIr6nF/eI7g/8MgxrYldFRuAXvja7xQRwavoW7kgrxQ==",
+      "signatures": [
+        {
+          "sig": "MEYCIQD1PkwqNJ8yP8sFjDz1KfdgPSeLWaUtPxgazuU5YsouvAIhAJVwlsV9G13pf6jZOs3cipZkB7bA385UvjNYenN+tT4q",
+          "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+        }
+      ],
+      "attestations": {
+        "url": "https://registry.npmjs.org/-/npm/v1/attestations/postcss@8.5.29",
+        "provenance": {
+          "predicateType": "https://slsa.dev/provenance/v1"
+        }
+      },
+      "unpackedSize": 220365
+    }
+  }
+]

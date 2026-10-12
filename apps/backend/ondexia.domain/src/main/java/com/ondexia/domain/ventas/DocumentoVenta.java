@@ -59,6 +59,9 @@ public class DocumentoVenta {
     private final TipoNotaCredito motivoNota;
     /** El documento al que este se refiere: el corregido, o la nota de venta canjeada. */
     private final ReferenciaDocumento origen;
+    private final DatosHistoricosDocumento datosHistoricos;
+    private final String logoPrincipal;
+    private final String logoTicket;
     private EstadoDocumento estado;
 
     private final BigDecimal totalGravado;
@@ -73,6 +76,31 @@ public class DocumentoVenta {
             LocalDate fechaEmision, Instant emitidoEn, UUID emitidoPor, List<LineaDeVenta> lineas,
             List<Pago> pagos, String observaciones, UUID documentoOrigenId,
             TipoNotaCredito motivoNota, ReferenciaDocumento origen, EstadoDocumento estado) {
+        this(id, empresaId, sucursalId, sesionCajaId, tipo, serie, numero, cliente,
+                fechaEmision, emitidoEn, emitidoPor, lineas, pagos, observaciones,
+                documentoOrigenId, motivoNota, origen, estado, null, null);
+    }
+
+    private DocumentoVenta(UUID id, UUID empresaId, UUID sucursalId, UUID sesionCajaId,
+            TipoDocumento tipo, String serie, long numero, Cliente cliente,
+            LocalDate fechaEmision, Instant emitidoEn, UUID emitidoPor, List<LineaDeVenta> lineas,
+            List<Pago> pagos, String observaciones, UUID documentoOrigenId,
+            TipoNotaCredito motivoNota, ReferenciaDocumento origen, EstadoDocumento estado,
+            String logoPrincipal, String logoTicket) {
+        this(id, empresaId, sucursalId, sesionCajaId, tipo, serie, numero, cliente,
+                fechaEmision, emitidoEn, emitidoPor, lineas, pagos, observaciones,
+                documentoOrigenId, motivoNota, origen, estado, logoPrincipal, logoTicket, null);
+    }
+
+    private DocumentoVenta(UUID id, UUID empresaId, UUID sucursalId, UUID sesionCajaId,
+            TipoDocumento tipo, String serie, long numero, Cliente cliente,
+            LocalDate fechaEmision, Instant emitidoEn, UUID emitidoPor, List<LineaDeVenta> lineas,
+            List<Pago> pagos, String observaciones, UUID documentoOrigenId,
+            TipoNotaCredito motivoNota, ReferenciaDocumento origen, EstadoDocumento estado,
+            String logoPrincipal, String logoTicket, DatosHistoricosDocumento datosHistoricos) {
+        this.datosHistoricos = datosHistoricos;
+        this.logoPrincipal = logoPrincipal;
+        this.logoTicket = logoTicket;
         this.id = id;
         this.empresaId = empresaId;
         this.sucursalId = sucursalId;
@@ -276,6 +304,32 @@ public class DocumentoVenta {
                 documentoOrigenId, motivoNota, origen, estado);
     }
 
+    public static DocumentoVenta reconstruir(UUID id, UUID empresaId, UUID sucursalId,
+            UUID sesionCajaId, TipoDocumento tipo, String serie, long numero, Cliente cliente,
+            LocalDate fechaEmision, Instant emitidoEn, UUID emitidoPor, List<LineaDeVenta> lineas,
+            List<Pago> pagos, String observaciones, UUID documentoOrigenId,
+            TipoNotaCredito motivoNota, ReferenciaDocumento origen, EstadoDocumento estado,
+            String logoPrincipal, String logoTicket) {
+        return new DocumentoVenta(id, empresaId, sucursalId, sesionCajaId, tipo, serie, numero,
+                cliente, fechaEmision, emitidoEn, emitidoPor, lineas, pagos, observaciones,
+                documentoOrigenId, motivoNota, origen, estado, logoPrincipal, logoTicket);
+    }
+
+    public static DocumentoVenta reconstruir(UUID id, UUID empresaId, UUID sucursalId,
+            UUID sesionCajaId, TipoDocumento tipo, String serie, long numero, Cliente cliente,
+            LocalDate fechaEmision, Instant emitidoEn, UUID emitidoPor, List<LineaDeVenta> lineas,
+            List<Pago> pagos, String observaciones, UUID documentoOrigenId,
+            TipoNotaCredito motivoNota, ReferenciaDocumento origen, EstadoDocumento estado,
+            String logoPrincipal, String logoTicket, DatosHistoricosDocumento datosHistoricos) {
+        return new DocumentoVenta(id, empresaId, sucursalId, sesionCajaId, tipo, serie, numero,
+                cliente, fechaEmision, emitidoEn, emitidoPor, lineas, pagos, observaciones,
+                documentoOrigenId, motivoNota, origen, estado, logoPrincipal, logoTicket, datosHistoricos);
+    }
+
+    public DatosHistoricosDocumento datosHistoricos() {
+        return datosHistoricos;
+    }
+
     private void exigirAdquirente() {
         switch (tipo) {
             case FACTURA -> {
@@ -407,6 +461,15 @@ public class DocumentoVenta {
 
     public boolean esFiscal() {
         return tipo.esFiscal();
+    }
+
+    /** URL de la versión guardada; nunca se completa con la identidad actual. */
+    public String logoPrincipal() {
+        return logoPrincipal;
+    }
+
+    public String logoTicket() {
+        return logoTicket;
     }
 
     public UUID id() {

@@ -1,0 +1,59 @@
+{
+  "fecha": "2026-10-11",
+  "base": "9681a1e0cfd19366603a784423c50edbe9098898",
+  "bloque": "ACT-19/F20/F23/F24",
+  "control_existente": true,
+  "defecto_nuevo_confirmado": false,
+  "pruebas_iniciales": 7,
+  "pruebas_herramientas_restauradas": 26,
+  "mutaciones": [
+    {
+      "cambio": "retirar exit de prod sin clave",
+      "pruebas": 1,
+      "fallos": 1,
+      "restauracion_byte_a_byte": true
+    },
+    {
+      "cambio": "ocultar fallo Maven CI con || true",
+      "pruebas": 1,
+      "fallos": 1,
+      "restauracion_byte_a_byte": true
+    },
+    {
+      "cambio": "ocultar fallo Maven CD con || true",
+      "pruebas": 1,
+      "fallos": 1,
+      "restauracion_byte_a_byte": true
+    }
+  ],
+  "no_verificado": [
+    "CVE real detectada por el motor",
+    "vigencia/cobertura NVD",
+    "despliegue AWS",
+    "semántica efectiva del runner fuera del shell ensayado",
+    "auditoría independiente"
+  ],
+  "ci": "Pendiente: registrar resultados del mismo head y merge en el PR",
+  "registros": [
+    {
+      "archivo": "2026-10-11-puerta-dependencias-inicial.log.gz",
+      "sha256": "8c68bd41626076a97d8f12223a505112a64d63869525042f23b53129ed7166e3"
+    },
+    {
+      "archivo": "2026-10-11-puerta-dependencias-mutacion-produccion.log.gz",
+      "sha256": "c40a60b3d68580915acfe6f5ee6b9784671fac42494679c924cbf624d7cabf64"
+    },
+    {
+      "archivo": "2026-10-11-puerta-dependencias-mutacion-fallo-ci.log.gz",
+      "sha256": "6c91878be114f7f1ea77e02b06e9044143854ffbbbc3c0bbf5a4829169b95e7f"
+    },
+    {
+      "archivo": "2026-10-11-puerta-dependencias-mutacion-fallo-cd.log.gz",
+      "sha256": "38f68d5dd652c2d85bbd0bb20f13a95ce38b05ec4ee14778a491c41978ad8830"
+    },
+    {
+      "archivo": "2026-10-11-puerta-dependencias-restauradas.log.gz",
+      "sha256": "82bb6d1fec0b9e1e8e346bc51ec208179141342ff9d455ac9a8ad202a982c973"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.83 s -- in com.ondexia.pruebas.PuntoDeVentaIT
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Reactor Summary for Ondexia — backend 0.1.0-SNAPSHOT:
+[INFO] Ondexia — backend .................................. SUCCESS [  0.001 s]
+[INFO] Ondexia — dominio .................................. SUCCESS [  0.486 s]
+[INFO] Ondexia — API Core ................................. SUCCESS [ 15.406 s]
+[INFO] BUILD SUCCESS

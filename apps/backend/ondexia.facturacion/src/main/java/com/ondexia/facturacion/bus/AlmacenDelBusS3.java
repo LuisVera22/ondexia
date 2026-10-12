@@ -27,16 +27,23 @@ public class AlmacenDelBusS3 implements AlmacenDelBus {
     private final S3Client s3;
     private final String bucket;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public AlmacenDelBusS3(PropiedadesEmision propiedades) {
-        if (propiedades.bucket() == null || propiedades.bucket().isBlank()) {
-            throw new IllegalStateException(
-                    "Falta ondexia.emision.bucket (BUCKET_EMISION): sin bucket no hay bus.");
-        }
-        this.bucket = propiedades.bucket();
-        this.s3 = S3Client.builder()
+        this(exigirBucket(propiedades), S3Client.builder()
                 .region(Region.of(System.getenv("AWS_REGION")))
-                .httpClientBuilder(UrlConnectionHttpClient.builder())
-                .build();
+                .httpClientBuilder(UrlConnectionHttpClient.builder()).build());
+    }
+
+    AlmacenDelBusS3(String bucket, S3Client s3) {
+        this.bucket = bucket;
+        this.s3 = s3;
+    }
+
+    private static String exigirBucket(PropiedadesEmision propiedades) {
+        if (propiedades.bucket() == null || propiedades.bucket().isBlank()) {
+            throw new IllegalStateException("Falta ondexia.emision.bucket (BUCKET_EMISION): sin bucket no hay bus.");
+        }
+        return propiedades.bucket();
     }
 
     @Override
@@ -51,12 +58,20 @@ public class AlmacenDelBusS3 implements AlmacenDelBus {
 
     @Override
     public void escribir(String clave, byte[] contenido, String tipoContenido) {
-        s3.putObject(PutObjectRequest.builder().bucket(bucket).key(clave)
-                .contentType(tipoContenido).build(), RequestBody.fromBytes(contenido));
+        var peticion = PutObjectRequest.builder().bucket(bucket).key(clave).contentType(tipoContenido);
+        // OriginalesEnS3Test.exigeEscrituraCondicional: solicita crear sin reemplazar.
+        // La aplicación efectiva de esta condición en AWS no se ha ensayado aquí.
+        if (clave.startsWith(com.ondexia.domain.comprobante.ClavesDelBus.DOCUMENTOS)) {
+            peticion.ifNoneMatch("*");
+        }
+        s3.putObject(peticion.build(), RequestBody.fromBytes(contenido));
     }
 
     @Override
     public void borrar(String clave) {
+        if (clave.startsWith(com.ondexia.domain.comprobante.ClavesDelBus.DOCUMENTOS)) {
+            throw new IllegalArgumentException("Un documento original no se borra del bus.");
+        }
         s3.deleteObject(DeleteObjectRequest.builder().bucket(bucket).key(clave).build());
     }
 }

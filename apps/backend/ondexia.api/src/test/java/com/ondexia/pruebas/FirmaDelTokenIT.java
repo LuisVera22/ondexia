@@ -21,6 +21,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.oauth2.jwt.JwtException;
@@ -257,6 +260,22 @@ class FirmaDelTokenIT {
 
             assertThatCode(() -> decodificador.decode(token)).doesNotThrowAnyException();
         }
+    }
+
+    @ParameterizedTest(name = "Configuración sin cliente Cognito: caso {index}")
+    @NullAndEmptySource
+    @ValueSource(strings = {" ", "\t\n"})
+    @DisplayName("Sin cliente Cognito no se construye un decodificador que omita la audiencia")
+    void sinClienteConfiguradoFallaAntesDeAceptarTokens(String clienteConfigurado) throws Exception {
+        var tokenAjeno = firmar(nuestra, reclamacionesValidas()
+                .claim("client_id", "otra-aplicacion-del-mismo-pool")
+                .build());
+
+        assertThatThrownBy(() -> new SeguridadPasarelaConfig(
+                EMISOR, clienteConfigurado, new JWKSet(nuestra.toPublicJWK()).toString())
+                .jwtDecoder().decode(tokenAjeno))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("COGNITO_CLIENTE_ID debe identificar la aplicación esperada.");
     }
 
     // ── Utilidades ──────────────────────────────────────────────────────────

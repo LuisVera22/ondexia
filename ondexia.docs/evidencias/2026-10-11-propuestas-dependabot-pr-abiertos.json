@@ -1,0 +1,132 @@
+{
+  "fecha": "2026-10-11",
+  "estado": "consultado; sin modificar",
+  "propuestas": [
+    {
+      "numero": 30,
+      "base": "main",
+      "head": "b91dff7fee221c9e6979fb7287fbc950756e579b",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.admin/karma-jasmine-html-reporter-2.3.0",
+      "url": "https://github.com/LuisVera22/ondexia/pull/30"
+    },
+    {
+      "numero": 29,
+      "base": "main",
+      "head": "19d30a0bd9a7bc5fb92be29cf402327877eeab4f",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.admin/zone.js-0.16.3",
+      "url": "https://github.com/LuisVera22/ondexia/pull/29"
+    },
+    {
+      "numero": 28,
+      "base": "main",
+      "head": "f1c2d8a0bfabe8356b1d5ec0135a470af4cc4cf3",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.admin/postcss-8.5.29",
+      "url": "https://github.com/LuisVera22/ondexia/pull/28"
+    },
+    {
+      "numero": 27,
+      "base": "main",
+      "head": "ffe80e160607077936e07195b8d140939cb22d1d",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.admin/angular/cli-22.2.1",
+      "url": "https://github.com/LuisVera22/ondexia/pull/27"
+    },
+    {
+      "numero": 26,
+      "base": "main",
+      "head": "78139d4bacbeb9ec090b344999792731b3bbe168",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.landing/typescript-6.0.3",
+      "url": "https://github.com/LuisVera22/ondexia/pull/26"
+    },
+    {
+      "numero": 25,
+      "base": "main",
+      "head": "af5feffaf9adc5e88613585cf45cd0d8af63ebe4",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.admin/types/jasmine-7.0.0",
+      "url": "https://github.com/LuisVera22/ondexia/pull/25"
+    },
+    {
+      "numero": 24,
+      "base": "main",
+      "head": "c7173e4ddd616c2eee2a805a236eaac2ee1dc0a1",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.landing/astro-7.3.6",
+      "url": "https://github.com/LuisVera22/ondexia/pull/24"
+    },
+    {
+      "numero": 23,
+      "base": "main",
+      "head": "f12a7df346899b8949a0861ba0e56ab7ccea923a",
+      "rama": "dependabot/npm_and_yarn/apps/frontend/ondexia.landing/astrojs/sitemap-3.7.4",
+      "url": "https://github.com/LuisVera22/ondexia/pull/23"
+    },
+    {
+      "numero": 22,
+      "base": "main",
+      "head": "77f78524641c99d58d36b8d2bcab52da7be97690",
+      "rama": "dependabot/maven/apps/backend/software.amazon.awssdk-bom-2.55.11",
+      "url": "https://github.com/LuisVera22/ondexia/pull/22"
+    },
+    {
+      "numero": 21,
+      "base": "main",
+      "head": "1c15062a5d436eeab0526917953f321b58b99d09",
+      "rama": "dependabot/github_actions/actions/cache/restore-6.1.0",
+      "url": "https://github.com/LuisVera22/ondexia/pull/21"
+    },
+    {
+      "numero": 20,
+      "base": "main",
+      "head": "69ff095d930fe66e9b9e3c5c14eb36f78f72109c",
+      "rama": "dependabot/maven/apps/backend/io.quarkus.qute-qute-core-3.40.1",
+      "url": "https://github.com/LuisVera22/ondexia/pull/20"
+    },
+    {
+      "numero": 19,
+      "base": "main",
+      "head": "24a0e9b0bd538d1c621932654befc11fb82c3967",
+      "rama": "dependabot/github_actions/actions/upload-artifact-7.0.1",
+      "url": "https://github.com/LuisVera22/ondexia/pull/19"
+    },
+    {
+      "numero": 18,
+      "base": "main",
+      "head": "fd046ef03139959a9426a06e5e1e2732ef3d2519",
+      "rama": "dependabot/github_actions/pnpm/action-setup-0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+      "url": "https://github.com/LuisVera22/ondexia/pull/18"
+    },
+    {
+      "numero": 17,
+      "base": "main",
+      "head": "a1890b3b510715a701d883f7d69739ec6fba82cd",
+      "rama": "dependabot/maven/apps/backend/org.apache.maven-apache-maven-3.10.0",
+      "url": "https://github.com/LuisVera22/ondexia/pull/17"
+    },
+    {
+      "numero": 16,
+      "base": "main",
+      "head": "7ab4db6967e72a4671d81c0ad3cafe99cd2900f5",
+      "rama": "dependabot/github_actions/actions/setup-java-6.0.1",
+      "url": "https://github.com/LuisVera22/ondexia/pull/16"
+    },
+    {
+      "numero": 15,
+      "base": "main",
+      "head": "eae6d4082b61388ef9b4b6bc2b49f757847baf80",
+      "rama": "dependabot/maven/apps/backend/org.owasp-dependency-check-maven-13.0.0",
+      "url": "https://github.com/LuisVera22/ondexia/pull/15"
+    },
+    {
+      "numero": 14,
+      "base": "main",
+      "head": "ea9d6ec71273ea7080c2a6a9d7cba21ac081f3aa",
+      "rama": "dependabot/github_actions/actions/download-artifact-8.0.1",
+      "url": "https://github.com/LuisVera22/ondexia/pull/14"
+    },
+    {
+      "numero": 13,
+      "base": "main",
+      "head": "3def5cdb79d9fa75fdb47dcf9397ef2ef9f83ed5",
+      "rama": "dependabot/maven/apps/backend/com.tngtech.archunit-archunit-junit5-1.5.1",
+      "url": "https://github.com/LuisVera22/ondexia/pull/13"
+    }
+  ]
+}

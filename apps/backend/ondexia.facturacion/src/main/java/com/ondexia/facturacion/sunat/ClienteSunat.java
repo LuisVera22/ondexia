@@ -1,6 +1,5 @@
 package com.ondexia.facturacion.sunat;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -8,6 +7,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * El {@code sendBill} de SUNAT con el {@code HttpClient} del JDK (doc 14 §5).
@@ -67,19 +69,33 @@ public class ClienteSunat {
                 .header("SOAPAction", "urn:" + operacion)
                 .POST(HttpRequest.BodyPublishers.ofString(sobre, StandardCharsets.UTF_8))
                 .build();
+        // ClienteSunatHttpTest: contar antes de acumular y acotar también el
+        // cuerpo posterior a las cabeceras; HttpRequest.timeout no basta aquí.
+        var recepcion = http.sendAsync(peticion, informacion -> new ReceptorDeSoapAcotado());
         try {
-            HttpResponse<byte[]> respuesta = http.send(peticion, HttpResponse.BodyHandlers.ofByteArray());
+            HttpResponse<byte[]> respuesta = recepcion.get(tiempoDeEspera.toNanos(), TimeUnit.NANOSECONDS);
             return esperaTicket
                     ? lector.leerTicket(respuesta.statusCode(), respuesta.body())
                     : lector.leer(respuesta.statusCode(), respuesta.body());
-        } catch (IOException e) {
-            return RespuestaSunat.sinRespuesta("SIN_CONEXION",
-                    "No se pudo conectar con SUNAT: " + e.getClass().getSimpleName()
-                            + (e.getMessage() == null ? "" : " (" + e.getMessage() + ")"));
+        } catch (ExecutionException fallo) {
+            if (fallo.getCause() instanceof ReceptorDeSoapAcotado.RespuestaExcesiva) {
+                return RespuestaSunat.sinRespuesta("RESPUESTA_DEMASIADO_GRANDE",
+                        "SUNAT respondió con un cuerpo que supera el límite de recepción.");
+            }
+            return sinComunicacion();
+        } catch (TimeoutException agotado) {
+            recepcion.cancel(true);
+            return sinComunicacion();
         } catch (InterruptedException e) {
+            recepcion.cancel(true);
             Thread.currentThread().interrupt();
             return RespuestaSunat.sinRespuesta("INTERRUMPIDO", "El envío a SUNAT se interrumpió.");
         }
+    }
+
+    private static RespuestaSunat sinComunicacion() {
+        return RespuestaSunat.sinRespuesta("SIN_CONEXION",
+                "No se pudo completar la comunicación con SUNAT.");
     }
 
     /** El sobre, visible para la prueba: lo único que SUNAT ve de nosotros. */

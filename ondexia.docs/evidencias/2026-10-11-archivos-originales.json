@@ -1,0 +1,67 @@
+{
+  "bloque": "F06 — archivos originales",
+  "base": "ad3eaba2ffd586c4a9693a8968c974fa67138f44",
+  "pruebas_backend_completas": 533,
+  "sca_local": "omitido explícitamente; pendiente de CI",
+  "oraculos": [
+    "bytes CDR y SOAP de entradas literales",
+    "bytes XML/ZIP capturados en transporte fingido independiente del almacén",
+    "IDs y fecha fija preparados por la prueba"
+  ],
+  "regresiones_rojas": [
+    "ruta de intento y sobrescritura de disco: dos fallos",
+    "ticket SOAP no conservado: un fallo"
+  ],
+  "mutaciones_detectadas": [
+    "sin condición S3 y sin guardia de borrado: dos fallos",
+    "sin guardar ZIP antes de envío: un fallo",
+    "sin excluir Fault y respuestas no reconocidas: dos fallos"
+  ],
+  "restauracion": "archivos restaurados byte por byte; pruebas posteriores correctas",
+  "no_verificado": [
+    "AWS/SUNAT real",
+    "Object Lock y privilegios administrativos",
+    "recuperación histórica",
+    "PDF persistido",
+    "auditoría independiente"
+  ],
+  "ci": "pendiente al registrar evidencia",
+  "registros": [
+    {
+      "archivo": "2026-10-11-archivos-originales/rojo.log.gz",
+      "sha256": "a998dd66ff097092298b8dacaef7a458323e0aaae5befcc6984f103ba685d3ef"
+    },
+    {
+      "archivo": "2026-10-11-archivos-originales/verde.log.gz",
+      "sha256": "3c728f0afab40884b0abe95847b2386a5858f49337d8158abfb06b844ba2999e"
+    },
+    {
+      "archivo": "2026-10-11-archivos-originales/s3-rojo.log.gz",
+      "sha256": "17ae507af95df23aae444688ffb17998ecd789678678f0c0d91874679eb3ad1b"
+    },
+    {
+      "archivo": "2026-10-11-archivos-originales/envio-rojo.log.gz",
+      "sha256": "e1a9354610819fefaf7cc6828b7fa245f1624fbdb75e8b074d6c05ffad7c9947"
+    },
+    {
+      "archivo": "2026-10-11-archivos-originales/respuesta-rojo.log.gz",
+      "sha256": "514c1040b571d1904a4bc5bf9888918bc9f86ee9782cafda7776ba47effd551c"
+    },
+    {
+      "archivo": "2026-10-11-archivos-originales/respuesta-verde.log.gz",
+      "sha256": "c2da298b4c06d20f6061d832a5886e8f213b9361c16bbbc647962f360bd1a8af"
+    },
+    {
+      "archivo": "2026-10-11-archivos-originales/respuesta-mutacion.log.gz",
+      "sha256": "46eeaf4f1eff840de2469f553029ae81ea9d169764b4f00eefa869724926ce45"
+    },
+    {
+      "archivo": "2026-10-11-archivos-originales/final.log.gz",
+      "sha256": "96636ea8a3af12ef9a9effd8105ed9afc8e189dfddb8b1acc4eca3dffff924cb"
+    },
+    {
+      "archivo": "2026-10-11-archivos-originales/final-restaurado.log.gz",
+      "sha256": "ef13c59c5a4e160159e08f30660bf3048cc820c33e0d294078c0d3ef2dcb8334"
+    }
+  ]
+}

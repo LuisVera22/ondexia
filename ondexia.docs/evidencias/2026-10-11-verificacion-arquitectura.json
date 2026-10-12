@@ -1,0 +1,59 @@
+{
+  "base": "df050e87da8e4573c1caf87552ef1c8ab400798e",
+  "archunit_antes": "1.5.0",
+  "archunit_despues": "1.5.1",
+  "artefactos": [
+    {
+      "archivo": "2026-10-11-archunit-antes.log.gz",
+      "sha256": "61d4ab511d3a1bace265a6cfdf60a85a93bbf090759f5b0ad28c66da7b9904a7",
+      "resumen": false,
+      "sha256_log_completo_local": "b4db37e7dc5027d5023fa7d42ad45f65e99f374c4b7d39a1c4f7811083be9367"
+    },
+    {
+      "archivo": "2026-10-11-archunit-antes-resolucion.log.gz",
+      "sha256": "6dc84fc82b8f4137527219f1af7ac133db45097c96434bf300eda0f26ce7fede",
+      "resumen": false,
+      "sha256_log_completo_local": "6d56f3c290de8862724c2cd339b15e6a7b93bac1a64f56c4dbb603a3033ea891"
+    },
+    {
+      "archivo": "2026-10-11-archunit-despues.log.gz",
+      "sha256": "a7ccc5c9dedc38f1be46a6b3210feb9ea2a1a78daa6d80b94b0489b3b671c35a",
+      "resumen": false,
+      "sha256_log_completo_local": "abecc86b762d51ce928dd4a5e4bd1ab29363c0d4e566b6c15a9d735736a34bd1"
+    },
+    {
+      "archivo": "2026-10-11-archunit-mutacion.log.gz",
+      "sha256": "3b33b5cb5e2e902c0e411988cb012939121d03e7e420652fe7453f600bcbd18d",
+      "resumen": false,
+      "sha256_log_completo_local": "b9082d628f4d92576331ea1cec7a8ff522d40af563d432c6f1cc13fc4f6a1bb4"
+    },
+    {
+      "archivo": "2026-10-11-archunit-restaurado.log.gz",
+      "sha256": "7c50a220bd0d69b60eecc00fec851798c3bf19a44e0d071991491150a36e8e8f",
+      "resumen": false,
+      "sha256_log_completo_local": "4f4af5d85397c400f693c2f66d60aafdb0d989be43e865950ae98791dfaeb7f8"
+    },
+    {
+      "archivo": "2026-10-11-archunit-regresion.log.gz",
+      "sha256": "8035f4eeed254eafce84aaabacf95fbd17cf339a0b9ce7bf4ed3d7e5351bb2ea",
+      "resumen": true,
+      "sha256_log_completo_local": "61d774fecac9dd84895aba2f615b0a419660e2c1e72a1010a1c9e5257c1b38ad"
+    },
+    {
+      "archivo": "2026-10-11-archunit-emisor.log.gz",
+      "sha256": "815f255526f4a94527efaaf9e1bf975e3f023c615254d5134abf4558e5341612",
+      "resumen": true,
+      "sha256_log_completo_local": "795774ed2a6b3fd4bf46a7b7aaa7d00cc026b6fdd0f585d2898f3272f30e4ab9"
+    }
+  ],
+  "regresion": {
+    "dominio": 170,
+    "api": 327,
+    "panel": 41,
+    "consultas": 41,
+    "emisor": 77,
+    "total": 656
+  },
+  "ci": "pendiente",
+  "auditoria_independiente": "no ejecutada"
+}
