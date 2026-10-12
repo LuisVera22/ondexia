@@ -260,6 +260,7 @@ jobs:
           terraform fmt -check -recursive
           terraform init -backend=false
           terraform validate
+          terraform test -filter=tests/promocion.tftest.hcl
 
   artefactos_preparar:
     runs-on: ubuntu-latest

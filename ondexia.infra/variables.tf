@@ -25,6 +25,17 @@ variable "region" {
   default     = "us-east-1"
 }
 
+variable "entorno_recursos" {
+  description = "Identidad física heredada. Nulo conserva el entorno; dev permite promover la pila existente sin renombrar recursos ni secretos."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.entorno_recursos == null || var.entorno_recursos == var.entorno || (var.entorno == "prod" && var.entorno_recursos == "dev")
+    error_message = "La identidad física solo puede conservar el entorno o promover dev a prod."
+  }
+}
+
 variable "dominio" {
   description = "Dominio raíz. Solo se usa si gestionar_dns está activo."
   type        = string

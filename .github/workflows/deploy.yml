@@ -3,7 +3,7 @@ name: Deploy
 # INACTIVO HASTA FASE 1 (DTE §10.3): solo se dispara a mano.
 #
 # Al llegar la Fase 1, activar el disparador automático según GitFlow:
-#   push a develop -> entorno dev
+#   develop se verifica en CI; el desarrollo se ejecuta localmente.
 #   push a main    -> entorno prod (con aprobación manual del environment)
 #
 # Se deja manual a propósito mientras no haya nada desplegado: un workflow de
@@ -20,7 +20,7 @@ on:
         description: Entorno destino
         required: true
         type: choice
-        options: [dev, prod]
+        options: [prod]
       solo_plan:
         description: Solo mostrar el plan, sin aplicar
         type: boolean
@@ -97,6 +97,25 @@ jobs:
     timeout-minutes: 120
 
     steps:
+      - name: Comprobar destino productivo
+        env:
+          ENTORNO_DESTINO: ${{ inputs.entorno }}
+          SOLO_PLAN: ${{ inputs.solo_plan }}
+          SOLO_LANDING: ${{ inputs.solo_landing }}
+        run: |
+          if [ "$ENTORNO_DESTINO" != "prod" ]; then
+            echo "::error::AWS es exclusivamente productivo; desarrolla localmente."
+            exit 1
+          fi
+          if [ "$SOLO_PLAN" != "true" ] && [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::La aplicación productiva solo se permite desde main."
+            exit 1
+          fi
+          if [ "$SOLO_LANDING" = "true" ]; then
+            echo "::error::La promoción requiere el plan completo; DNS se prepara por el procedimiento documentado."
+            exit 1
+          fi
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7
 
       # ── Herramientas ───────────────────────────────────────────────────────
@@ -421,6 +440,15 @@ jobs:
             -backend-config="key=ondexia/${{ inputs.entorno }}/terraform.tfstate" \
             -backend-config="region=${REGION}"
 
+      - name: Comprobar estado promovido
+        working-directory: ondexia.infra
+        run: |
+          umask 077
+          ESTADO_TEMPORAL=$(mktemp)
+          trap 'rm -f "$ESTADO_TEMPORAL"' EXIT
+          terraform state pull > "$ESTADO_TEMPORAL"
+          python3 ../herramientas/comprobar_promocion.py estado "$ESTADO_TEMPORAL"
+
       - name: Terraform plan
         working-directory: ondexia.infra
         # `-lock=false` porque este rol no puede escribir en el bucket del
@@ -466,6 +494,11 @@ jobs:
               -var-file="entornos/${{ inputs.entorno }}.tfvars" \
               -out=plan.tfplan
           fi
+          umask 077
+          PLAN_TEMPORAL=$(mktemp)
+          trap 'rm -f "$PLAN_TEMPORAL"' EXIT
+          terraform show -json plan.tfplan > "$PLAN_TEMPORAL"
+          python3 ../herramientas/comprobar_promocion.py plan "$PLAN_TEMPORAL"
           terraform show -no-color plan.tfplan > plan.txt
 
       - name: Publicar el plan en el resumen
@@ -552,16 +585,32 @@ jobs:
       # levanta Hibernate y por tanto no valida nada—, se migra, y solo entonces
       # se aplica el resto.
 
+      - name: Comprobar estado promovido
+        working-directory: ondexia.infra
+        run: |
+          umask 077
+          ESTADO_TEMPORAL=$(mktemp)
+          trap 'rm -f "$ESTADO_TEMPORAL"' EXIT
+          terraform state pull > "$ESTADO_TEMPORAL"
+          python3 ../herramientas/comprobar_promocion.py estado "$ESTADO_TEMPORAL"
+
       - name: Actualizar la función de migraciones
         if: ${{ !inputs.solo_landing }}
         working-directory: ondexia.infra
         # -target está desaconsejado como norma y aquí es lo correcto: se
         # necesita justamente aplicar una parte antes que el resto.
         run: |
-          terraform apply -auto-approve \
+          terraform plan \
             -var-file="entornos/${{ inputs.entorno }}.tfvars" \
             -target=aws_s3_object.api \
-            -target=aws_lambda_function.migraciones
+            -target=aws_lambda_function.migraciones \
+            -out=migraciones.tfplan
+          umask 077
+          PLAN_TEMPORAL=$(mktemp)
+          trap 'rm -f "$PLAN_TEMPORAL"' EXIT
+          terraform show -json migraciones.tfplan > "$PLAN_TEMPORAL"
+          python3 ../herramientas/comprobar_promocion.py plan "$PLAN_TEMPORAL" --parcial
+          terraform apply migraciones.tfplan
 
       - name: Aplicar las migraciones
         if: ${{ !inputs.solo_landing }}
@@ -621,6 +670,11 @@ jobs:
               -var-file="entornos/${{ inputs.entorno }}.tfvars" \
               -out=plan.tfplan
           fi
+          umask 077
+          PLAN_TEMPORAL=$(mktemp)
+          trap 'rm -f "$PLAN_TEMPORAL"' EXIT
+          terraform show -json plan.tfplan > "$PLAN_TEMPORAL"
+          python3 ../herramientas/comprobar_promocion.py plan "$PLAN_TEMPORAL"
           terraform show -no-color plan.tfplan > plan.txt
 
       - name: Publicar el plan que se va a aplicar

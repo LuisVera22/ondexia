@@ -35,7 +35,7 @@ locals {
    * separe — que la pública de un entorno acabe verificando firmas de otro es
    * un fallo silencioso y desconcertante.
    */
-  ssm_prefijo = "/ondexia/${var.entorno}/consultas"
+  ssm_prefijo = "/ondexia/${local.entorno_recursos}/consultas"
 
   ssm_firma_privada = "${local.ssm_prefijo}/firma-privada"
   ssm_firma_publica = "${local.ssm_prefijo}/firma-publica"

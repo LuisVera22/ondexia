@@ -54,6 +54,9 @@ locals {
   # línea y no una copia del archivo — que era el argumento con el que se
   # justificó fusionarlos.
   entornos_despliegue = toset(["dev", "prod"])
+  efecto_confianza = { for entorno in local.entornos_despliegue : entorno => (
+    var.entorno == "prod" && entorno == "dev" ? "Deny" : "Allow"
+  ) }
 }
 
 # El proveedor no cuesta nada y solo se declara una vez por cuenta.
@@ -173,7 +176,9 @@ data "aws_iam_policy_document" "asumir_despliegue" {
 
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
-    effect  = "Allow"
+    # Retira la entrada dev al promover sin destruir el rol. Ver la prueba
+    # conserva_identificadores_y_endurece; autorización AWS efectiva pendiente.
+    effect = local.efecto_confianza[each.key]
 
     principals {
       type        = "Federated"
@@ -481,7 +486,7 @@ data "aws_iam_policy_document" "asumir_plan" {
 
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
-    effect  = "Allow"
+    effect  = local.efecto_confianza[each.key]
 
     principals {
       type        = "Federated"

@@ -7,16 +7,17 @@
 entorno = "prod"
 region  = "us-east-1"
 
+# Promoción de la única pila existente. Migrar antes su titularidad al estado
+# prod; nunca aplicar sobre un estado vacío ni compartirlo con otro despliegue.
+entorno_recursos = "dev"
+
 # OBLIGATORIO en prod: variables.tf lo valida y el plan aborta con false. Sin
 # dominio propio CloudFront acepta TLS 1.0 y la CSP queda con comodines (tabla
 # de bajas de la auditoria 2026-09-01).
 #
-# Se deja en false A SABIENDAS mientras el dominio no este registrado: asi el
-# primer plan de prod falla con un mensaje que dice exactamente que falta, en
-# vez de desplegar un entorno de produccion que no deberia recibir clientes.
-# Encenderlo antes de poder cargar los servidores de nombres deja certificados
-# esperando una validacion que nunca llega.
-gestionar_dns = false
+# Dominio adquirido en Namecheap. La zona y certificados se preparan por
+# etapas antes de delegar los servidores de nombres; ver README, promoción.
+gestionar_dns = true
 dominio       = "ondexia.com"
 
 correo_alertas = "luis26.ml143@gmail.com"
@@ -37,12 +38,11 @@ retencion_logs_dias      = 30
 # `aws lambda get-account-settings` antes de desplegar prod.
 concurrencia_reservada_api = 20
 
-# Se descomentan cuando el backend se haya probado en dev. Mientras sigan
-# comentadas, prod despliega la función de relleno que responde 501.
-#
-# Las rutas y el handler ya son los definitivos: la ruta anterior apuntaba a
-# apps/ondexia.api, de antes de agrupar el backend bajo apps/backend, y el
-# handler a una clase que nunca existió.
-# artefacto_api = "../apps/backend/ondexia.api/target/ondexia-api.jar"
-# runtime_api   = "java21"
-# handler_api   = "com.ondexia.infrastructure.entrada.lambda.ManejadorLambda::handleRequest"
+artefacto_api         = "../apps/backend/ondexia.api/target/ondexia-api.jar"
+runtime_api           = "java21"
+handler_api           = "com.ondexia.infrastructure.entrada.lambda.ManejadorLambda::handleRequest"
+artefacto_panel       = "../apps/backend/ondexia.admin/target/ondexia-admin.jar"
+artefacto_consultas   = "../apps/backend/ondexia.consultas/target/ondexia-consultas.jar"
+artefacto_facturacion = "../apps/backend/ondexia.facturacion/target/ondexia-facturacion.jar"
+usar_apiperu          = true
+acceso_bd_publico     = false

@@ -16,7 +16,10 @@ data "aws_availability_zones" "disponibles" {
 }
 
 locals {
-  nombre = "${var.proyecto}-${var.entorno}"
+  # La promoción conserva identificadores; las políticas siguen var.entorno.
+  # Ver tests/promocion.tftest.hcl; la conservación en AWS exige revisar el plan.
+  entorno_recursos = coalesce(var.entorno_recursos, var.entorno)
+  nombre           = "${var.proyecto}-${local.entorno_recursos}"
 
   # Dos zonas. RDS exige un grupo de subredes que abarque al menos dos aunque
   # la instancia sea de zona única: es un requisito del servicio, no una
@@ -122,7 +125,9 @@ resource "aws_route_table_association" "privada" {
  * tres a la vez: ruta, dirección pública y regla del grupo de seguridad.
  */
 resource "aws_internet_gateway" "principal" {
-  count = var.entorno == "dev" ? 1 : 0
+  # Conservar el objeto no abre RDS: bd_publica permanece falsa en prod.
+  # Evita destruir la puerta heredada durante la promoción; plan AWS pendiente.
+  count = local.entorno_recursos == "dev" ? 1 : 0
 
   vpc_id = aws_vpc.principal.id
 
