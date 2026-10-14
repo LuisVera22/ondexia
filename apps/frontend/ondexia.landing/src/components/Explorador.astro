@@ -1,0 +1,509 @@
+---
+const escenas = [
+  {
+    clave: 'venta',
+    numero: '01',
+    titulo: 'Preparar la venta',
+    descripcion: 'Seleccionar bienes y servicios, identificar al cliente y revisar el importe antes de registrar la operación.',
+    alternativa: 'Registro de venta en Ondexia con cliente, líneas de bienes y servicios y resumen de importes.',
+    alturaEscritorio: 864,
+    alturaMovil: 2081,
+  },
+  {
+    clave: 'registro',
+    numero: '02',
+    titulo: 'Revisar el registro',
+    descripcion: 'Consultar los datos del documento, el detalle de la venta y los pagos registrados en una misma vista.',
+    alternativa: 'Registro de una nota de venta en Ondexia con datos del documento, cliente, detalle, pagos e importe total.',
+    alturaEscritorio: 901,
+    alturaMovil: 1615,
+  },
+  {
+    clave: 'documento',
+    numero: '03',
+    titulo: 'Previsualizar el documento',
+    descripcion: 'Revisar la nota de venta y su detalle en la previsualización del documento.',
+    alternativa: 'Previsualización de una nota de venta en Ondexia con emisor, detalle e importe total.',
+    alturaEscritorio: 633,
+    alturaMovil: 803,
+  },
+];
+---
+
+<section id="explorar" class="explorador" aria-labelledby="titulo-explorador" data-explorador>
+  <div class="explorador-interior">
+    <div class="explorador-presentacion">
+      <h2 id="titulo-explorador">La operación, en pantalla.</h2>
+      <p>Del registro de la venta a la consulta de su documento.</p>
+    </div>
+
+    <!-- Sin el script, las tres escenas y sus enlaces conservan el recorrido. -->
+    <div class="explorador-pestanas" aria-label="Escenas del sistema" data-pestanas hidden>
+      {escenas.map((escena) => (
+        <button
+          id={`pestana-${escena.clave}`}
+          class="explorador-pestana"
+          type="button"
+          aria-controls={`escena-${escena.clave}`}
+          data-pestana
+        >
+          <span class="pestana-numero" aria-hidden="true">{escena.numero}</span>
+          <span>{escena.titulo}</span>
+        </button>
+      ))}
+    </div>
+
+    <div class="explorador-escenas">
+      {escenas.map((escena, indice) => (
+        <article
+          id={`escena-${escena.clave}`}
+          class="explorador-escena"
+          aria-labelledby={`titulo-escena-${escena.clave}`}
+          data-escena
+        >
+          <div class="escena-encabezado">
+            <div class="escena-descripcion">
+              <h3 id={`titulo-escena-${escena.clave}`}>{escena.titulo}</h3>
+              <p>{escena.descripcion}</p>
+            </div>
+            <div class="escena-acciones">
+              <button class="escena-ampliar" type="button" data-ampliar hidden>Ampliar captura</button>
+              <a
+                class="escena-original escena-original-escritorio"
+                href={`/capturas/${escena.clave}-escritorio.png`}
+                data-original
+                data-original-escritorio={`/capturas/${escena.clave}-escritorio.png`}
+                data-original-movil={`/capturas/${escena.clave}-movil.png`}
+              >Ver captura original</a>
+              <a class="escena-original escena-original-movil" href={`/capturas/${escena.clave}-movil.png`}>Ver captura original</a>
+            </div>
+          </div>
+
+          <figure>
+            <div
+              class="escena-captura"
+              role="region"
+              aria-label={`Captura: ${escena.titulo}`}
+              tabindex="0"
+            >
+              <picture>
+                <source
+                  media="(max-width: 600px)"
+                  srcset={`/capturas/${escena.clave}-movil.png`}
+                  width="348"
+                  height={escena.alturaMovil}
+                />
+                <img
+                  src={`/capturas/${escena.clave}-escritorio.png`}
+                  alt={escena.alternativa}
+                  width="1082"
+                  height={escena.alturaEscritorio}
+                  loading={indice === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  data-captura
+                />
+              </picture>
+            </div>
+            <figcaption>Capturas del sistema · datos de demostración<span class="captura-ayuda-movil">Desplazar la captura para ver el resto.</span></figcaption>
+          </figure>
+        </article>
+      ))}
+    </div>
+
+    <dialog class="explorador-dialogo" aria-labelledby="titulo-captura-ampliada" data-dialogo>
+      <div class="dialogo-encabezado">
+        <div>
+          <h2 id="titulo-captura-ampliada" data-titulo-ampliado>Preparar la venta</h2>
+          <p>Capturas del sistema · datos de demostración</p>
+        </div>
+        <button class="dialogo-cerrar" type="button" data-cerrar autofocus>Cerrar</button>
+      </div>
+      <div class="dialogo-captura">
+        <picture>
+          <source media="(max-width: 600px)" srcset="/capturas/venta-movil.png" width="348" height={escenas[0].alturaMovil} data-fuente-ampliada />
+          <img
+            src="/capturas/venta-escritorio.png"
+            alt={escenas[0].alternativa}
+            width="1082"
+            height={escenas[0].alturaEscritorio}
+            loading="lazy"
+            decoding="async"
+            data-captura-ampliada
+          />
+        </picture>
+      </div>
+      <div class="dialogo-pie">
+        <a href="/capturas/venta-escritorio.png" data-original-ampliado>Ver captura original</a>
+      </div>
+    </dialog>
+  </div>
+</section>
+
+<script src="../scripts/explorador.ts"></script>
+
+<style>
+  .explorador {
+    scroll-margin-top: 100px;
+    background: var(--color-white);
+  }
+
+  .explorador-interior {
+    width: min(100% - 64px, 1200px);
+    margin-inline: auto;
+    padding-bottom: 88px;
+  }
+
+  .explorador-presentacion {
+    margin-bottom: 28px;
+    text-align: center;
+  }
+
+  .explorador-presentacion h2 {
+    color: var(--color-gray-900);
+    font-size: clamp(24px, 2.4vw, 32px);
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 1.25;
+  }
+
+  .explorador-presentacion p {
+    margin-top: 10px;
+    color: var(--color-gray-600);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .explorador-pestanas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 22px;
+    padding: 6px;
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-base);
+    background: var(--color-gray-25);
+  }
+
+  .explorador-pestanas[hidden],
+  .explorador-escena[hidden],
+  .escena-ampliar[hidden] {
+    display: none;
+  }
+
+  .explorador-pestana {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 50px;
+    padding: 10px 16px;
+    border: 1px solid transparent;
+    border-bottom: 2px solid transparent;
+    border-radius: var(--radius-base);
+    background: transparent;
+    color: var(--color-gray-600);
+    font: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-align: center;
+    transition:
+      color var(--duracion-normal) var(--ease-propia),
+      background-color var(--duracion-normal) var(--ease-propia),
+      border-color var(--duracion-normal) var(--ease-propia);
+  }
+
+  .pestana-numero {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .explorador-pestana:hover {
+    background: var(--color-gray-100);
+    color: var(--color-gray-900);
+  }
+
+  .explorador-pestana[aria-selected='true'] {
+    border-color: var(--color-gray-300);
+    border-bottom-color: var(--color-brand-500);
+    background: var(--color-white);
+    color: var(--color-brand-700);
+  }
+
+  .explorador-escenas {
+    display: grid;
+    gap: 44px;
+  }
+
+  .explorador-escena {
+    min-width: 0;
+  }
+
+  .escena-encabezado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+    margin-bottom: 20px;
+  }
+
+  .escena-descripcion {
+    max-width: 640px;
+  }
+
+  .escena-descripcion h3 {
+    color: var(--color-gray-900);
+    font-size: 19px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .escena-descripcion p {
+    margin-top: 7px;
+    color: var(--color-gray-600);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .escena-acciones {
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 5px;
+  }
+
+  .escena-ampliar,
+  .dialogo-cerrar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 16px;
+    border: 1px solid var(--color-gray-500);
+    border-radius: var(--radius-base);
+    background: var(--color-white);
+    color: var(--color-gray-800);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    transition: background-color var(--duracion-normal) var(--ease-propia);
+  }
+
+  .escena-ampliar:hover,
+  .dialogo-cerrar:hover {
+    background: var(--color-gray-50);
+  }
+
+  .escena-original,
+  .dialogo-pie a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--color-brand-700);
+    font-size: 14px;
+    line-height: 1.4;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .escena-original-movil {
+    display: none;
+  }
+
+  figure {
+    margin: 0;
+  }
+
+  .escena-captura {
+    overflow: hidden;
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-base);
+    background: var(--color-gray-25);
+  }
+
+  picture,
+  img {
+    display: block;
+  }
+
+  img {
+    width: 100%;
+    height: auto;
+  }
+
+  figcaption {
+    margin-top: 12px;
+    color: var(--color-gray-600);
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: right;
+  }
+
+  .captura-ayuda-movil {
+    display: none;
+  }
+
+  .explorador-dialogo {
+    width: min(1480px, calc(100% - 48px));
+    max-width: none;
+    max-height: calc(100dvh - 48px);
+    margin: auto;
+    padding: 0;
+    overflow: auto;
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-base);
+    background: var(--color-white);
+    color: var(--color-gray-900);
+  }
+
+  .explorador-dialogo::backdrop {
+    background: rgb(14 18 29 / 0.65);
+  }
+
+  .dialogo-encabezado {
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--color-gray-200);
+    background: var(--color-white);
+  }
+
+  .dialogo-encabezado h2 {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .dialogo-encabezado p {
+    margin-top: 5px;
+    color: var(--color-gray-600);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .dialogo-cerrar {
+    flex-shrink: 0;
+  }
+
+  .dialogo-captura {
+    overflow: auto;
+    background: var(--color-gray-25);
+  }
+
+  .dialogo-pie {
+    position: sticky;
+    bottom: 0;
+    padding: 8px 24px;
+    border-top: 1px solid var(--color-gray-200);
+    background: var(--color-white);
+  }
+
+  @media (max-width: 767px) {
+    .explorador-interior {
+      width: calc(100% - 40px);
+      padding-bottom: 60px;
+    }
+
+    .explorador-pestanas {
+      gap: 4px;
+      padding: 4px;
+    }
+
+    .explorador-pestana {
+      flex-direction: column;
+      gap: 4px;
+      padding: 10px 6px;
+      font-size: 13px;
+    }
+
+    .escena-encabezado {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .escena-acciones {
+      flex-direction: row;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .escena-descripcion h3 {
+      font-size: 18px;
+    }
+
+    figcaption {
+      text-align: left;
+    }
+
+    .explorador-dialogo {
+      width: calc(100% - 24px);
+      max-height: calc(100dvh - 24px);
+    }
+
+    .dialogo-encabezado {
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .dialogo-encabezado h2 {
+      font-size: 17px;
+    }
+
+    .dialogo-pie {
+      padding-inline: 16px;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .escena-acciones {
+      flex-wrap: wrap;
+      gap: 4px 16px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .captura-ayuda-movil {
+      display: block;
+      margin-top: 4px;
+    }
+    .escena-original-escritorio {
+      display: none;
+    }
+
+    .escena-original-movil {
+      display: inline-flex;
+    }
+
+    .escena-captura {
+      max-height: 620px;
+      overflow-y: auto;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .explorador-escena[role='tabpanel'] {
+      animation: entrada-escena var(--duracion-normal) var(--ease-propia);
+    }
+
+    @keyframes entrada-escena {
+      from { transform: translateY(6px); }
+      to { transform: translateY(0); }
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .explorador-pestana,
+    .escena-ampliar,
+    .dialogo-cerrar {
+      transition: none;
+    }
+  }
+</style>

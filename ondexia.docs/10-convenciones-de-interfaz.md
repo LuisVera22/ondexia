@@ -3,8 +3,9 @@
 
 Lo que la aplicación ya hace y por qué. No es una guía de estilo aspiracional:
 las convenciones históricas de los apartados 1–14 describen la implementación
-y su evidencia registrada. El apartado 15 incorpora criterios de trabajo nuevos;
-su aprobación no demuestra que toda la interfaz ya los cumpla.
+y su evidencia registrada. El apartado 15 incorpora criterios de trabajo nuevos
+y el 16 los aplica a la presentación pública del producto; su aprobación no
+demuestra que toda la interfaz ya los cumpla.
 
 Escrito para el momento en que haya que tocar algo dentro de seis meses y la
 pregunta sea «¿esto está así por un motivo o porque salió así?».
@@ -417,3 +418,86 @@ antes de ampliar alcance; no rediseñar todo el producto por preferencia estéti
 Complemento aprobado el 2026-10-10, respaldado por la
 [investigación de UX/UI](investigacion/2026-10-10-requisitos-ux-seguridad/ux-ui.md)
 y los [formatos de evaluación](investigacion/2026-10-10-requisitos-ux-seguridad/plantillas.md).
+
+## 16. Presentación pública del producto
+
+Complemento para la [landing interactiva del 2026-10-14](landing-propuesta/2026-10-14-interactividad.md).
+Conserva el registro del §2, el sistema visual de los §§3–6 y los controles del
+§15. Describe cómo presentar tareas del producto; no aprueba condiciones
+comerciales ni una nueva política de emisión.
+
+### 16.1. Escritura editorial
+
+Organizar la presentación en **tarea → demostración → utilidad → acción**. El
+titular identifica una tarea reconocible; la pantalla muestra cómo se realiza;
+la explicación aclara para qué sirve y la acción permite continuar. Una idea
+por titular y un párrafo breve por pantalla evitan que el texto repita una lista
+de módulos sin explicar su uso.
+
+Usar verbos concretos —preparar, revisar, consultar, previsualizar— y mantener las
+etiquetas de acción en infinitivo. Las explicaciones conservan español formal e
+impersonal y términos fiscales exactos. El nombre de una función por sí solo no
+explica su utilidad.
+
+| Tarea | Demostración | Utilidad explicada | Acción |
+|---|---|---|---|
+| «Preparar la venta» | Selección de bienes y servicios en el punto de venta | «Revisar el cliente, el detalle y el importe antes de registrar la operación» | «Explorar el registro» |
+| «Revisar el registro» | Detalle de una nota de venta de demostración | «Consultar los datos del documento y los pagos registrados en una misma vista» | «Ampliar captura» |
+| «Previsualizar el documento» | Previsualización de la nota de venta | «Revisar la nota de venta y su detalle» | «Ver captura original» |
+
+Son ejemplos de redacción, no nuevas reglas de negocio. Cada afirmación se ajusta
+al alcance demostrado: evitar absolutos como «sin errores» o «siempre disponible»
+y resultados como ahorro o rentabilidad sin medición. Clientes, certificaciones,
+disponibilidad de soporte y condiciones comerciales requieren evidencia propia.
+Una previsualización de nota de venta no acredita emisión electrónica aceptada
+por SUNAT; el estado «en ensayo» se conserva mientras siga vigente.
+
+### 16.2. Mostrar el producto con procedencia
+
+Identificar cerca de la galería que se muestran capturas del sistema con datos
+de demostración. Distinguir una captura del frontend real con datos sintéticos,
+una captura de producción y una ilustración. Conservar origen, fixtures, build y
+recorrido reproducible en la evidencia; una imagen convincente no acredita el
+backend ni el proceso fiscal.
+
+Mostrar la variante de la interfaz capturada a ancho móvil cuando corresponda,
+en lugar de encoger una pantalla de escritorio. Las capturas en un navegador
+local no se describen como pruebas en teléfonos físicos. Mantener la tarea y su
+explicación como texto HTML, además del texto alternativo de la imagen.
+
+### 16.3. Interacción local y alternativa estática
+
+Aplicar §15 al selector y la ampliación: selección manual y estado accesible,
+flechas/Inicio/Fin para recorrer pestañas, diálogo con Escape y Cerrar, y retorno
+del foco al control de apertura. No rotar escenas automáticamente. La interacción
+debe permitir explorar la tarea, sin exigir descubrir un efecto al pasar el
+puntero ni perder el contexto al cambiar de escena.
+
+Respetar movimiento reducido en entradas y cambios. El contenido permanece
+visible antes de ejecutar el código; con JavaScript desactivado o bloqueado, las
+tres escenas y enlaces a los originales conservan el recorrido, y menú y
+preguntas funcionan mediante HTML nativo. Los controles que requieren código se
+habilitan después de inicializarlo.
+
+La landing se compila como Astro estático. Utilizar el mínimo código local en
+archivos externos para la mejora progresiva, sin introducir API, backend,
+autenticación ni terceros. La propuesta de CSP mantiene `default-src 'none'` y
+permite `script-src 'self'`; comprobar scripts locales operativos y rechazo de
+scripts ejecutables inline y conexiones con cabeceras servidas, no solo leyendo
+la configuración. La aplicación efectiva en AWS queda para una publicación
+revisada; AWS no se ha modificado ni verificado en este trabajo local.
+
+### 16.4. Evidencia y pendientes
+
+Reutilizar el harness existente: `herramientas/capturar-producto-landing.py`
+registra la procedencia de las escenas y
+`herramientas/comprobar-interactividad-landing.py` ejercita los casos de uso.
+Playwright y Chromium son dependencias locales opcionales de esa revisión, no
+del sitio publicado. La [reproducción de la landing](../apps/frontend/ondexia.landing/README.md)
+y la [evidencia del 2026-10-14](evidencias/2026-10-14-landing-interactiva.md)
+distinguen comprobaciones ejecutadas, resultados y límites conforme al §15.
+
+La mejora de presentación no decide precios ni CTA final, no habilita el servicio
+de contacto y no cambia el ensayo de SUNAT. Esos pendientes conservan su autoridad
+y evidencia previas; tampoco se presume conversión o conformidad WCAG completa
+por completar la revisión local.

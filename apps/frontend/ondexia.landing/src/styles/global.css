@@ -194,7 +194,7 @@
 
   .seccion {
     padding-block: 96px;
-    scroll-margin-top: 24px;
+    scroll-margin-top: 100px;
   }
 
   .encabezado-seccion {
@@ -219,6 +219,15 @@
     font-size: 16px;
     line-height: 1.7;
     color: var(--color-gray-600);
+  }
+
+  @keyframes entrada-suave {
+    from { transform: translateY(14px); }
+    to { transform: translateY(0); }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .entrada-activa { animation: entrada-suave var(--duracion-lenta) var(--ease-propia) both; }
   }
 
   @media (max-width: 767px) {

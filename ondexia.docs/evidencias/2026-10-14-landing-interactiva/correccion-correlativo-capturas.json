@@ -1,0 +1,224 @@
+{
+  "antes": {
+    "generadoEn": "2026-10-14T02:47:23.180237+00:00",
+    "controles": [
+      {
+        "ancho": 1440,
+        "esperado": "NV01-00000042",
+        "ventaSiguiente": "NV01-00000043",
+        "registroNumero": "NV01-00000042",
+        "documentoNumero": "NV01-00000042",
+        "correcto": false,
+        "regla": "Las tres capturas representan el mismo recorrido de la nota de demostración 42.",
+        "fuenteObservada": "Texto visible del DOM Angular real: Siguiente, título de registro y cabecera documental."
+      },
+      {
+        "ancho": 390,
+        "esperado": "NV01-00000042",
+        "ventaSiguiente": "NV01-00000043",
+        "registroNumero": "NV01-00000042",
+        "documentoNumero": "NV01-00000042",
+        "correcto": false,
+        "regla": "Las tres capturas representan el mismo recorrido de la nota de demostración 42.",
+        "fuenteObservada": "Texto visible del DOM Angular real: Siguiente, título de registro y cabecera documental."
+      }
+    ],
+    "correcto": false
+  },
+  "despues": {
+    "generadoEn": "2026-10-14T02:51:14.646261+00:00",
+    "controles": [
+      {
+        "ancho": 1440,
+        "esperado": "NV01-00000042",
+        "ventaSiguiente": "NV01-00000042",
+        "registroNumero": "NV01-00000042",
+        "documentoNumero": "NV01-00000042",
+        "correcto": true,
+        "regla": "Las tres capturas representan el mismo recorrido de la nota de demostración 42.",
+        "fuenteObservada": "Texto visible del DOM Angular real: Siguiente, título de registro y cabecera documental."
+      },
+      {
+        "ancho": 390,
+        "esperado": "NV01-00000042",
+        "ventaSiguiente": "NV01-00000042",
+        "registroNumero": "NV01-00000042",
+        "documentoNumero": "NV01-00000042",
+        "correcto": true,
+        "regla": "Las tres capturas representan el mismo recorrido de la nota de demostración 42.",
+        "fuenteObservada": "Texto visible del DOM Angular real: Siguiente, título de registro y cabecera documental."
+      }
+    ],
+    "correcto": true
+  },
+  "controlSensibilidadDemostrado": true,
+  "archivosCopiados": [
+    {
+      "archivo": "venta-escritorio.png",
+      "dimensiones": [
+        1082,
+        864
+      ],
+      "sha256Antes": "ddf0a1fa4d2f50cc0da0e2b8a74fc0f6bf2d068ee556f83d76275efffffac88e",
+      "sha256Recapturado": "af11c33ece85508d80676c8e602115907bb97b991f2f92b0a0f460196752f991",
+      "copiaOriginalIdentica": true
+    },
+    {
+      "archivo": "venta-movil.png",
+      "dimensiones": [
+        348,
+        2081
+      ],
+      "sha256Antes": "14f8fae9fbdcfb1f86fb3d460c16d5ad25d4c68b4ccb8d40ee91cd52bc2d03e1",
+      "sha256Recapturado": "301f3cca883cef6b631108c3c4bef47ea0e4c7cbef47b4d6239a28fad8e7190b",
+      "copiaOriginalIdentica": true
+    },
+    {
+      "archivo": "registro-escritorio.png",
+      "dimensiones": [
+        1082,
+        901
+      ],
+      "sha256Antes": "b165e926d2a477e9232deb5195cb2df4bb002c99ce0f6b5c9fe225858c0d2ebe",
+      "sha256Recapturado": "b165e926d2a477e9232deb5195cb2df4bb002c99ce0f6b5c9fe225858c0d2ebe",
+      "copiaOriginalIdentica": true
+    },
+    {
+      "archivo": "registro-movil.png",
+      "dimensiones": [
+        348,
+        1615
+      ],
+      "sha256Antes": "bd8b3097ccf7068cbf9d5e0312960d780d848c72d97486707f2cc023bd145de1",
+      "sha256Recapturado": "bd8b3097ccf7068cbf9d5e0312960d780d848c72d97486707f2cc023bd145de1",
+      "copiaOriginalIdentica": true
+    },
+    {
+      "archivo": "documento-escritorio.png",
+      "dimensiones": [
+        1082,
+        633
+      ],
+      "sha256Antes": "37c50a74fc2a4e542a0d219317b72661bdcfe6a6c7296d372023c3690985b28a",
+      "sha256Recapturado": "37c50a74fc2a4e542a0d219317b72661bdcfe6a6c7296d372023c3690985b28a",
+      "copiaOriginalIdentica": true
+    },
+    {
+      "archivo": "documento-movil.png",
+      "dimensiones": [
+        348,
+        803
+      ],
+      "sha256Antes": "cda94460246675664f9f84a53d1f368445ccc672fdda32fffbbf6b99cbf2cb56",
+      "sha256Recapturado": "cda94460246675664f9f84a53d1f368445ccc672fdda32fffbbf6b99cbf2cb56",
+      "copiaOriginalIdentica": true
+    }
+  ],
+  "portabilidad": {
+    "raizDerivada": "/workspace/ondexia",
+    "controles": [
+      {
+        "caso": "http://127.0.0.1:8030",
+        "permitidoEsperado": true,
+        "permitidoObservado": true,
+        "correcto": true
+      },
+      {
+        "caso": "http://localhost:8030/",
+        "permitidoEsperado": true,
+        "permitidoObservado": true,
+        "correcto": true
+      },
+      {
+        "caso": "https://ondexia.com",
+        "permitidoEsperado": false,
+        "permitidoObservado": false,
+        "correcto": true
+      },
+      {
+        "caso": "http://example.invalid",
+        "permitidoEsperado": false,
+        "permitidoObservado": false,
+        "correcto": true
+      },
+      {
+        "caso": "http://localhost:8030/ruta",
+        "permitidoEsperado": false,
+        "permitidoObservado": false,
+        "correcto": true
+      },
+      {
+        "caso": "http://credenciales@localhost:8030",
+        "permitidoEsperado": false,
+        "permitidoObservado": false,
+        "correcto": true
+      },
+      {
+        "caso": "http://localhost:8030?parametro=1",
+        "permitidoEsperado": false,
+        "permitidoObservado": false,
+        "correcto": true
+      },
+      {
+        "caso": "http://localhost:8030#fragmento",
+        "permitidoEsperado": false,
+        "permitidoObservado": false,
+        "correcto": true
+      },
+      {
+        "caso": "http://localhost:99999",
+        "permitidoEsperado": false,
+        "permitidoObservado": false,
+        "correcto": true
+      },
+      {
+        "caso": "http://localhost.ejemplo.invalid:8030",
+        "permitidoEsperado": false,
+        "permitidoObservado": false,
+        "correcto": true
+      },
+      {
+        "caso": "file:///tmp/index.html",
+        "permitidoEsperado": false,
+        "permitidoObservado": false,
+        "correcto": true
+      },
+      {
+        "caso": "/tmp/ondexia-capturas",
+        "permitidoEsperado": true,
+        "permitidoObservado": true,
+        "correcto": true
+      },
+      {
+        "caso": "/workspace/ondexia-vistas/landing-interactiva/capturas-producto",
+        "permitidoEsperado": true,
+        "permitidoObservado": true,
+        "correcto": true
+      },
+      {
+        "caso": "/workspace/ondexia",
+        "permitidoEsperado": false,
+        "permitidoObservado": false,
+        "correcto": true
+      },
+      {
+        "caso": "/workspace/ondexia/apps/frontend/ondexia.landing/public/capturas",
+        "permitidoEsperado": false,
+        "permitidoObservado": false,
+        "correcto": true
+      },
+      {
+        "caso": "http://localhost:80/",
+        "normalizadoEsperado": "http://localhost",
+        "normalizadoObservado": "http://localhost",
+        "correcto": true
+      }
+    ],
+    "correcto": true
+  },
+  "peticionesExternas": 0,
+  "escrituras": 0,
+  "erroresJavascript": [],
+  "scriptSha256": "edad161e7903bbf8489d0d9f321167b71b574b5fc9a5c36e2665c62f8212d51a",
+  "peticionesFixture": 50
+}
