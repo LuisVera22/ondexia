@@ -467,17 +467,35 @@ explicación como texto HTML, además del texto alternativo de la imagen.
 
 ### 16.3. Interacción local y alternativa estática
 
-Aplicar §15 al selector y la ampliación: selección manual y estado accesible,
-flechas/Inicio/Fin para recorrer pestañas, diálogo con Escape y Cerrar, y retorno
-del foco al control de apertura. No rotar escenas automáticamente. La interacción
-debe permitir explorar la tarea, sin exigir descubrir un efecto al pasar el
-puntero ni perder el contexto al cambiar de escena.
+Aplicar §15 al recorrido y la ampliación. Mantener las tres escenas como artículos
+visibles en el orden de la tarea; la navegación por capítulos utiliza enlaces
+ancla y `aria-current="step"` para indicar el alcanzado. Al desplazar la página,
+el indicador y el progreso cambian sin mover el foco ni anunciar cada cambio al
+lector de pantalla. No hay temporizador ni avance autónomo.
 
-Respetar movimiento reducido en entradas y cambios. El contenido permanece
-visible antes de ejecutar el código; con JavaScript desactivado o bloqueado, las
-tres escenas y enlaces a los originales conservan el recorrido, y menú y
-preguntas funcionan mediante HTML nativo. Los controles que requieren código se
-habilitan después de inicializarlo.
+Los enlaces de capítulos y Anterior/Siguiente ofrecen avance manual: colocar el
+foco en la escena y dejar su título visible bajo los controles. Deshabilitar el
+avance que exceda el primer o último capítulo. La ampliación conserva diálogo con
+Escape y Cerrar, reapertura desde arriba y retorno del foco al control de apertura;
+el enlace al original permanece disponible como alternativa.
+
+La solicitud de contenido interactivo «casi como diapositivas» admite una
+**excepción acotada para la demostración pública** a la regla de movimiento del
+§6: parallax del marco de la captura ligado al desplazamiento nativo y limitado
+a ±12 píxeles. No interceptar rueda, teclas ni gestos, ni cambiar los PNG. La
+figura puede fijarse dentro de su artículo en escritorio solo si cabe bajo la
+cabecera y la navegación. En móvil, ventanas bajas o espacio insuficiente las
+figuras permanecen en el flujo normal. Esta excepción no se propaga a formularios,
+comprobantes ni otras pantallas de trabajo; la regla de entradas y salidas de
+avisos y diálogos del §6 se conserva.
+
+Movimiento reducido elimina el parallax y la fijación de las figuras, incluso
+si la preferencia cambia con la página abierta. El contenido permanece visible
+antes de ejecutar el código. Con JavaScript desactivado o bloqueado, las tres
+escenas y enlaces ancla conservan el recorrido, el progreso muestra «3 escenas»
+y los originales siguen accesibles. Menú y preguntas funcionan mediante HTML
+nativo. Los botones de avance y ampliación se habilitan después de inicializar
+el código que los hace funcionar.
 
 La landing se compila como Astro estático. Utilizar el mínimo código local en
 archivos externos para la mejora progresiva, sin introducir API, backend,
@@ -489,13 +507,23 @@ revisada; AWS no se ha modificado ni verificado en este trabajo local.
 
 ### 16.4. Evidencia y pendientes
 
+En ventanas muy bajas, compactar la navegación en una fila con objetivos de
+44 px y dejar espacio para el título. Los nombres accesibles incluyen el número
+y la tarea cuando la etiqueta visible muestra solo 01/02/03. El fallback sin
+JavaScript también debe permitir ver el título tras seguir un enlace; comprobar
+reflujo, no solo la altura habitual de un teléfono.
+
 Reutilizar el harness existente: `herramientas/capturar-producto-landing.py`
 registra la procedencia de las escenas y
 `herramientas/comprobar-interactividad-landing.py` ejercita los casos de uso.
 Playwright y Chromium son dependencias locales opcionales de esa revisión, no
 del sitio publicado. La [reproducción de la landing](../apps/frontend/ondexia.landing/README.md)
-y la [evidencia del 2026-10-14](evidencias/2026-10-14-landing-interactiva.md)
+y la [evidencia del recorrido del 2026-10-14](evidencias/2026-10-14-recorrido-landing.md)
 distinguen comprobaciones ejecutadas, resultados y límites conforme al §15.
+La [evidencia de la primera versión interactiva](evidencias/2026-10-14-landing-interactiva.md)
+se conserva como historia; su selector anterior no describe la implementación
+vigente. El mismo comprobador admite contraste opcional con ese build mediante
+`--recorrido-anterior`, sin crear un harness separado.
 
 La mejora de presentación no decide precios ni CTA final, no habilita el servicio
 de contacto y no cambia el ensayo de SUNAT. Esos pendientes conservan su autoridad

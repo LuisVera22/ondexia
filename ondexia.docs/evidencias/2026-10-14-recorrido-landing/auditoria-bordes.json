@@ -1,0 +1,340 @@
+[
+  {
+    "type": "fit",
+    "size": {
+      "width": 1440,
+      "height": 799
+    },
+    "data": {
+      "tope": 194,
+      "figures": [
+        {
+          "position": "static",
+          "height": 646.734375,
+          "available": 581,
+          "class": "escena-figura"
+        },
+        {
+          "position": "static",
+          "height": 673.046875,
+          "available": 581,
+          "class": "escena-figura"
+        },
+        {
+          "position": "static",
+          "height": 482.375,
+          "available": 581,
+          "class": "escena-figura"
+        }
+      ]
+    }
+  },
+  {
+    "type": "fit",
+    "size": {
+      "width": 1440,
+      "height": 800
+    },
+    "data": {
+      "tope": 194,
+      "figures": [
+        {
+          "position": "static",
+          "height": 646.734375,
+          "available": 582,
+          "class": "escena-figura"
+        },
+        {
+          "position": "static",
+          "height": 673.046875,
+          "available": 582,
+          "class": "escena-figura"
+        },
+        {
+          "position": "sticky",
+          "height": 482.375,
+          "available": 582,
+          "class": "escena-figura figura-fijada"
+        }
+      ]
+    }
+  },
+  {
+    "type": "fit",
+    "size": {
+      "width": 1440,
+      "height": 850
+    },
+    "data": {
+      "tope": 194,
+      "figures": [
+        {
+          "position": "static",
+          "height": 646.734375,
+          "available": 632,
+          "class": "escena-figura"
+        },
+        {
+          "position": "static",
+          "height": 673.046875,
+          "available": 632,
+          "class": "escena-figura"
+        },
+        {
+          "position": "sticky",
+          "height": 482.375,
+          "available": 632,
+          "class": "escena-figura figura-fijada"
+        }
+      ]
+    }
+  },
+  {
+    "type": "fit",
+    "size": {
+      "width": 1023,
+      "height": 1000
+    },
+    "data": {
+      "tope": 228,
+      "figures": [
+        {
+          "position": "static",
+          "height": 796.171875,
+          "available": 748,
+          "class": "escena-figura"
+        },
+        {
+          "position": "static",
+          "height": 828.90625,
+          "available": 748,
+          "class": "escena-figura"
+        },
+        {
+          "position": "static",
+          "height": 591.859375,
+          "available": 748,
+          "class": "escena-figura"
+        }
+      ]
+    }
+  },
+  {
+    "type": "fit",
+    "size": {
+      "width": 1024,
+      "height": 1000
+    },
+    "data": {
+      "tope": 212.1875,
+      "figures": [
+        {
+          "position": "sticky",
+          "height": 518.328125,
+          "available": 763.8125,
+          "class": "escena-figura figura-fijada"
+        },
+        {
+          "position": "sticky",
+          "height": 539.15625,
+          "available": 763.8125,
+          "class": "escena-figura figura-fijada"
+        },
+        {
+          "position": "sticky",
+          "height": 388.296875,
+          "available": 763.8125,
+          "class": "escena-figura figura-fijada"
+        }
+      ]
+    }
+  },
+  {
+    "type": "native-input",
+    "before": {
+      "scrollY": 630,
+      "focus": "escena-venta",
+      "progress": "Escena 1 de 3"
+    },
+    "wheel": {
+      "scrollY": 1280,
+      "focus": "escena-venta",
+      "progress": "Escena 2 de 3"
+    },
+    "pageDown": {
+      "scrollY": 2155,
+      "focus": "escena-venta",
+      "progress": "Escena 3 de 3"
+    }
+  },
+  {
+    "type": "nojs-low",
+    "size": [
+      320,
+      320
+    ],
+    "scene": 1,
+    "data": {
+      "top": 235.5,
+      "bottom": 266.6875,
+      "height": 320,
+      "hash": "#escena-venta",
+      "controls": 0
+    }
+  },
+  {
+    "type": "nojs-low",
+    "size": [
+      320,
+      320
+    ],
+    "scene": 2,
+    "data": {
+      "top": 236.1875,
+      "bottom": 267.375,
+      "height": 320,
+      "hash": "#escena-registro",
+      "controls": 0
+    }
+  },
+  {
+    "type": "nojs-low",
+    "size": [
+      320,
+      320
+    ],
+    "scene": 3,
+    "data": {
+      "top": 235.875,
+      "bottom": 298.25,
+      "height": 320,
+      "hash": "#escena-documento",
+      "controls": 0
+    }
+  },
+  {
+    "type": "nojs-low",
+    "size": [
+      360,
+      250
+    ],
+    "scene": 1,
+    "data": {
+      "top": 235.5,
+      "bottom": 266.6875,
+      "height": 250,
+      "hash": "#escena-venta",
+      "controls": 0
+    }
+  },
+  {
+    "type": "nojs-low",
+    "size": [
+      360,
+      250
+    ],
+    "scene": 2,
+    "data": {
+      "top": 236.1875,
+      "bottom": 267.375,
+      "height": 250,
+      "hash": "#escena-registro",
+      "controls": 0
+    }
+  },
+  {
+    "type": "nojs-low",
+    "size": [
+      360,
+      250
+    ],
+    "scene": 3,
+    "data": {
+      "top": 235.875,
+      "bottom": 267.0625,
+      "height": 250,
+      "hash": "#escena-documento",
+      "controls": 0
+    }
+  },
+  {
+    "type": "nojs-low",
+    "size": [
+      390,
+      240
+    ],
+    "scene": 1,
+    "data": {
+      "top": 235.703125,
+      "bottom": 266.890625,
+      "height": 240,
+      "hash": "#escena-venta",
+      "controls": 0
+    }
+  },
+  {
+    "type": "nojs-low",
+    "size": [
+      390,
+      240
+    ],
+    "scene": 2,
+    "data": {
+      "top": 235.890625,
+      "bottom": 267.078125,
+      "height": 240,
+      "hash": "#escena-registro",
+      "controls": 0
+    }
+  },
+  {
+    "type": "nojs-low",
+    "size": [
+      390,
+      240
+    ],
+    "scene": 3,
+    "data": {
+      "top": 236.078125,
+      "bottom": 267.265625,
+      "height": 240,
+      "hash": "#escena-documento",
+      "controls": 0
+    }
+  },
+  {
+    "type": "existing-assets",
+    "data": [
+      {
+        "path": "apps/frontend/ondexia.landing/public/capturas/venta-escritorio.png",
+        "unchanged_from_head": true,
+        "sha256": "af11c33ece85508d80676c8e602115907bb97b991f2f92b0a0f460196752f991"
+      },
+      {
+        "path": "apps/frontend/ondexia.landing/public/capturas/venta-movil.png",
+        "unchanged_from_head": true,
+        "sha256": "301f3cca883cef6b631108c3c4bef47ea0e4c7cbef47b4d6239a28fad8e7190b"
+      },
+      {
+        "path": "apps/frontend/ondexia.landing/public/capturas/registro-escritorio.png",
+        "unchanged_from_head": true,
+        "sha256": "b165e926d2a477e9232deb5195cb2df4bb002c99ce0f6b5c9fe225858c0d2ebe"
+      },
+      {
+        "path": "apps/frontend/ondexia.landing/public/capturas/registro-movil.png",
+        "unchanged_from_head": true,
+        "sha256": "bd8b3097ccf7068cbf9d5e0312960d780d848c72d97486707f2cc023bd145de1"
+      },
+      {
+        "path": "apps/frontend/ondexia.landing/public/capturas/documento-escritorio.png",
+        "unchanged_from_head": true,
+        "sha256": "37c50a74fc2a4e542a0d219317b72661bdcfe6a6c7296d372023c3690985b28a"
+      },
+      {
+        "path": "apps/frontend/ondexia.landing/public/capturas/documento-movil.png",
+        "unchanged_from_head": true,
+        "sha256": "cda94460246675664f9f84a53d1f368445ccc672fdda32fffbbf6b99cbf2cb56"
+      }
+    ]
+  }
+]

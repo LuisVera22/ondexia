@@ -1,8 +1,8 @@
 # ondexia.landing
 
 Página pública de Ondexia: Astro estático con JavaScript local mínimo para
-pestañas, ampliación de capturas, entradas y cierre del menú móvil. El código
-ejecutable se sirve en archivos externos del mismo sitio; no utiliza API,
+recorrido por escenas, ampliación de capturas, entradas y cierre del menú móvil.
+El código ejecutable se sirve en archivos externos del mismo sitio; no utiliza API,
 backend, autenticación, analítica ni servicios de terceros. La frontera se
 conserva conforme a doc 03 §3.
 
@@ -31,7 +31,7 @@ node herramientas/comprobar-tono-y-forma.mjs
 | `pages/index.astro` | Ensamblaje de secciones |
 | `components/Barra.astro` | Navegación y separación de ingreso/solicitud comercial |
 | `components/Cartel.astro` | Portada y propuesta del producto |
-| `components/Explorador.astro` | Tres escenas del frontend real, variantes móviles y ampliación |
+| `components/Explorador.astro` | Tres artículos del frontend real, capítulos, variantes móviles y ampliación |
 | `components/Modulos.astro` | Ventas, caja, catálogo y existencias |
 | `components/Proceso.astro` | Preparación, cobro y consulta de una venta |
 | `components/Precios.astro` | Propuesta comercial pendiente de validación |
@@ -40,7 +40,7 @@ node herramientas/comprobar-tono-y-forma.mjs
 | `components/Cierre.astro` | Contacto con destino configurado o alternativa de correo |
 | `components/Pie.astro` | Identidad, navegación y pendientes legales |
 | `datos/planes.ts` | Cifras compartidas con sección y datos estructurados |
-| `scripts/explorador.ts` | Pestañas, estado accesible, diálogo y retorno del foco |
+| `scripts/explorador.ts` | Progreso del recorrido, avance manual, movimiento acotado y diálogo |
 | `scripts/movimiento.ts` | Entradas con movimiento reducido y cierre del menú móvil |
 | `styles/global.css` | Tokens de marca, foco, botones y composición compartida |
 | `public/capturas/` | Capturas locales de venta, registro y documento con datos sintéticos |
@@ -61,12 +61,30 @@ identificados junto a las imágenes como «Capturas del sistema · datos de
 demostración». No son capturas de clientes ni acreditan una emisión ante SUNAT.
 No se incorporan testimonios, certificaciones ni cifras de clientes sin evidencia.
 
-La selección es manual, sin rotación automática. Pestañas, diálogo y menú se
-comprueban con teclado y foco; se respeta movimiento reducido. Sin JavaScript,
-las tres escenas siguen visibles, sus originales tienen enlaces y menú y
-preguntas conservan HTML nativo. La [evidencia local de esta versión](../../../ondexia.docs/evidencias/2026-10-14-landing-interactiva.md)
+La evolución vigente presenta un recorrido al bajar por los tres artículos, que
+permanecen visibles y en orden. La navegación por capítulos indica el alcanzado
+con `aria-current="step"` y «Escena n de 3». Desplazar la página no cambia el foco
+ni anuncia cada capítulo; los enlaces y Anterior/Siguiente permiten avanzar
+manualmente y colocar el foco en la escena con su título visible. No hay avance
+por temporizador ni bloqueo del desplazamiento nativo.
+
+El marco de la captura responde al desplazamiento con un parallax acotado a
+±12 píxeles. En escritorio la figura puede fijarse dentro del artículo solo si
+cabe bajo la cabecera y la navegación; en móvil y ventanas bajas las figuras
+permanecen en el flujo normal. Movimiento reducido elimina el parallax y la
+fijación de las figuras, también si la preferencia cambia con la página abierta.
+Esta excepción de movimiento continuo se limita a la demostración pública,
+conforme al doc 10 §16; no cambia las convenciones del producto de trabajo.
+
+Diálogo y menú conservan sus controles de teclado y foco. Sin JavaScript, las
+tres escenas y enlaces ancla siguen disponibles, el progreso dice «3 escenas» y
+los botones de avance y ampliación permanecen ocultos. Los originales tienen
+enlaces, y menú y preguntas conservan HTML nativo. La
+[evidencia del recorrido](../../../ondexia.docs/evidencias/2026-10-14-recorrido-landing.md)
 registra las comprobaciones ejecutadas y sus límites; no demuestra conformidad
-WCAG completa ni conversión.
+WCAG completa ni conversión. La
+[evidencia de la primera versión interactiva](../../../ondexia.docs/evidencias/2026-10-14-landing-interactiva.md)
+se conserva como historia de la candidata anterior.
 
 ## Procedencia de las capturas y reproducción local
 
@@ -132,14 +150,15 @@ política. Con el servidor activo, ejecutar en otra terminal:
 ```bash
 python3 herramientas/comprobar-interactividad-landing.py \
   --url http://127.0.0.1:4324/ \
-  --evidencia /tmp/ondexia-landing-interactiva
+  --evidencia /tmp/ondexia-landing-recorrido
 ```
 
-El comprobador verifica selección, flechas/Inicio/Fin, ampliación, Escape y retorno
-del foco, reapertura, variantes móviles, navegación sin JavaScript y rechazo de
-scripts inline y conexiones. Para reproducir el bloqueo anterior, iniciar el
-mismo build en otra terminal con la política conservada en la evidencia, sin
-`script-src 'self'`:
+El comprobador verifica artículos visibles, capítulos y avance manual coherentes,
+foco y títulos visibles, parallax dentro de ±12 píxeles y su desactivación con
+movimiento reducido, ampliación, Escape y retorno del foco, reapertura, variantes
+móviles, altura reducida, navegación sin JavaScript y rechazo de scripts inline
+y conexiones. Para reproducir el bloqueo anterior, iniciar el mismo build en
+otra terminal con la política conservada en la evidencia, sin `script-src 'self'`:
 
 ```bash
 python3 herramientas/servir-landing-local.py \
@@ -147,9 +166,14 @@ python3 herramientas/servir-landing-local.py \
   --politica-csp ondexia.docs/evidencias/2026-10-14-landing-interactiva/csp-anterior.txt
 ```
 
-Añadir `--politica-anterior http://127.0.0.1:4325/` al comprobador. Las herramientas
-admiten únicamente orígenes locales. Ejecutarlas no verifica AWS, autenticación,
-backend ni SUNAT.
+Añadir `--politica-anterior http://127.0.0.1:4325/` al comprobador. Opcionalmente,
+servir el build de la candidata anterior `4350294`, conservado fuera del
+repositorio, en otro origen local con su política que permite scripts locales y
+añadir `--recorrido-anterior http://127.0.0.1:4327/` para contrastar la evolución.
+La preparación y el resultado de esa comparación se registran en la evidencia
+del recorrido; no se supone que ese build esté disponible en otra máquina.
+Las herramientas admiten únicamente orígenes locales. Ejecutarlas no verifica
+AWS, autenticación, backend ni SUNAT.
 
 ## Configuración y decisiones pendientes
 

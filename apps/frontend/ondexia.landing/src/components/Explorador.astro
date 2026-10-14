@@ -4,6 +4,7 @@ const escenas = [
     clave: 'venta',
     numero: '01',
     titulo: 'Preparar la venta',
+    tituloCorto: 'Venta',
     descripcion: 'Seleccionar bienes y servicios, identificar al cliente y revisar el importe antes de registrar la operación.',
     alternativa: 'Registro de venta en Ondexia con cliente, líneas de bienes y servicios y resumen de importes.',
     alturaEscritorio: 864,
@@ -13,6 +14,7 @@ const escenas = [
     clave: 'registro',
     numero: '02',
     titulo: 'Revisar el registro',
+    tituloCorto: 'Registro',
     descripcion: 'Consultar los datos del documento, el detalle de la venta y los pagos registrados en una misma vista.',
     alternativa: 'Registro de una nota de venta en Ondexia con datos del documento, cliente, detalle, pagos e importe total.',
     alturaEscritorio: 901,
@@ -22,6 +24,7 @@ const escenas = [
     clave: 'documento',
     numero: '03',
     titulo: 'Previsualizar el documento',
+    tituloCorto: 'Documento',
     descripcion: 'Revisar la nota de venta y su detalle en la previsualización del documento.',
     alternativa: 'Previsualización de una nota de venta en Ondexia con emisor, detalle e importe total.',
     alturaEscritorio: 633,
@@ -37,21 +40,36 @@ const escenas = [
       <p>Del registro de la venta a la consulta de su documento.</p>
     </div>
 
-    <!-- Sin el script, las tres escenas y sus enlaces conservan el recorrido. -->
-    <div class="explorador-pestanas" aria-label="Escenas del sistema" data-pestanas hidden>
-      {escenas.map((escena) => (
-        <button
-          id={`pestana-${escena.clave}`}
-          class="explorador-pestana"
-          type="button"
-          aria-controls={`escena-${escena.clave}`}
-          data-pestana
-        >
-          <span class="pestana-numero" aria-hidden="true">{escena.numero}</span>
-          <span>{escena.titulo}</span>
+    <!-- Los enlaces recorren las tres escenas incluso sin ejecutar el script. -->
+    <nav class="explorador-navegacion" aria-label="Recorrido del sistema" data-pasos>
+      <div class="explorador-pasos">
+        {escenas.map((escena) => (
+          <a
+            class="explorador-paso"
+            href={`#escena-${escena.clave}`}
+            aria-label={`${escena.numero} ${escena.titulo}`}
+            data-paso
+          >
+            <span class="paso-numero" aria-hidden="true">{escena.numero}</span>
+            <span class="titulo-amplio">{escena.titulo}</span>
+            <span class="titulo-corto" aria-hidden="true">{escena.tituloCorto}</span>
+          </a>
+        ))}
+      </div>
+      <div class="explorador-avance">
+        <button class="avance-boton" type="button" aria-label="Escena anterior" data-anterior hidden>
+          <span class="titulo-amplio">Escena anterior</span>
+          <span class="titulo-corto" aria-hidden="true">Anterior</span>
+          <span class="avance-icono" aria-hidden="true">←</span>
         </button>
-      ))}
-    </div>
+        <span class="avance-progreso" data-progreso>3 escenas</span>
+        <button class="avance-boton" type="button" aria-label="Escena siguiente" data-siguiente hidden>
+          <span class="titulo-amplio">Escena siguiente</span>
+          <span class="titulo-corto" aria-hidden="true">Siguiente</span>
+          <span class="avance-icono" aria-hidden="true">→</span>
+        </button>
+      </div>
+    </nav>
 
     <div class="explorador-escenas">
       {escenas.map((escena, indice) => (
@@ -79,12 +97,13 @@ const escenas = [
             </div>
           </div>
 
-          <figure>
+          <figure class="escena-figura" data-figura>
             <div
               class="escena-captura"
               role="region"
               aria-label={`Captura: ${escena.titulo}`}
               tabindex="0"
+              data-plano
             >
               <picture>
                 <source
@@ -143,6 +162,7 @@ const escenas = [
 
 <style>
   .explorador {
+    --alto-cabecera: 90px;
     scroll-margin-top: 100px;
     background: var(--color-white);
   }
@@ -154,7 +174,7 @@ const escenas = [
   }
 
   .explorador-presentacion {
-    margin-bottom: 28px;
+    margin-bottom: 24px;
     text-align: center;
   }
 
@@ -173,37 +193,50 @@ const escenas = [
     line-height: 1.6;
   }
 
-  .explorador-pestanas {
+  .explorador-navegacion {
+    position: sticky;
+    z-index: 30;
+    top: var(--alto-cabecera, 90px);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 20px;
+    padding-block: 12px;
+    border-bottom: 1px solid var(--color-gray-200);
+    background: var(--color-white);
+  }
+
+  .explorador-pasos {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    margin-bottom: 22px;
-    padding: 6px;
+    flex: 1;
+    gap: 4px;
+    min-width: min(100%, 520px);
+    padding: 4px;
     border: 1px solid var(--color-gray-200);
     border-radius: var(--radius-base);
     background: var(--color-gray-25);
   }
 
-  .explorador-pestanas[hidden],
-  .explorador-escena[hidden],
+  .avance-boton[hidden],
   .escena-ampliar[hidden] {
     display: none;
   }
 
-  .explorador-pestana {
+  .explorador-paso {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    min-height: 50px;
-    padding: 10px 16px;
+    min-height: 44px;
+    padding: 10px 12px;
     border: 1px solid transparent;
     border-bottom: 2px solid transparent;
     border-radius: var(--radius-base);
     background: transparent;
     color: var(--color-gray-600);
     font: inherit;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 500;
     line-height: 1.4;
     text-align: center;
@@ -213,67 +246,106 @@ const escenas = [
       border-color var(--duracion-normal) var(--ease-propia);
   }
 
-  .pestana-numero {
+  .paso-numero {
     font-size: 12px;
     font-variant-numeric: tabular-nums;
   }
 
-  .explorador-pestana:hover {
+  .explorador-paso:hover {
     background: var(--color-gray-100);
     color: var(--color-gray-900);
   }
 
-  .explorador-pestana[aria-selected='true'] {
+  .explorador-paso[aria-current='step'] {
     border-color: var(--color-gray-300);
     border-bottom-color: var(--color-brand-500);
     background: var(--color-white);
     color: var(--color-brand-700);
   }
 
+  .titulo-corto {
+    display: none;
+  }
+
+  .avance-icono {
+    display: none;
+  }
+
+  .explorador-avance {
+    display: flex;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    max-width: 100%;
+  }
+
+  .avance-progreso {
+    color: var(--color-gray-600);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+
   .explorador-escenas {
     display: grid;
-    gap: 44px;
   }
 
   .explorador-escena {
+    display: grid;
+    grid-template-columns: minmax(0, 0.33fr) minmax(0, 0.67fr);
+    align-items: start;
+    gap: 48px;
+    min-height: 80svh;
     min-width: 0;
+    padding-block: 48px;
+    border-bottom: 1px solid var(--color-gray-200);
+    scroll-margin-top: var(--tope-recorrido, 200px);
+  }
+
+  .explorador-escena:last-child {
+    border-bottom: 0;
   }
 
   .escena-encabezado {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 28px;
-    margin-bottom: 20px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
   }
 
   .escena-descripcion {
-    max-width: 640px;
+    max-width: 370px;
   }
 
   .escena-descripcion h3 {
     color: var(--color-gray-900);
-    font-size: 19px;
+    font-size: clamp(26px, 2.7vw, 36px);
     font-weight: 500;
-    line-height: 1.4;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    text-wrap: balance;
   }
 
   .escena-descripcion p {
-    margin-top: 7px;
+    margin-top: 16px;
     color: var(--color-gray-600);
-    font-size: 15px;
-    line-height: 1.6;
+    font-size: 17px;
+    line-height: 1.7;
   }
 
   .escena-acciones {
     display: flex;
     flex-shrink: 0;
     flex-direction: column;
-    align-items: flex-end;
+    align-items: flex-start;
     gap: 5px;
   }
 
   .escena-ampliar,
+  .avance-boton,
   .dialogo-cerrar {
     display: inline-flex;
     align-items: center;
@@ -291,9 +363,24 @@ const escenas = [
     transition: background-color var(--duracion-normal) var(--ease-propia);
   }
 
+  .escena-ampliar,
+  .escena-original,
+  .escena-captura {
+    scroll-margin-top: var(--tope-recorrido, 200px);
+    scroll-margin-bottom: 24px;
+  }
+
   .escena-ampliar:hover,
+  .avance-boton:not(:disabled):hover,
   .dialogo-cerrar:hover {
     background: var(--color-gray-50);
+  }
+
+  .avance-boton:disabled {
+    border-color: var(--color-gray-300);
+    background: var(--color-gray-50);
+    color: var(--color-gray-500);
+    cursor: default;
   }
 
   .escena-original,
@@ -316,7 +403,18 @@ const escenas = [
     margin: 0;
   }
 
+  .escena-figura {
+    min-width: 0;
+  }
+
+  .escena-figura.figura-fijada {
+    position: sticky;
+    top: var(--tope-recorrido, 200px);
+    align-self: start;
+  }
+
   .escena-captura {
+    --desplazamiento-captura: 0px;
     overflow: hidden;
     border: 1px solid var(--color-gray-300);
     border-radius: var(--radius-base);
@@ -405,28 +503,43 @@ const escenas = [
     background: var(--color-white);
   }
 
-  @media (max-width: 767px) {
-    .explorador-interior {
-      width: calc(100% - 40px);
-      padding-bottom: 60px;
+  @media (max-width: 1023px) {
+    .explorador {
+      --alto-cabecera: 76px;
     }
-
-    .explorador-pestanas {
-      gap: 4px;
-      padding: 4px;
-    }
-
-    .explorador-pestana {
+    .explorador-navegacion {
+      top: var(--alto-cabecera, 76px);
       flex-direction: column;
-      gap: 4px;
-      padding: 10px 6px;
-      font-size: 13px;
+      gap: 8px;
+      padding-block: 10px;
+    }
+
+    .explorador-pasos {
+      width: 100%;
+      flex: none;
+    }
+
+    .explorador-escena {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 24px;
+      min-height: 0;
+      padding-block: 36px;
+    }
+
+    .escena-descripcion {
+      max-width: 640px;
+    }
+
+    .escena-descripcion h3 {
+      font-size: 28px;
+    }
+
+    .escena-descripcion p {
+      margin-top: 12px;
     }
 
     .escena-encabezado {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 12px;
+      gap: 16px;
     }
 
     .escena-acciones {
@@ -435,8 +548,47 @@ const escenas = [
       gap: 16px;
     }
 
+    .escena-figura.figura-fijada {
+      position: static;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .explorador-interior {
+      width: calc(100% - 40px);
+      padding-bottom: 60px;
+    }
+
+    .explorador-paso {
+      gap: 0;
+      padding: 8px 6px;
+      font-size: 13px;
+    }
+
+    .paso-numero,
+    .titulo-amplio {
+      display: none;
+    }
+
+    .titulo-corto {
+      display: inline;
+    }
+
+    .explorador-avance {
+      gap: 12px;
+    }
+
+    .avance-boton {
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+
     .escena-descripcion h3 {
-      font-size: 18px;
+      font-size: 26px;
+    }
+
+    .escena-descripcion p {
+      font-size: 15px;
     }
 
     figcaption {
@@ -469,6 +621,71 @@ const escenas = [
     }
   }
 
+  @media (max-height: 799px) {
+    .escena-figura.figura-fijada {
+      position: static;
+    }
+  }
+
+  /* Una ventana baja necesita conservar espacio para el título y el contenido. */
+  @media (max-height: 599px) {
+    .explorador-navegacion {
+      flex-direction: row;
+      gap: 8px;
+      padding-block: 4px;
+    }
+
+    .explorador-pasos {
+      flex: none;
+      width: auto;
+      min-width: 0;
+      padding: 0;
+      grid-template-columns: repeat(3, 44px);
+    }
+
+    .explorador-paso {
+      padding: 8px 4px;
+    }
+
+    .titulo-amplio,
+    .titulo-corto {
+      display: none;
+    }
+
+    .paso-numero,
+    .avance-icono {
+      display: inline;
+    }
+
+    .explorador-avance {
+      width: auto;
+      gap: 4px;
+    }
+
+    .avance-boton {
+      width: 44px;
+      padding: 8px;
+    }
+
+    .avance-progreso {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+
+    .explorador-escena {
+      min-height: 0;
+      padding-block: 12px;
+      scroll-margin-top: var(--tope-recorrido, calc(var(--alto-cabecera, 90px) + 66px));
+    }
+
+    .escena-descripcion h3 {
+      font-size: 26px;
+    }
+  }
+
   @media (max-width: 600px) {
     .captura-ayuda-movil {
       display: block;
@@ -489,7 +706,11 @@ const escenas = [
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .explorador-escena[role='tabpanel'] {
+    .escena-captura {
+      transform: translate3d(0, var(--desplazamiento-captura, 0px), 0);
+    }
+
+    .explorador-escena.escena-actual .escena-figura {
       animation: entrada-escena var(--duracion-normal) var(--ease-propia);
     }
 
@@ -500,10 +721,21 @@ const escenas = [
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .explorador-pestana,
+    .explorador-paso,
+    .avance-boton,
     .escena-ampliar,
     .dialogo-cerrar {
       transition: none;
+    }
+
+    .escena-captura {
+      --desplazamiento-captura: 0px;
+      transform: none;
+    }
+
+    .escena-figura.figura-fijada {
+      position: static;
+      top: auto;
     }
   }
 </style>

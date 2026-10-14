@@ -1,0 +1,17 @@
+[
+  {
+    "numeroEsperado": "01",
+    "nombreAccesible": "01 Preparar la venta",
+    "numeroIncluido": true
+  },
+  {
+    "numeroEsperado": "02",
+    "nombreAccesible": "02 Revisar el registro",
+    "numeroIncluido": true
+  },
+  {
+    "numeroEsperado": "03",
+    "nombreAccesible": "03 Previsualizar el documento",
+    "numeroIncluido": true
+  }
+]
