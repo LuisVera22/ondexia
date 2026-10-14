@@ -73,10 +73,10 @@ corregidos. Revalidó 12 contextos con/sin código, incluidos 320×225 y límite
 599/600, controles de 44 px, teclado, foco, nombres y movimiento reducido dinámico.
 No confirmó nuevos defectos en ese alcance.
 
-[Inspección](2026-10-14-recorrido-landing/auditoria-resultados.json),
+[Inspección](2026-10-14-recorrido-landing/auditoria-resultados.json.gz),
 [límites](2026-10-14-recorrido-landing/auditoria-bordes.json),
-[revalidación](2026-10-14-recorrido-landing/auditoria-revalidacion.json),
-[cierre](2026-10-14-recorrido-landing/auditoria-cierre.json).
+[revalidación](2026-10-14-recorrido-landing/auditoria-revalidacion.json.gz),
+[cierre](2026-10-14-recorrido-landing/auditoria-cierre.json.gz).
 
 [Vídeo continuo de 25,68 s](2026-10-14-recorrido-landing/recorrido-escenas.webm),
 [escritorio](2026-10-14-recorrido-landing/escena-escritorio.png),
