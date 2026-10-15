@@ -1,0 +1,263 @@
+{
+  "4328": {
+    "preferencias": {
+      "detener": {
+        "foco": "<body><a href=\"#contenido\" class=\"sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-base focus:bg-gray-900 focus:px-5 focus:py-3 focus:text-white\">Saltar al contenido</a><header data-astro-cid-bcaxnv",
+        "rect": {
+          "x": 0,
+          "y": -1841,
+          "width": 1440,
+          "height": 7845.34375,
+          "top": -1841,
+          "right": 1440,
+          "bottom": 6004.34375,
+          "left": 0
+        }
+      },
+      "original": {
+        "foco": "<button class=\"boton-recorrido\" type=\"button\" data-ampliar=\"\" data-astro-cid-zaifm5te=\"\">Ampliar captura</button>",
+        "rect": {
+          "x": 581.34375,
+          "y": 239.875,
+          "width": 136.28125,
+          "height": 44,
+          "top": 239.875,
+          "right": 717.625,
+          "bottom": 283.875,
+          "left": 581.34375
+        }
+      },
+      "ampliar": {
+        "foco": "<button class=\"boton-recorrido\" type=\"button\" data-ampliar=\"\" data-astro-cid-zaifm5te=\"\">Ampliar captura</button>",
+        "rect": {
+          "x": 581.34375,
+          "y": 239.875,
+          "width": 136.28125,
+          "height": 44,
+          "top": 239.875,
+          "right": 717.625,
+          "bottom": 283.875,
+          "left": 581.34375
+        }
+      },
+      "titulo": {
+        "foco": "<button class=\"boton-recorrido\" type=\"button\" data-ampliar=\"\" data-astro-cid-zaifm5te=\"\">Ampliar captura</button>",
+        "rect": {
+          "x": 581.34375,
+          "y": 239.875,
+          "width": 136.28125,
+          "height": 44,
+          "top": 239.875,
+          "right": 717.625,
+          "bottom": 283.875,
+          "left": 581.34375
+        }
+      }
+    },
+    "resize": {
+      "detener": {
+        "foco": "<body><a href=\"#contenido\" class=\"sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-base focus:bg-gray-900 focus:px-5 focus:py-3 focus:text-white\">Saltar al contenido</a><header data-astro-cid-bcaxnv",
+        "rect": {
+          "x": 0,
+          "y": -1189,
+          "width": 320,
+          "height": 8453.4375,
+          "top": -1189,
+          "right": 320,
+          "bottom": 7264.4375,
+          "left": 0
+        }
+      },
+      "original": {
+        "foco": "<button class=\"boton-recorrido\" type=\"button\" data-ampliar=\"\" data-astro-cid-zaifm5te=\"\">Ampliar captura</button>",
+        "rect": {
+          "x": 21.34375,
+          "y": 213.140625,
+          "width": 136.28125,
+          "height": 44,
+          "top": 213.140625,
+          "right": 157.625,
+          "bottom": 257.140625,
+          "left": 21.34375
+        }
+      },
+      "ampliar": {
+        "foco": "<button class=\"boton-recorrido\" type=\"button\" data-ampliar=\"\" data-astro-cid-zaifm5te=\"\">Ampliar captura</button>",
+        "rect": {
+          "x": 21.34375,
+          "y": 213.140625,
+          "width": 136.28125,
+          "height": 44,
+          "top": 213.140625,
+          "right": 157.625,
+          "bottom": 257.140625,
+          "left": 21.34375
+        }
+      },
+      "titulo": {
+        "foco": "<button class=\"boton-recorrido\" type=\"button\" data-ampliar=\"\" data-astro-cid-zaifm5te=\"\">Ampliar captura</button>",
+        "rect": {
+          "x": 21.34375,
+          "y": 213.140625,
+          "width": 136.28125,
+          "height": 44,
+          "top": 213.140625,
+          "right": 157.625,
+          "bottom": 257.140625,
+          "left": 21.34375
+        }
+      }
+    },
+    "modal": {
+      "1440": {
+        "ajusteCompleto": false,
+        "reapertura": [
+          0,
+          141
+        ],
+        "realWidth": 1440
+      },
+      "390": {
+        "ajusteCompleto": true,
+        "reapertura": [
+          0,
+          0
+        ],
+        "realWidth": 1440
+      }
+    },
+    "descripcionImagen": null
+  },
+  "4324": {
+    "preferencias": {
+      "detener": {
+        "foco": "<article id=\"escena-registro\" class=\"explorador-escena\" aria-labelledby=\"titulo-escena-registro\" data-escena=\"\" data-clave=\"registro\" data-astro-cid-zaifm5te=\"\" tabindex=\"-1\"><div class=\"escena-encabezado\" data-astro-cid-zaifm5te=\"\"><h3 id=",
+        "rect": {
+          "x": 120,
+          "y": 106.6875,
+          "width": 1200,
+          "height": 1106.125,
+          "top": 106.6875,
+          "right": 1320,
+          "bottom": 1212.8125,
+          "left": 120
+        }
+      },
+      "original": {
+        "foco": "<a class=\"enlace-original\" href=\"/capturas/registro-completo.png\" data-original=\"\" data-astro-cid-zaifm5te=\"\">Ver captura original</a>",
+        "rect": {
+          "x": 735.625,
+          "y": 239.875,
+          "width": 123.015625,
+          "height": 44,
+          "top": 239.875,
+          "right": 858.640625,
+          "bottom": 283.875,
+          "left": 735.625
+        }
+      },
+      "ampliar": {
+        "foco": "<button class=\"boton-recorrido\" type=\"button\" data-ampliar=\"\" data-astro-cid-zaifm5te=\"\">Ampliar captura</button>",
+        "rect": {
+          "x": 581.34375,
+          "y": 239.875,
+          "width": 136.28125,
+          "height": 44,
+          "top": 239.875,
+          "right": 717.625,
+          "bottom": 283.875,
+          "left": 581.34375
+        }
+      },
+      "titulo": {
+        "foco": "<article id=\"escena-registro\" class=\"explorador-escena\" aria-labelledby=\"titulo-escena-registro\" data-escena=\"\" data-clave=\"registro\" data-astro-cid-zaifm5te=\"\" tabindex=\"-1\"><div class=\"escena-encabezado\" data-astro-cid-zaifm5te=\"\"><h3 id=",
+        "rect": {
+          "x": 120,
+          "y": 106.6875,
+          "width": 1200,
+          "height": 1106.125,
+          "top": 106.6875,
+          "right": 1320,
+          "bottom": 1212.8125,
+          "left": 120
+        }
+      }
+    },
+    "resize": {
+      "detener": {
+        "foco": "<article id=\"escena-registro\" class=\"explorador-escena\" aria-labelledby=\"titulo-escena-registro\" data-escena=\"\" data-clave=\"registro\" data-astro-cid-zaifm5te=\"\" tabindex=\"-1\"><div class=\"escena-encabezado\" data-astro-cid-zaifm5te=\"\"><h3 id=",
+        "rect": {
+          "x": 20,
+          "y": 93.34375,
+          "width": 280,
+          "height": 421.84375,
+          "top": 93.34375,
+          "right": 300,
+          "bottom": 515.1875,
+          "left": 20
+        }
+      },
+      "original": {
+        "foco": "<a class=\"enlace-original\" href=\"/capturas/registro-completo.png\" data-original=\"\" data-astro-cid-zaifm5te=\"\">Ver captura original</a>",
+        "rect": {
+          "x": 175.625,
+          "y": 213.140625,
+          "width": 123.015625,
+          "height": 44,
+          "top": 213.140625,
+          "right": 298.640625,
+          "bottom": 257.140625,
+          "left": 175.625
+        }
+      },
+      "ampliar": {
+        "foco": "<button class=\"boton-recorrido\" type=\"button\" data-ampliar=\"\" data-astro-cid-zaifm5te=\"\">Ampliar captura</button>",
+        "rect": {
+          "x": 21.34375,
+          "y": 213.140625,
+          "width": 136.28125,
+          "height": 44,
+          "top": 213.140625,
+          "right": 157.625,
+          "bottom": 257.140625,
+          "left": 21.34375
+        }
+      },
+      "titulo": {
+        "foco": "<article id=\"escena-registro\" class=\"explorador-escena\" aria-labelledby=\"titulo-escena-registro\" data-escena=\"\" data-clave=\"registro\" data-astro-cid-zaifm5te=\"\" tabindex=\"-1\"><div class=\"escena-encabezado\" data-astro-cid-zaifm5te=\"\"><h3 id=",
+        "rect": {
+          "x": 20,
+          "y": 93.34375,
+          "width": 280,
+          "height": 421.84375,
+          "top": 93.34375,
+          "right": 300,
+          "bottom": 515.1875,
+          "left": 20
+        }
+      }
+    },
+    "modal": {
+      "1440": {
+        "ajusteCompleto": true,
+        "reapertura": [
+          0,
+          0
+        ],
+        "realWidth": 1440
+      },
+      "390": {
+        "ajusteCompleto": true,
+        "reapertura": [
+          0,
+          0
+        ],
+        "realWidth": 1440
+      }
+    },
+    "descripcionImagen": {
+      "type": "computedString",
+      "value": "Consultar el documento, el cliente y los pagos de la venta."
+    }
+  }
+}

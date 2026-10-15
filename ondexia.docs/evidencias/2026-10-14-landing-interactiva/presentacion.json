@@ -1,0 +1,105 @@
+{
+  "direccion": "http://127.0.0.1:4326/",
+  "procedencia": "Build dist local con CSP actual. Interacciones reales de Chromium; sin alteración del DOM ni edición de PNG o vídeo.",
+  "capturas": [
+    {
+      "archivo": "portada-escritorio.png",
+      "ancho": 1440,
+      "alto": 645,
+      "escena": "portada"
+    },
+    {
+      "archivo": "galeria-escritorio.png",
+      "ancho": 1440,
+      "alto": 1402,
+      "escena": "Preparar la venta"
+    },
+    {
+      "archivo": "galeria-documento-escritorio.png",
+      "ancho": 1440,
+      "alto": 1146,
+      "escena": "Previsualizar el documento"
+    },
+    {
+      "archivo": "portada-movil.png",
+      "ancho": 390,
+      "alto": 638,
+      "escena": "portada"
+    },
+    {
+      "archivo": "galeria-movil.png",
+      "ancho": 390,
+      "alto": 1156,
+      "escena": "Preparar la venta"
+    }
+  ],
+  "eventosVideo": [
+    {
+      "evento": "Portada del sitio compilado",
+      "segundo": 0.65
+    },
+    {
+      "evento": "Explorar el sistema desde la portada",
+      "segundo": 3.7
+    },
+    {
+      "evento": "Pestaña: Preparar la venta",
+      "segundo": 5.54
+    },
+    {
+      "evento": "Pestaña: Revisar el registro",
+      "segundo": 7.6
+    },
+    {
+      "evento": "Pestaña: Previsualizar el documento",
+      "segundo": 9.66
+    },
+    {
+      "evento": "Ampliar la captura del documento",
+      "segundo": 11.72
+    },
+    {
+      "evento": "Cerrar y devolver el foco al botón de ampliación",
+      "segundo": 14.76
+    },
+    {
+      "evento": "Recorrido: La venta se registra. La información queda.",
+      "segundo": 18.11
+    }
+  ],
+  "solicitudes": [
+    "http://127.0.0.1:4326/",
+    "http://127.0.0.1:4326/_astro/Explorador.astro_astro_type_script_index_0_lang.jcP9uO3Y.js",
+    "http://127.0.0.1:4326/_astro/index.astro_astro_type_script_index_0_lang.BuaN1GMA.js",
+    "http://127.0.0.1:4326/capturas/documento-escritorio.png",
+    "http://127.0.0.1:4326/capturas/registro-escritorio.png",
+    "http://127.0.0.1:4326/capturas/venta-escritorio.png",
+    "http://127.0.0.1:4326/capturas/venta-movil.png",
+    "http://127.0.0.1:4326/favicon.svg",
+    "http://127.0.0.1:4326/fonts/outfit-latin.woff2"
+  ],
+  "errores": [],
+  "consolaErrores": [],
+  "csp": "default-src 'none'; script-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+  "duracionGrabacionSegundos": 21.11,
+  "video": {
+    "archivo": "recorrido-interactivo.webm",
+    "ancho": 1280,
+    "alto": 900,
+    "movimiento": "no-preference",
+    "edicion": false,
+    "duracionArchivoSegundos": 21.68,
+    "fotogramasPorSegundo": 25,
+    "codec": "VP8",
+    "validadoCon": "ffprobe"
+  },
+  "solicitudesExternas": [],
+  "huellasSha256": {
+    "portada-escritorio.png": "4456f798a59d7fe8bbc092d0bb7c729ef8260045ff6b6c6b0425c6bdffac223c",
+    "galeria-movil.png": "1f232423dd0ba95dac9e5e44880a3d57ae364f0139479a48c4708324aac04978",
+    "galeria-documento-escritorio.png": "730b67f113dfff95703a39c67af2280e850800f76f4e23a96abeaad35024649a",
+    "galeria-escritorio.png": "380114707e3790854ddbd7b388c33e2be7f1bba3de95fb48dd6826a7e8650bf3",
+    "portada-movil.png": "2b566598b6024fe8c313966bde0e4fa171c082d04a5676d891ab8e1d43a0e43b",
+    "recorrido-interactivo.webm": "bc5593a1f9ec5d4b420a8de2ebc8fadcac8eb31a1d5562f6be2bfb058ced7553"
+  }
+}

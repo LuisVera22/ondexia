@@ -1,0 +1,38 @@
+{
+  "estado": "fallido",
+  "url": "http://127.0.0.1:4324/",
+  "etapa": "progresos",
+  "noVerificado": [
+    "AWS",
+    "SUNAT",
+    "API real",
+    "CI/SCA",
+    "dispositivos físicos",
+    "conformidad WCAG completa"
+  ],
+  "recorridoAnterior": {
+    "desktop": {
+      "estado": "falloEsperado",
+      "motivo": "Locator expected to have count '0'\nActual value: 4 \nCall log:\n  - Expect \"to_have_count\" with timeout 5000ms\n  - waiting for locator(\"[data-explorador] source\")\n    14 × locator resolved to 4 elements\n       - unexpected value \"4\"\n"
+    },
+    "progresos": {
+      "estado": "falloEsperado",
+      "motivo": "Locator expected to be visible\nActual value: None\nError: element(s) not found \nCall log:\n  - Expect \"to_be_visible\" with timeout 5000ms\n  - waiting for locator(\"[data-escenario]\")\n\nAria snapshot:\n- link \"Saltar al contenido\":\n  - /url: \"#contenido\"\n- banner:\n  - navigation \"Principal\":\n    - link \"Ondexia — inicio\":\n      - /url: /\n      - img \"Ondexia\"\n    - link \"Explorar\":\n      - /url: \"#explorar\"\n    - link \"Planes\":\n      - /url: \"#precios\""
+    }
+  },
+  "imagenes": {
+    "archivos": [
+      "venta-completa.png",
+      "registro-completo.png",
+      "documento-completo.png"
+    ],
+    "pixeles": [
+      1440,
+      1000
+    ]
+  },
+  "error": {
+    "tipo": "AssertionError",
+    "mensaje": "Progreso 0.25: [0.564342, 0.435658, 0]; esperado [0.5, 0.5, 0] ±0.03"
+  }
+}

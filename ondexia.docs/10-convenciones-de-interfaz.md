@@ -3,8 +3,9 @@
 
 Lo que la aplicación ya hace y por qué. No es una guía de estilo aspiracional:
 las convenciones históricas de los apartados 1–14 describen la implementación
-y su evidencia registrada. El apartado 15 incorpora criterios de trabajo nuevos;
-su aprobación no demuestra que toda la interfaz ya los cumpla.
+y su evidencia registrada. El apartado 15 incorpora criterios de trabajo nuevos
+y el 16 los aplica a la presentación pública del producto; su aprobación no
+demuestra que toda la interfaz ya los cumpla.
 
 Escrito para el momento en que haya que tocar algo dentro de seis meses y la
 pregunta sea «¿esto está así por un motivo o porque salió así?».
@@ -174,6 +175,15 @@ salieron.
 Solo se anima la **entrada**. La salida se probó y se descartó: para animarla
 hay que retener el nodo hasta que la animación acabe, y si llega otro aviso
 antes quedan tarjetas huérfanas en el DOM, invisibles pero interceptando clics.
+
+**Excepción limitada a la demostración pública de marketing (§16).** La revisión
+especificada el 2026-10-15 admite una ventana central con fundidos reversibles y
+un marco decorativo que cambia de forma según el desplazamiento. El progreso
+controla animaciones pausadas; la duración de referencia no es un temporizador.
+Ofrecer «Ver sin animación» y flujo estático con movimiento reducido, sin
+JavaScript, en ventanas bajas o cuando no quepa. Esta excepción no se extiende
+a la aplicación de trabajo ni cambia las reglas anteriores de avisos y diálogos.
+Su especificación no acredita implementación, compatibilidad ni rendimiento.
 
 ---
 
@@ -417,3 +427,130 @@ antes de ampliar alcance; no rediseñar todo el producto por preferencia estéti
 Complemento aprobado el 2026-10-10, respaldado por la
 [investigación de UX/UI](investigacion/2026-10-10-requisitos-ux-seguridad/ux-ui.md)
 y los [formatos de evaluación](investigacion/2026-10-10-requisitos-ux-seguridad/plantillas.md).
+
+## 16. Presentación pública del producto
+
+Complemento para la [landing interactiva, revisión del 2026-10-15](landing-propuesta/2026-10-14-interactividad.md#revisión-vigente--2026-10-15--ventana-central-y-capturas-de-computador).
+Conserva el registro del §2, el sistema visual de los §§3–6 y los controles del
+§15. Describe cómo presentar tareas del producto; no aprueba condiciones
+comerciales ni una nueva política de emisión. Los resultados locales y límites
+se registran en la [evidencia del 2026-10-15](evidencias/2026-10-15-escenario-landing.md).
+
+### 16.1. Escritura editorial
+
+Organizar la presentación en **tarea → demostración → utilidad → acción**. El
+titular identifica una tarea reconocible; la pantalla muestra cómo se realiza;
+la explicación aclara para qué sirve y la acción permite continuar. Una idea
+por titular y un párrafo breve por pantalla evitan que el texto repita una lista
+de módulos sin explicar su uso.
+
+Usar verbos concretos —preparar, revisar, consultar, previsualizar— y mantener las
+etiquetas de acción en infinitivo. Las explicaciones conservan español formal e
+impersonal y términos fiscales exactos. El nombre de una función por sí solo no
+explica su utilidad.
+
+| Tarea | Demostración | Utilidad explicada | Acción |
+|---|---|---|---|
+| «Preparar la venta» | Selección de bienes y servicios en el punto de venta | «Revisar el cliente, el detalle y el importe antes de registrar la operación» | «Explorar el registro» |
+| «Revisar el registro» | Detalle de una nota de venta de demostración | «Consultar los datos del documento y los pagos registrados en una misma vista» | «Ampliar captura» |
+| «Previsualizar el documento» | Previsualización de la nota de venta | «Revisar la nota de venta y su detalle» | «Ver captura original» |
+
+Son ejemplos de redacción, no nuevas reglas de negocio. Cada afirmación se ajusta
+al alcance demostrado: evitar absolutos como «sin errores» o «siempre disponible»
+y resultados como ahorro o rentabilidad sin medición. Clientes, certificaciones,
+disponibilidad de soporte y condiciones comerciales requieren evidencia propia.
+Una previsualización de nota de venta no acredita emisión electrónica aceptada
+por SUNAT; el estado «en ensayo» se conserva mientras siga vigente.
+
+### 16.2. Mostrar el producto con procedencia
+
+Identificar cerca de la galería que se muestran capturas del sistema con datos
+de demostración. Distinguir una captura del frontend real con datos sintéticos,
+una captura de producción y una ilustración. Conservar origen, fixtures, build y
+recorrido reproducible en la evidencia; una imagen convincente no acredita el
+backend ni el proceso fiscal.
+
+La demostración vigente requiere capturas completas de computador a 1440 × 1000,
+también en móvil: `venta-completa.png`, `registro-completo.png` y
+`documento-completo.png`. Mostrar el PNG completo ajustado proporcionalmente,
+con ampliación y tamaño real disponibles; no sustituirlo por una captura móvil
+ni deformar o recortar la interfaz. Esta elección de presentación no modifica
+el diseño adaptable de la aplicación de trabajo. Las capturas en un navegador
+local no se describen como pruebas en teléfonos físicos. Mantener la tarea y su
+explicación en HTML además de la descripción accesible.
+
+### 16.3. Interacción local y alternativa estática
+
+Aplicar §15 a una ventana central grande que presenta tres capítulos de la misma
+tarea. Habilitar la mejora solo con las capacidades necesarias, altura de al
+menos 700 píxeles CSS y espacio efectivo para la captura, explicación y controles.
+El desplazamiento nativo controla un progreso continuo y reversible: bajar y
+subir recorren los mismos estados, sin temporizadores, avance autónomo ni captura
+de rueda, teclas o gestos. Los enlaces ancla de capítulos proporcionan navegación
+directa y `aria-current="step"`; el desplazamiento por sí solo no mueve el foco
+ni anuncia cada fotograma.
+
+La ventana central expone una única imagen accesible y descripción compartida
+de la escena actual. Sus capas de captura y el SVG decorativo no duplican la
+lectura. Los controles de capítulos, ampliación y «Ver sin animación» permanecen
+estables: cambiar por desplazamiento no oculta un control enfocado. Los saltos
+solicitados dejan título y foco visibles; no utilizar semántica de pestañas.
+
+La excepción de marketing del §6 permite fundidos por opacidad y morphing
+opcional de un marco o fondo SVG, no de los píxeles de las capturas. Mantener
+idéntica estructura `M Q Q Q Q Z` e interpolar coordenadas por tramos; no añadir
+una dependencia para el efecto. Las animaciones WAAPI se mantienen pausadas y
+`currentTime` sigue el progreso. Un listener pasivo y rAF coordinan las
+actualizaciones; rAF no se presenta como limitador de frecuencia. No depender
+de `animation-timeline` o `ScrollTimeline` para poder leer la demostración.
+La investigación de soporte y los offsets esperados están en la especificación.
+
+Con movimiento reducido, «Ver sin animación», JavaScript ausente o bloqueado,
+altura inferior a 700 píxeles CSS o espacio insuficiente, mostrar los tres
+artículos en flujo normal, sin fijación ni animación de la demostración. Atender
+el cambio de preferencia o tamaño con la página abierta y conservar el punto de
+lectura y el foco. La alternativa estática indica «3 escenas», conserva enlaces
+ancla y originales; menú y preguntas funcionan con HTML nativo.
+
+La ampliación utiliza el mismo PNG de computador: ajuste completo inicial y
+«Tamaño real» a 1440 píxeles CSS con paneo dentro del diálogo, sin desplazar de
+lado toda la página. Ofrecer retorno al ajuste, Escape y Cerrar, reapertura
+ajustada con desplazamientos en cero y retorno del foco al botón estable de
+apertura. Mantener el enlace al original como alternativa sin JavaScript.
+
+La landing se compila como Astro estático. Utilizar el mínimo código local en
+archivos externos para la mejora progresiva, sin introducir API, backend,
+autenticación ni terceros. La propuesta de CSP mantiene `default-src 'none'` y
+permite `script-src 'self'`; comprobar scripts locales operativos y rechazo de
+scripts ejecutables inline y conexiones con cabeceras servidas, no solo leyendo
+la configuración. La aplicación efectiva en AWS queda para una publicación
+revisada; AWS no se ha modificado ni verificado en este trabajo local.
+
+### 16.4. Evidencia y pendientes
+
+En ventanas bajas, conservar el flujo normal y comprobar reflujo, lectura y
+objetivos táctiles del §15. Los nombres accesibles identifican la tarea aunque
+se compacte una etiqueta. El fallback sin JavaScript también debe permitir ver
+el título tras seguir un enlace, sin una fijación que lo oculte.
+
+Reutilizar el harness existente al implementar:
+`herramientas/capturar-producto-landing.py` para acreditar las capturas completas
+y `herramientas/comprobar-interactividad-landing.py` para los nuevos casos de uso.
+Playwright y Chromium son dependencias locales opcionales de esa revisión, no
+del sitio publicado. Fijar esperados de 0/25/50/75/100 % y reversa, estabilidad en
+pausa, estructura e intermedios del path, procedencia de los mismos PNG a todos
+los anchos, alternativas estáticas, modal, foco y CSP. Registrar un perfil de
+rendimiento y tareas largas; no deducir «60 fps» de la tecnología elegida.
+
+La [reproducción de la landing](../apps/frontend/ondexia.landing/README.md) explica
+la preparación local. La [evidencia del recorrido del 2026-10-14](evidencias/2026-10-14-recorrido-landing.md)
+y la [primera versión interactiva](evidencias/2026-10-14-landing-interactiva.md)
+son históricas; no verifican la revisión del 2026-10-15. La [evidencia actual](evidencias/2026-10-15-escenario-landing.md)
+registra los casos ejecutados en Chromium local, la revisión independiente y el
+perfil descriptivo; otros navegadores, teléfonos físicos y conformidad completa
+continúan sin verificar. Se complementa el mismo harness.
+
+La mejora de presentación no decide precios ni CTA final, no habilita el servicio
+de contacto y no cambia el ensayo de SUNAT. Esos pendientes conservan su autoridad
+y evidencia previas; tampoco se presume conversión o conformidad WCAG completa
+por completar la revisión local.

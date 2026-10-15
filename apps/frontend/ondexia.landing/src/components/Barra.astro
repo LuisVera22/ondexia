@@ -2,7 +2,7 @@
 import Logo from './Logo.astro';
 
 const enlaces = [
-  { texto: 'El sistema', destino: '#funciones' },
+  { texto: 'Explorar', destino: '#explorar' },
   { texto: 'Planes', destino: '#precios' },
   { texto: 'Preguntas frecuentes', destino: '#preguntas' },
 ];
@@ -30,7 +30,7 @@ const enlaces = [
 </header>
 
 <style>
-  header { border-bottom: 1px solid var(--color-gray-200); position: relative; background: white; }
+  header { border-bottom: 1px solid var(--color-gray-200); position: sticky; top: 0; z-index: 40; background: white; }
   .navegacion { min-height: 90px; display: flex; align-items: center; justify-content: space-between; gap: 30px; }
   .inicio { display: flex; align-items: center; min-height: 44px; flex-shrink: 0; }
   .enlaces-escritorio { display: flex; align-items: center; gap: 28px; }

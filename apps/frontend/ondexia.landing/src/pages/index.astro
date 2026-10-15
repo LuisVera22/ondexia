@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Barra from '../components/Barra.astro';
 import Cartel from '../components/Cartel.astro';
+import Explorador from '../components/Explorador.astro';
 import Modulos from '../components/Modulos.astro';
 import Proceso from '../components/Proceso.astro';
 import Preguntas from '../components/Preguntas.astro';
@@ -24,6 +25,7 @@ const descripcion =
   <Barra />
   <main id="contenido">
     <Cartel />
+    <Explorador />
     <Modulos />
     <Proceso />
     <Precios />
@@ -33,3 +35,5 @@ const descripcion =
   </main>
   <Pie />
 </Base>
+
+<script src="../scripts/movimiento.ts"></script>

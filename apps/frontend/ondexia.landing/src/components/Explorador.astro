@@ -1,0 +1,707 @@
+---
+const escenas = [
+  {
+    clave: 'venta',
+    numero: '01',
+    titulo: 'Preparar la venta',
+    tituloCorto: 'Venta',
+    descripcion: 'Seleccionar bienes y servicios y revisar el total antes de registrar la venta.',
+    alternativa: 'Pantalla completa del punto de venta de Ondexia, con bienes y servicios, cliente, importes y cobro.',
+    captura: '/capturas/venta-completa.png',
+  },
+  {
+    clave: 'registro',
+    numero: '02',
+    titulo: 'Revisar el registro',
+    tituloCorto: 'Registro',
+    descripcion: 'Consultar el documento, el cliente y los pagos de la venta.',
+    alternativa: 'Pantalla completa del registro de una nota de venta en Ondexia, con cliente, detalle, pagos e importe total.',
+    captura: '/capturas/registro-completo.png',
+  },
+  {
+    clave: 'documento',
+    numero: '03',
+    titulo: 'Previsualizar el documento',
+    tituloCorto: 'Documento',
+    descripcion: 'Revisar la nota de venta completa y acceder a su impresión.',
+    alternativa: 'Pantalla completa de la previsualización de una nota de venta en Ondexia, con emisor, detalle e importe total.',
+    captura: '/capturas/documento-completo.png',
+  },
+];
+const rotuloCaptura = 'Capturas del sistema · datos de demostración';
+---
+
+<section id="explorar" class="explorador" aria-labelledby="titulo-explorador" data-explorador>
+  <div class="explorador-interior">
+    <div class="explorador-presentacion">
+      <h2 id="titulo-explorador">Una venta. Todo su recorrido.</h2>
+      <p>Preparar la operación, consultar su registro y revisar el documento.</p>
+    </div>
+
+    <nav class="explorador-navegacion" aria-label="Recorrido del sistema" data-pasos>
+      <div class="explorador-pasos">
+        {escenas.map((escena) => (
+          <a class="explorador-paso" href={`#escena-${escena.clave}`} aria-label={`${escena.numero} ${escena.titulo}`} data-paso>
+            <span class="paso-numero" aria-hidden="true">{escena.numero}</span>
+            <span class="titulo-amplio">{escena.titulo}</span>
+            <span class="titulo-corto" aria-hidden="true">{escena.tituloCorto}</span>
+          </a>
+        ))}
+      </div>
+      <div class="navegacion-opciones">
+        <span class="recorrido-progreso" data-progreso>3 escenas</span>
+        <button class="boton-recorrido" type="button" data-detener hidden>Ver sin animación</button>
+      </div>
+    </nav>
+
+    <!-- Las pantallas completas conservan su recorrido sin depender del movimiento. -->
+    <div class="explorador-escenas" data-escenas>
+      {escenas.map((escena, indice) => (
+        <article id={`escena-${escena.clave}`} class="explorador-escena" aria-labelledby={`titulo-escena-${escena.clave}`} data-escena data-clave={escena.clave}>
+          <div class="escena-encabezado">
+            <h3 id={`titulo-escena-${escena.clave}`}>{escena.titulo}</h3>
+            <p data-descripcion>{escena.descripcion}</p>
+            <div class="escena-acciones">
+              <button class="boton-recorrido" type="button" data-ampliar hidden>Ampliar captura</button>
+              <a class="enlace-original" href={escena.captura} data-original>Ver captura original</a>
+            </div>
+          </div>
+          <figure class="escena-figura">
+            <img class="captura-completa" src={escena.captura} alt={escena.alternativa} width="1440" height="1000" loading={indice === 0 ? 'eager' : 'lazy'} decoding="async" data-captura />
+            <figcaption>{rotuloCaptura}</figcaption>
+          </figure>
+        </article>
+      ))}
+    </div>
+
+    <div class="explorador-recorrido" data-recorrido hidden>
+      <div class="recorrido-escenario" data-escenario>
+        <div class="escenario-composicion">
+          <svg class="escenario-contorno" viewBox="0 0 1440 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <path d="M80 40 Q720 0 1360 40 Q1440 500 1360 960 Q720 1000 80 960 Q0 500 80 40 Z" data-contorno />
+          </svg>
+          <div class="escenario-marco" role="img" aria-label={escenas[0].alternativa} aria-describedby="descripcion-pantalla-actual" data-marco data-visual>
+            {escenas.map((escena) => (
+              <img class="escenario-capa" src={escena.captura} alt="" aria-hidden="true" width="1440" height="1000" loading="lazy" decoding="async" data-capa data-clave={escena.clave} />
+            ))}
+          </div>
+        </div>
+        <div class="escenario-informacion">
+          <h3 tabindex="-1" data-titulo-actual>{escenas[0].titulo}</h3>
+          <p id="descripcion-pantalla-actual" class="escenario-descripcion" data-descripcion-actual>{escenas[0].descripcion}</p>
+          <div class="escena-acciones">
+            <button class="boton-recorrido" type="button" data-ampliar-actual>Ampliar captura</button>
+            <a class="enlace-original" href={escenas[0].captura} data-original-actual>Ver captura original</a>
+          </div>
+          <p class="captura-rotulo">{rotuloCaptura}</p>
+        </div>
+      </div>
+    </div>
+
+    <dialog class="explorador-dialogo" aria-labelledby="titulo-captura-ampliada" data-dialogo>
+      <div class="dialogo-encabezado">
+        <div>
+          <h2 id="titulo-captura-ampliada" data-titulo-ampliado>{escenas[0].titulo}</h2>
+          <p>{rotuloCaptura}</p>
+        </div>
+        <button class="boton-recorrido dialogo-cerrar" type="button" data-cerrar autofocus>Cerrar</button>
+      </div>
+      <div class="dialogo-lienzo" role="region" aria-label="Captura ampliada. Desplazar para revisar todos los detalles." tabindex="0" data-lienzo-ampliado>
+        <img src={escenas[0].captura} alt={escenas[0].alternativa} width="1440" height="1000" loading="lazy" decoding="async" data-captura-ampliada />
+      </div>
+      <div class="dialogo-pie">
+        <button class="boton-recorrido" type="button" aria-pressed="false" data-tamano-real>Ver tamaño real</button>
+        <a class="enlace-original" href={escenas[0].captura} data-original-ampliado>Ver captura original</a>
+      </div>
+    </dialog>
+  </div>
+</section>
+
+<script src="../scripts/explorador.ts"></script>
+
+<style>
+  .explorador {
+    --alto-cabecera: 90px;
+    scroll-margin-top: calc(var(--alto-cabecera) + 16px);
+    background: var(--color-white);
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  .explorador-interior {
+    width: min(100% - 64px, 1200px);
+    margin-inline: auto;
+    padding-bottom: 80px;
+  }
+
+  .explorador-presentacion {
+    margin-bottom: 28px;
+    text-align: center;
+  }
+
+  .explorador-presentacion h2 {
+    color: var(--color-gray-900);
+    font-size: clamp(28px, 3.1vw, 42px);
+    font-weight: 500;
+    letter-spacing: -0.035em;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+
+  .explorador-presentacion p {
+    margin-top: 12px;
+    color: var(--color-gray-600);
+    font-size: 17px;
+    line-height: 1.6;
+  }
+
+  .explorador-navegacion {
+    position: sticky;
+    z-index: 30;
+    top: var(--alto-cabecera);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 16px;
+    padding-block: 12px;
+    border-bottom: 1px solid var(--color-gray-200);
+    background: var(--color-white);
+  }
+
+  .explorador-pasos {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    flex: 1;
+    gap: 4px;
+    min-width: min(100%, 540px);
+    padding: 4px;
+    border: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-base);
+    background: var(--color-gray-25);
+  }
+
+  .explorador-paso {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1px solid transparent;
+    border-bottom: 2px solid transparent;
+    border-radius: var(--radius-base);
+    color: var(--color-gray-600);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-align: center;
+    transition:
+      color var(--duracion-normal) var(--ease-propia),
+      background-color var(--duracion-normal) var(--ease-propia),
+      border-color var(--duracion-normal) var(--ease-propia);
+  }
+
+  .explorador-paso:hover {
+    background: var(--color-gray-100);
+    color: var(--color-gray-900);
+  }
+
+  .explorador-paso[aria-current='step'] {
+    border-color: var(--color-gray-300);
+    border-bottom-color: var(--color-brand-500);
+    background: var(--color-white);
+    color: var(--color-brand-700);
+  }
+
+  .paso-numero,
+  .recorrido-progreso {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .titulo-corto {
+    display: none;
+  }
+
+  .navegacion-opciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    max-width: 100%;
+  }
+
+  .recorrido-progreso {
+    color: var(--color-gray-600);
+    line-height: 1.5;
+    white-space: nowrap;
+  }
+
+  .boton-recorrido {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 10px 16px;
+    border: 1px solid var(--color-gray-500);
+    border-radius: var(--radius-base);
+    background: var(--color-white);
+    color: var(--color-gray-800);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    transition: background-color var(--duracion-normal) var(--ease-propia);
+  }
+
+  .boton-recorrido:hover {
+    background: var(--color-gray-50);
+  }
+
+  .enlace-original {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--color-brand-700);
+    font-size: 14px;
+    line-height: 1.4;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .explorador-escenas {
+    display: grid;
+  }
+
+  .explorador-escena {
+    min-width: 0;
+    padding-block: 40px;
+    border-bottom: 1px solid var(--color-gray-200);
+    scroll-margin-top: var(--tope-recorrido, calc(var(--alto-cabecera) + 120px));
+  }
+
+  .explorador-escena:last-child {
+    border-bottom: 0;
+  }
+
+  .escena-encabezado {
+    max-width: 840px;
+    margin: 0 auto 24px;
+    text-align: center;
+  }
+
+  .escena-encabezado h3,
+  .escenario-informacion h3 {
+    color: var(--color-gray-900);
+    font-size: clamp(24px, 2.5vw, 32px);
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 1.3;
+    text-wrap: balance;
+  }
+
+  .escena-encabezado > p {
+    margin-top: 10px;
+    color: var(--color-gray-600);
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .escena-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px 18px;
+  }
+
+  .escena-encabezado .escena-acciones {
+    margin-top: 16px;
+  }
+
+  figure {
+    margin: 0;
+  }
+
+  .captura-completa {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-base);
+    background: var(--color-gray-25);
+  }
+
+  figcaption,
+  .captura-rotulo {
+    color: var(--color-gray-600);
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  figcaption {
+    margin-top: 12px;
+  }
+
+  .explorador-recorrido {
+    margin: 0;
+    padding: 0;
+  }
+
+  .modo-scroll .explorador-recorrido {
+    height: calc(3 * 100svh);
+  }
+
+  .recorrido-escenario {
+    margin: 0;
+    padding: 0;
+  }
+
+  .modo-scroll .recorrido-escenario {
+    position: sticky;
+    top: var(--tope-recorrido, calc(var(--alto-cabecera) + 100px));
+  }
+
+  .escenario-composicion {
+    position: relative;
+    isolation: isolate;
+    width: min(100%, 1200px, calc((100svh - var(--tope-recorrido, 190px) - 150px) * 1.44));
+    margin-inline: auto;
+  }
+
+  .escenario-contorno {
+    position: absolute;
+    z-index: -1;
+    inset: -16px -24px;
+    width: calc(100% + 48px);
+    height: calc(100% + 32px);
+    overflow: visible;
+    fill: var(--color-brand-100);
+    pointer-events: none;
+  }
+
+  .escenario-marco {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    aspect-ratio: 1440 / 1000;
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-base);
+    background: var(--color-gray-25);
+  }
+
+  .escenario-capa {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .escenario-capa:first-child {
+    opacity: 1;
+  }
+
+  .escenario-informacion {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin-top: 10px;
+    text-align: center;
+  }
+
+  .escenario-informacion h3 {
+    max-width: 100%;
+    font-size: 24px;
+  }
+
+  .escenario-descripcion {
+    max-width: 920px;
+    color: var(--color-gray-600);
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .boton-recorrido,
+  .enlace-original,
+  .escenario-informacion h3 {
+    scroll-margin-top: var(--tope-recorrido, calc(var(--alto-cabecera) + 100px));
+    scroll-margin-bottom: 16px;
+  }
+
+  .explorador-dialogo {
+    width: min(1480px, calc(100% - 48px));
+    max-width: none;
+    height: min(1100px, calc(100dvh - 32px));
+    max-height: calc(100dvh - 32px);
+    margin: auto;
+    padding: 0;
+    overflow: auto;
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--radius-base);
+    background: var(--color-white);
+    color: var(--color-gray-900);
+  }
+
+  .explorador-dialogo[open] {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .explorador-dialogo::backdrop {
+    background: rgb(14 18 29 / 0.65);
+  }
+
+  .dialogo-encabezado {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--color-gray-200);
+  }
+
+  .dialogo-encabezado h2 {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .dialogo-encabezado p {
+    margin-top: 4px;
+    color: var(--color-gray-600);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .dialogo-cerrar {
+    flex-shrink: 0;
+  }
+
+  .dialogo-lienzo {
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    background: var(--color-gray-25);
+  }
+
+  .dialogo-lienzo img {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .dialogo-lienzo.tamano-real img {
+    width: 1440px;
+    max-width: none;
+    height: auto;
+  }
+
+  .dialogo-pie {
+    display: flex;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px 12px;
+    padding: 8px 20px;
+    border-top: 1px solid var(--color-gray-200);
+  }
+
+  @media (max-width: 1023px) {
+    .explorador {
+      --alto-cabecera: 76px;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .explorador-interior {
+      width: calc(100% - 40px);
+      padding-bottom: 56px;
+    }
+
+    .explorador-presentacion {
+      margin-bottom: 20px;
+    }
+
+    .explorador-presentacion p {
+      font-size: 15px;
+    }
+
+    .explorador-navegacion {
+      gap: 8px;
+      padding-block: 8px;
+    }
+
+    .explorador-pasos {
+      flex: none;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .explorador-paso {
+      gap: 0;
+      padding: 8px 6px;
+      font-size: 13px;
+    }
+
+    .paso-numero,
+    .titulo-amplio {
+      display: none;
+    }
+
+    .titulo-corto {
+      display: inline;
+    }
+
+    .navegacion-opciones {
+      width: 100%;
+    }
+
+    .explorador-escena {
+      padding-block: 32px;
+    }
+
+    .escena-encabezado {
+      margin-bottom: 20px;
+    }
+
+    .escena-encabezado h3 {
+      font-size: 26px;
+    }
+
+    .escena-encabezado > p {
+      font-size: 15px;
+    }
+
+    .escenario-informacion h3 {
+      min-height: 2.6em;
+    }
+
+    .escenario-descripcion {
+      min-height: 4.5em;
+    }
+
+    .escenario-contorno {
+      inset: -12px -16px;
+      width: calc(100% + 32px);
+      height: calc(100% + 24px);
+    }
+
+    .explorador-dialogo {
+      width: calc(100% - 24px);
+      height: min(1100px, calc(100dvh - 24px));
+      max-height: calc(100dvh - 24px);
+    }
+
+    .dialogo-encabezado {
+      gap: 12px;
+      padding: 12px;
+    }
+
+    .dialogo-encabezado h2 {
+      font-size: 17px;
+    }
+
+    .dialogo-pie {
+      padding-inline: 12px;
+    }
+
+    .dialogo-pie .boton-recorrido,
+    .dialogo-pie .enlace-original {
+      font-size: 13px;
+    }
+
+    .dialogo-pie .boton-recorrido {
+      padding-inline: 12px;
+    }
+  }
+
+  @media (max-height: 699px) {
+    .explorador-navegacion {
+      position: static;
+      gap: 8px;
+      padding-block: 4px;
+    }
+
+    .explorador-pasos {
+      flex: none;
+      width: auto;
+      min-width: 0;
+      padding: 0;
+      grid-template-columns: repeat(3, 44px);
+    }
+
+    .explorador-paso {
+      padding: 8px 4px;
+    }
+
+    .titulo-amplio,
+    .titulo-corto {
+      display: none;
+    }
+
+    .paso-numero {
+      display: inline;
+    }
+
+    .navegacion-opciones {
+      flex: 1;
+      width: auto;
+      justify-content: flex-end;
+    }
+
+    .explorador-escena {
+      padding-block: 12px;
+      scroll-margin-top: calc(var(--alto-cabecera) + 16px);
+    }
+
+    .modo-scroll .explorador-recorrido {
+      height: auto;
+    }
+
+    .modo-scroll .recorrido-escenario {
+      position: static;
+    }
+
+    .dialogo-encabezado {
+      padding-block: 8px;
+    }
+
+    .dialogo-encabezado p {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .explorador-navegacion,
+    .modo-scroll .recorrido-escenario {
+      position: static;
+    }
+
+    .modo-scroll .explorador-recorrido {
+      height: auto;
+    }
+
+    .explorador-paso,
+    .boton-recorrido {
+      transition: none;
+    }
+
+    .escenario-marco,
+    .escenario-contorno {
+      transform: none;
+    }
+  }
+</style>

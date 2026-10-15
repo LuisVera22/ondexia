@@ -1,0 +1,6 @@
+SIN ARREGLO CSP: FALLA — La CSP anterior bloquea la inicialización de pestañas
+REAPERTURA: PASA — las tres escenas comienzan desde arriba
+CON ARREGLO CSP: PASA — scripts locales operativos; inline y conexiones rechazados
+MUTACIÓN AISLADA: DETECTADA — La primera escena perdió su estado seleccionado
+RESTAURADO: PASA
+[{"ancho": 320, "desbordamiento": false, "variante": "movil", "dialogo": true}, {"ancho": 390, "desbordamiento": false, "variante": "movil", "dialogo": true}, {"ancho": 768, "desbordamiento": false, "variante": "escritorio", "dialogo": true}, {"ancho": 1024, "desbordamiento": false, "variante": "escritorio", "dialogo": true}, {"ancho": 1440, "desbordamiento": false, "variante": "escritorio", "dialogo": true}]

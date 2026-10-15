@@ -36,6 +36,8 @@ export default defineConfig({
   },
 
   vite: {
+    // La CSP admite archivos locales, nunca scripts ejecutables inline.
+    build: { assetsInlineLimit: 0 },
     plugins: [tailwindcss()],
   },
 });

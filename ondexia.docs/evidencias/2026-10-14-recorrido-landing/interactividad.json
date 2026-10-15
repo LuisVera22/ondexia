@@ -1,0 +1,82 @@
+{
+  "pantallas": [
+    {
+      "ancho": 320,
+      "alto": 900,
+      "desbordamiento": false,
+      "variante": "movil",
+      "navegacion": true
+    },
+    {
+      "ancho": 390,
+      "alto": 844,
+      "desbordamiento": false,
+      "variante": "movil",
+      "navegacion": true
+    },
+    {
+      "ancho": 768,
+      "alto": 900,
+      "desbordamiento": false,
+      "variante": "escritorio",
+      "navegacion": true
+    },
+    {
+      "ancho": 1024,
+      "alto": 900,
+      "desbordamiento": false,
+      "variante": "escritorio",
+      "navegacion": true
+    },
+    {
+      "ancho": 1440,
+      "alto": 1000,
+      "desbordamiento": false,
+      "variante": "escritorio",
+      "navegacion": true
+    },
+    {
+      "ancho": 1440,
+      "alto": 400,
+      "desbordamiento": false,
+      "variante": "escritorio",
+      "navegacion": true
+    },
+    {
+      "ancho": 320,
+      "alto": 320,
+      "desbordamiento": false,
+      "variante": "movil",
+      "navegacion": true
+    },
+    {
+      "ancho": 360,
+      "alto": 250,
+      "desbordamiento": false,
+      "variante": "movil",
+      "navegacion": true
+    },
+    {
+      "ancho": 390,
+      "alto": 240,
+      "desbordamiento": false,
+      "variante": "movil",
+      "navegacion": true
+    },
+    {
+      "ancho": 320,
+      "alto": 225,
+      "desbordamiento": false,
+      "variante": "movil",
+      "navegacion": true
+    }
+  ],
+  "parallaxObservado": [
+    0.79,
+    -1.61
+  ],
+  "sinJavascript": true,
+  "csp": true,
+  "externas": [],
+  "errores": []
+}
