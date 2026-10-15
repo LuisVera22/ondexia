@@ -6,6 +6,10 @@ El código ejecutable se sirve en archivos externos del mismo sitio; no utiliza 
 backend, autenticación, analítica ni servicios de terceros. La frontera se
 conserva conforme a doc 03 §3.
 
+La revisión del **2026-10-15** incorpora una ventana central y capturas completas
+de computador también en móvil. La [evidencia local](../../../ondexia.docs/evidencias/2026-10-15-escenario-landing.md)
+registra los casos ejecutados y sus límites; las candidatas anteriores son historia.
+
 ## Desarrollo y revisión
 
 ```bash
@@ -31,7 +35,7 @@ node herramientas/comprobar-tono-y-forma.mjs
 | `pages/index.astro` | Ensamblaje de secciones |
 | `components/Barra.astro` | Navegación y separación de ingreso/solicitud comercial |
 | `components/Cartel.astro` | Portada y propuesta del producto |
-| `components/Explorador.astro` | Tres artículos del frontend real, capítulos, variantes móviles y ampliación |
+| `components/Explorador.astro` | Demostración, capítulos, alternativa estática y ampliación |
 | `components/Modulos.astro` | Ventas, caja, catálogo y existencias |
 | `components/Proceso.astro` | Preparación, cobro y consulta de una venta |
 | `components/Precios.astro` | Propuesta comercial pendiente de validación |
@@ -40,63 +44,73 @@ node herramientas/comprobar-tono-y-forma.mjs
 | `components/Cierre.astro` | Contacto con destino configurado o alternativa de correo |
 | `components/Pie.astro` | Identidad, navegación y pendientes legales |
 | `datos/planes.ts` | Cifras compartidas con sección y datos estructurados |
-| `scripts/explorador.ts` | Progreso del recorrido, avance manual, movimiento acotado y diálogo |
+| `scripts/explorador.ts` | Progreso, fundidos y contorno SVG; alternativa estática y diálogo |
 | `scripts/movimiento.ts` | Entradas con movimiento reducido y cierre del menú móvil |
 | `styles/global.css` | Tokens de marca, foco, botones y composición compartida |
 | `public/capturas/` | Capturas locales de venta, registro y documento con datos sintéticos |
 
 ## Diseño vigente de la propuesta
 
-La [versión interactiva del 2026-10-14](../../../ondexia.docs/landing-propuesta/2026-10-14-interactividad.md)
-complementa el [rediseño del 2026-10-12](../../../ondexia.docs/landing-propuesta/2026-10-12-rediseno.md).
+La [revisión del 2026-10-15](../../../ondexia.docs/landing-propuesta/2026-10-14-interactividad.md#revisión-vigente--2026-10-15--ventana-central-y-capturas-de-computador)
+complementa el [rediseño del 2026-10-12](../../../ondexia.docs/landing-propuesta/2026-10-12-rediseno.md)
+y sustituye la presentación anterior de tres figuras con parallax de ±12 píxeles.
 Conserva índigo, grises azulados, Outfit
 400/500/600, radio 6 px y fuentes locales. La separación se consigue con espacio
 y bordes; no hay sombras en superficies. La portada presenta una tarea y una
 demostración central. La escritura sigue tarea → demostración → utilidad → acción,
 conforme al complemento del doc 10 §16.
 
-Las tres escenas muestran el frontend Angular real: preparar la venta, revisar
-su registro y previsualizar la nota de venta. Los datos son sintéticos y están
-identificados junto a las imágenes como «Capturas del sistema · datos de
-demostración». No son capturas de clientes ni acreditan una emisión ante SUNAT.
-No se incorporan testimonios, certificaciones ni cifras de clientes sin evidencia.
+Las escenas muestran el frontend Angular real: preparar la venta,
+revisar su registro y previsualizar la nota de venta. Identificar cerca de ellas
+«Capturas del sistema · datos de demostración». No son capturas de clientes ni
+acreditan una emisión ante SUNAT. No incorporar testimonios, certificaciones ni
+cifras de clientes sin evidencia.
 
-La evolución vigente presenta un recorrido al bajar por los tres artículos, que
-permanecen visibles y en orden. La navegación por capítulos indica el alcanzado
-con `aria-current="step"` y «Escena n de 3». Desplazar la página no cambia el foco
-ni anuncia cada capítulo; los enlaces y Anterior/Siguiente permiten avanzar
-manualmente y colocar el foco en la escena con su título visible. No hay avance
-por temporizador ni bloqueo del desplazamiento nativo.
+El contrato nuevo presenta una ventana central grande con tres capturas completas
+de computador, ajustadas proporcionalmente incluso en móvil. Sus fundidos siguen
+el desplazamiento continuo en ambos sentidos; tres enlaces de capítulos indican
+el actual con `aria-current="step"`. Desplazar no mueve el foco ni anuncia cada
+fotograma. Los controles compartidos permanecen estables y no desaparecen al
+cambiar de escena.
 
-El marco de la captura responde al desplazamiento con un parallax acotado a
-±12 píxeles. En escritorio la figura puede fijarse dentro del artículo solo si
-cabe bajo la cabecera y la navegación; en móvil y ventanas bajas las figuras
-permanecen en el flujo normal. Movimiento reducido elimina el parallax y la
-fijación de las figuras, también si la preferencia cambia con la página abierta.
-Esta excepción de movimiento continuo se limita a la demostración pública,
-conforme al doc 10 §16; no cambia las convenciones del producto de trabajo.
+La propuesta usa animaciones WAAPI pausadas: `currentTime` sigue el progreso, sin
+temporizadores ni bloqueo de rueda, teclas o gestos. El marco o fondo SVG puede
+cambiar de forma con comandos compatibles; los píxeles de la captura no se
+deforman. Esta excepción se limita al marketing público conforme al doc 10 §§6/16,
+no a la aplicación de trabajo. La investigación y los offsets están en la
+especificación; no implican rendimiento ni compatibilidad medidos.
 
-Diálogo y menú conservan sus controles de teclado y foco. Sin JavaScript, las
-tres escenas y enlaces ancla siguen disponibles, el progreso dice «3 escenas» y
-los botones de avance y ampliación permanecen ocultos. Los originales tienen
-enlaces, y menú y preguntas conservan HTML nativo. La
-[evidencia del recorrido](../../../ondexia.docs/evidencias/2026-10-14-recorrido-landing.md)
-registra las comprobaciones ejecutadas y sus límites; no demuestra conformidad
-WCAG completa ni conversión. La
-[evidencia de la primera versión interactiva](../../../ondexia.docs/evidencias/2026-10-14-landing-interactiva.md)
-se conserva como historia de la candidata anterior.
+La mejora se habilita solo con altura de al menos 700 píxeles CSS y espacio
+efectivo para ventana, explicación y controles. «Ver sin animación», movimiento
+reducido, JavaScript ausente o bloqueado, ventana baja o falta de espacio deben
+dejar los tres artículos en flujo normal, sin fijación ni animación de la
+demostración. La alternativa mantiene anclas, originales y «3 escenas»; menú y
+preguntas usan HTML nativo. Debe atender cambios de preferencia y tamaño con la
+página abierta.
+
+La ampliación debe abrir ajustada y ofrecer «Tamaño real» a 1440 píxeles CSS con
+paneo dentro del diálogo. Reabrir desde el ajuste y origen cero, conservar Escape,
+Cerrar y retorno del foco, y no introducir desplazamiento horizontal de toda la
+página. La evidencia del 2026-10-15 registra su comprobación en Chromium local. La
+[evidencia del recorrido anterior](../../../ondexia.docs/evidencias/2026-10-14-recorrido-landing.md)
+y la [primera versión interactiva](../../../ondexia.docs/evidencias/2026-10-14-landing-interactiva.md)
+se conservan como historia; no verifican la propuesta del 2026-10-15 ni demuestran
+conformidad WCAG completa o conversión.
 
 ## Procedencia de las capturas y reproducción local
 
-Los archivos `venta`, `registro` y `documento`, cada uno con sufijos
-`-escritorio.png` y `-movil.png`, proceden del build de `ondexia.web`. Se capturan
-los componentes de punto de venta y detalle del documento con respuestas
-sintéticas del navegador. El recorrido utiliza una nota de venta de demostración;
-no consulta datos de clientes reales, inicia una sesión real ni ejecuta el backend.
+La revisión usa `venta-completa.png`, `registro-completo.png` y
+`documento-completo.png`: capturas completas del frontend de computador a
+1440 × 1000, obtenidas del build de `ondexia.web` con fixtures sintéticos. Los
+mismos PNG deben utilizarse en todos los anchos; la variante móvil anterior queda
+sustituida para esta demostración. Conservar procedencia, hashes y control del
+mismo recorrido de la nota de venta. La captura no debe consultar clientes reales,
+iniciar una sesión real ni ejecutar el backend.
 
-Las variantes móviles se toman renderizando la interfaz a 390 × 844 píxeles CSS;
-las de escritorio, a 1440 × 1000. No son imágenes de escritorio encogidas. Son
-capturas en Chromium local, sin implicar comprobación en dispositivos físicos.
+El ajuste proporcional en móvil muestra el encuadre completo de computador; la
+ampliación permite leerlo a tamaño real. La evidencia conserva los hashes del
+frontend y de los tres PNG copiados sin edición. Capturar con Chromium local no
+implica comprobar teléfonos físicos.
 
 Las herramientas pertenecen al harness existente. Playwright para Python y
 Chromium son dependencias opcionales de esta revisión local, no del sitio servido
@@ -123,9 +137,11 @@ python3 herramientas/capturar-producto-landing.py \
   --compilado apps/frontend/ondexia.web/dist/ondexia-web/browser
 ```
 
-`--compilado` es opcional y acredita hashes del build utilizado. Revisar capturas,
-procedencia, fixtures y control del recorrido antes de sustituir las imágenes de
-`public/capturas/`; la herramienta rechaza un destino dentro del repositorio.
+`--compilado` es opcional y acredita hashes del build utilizado. El comando
+entrega, entre sus salidas, `venta-1440.png`, `registro-1440.png` y
+`comprobante-logo-1440.png`: los tres PNG completos de 1440 × 1000. Revisar
+capturas, procedencia, fixtures y control del recorrido antes de sustituir las
+imágenes de `public/capturas/`; la herramienta rechaza un destino en el repositorio.
 
 Después de revisar los assets, ejecutar el build oficial de la landing y los
 controles de tono y forma con ambos frontends compilados:
@@ -150,15 +166,19 @@ política. Con el servidor activo, ejecutar en otra terminal:
 ```bash
 python3 herramientas/comprobar-interactividad-landing.py \
   --url http://127.0.0.1:4324/ \
-  --evidencia /tmp/ondexia-landing-recorrido
+  --evidencia /tmp/ondexia-landing-ventana-central
 ```
 
-El comprobador verifica artículos visibles, capítulos y avance manual coherentes,
-foco y títulos visibles, parallax dentro de ±12 píxeles y su desactivación con
-movimiento reducido, ampliación, Escape y retorno del foco, reapertura, variantes
-móviles, altura reducida, navegación sin JavaScript y rechazo de scripts inline
-y conexiones. Para reproducir el bloqueo anterior, iniciar el mismo build en
-otra terminal con la política conservada en la evidencia, sin `script-src 'self'`:
+El comprobador verifica: mismos PNG completos
+a cualquier ancho; estados 0/25/50/75/100 % y reversa; animaciones pausadas estables;
+morphing intermedio real si se conserva; representación accesible única y foco
+estable; alternativas estáticas; modal ajustado/tamaño real; CSP y ausencia de
+recursos externos. Registrar un perfil y tareas largas antes de afirmar fluidez;
+no se declara «60 fps». El informe de esta revisión distingue los resultados
+locales de CI, producción y navegadores aún no comprobados.
+
+Para reproducir el bloqueo anterior, iniciar el mismo build en otra terminal con
+la política conservada en la evidencia, sin `script-src 'self'`:
 
 ```bash
 python3 herramientas/servir-landing-local.py \
@@ -166,12 +186,14 @@ python3 herramientas/servir-landing-local.py \
   --politica-csp ondexia.docs/evidencias/2026-10-14-landing-interactiva/csp-anterior.txt
 ```
 
-Añadir `--politica-anterior http://127.0.0.1:4325/` al comprobador. Opcionalmente,
-servir el build de la candidata anterior `4350294`, conservado fuera del
-repositorio, en otro origen local con su política que permite scripts locales y
-añadir `--recorrido-anterior http://127.0.0.1:4327/` para contrastar la evolución.
-La preparación y el resultado de esa comparación se registran en la evidencia
-del recorrido; no se supone que ese build esté disponible en otra máquina.
+Añadir `--politica-anterior http://127.0.0.1:4325/` al comprobador. Para el contraste
+de evolución, conservar fuera del repositorio el build del recorrido anterior
+y servirlo en 4327 con la política que permite scripts locales. La opción
+`--recorrido-anterior http://127.0.0.1:4327/` contrasta el build anterior con los
+mismos oráculos de capturas de computador y progreso, que deben fallar allí y
+pasar en la candidata nueva. Registrar
+preparación, resultado y límites; no suponer que ese build está disponible en
+otra máquina.
 Las herramientas admiten únicamente orígenes locales. Ejecutarlas no verifica
 AWS, autenticación, backend ni SUNAT.
 

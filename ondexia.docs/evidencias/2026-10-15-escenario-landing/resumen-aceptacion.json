@@ -1,0 +1,134 @@
+{
+  "tipo": "Aceptación por contrato; no auditoría independiente",
+  "estadoFinal": "correcto",
+  "scriptsServidos": [
+    "/_astro/Explorador.astro_astro_type_script_index_0_lang.BCpmHLMN.js",
+    "/_astro/index.astro_astro_type_script_index_0_lang.674Yy2h1.js"
+  ],
+  "fallosProductoAntes": [
+    {
+      "caso": "Geometría de progreso cacheada durante entrada del ancestro",
+      "progreso": 0.25,
+      "esperado": [
+        0.5,
+        0.5,
+        0
+      ],
+      "observado": [
+        0.564342,
+        0.435658,
+        0
+      ],
+      "evidencia": "fallo-geometria-antes.json"
+    },
+    {
+      "caso": "Foco parcialmente fuera de ventana al reducir a320×250",
+      "controles": [
+        {
+          "control": "ampliar",
+          "top": 213.140625,
+          "bottom": 257.140625
+        },
+        {
+          "control": "original",
+          "top": 213.140625,
+          "bottom": 257.140625
+        }
+      ],
+      "evidencia": "fallo-resize-antes.json"
+    }
+  ],
+  "preparacionDelCheckerCorregida": [
+    "Esperas sin JavaScript mediante sondeo síncrono del driver, sin callbacks rAF de página.",
+    "Clic nativo sinJS preparado fuera de la superposición del header; no se fuerza el clic ni se relajan títulos/anclas.",
+    "Medición de tamaño real tras pintura y retorno de foco después del evento close completo.",
+    "Predicados literales compatibles con CSP; no se relaja script-src ni se habilita eval."
+  ],
+  "recuperacion": {
+    "cargasFrescasCorrectas": 3,
+    "puntosPorCarga": [
+      0,
+      0.25,
+      0.5,
+      0.75,
+      1
+    ],
+    "baselineAnterior": {
+      "desktop": "falloEsperado",
+      "progresos": "falloEsperado"
+    },
+    "politicaAnterior": {
+      "scriptsBloqueados": true,
+      "anclasYOriginalesConservados": true
+    },
+    "pantallas": 10,
+    "focoResize": {
+      "ventana": [
+        320,
+        250
+      ],
+      "controlesCompletamenteVisibles": [
+        "ampliar",
+        "original"
+      ]
+    },
+    "ampliacion": [
+      {
+        "ancho": 390,
+        "alto": 844,
+        "escenas": 3,
+        "aperturasPorEscena": 2,
+        "ajusteInicialSinOverflow": true,
+        "tamanoReal": 1440,
+        "pan": true
+      },
+      {
+        "ancho": 1440,
+        "alto": 1000,
+        "escenas": 3,
+        "aperturasPorEscena": 2,
+        "ajusteInicialSinOverflow": true,
+        "tamanoReal": 1440,
+        "pan": true
+      }
+    ],
+    "sinJavascript": {
+      "tresEscenas": true,
+      "anclasNativas": true,
+      "originalesDesktop": true,
+      "alturasBajas": true
+    },
+    "sinCapacidades": [
+      {
+        "capacidad": "sinAnimate",
+        "tresEscenas": true,
+        "navegacion": true,
+        "sinErrores": true
+      },
+      {
+        "capacidad": "sinUnidadesYProporcion",
+        "tresEscenas": true,
+        "navegacion": true,
+        "sinErrores": true
+      }
+    ],
+    "csp": {
+      "scriptLocal": true,
+      "inlineRechazado": true,
+      "evalRechazado": true,
+      "conexionesLocalYOtroOrigenRechazadas": true,
+      "scriptOtroOrigenRechazado": true,
+      "iframeRechazado": true
+    },
+    "erroresJavascript": [],
+    "peticionesExternas": []
+  },
+  "limites": [
+    "AWS",
+    "SUNAT",
+    "API real",
+    "CI/SCA",
+    "dispositivos físicos",
+    "conformidad WCAG completa"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "rama": "feature/landing-interactiva",
+  "baseTrabajoAntesDeCambios": "6ca86e8bf7e927c3f60f5dc9a60056d142e145e2",
+  "baseDevelop": "69290ea19f6a27279460c57d271c73e3c5d6a5b7",
+  "archivos": [
+    {
+      "ruta": "apps/frontend/ondexia.landing/src/components/Explorador.astro",
+      "sha256": "7105f1b580d7afe7fbb07fd2571275c9fd32706e7fd497bc9f10f8fa615e1e13",
+      "bytes": 17414
+    },
+    {
+      "ruta": "apps/frontend/ondexia.landing/src/scripts/explorador.ts",
+      "sha256": "51ac755db7035186d80f1f0410adad6480491d5e2fed4515d846a90f0d951237",
+      "bytes": 14173
+    },
+    {
+      "ruta": "apps/frontend/ondexia.landing/src/scripts/movimiento.ts",
+      "sha256": "afb572db037e6f34ff04d0fe5989e0b6032271b042fe50353d89c754b16ec72e",
+      "bytes": 1208
+    },
+    {
+      "ruta": "apps/frontend/ondexia.landing/dist/index.html",
+      "sha256": "b51e1ef5967118d047f59283b0e2d0cbe5ad9c0ea612c2965fd2a3b76d8117f9",
+      "bytes": 64209
+    },
+    {
+      "ruta": "apps/frontend/ondexia.landing/dist/_astro/index.astro_astro_type_script_index_0_lang.674Yy2h1.js",
+      "sha256": "e5b6bdbe5c05a9b4ab7749e4cc902dc18431ac6b5474c1d532eac17efc1d5c46",
+      "bytes": 723
+    },
+    {
+      "ruta": "apps/frontend/ondexia.landing/dist/_astro/Explorador.astro_astro_type_script_index_0_lang.BCpmHLMN.js",
+      "sha256": "a8ef06a26e826844660442cbf0af44336722a82ff9f0f63290e0639da3f6c1f1",
+      "bytes": 7348
+    }
+  ]
+}

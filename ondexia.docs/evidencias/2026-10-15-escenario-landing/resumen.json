@@ -1,0 +1,142 @@
+{
+  "navegador": "151.0.7922.173",
+  "ventana": {
+    "ancho": 1440,
+    "alto": 1000
+  },
+  "condiciones": "Chromium headless local sin limitar CPU. Tres pares de 240 cuadros: ida y vuelta. Sin descarga de recursos durante el tramo. Desactivar d es una mutación de medición en el DOM, restaurada; no una variante publicada. Orden con/sin repetido: no es benchmark causal ni acredita dispositivos físicos.",
+  "registros": [
+    {
+      "ronda": 1,
+      "morphing": true,
+      "intervalosCuadrosMs": {
+        "mediana": 16.699999999999818,
+        "maximo": 33.30000000000007,
+        "mayores34ms": 0
+      },
+      "metricas": {
+        "TaskDuration": 0.48326,
+        "ScriptDuration": 0.038268,
+        "LayoutDuration": 0.071953,
+        "RecalcStyleDuration": 0.061673,
+        "LayoutCount": 240,
+        "RecalcStyleCount": 291
+      },
+      "tareasLargas": [],
+      "pintura": {
+        "eventos": 761,
+        "duracionMs": 121.016
+      }
+    },
+    {
+      "ronda": 1,
+      "morphing": false,
+      "intervalosCuadrosMs": {
+        "mediana": 16.699999999999818,
+        "maximo": 16.80000000000109,
+        "mayores34ms": 0
+      },
+      "metricas": {
+        "TaskDuration": 0.49134099999999997,
+        "ScriptDuration": 0.032931,
+        "LayoutDuration": 0.071706,
+        "RecalcStyleDuration": 0.060893,
+        "LayoutCount": 239,
+        "RecalcStyleCount": 290
+      },
+      "tareasLargas": [],
+      "pintura": {
+        "eventos": 726,
+        "duracionMs": 119.734
+      }
+    },
+    {
+      "ronda": 2,
+      "morphing": true,
+      "intervalosCuadrosMs": {
+        "mediana": 16.69999999999891,
+        "maximo": 16.80000000000109,
+        "mayores34ms": 0
+      },
+      "metricas": {
+        "TaskDuration": 0.508523,
+        "ScriptDuration": 0.035801,
+        "LayoutDuration": 0.07328499999999999,
+        "RecalcStyleDuration": 0.07831800000000001,
+        "LayoutCount": 239,
+        "RecalcStyleCount": 288
+      },
+      "tareasLargas": [],
+      "pintura": {
+        "eventos": 758,
+        "duracionMs": 122.299
+      }
+    },
+    {
+      "ronda": 2,
+      "morphing": false,
+      "intervalosCuadrosMs": {
+        "mediana": 16.69999999999891,
+        "maximo": 16.80000000000291,
+        "mayores34ms": 0
+      },
+      "metricas": {
+        "TaskDuration": 0.47354300000000005,
+        "ScriptDuration": 0.029462000000000002,
+        "LayoutDuration": 0.06856100000000001,
+        "RecalcStyleDuration": 0.05665999999999999,
+        "LayoutCount": 239,
+        "RecalcStyleCount": 289
+      },
+      "tareasLargas": [],
+      "pintura": {
+        "eventos": 726,
+        "duracionMs": 121.401
+      }
+    },
+    {
+      "ronda": 3,
+      "morphing": true,
+      "intervalosCuadrosMs": {
+        "mediana": 16.700000000000728,
+        "maximo": 16.80000000000291,
+        "mayores34ms": 0
+      },
+      "metricas": {
+        "TaskDuration": 0.5149079999999999,
+        "ScriptDuration": 0.03506299999999998,
+        "LayoutDuration": 0.07384800000000002,
+        "RecalcStyleDuration": 0.074069,
+        "LayoutCount": 239,
+        "RecalcStyleCount": 288
+      },
+      "tareasLargas": [],
+      "pintura": {
+        "eventos": 758,
+        "duracionMs": 125.735
+      }
+    },
+    {
+      "ronda": 3,
+      "morphing": false,
+      "intervalosCuadrosMs": {
+        "mediana": 16.700000000000728,
+        "maximo": 16.80000000000291,
+        "mayores34ms": 0
+      },
+      "metricas": {
+        "TaskDuration": 0.448693,
+        "ScriptDuration": 0.025370000000000004,
+        "LayoutDuration": 0.06393099999999996,
+        "RecalcStyleDuration": 0.05452699999999999,
+        "LayoutCount": 239,
+        "RecalcStyleCount": 289
+      },
+      "tareasLargas": [],
+      "pintura": {
+        "eventos": 726,
+        "duracionMs": 109.756
+      }
+    }
+  ]
+}

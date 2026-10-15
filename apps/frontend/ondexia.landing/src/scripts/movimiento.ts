@@ -11,7 +11,7 @@ if (!movimientoReducido.matches && 'IntersectionObserver' in window) {
     });
   }, { threshold: 0.1 });
 
-  document.querySelectorAll('.portada-interior, .explorador, .encabezado-seccion, .presentacion-proceso, .bloque-preguntas, .contacto-interior')
+  document.querySelectorAll('.portada-interior, .encabezado-seccion, .presentacion-proceso, .bloque-preguntas, .contacto-interior')
     .forEach((elemento) => observador.observe(elemento));
   movimientoReducido.addEventListener('change', () => {
     if (movimientoReducido.matches) observador.disconnect();

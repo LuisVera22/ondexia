@@ -1,0 +1,208 @@
+{
+  "fecha": "2026-10-15T03:20:36.850188+00:00",
+  "independencia": "Contraste directo de solicitud, especificación del 15 de octubre y código/navegador. Evidencia anterior no utilizada como autoridad. Auditor no modificó código ni documentos.",
+  "alcance": "Candidata local http://127.0.0.1:4324; sin GitHub, AWS ni datos/backend reales.",
+  "navegador": "Chromium 151.0.7922.173 headless Linux",
+  "estado": "Sin hallazgos abiertos en los casos auditados. Los defectos previos se revalidaron en los builds preservados; el último guard recibió revisión y sondas focalizadas.",
+  "hallazgos": [
+    {
+      "id": "AI-01",
+      "severidad": "P2",
+      "estado": "resuelto_revalidado",
+      "titulo": "Cambiar la preferencia con foco en Ver sin animación pierde el foco",
+      "archivo": "apps/frontend/ondexia.landing/src/scripts/explorador.ts",
+      "linea": 108,
+      "reproducir": [
+        "Viewport 1440×1000, movimiento normal, presentación central.",
+        "Enfocar [data-detener].",
+        "Cambiar prefers-reduced-motion a reduce con la página abierta."
+      ],
+      "esperado": "Transferir foco a un destino visible de la escena conservando el contexto.",
+      "observado": "Se oculta el botón; document.activeElement pasa a body. mostrarAlternativa solo recupera foco si pertenecía a data-recorrido.",
+      "evidencia": "auditoria-observaciones.json.gz:observaciones.reducir_foco_detener",
+      "revalidacion": "En 4328 el foco pasa a body. En 4324 detener/título pasan al artículo, original al enlace equivalente y ampliar al botón equivalente tras reduce.",
+      "evidenciaRevalidacion": "auditoria-retest.json.gz:candidatas.4328 y candidatas.4324",
+      "buildRevalidacion": "revalidacionFocoModal"
+    },
+    {
+      "id": "AI-02",
+      "severidad": "P2",
+      "estado": "resuelto_revalidado",
+      "titulo": "La reapertura del modal conserva desplazamiento vertical previo",
+      "archivo": "apps/frontend/ondexia.landing/src/scripts/explorador.ts",
+      "linea": 195,
+      "reproducir": [
+        "Viewport 1440×1000. Ampliar, Ver tamaño real.",
+        "Desplazar el lienzo verticalmente y cerrar con Escape.",
+        "Volver a Ampliar."
+      ],
+      "esperado": "Ajustada y scrollTop=scrollLeft=0 en cada reapertura.",
+      "observado": "tamano-real=false pero scrollTop=141. El reset se ejecuta antes de showModal, mientras el diálogo carece de caja.",
+      "evidencia": "auditoria-observaciones.json.gz:observaciones.modal_reapertura",
+      "revalidacion": "En 4328 reapertura1440 deja scrollTop141. En 4324 reapertura 1440/390 queda ajustada y scrollLeft=scrollTop=0.",
+      "evidenciaRevalidacion": "auditoria-retest.json.gz:candidatas.4328 y candidatas.4324",
+      "buildRevalidacion": "revalidacionFocoModal"
+    },
+    {
+      "id": "AI-03",
+      "severidad": "P2",
+      "estado": "resuelto_revalidado",
+      "titulo": "El ajuste inicial del modal deja parte de la captura fuera del lienzo",
+      "archivo": "apps/frontend/ondexia.landing/src/components/Explorador.astro",
+      "linea": 492,
+      "reproducir": [
+        "Viewport 1440×1000.",
+        "Abrir Ampliar captura. No activar tamaño real."
+      ],
+      "esperado": "Captura completa proporcional dentro del diálogo en modo ajuste; paneo reservado al tamaño real.",
+      "observado": "Imagen1390×965.27 en lienzo de 1390×824; falta la parte inferior hasta desplazar. El CSS ajusta solo al ancho.",
+      "evidencia": "auditoria-observaciones.json.gz:observaciones.modal_inicial",
+      "revalidacion": "En 4328 imagen de 1390×965.27 supera lienzo de 1390×824. En 4324 captura completa cabe en el lienzo inicial a 1440/390; tamaño real sigue midiendo1440.",
+      "evidenciaRevalidacion": "auditoria-retest.json.gz:candidatas.4328 y candidatas.4324",
+      "buildRevalidacion": "revalidacionFocoModal"
+    },
+    {
+      "id": "AI-04",
+      "severidad": "P3",
+      "estado": "resuelto_revalidado",
+      "titulo": "La transferencia de foco al redimensionar deja recortado el control equivalente",
+      "archivo": "apps/frontend/ondexia.landing/src/scripts/explorador.ts",
+      "linea": 108,
+      "reproducir": [
+        "Viewport 1440×1000, central en escena2.",
+        "Enfocar Ver captura original o Ampliar captura.",
+        "Redimensionar con página abierta a320×250."
+      ],
+      "esperado": "Foco y control equivalente completamente visibles tras pasar al flujo estático.",
+      "observado": "Ambos controles del fallback quedan y213.1→257.1, con7.1px inferiores fuera de la ventana.",
+      "impacto": "Desviación del objetivo de foco completamente visible; no se afirma infracción de WCAG2.4.11, que admite visibilidad parcial.",
+      "evidencia": "auditoria-retest.json.gz:candidatas.4324.resize.original y ampliar",
+      "revalidacion": "Tras resize 320×250, original y ampliar conservan su control equivalente y ambos rectángulos quedan enteramente dentro del viewport.",
+      "evidenciaRevalidacion": "auditoria-ai04-final.json.gz",
+      "buildRevalidacion": "revalidacionFocoVentanaBaja"
+    }
+  ],
+  "comprobado": [
+    "PNG 1440×1000 y SHA256 coincidente con fuentes desktop fuera del repo; frontend Angular completo visible.",
+    "Todos los currentSrc de capturas permanecen completos desktop en320/390/768/1024/1440; sin overflow horizontal de página.",
+    "Fundidos y SVG continuos reversibles; WAAPI pausada estable con scroll inmóvil; una representación accesible de imagen central.",
+    "Foco estable al scroll; salto manual por Enter deja título y foco visibles; modal Escape devuelve foco; tamaño real de 1440 con pan interior.",
+    "Alternativas por reduce, Ver sin animación, ventana699px y sinJS; ancla sinJS con título visible.",
+    "CSP real: local funciona; inline/eval/connect bloqueados; cero terceros y cero erroresJS.",
+    "Revalidación independiente con la misma secuencia en build anterior4328 y corregido4324: preferencias/resize foco en detener, original, ampliar, título; modal ajuste completo/tamaño real/reset/escape en 1440 y390; descripción accesible computada por Chromium AX."
+  ],
+  "perfil": {
+    "navegador": "151.0.7922.173",
+    "viewport": [
+      1440,
+      1000
+    ],
+    "condiciones": "Chromium headless local; sin throttling; 120 saltos scroll/rAF en bajada y subida; medición descriptiva sin comparación de morphing desactivado.",
+    "eventos": {
+      "Layout": {
+        "count": 121,
+        "total_ms": 33.34,
+        "max_ms": 1.158
+      },
+      "UpdateLayoutTree": {
+        "count": 171,
+        "total_ms": 35.596,
+        "max_ms": 0.669
+      },
+      "Paint": {
+        "count": 384,
+        "total_ms": 69.779,
+        "max_ms": 11.498
+      },
+      "CompositeLayers": {
+        "count": 0,
+        "total_ms": 0.0,
+        "max_ms": 0.0
+      },
+      "RasterTask": {
+        "count": 0,
+        "total_ms": 0.0,
+        "max_ms": 0.0
+      },
+      "FunctionCall": {
+        "count": 363,
+        "total_ms": 22.915,
+        "max_ms": 1.677
+      },
+      "AnimationFrame::Render": {
+        "count": 0,
+        "total_ms": 0.0,
+        "max_ms": 0.0
+      }
+    },
+    "longtasks": [],
+    "limite": "No prueba 60fps, dispositivos físicos ni coste incremental del SVG.",
+    "buildMedido": "0197bbe0d487edcfe8f442bbafe0f1c573381e56dd50806700110e72814698f3",
+    "estado": "Perfil descriptivo de la candidata inicial, anterior a las correcciones de foco/modal. El perfil final incremental queda fuera de este informe."
+  },
+  "limites": [
+    "Coste incremental SVG aún no comparado; no equivale a prueba60fps.",
+    "Sin Firefox/WebKit, teléfonos físicos, lector de pantalla real ni auditoríaWCAG completa.",
+    "No se verifican publicación, producción, contacto, condiciones comerciales, backend o SUNAT."
+  ],
+  "evidencia": [
+    "auditoria-observaciones.json.gz",
+    "auditoria-extra.json",
+    "auditoria-retest.json.gz",
+    "auditoria-retest-resumen.json",
+    "auditoria-ai04-final.json.gz",
+    "auditoria-guard-final.json.gz"
+  ],
+  "fechaRevalidacion": "2026-10-15T03:29:50.290358+00:00",
+  "buildInicial": {
+    "indexSha256": "0197bbe0d487edcfe8f442bbafe0f1c573381e56dd50806700110e72814698f3",
+    "scriptExplorador": "Explorador.astro_astro_type_script_index_0_lang.CwsThIgj.js"
+  },
+  "observacionesAdicionales": [
+    {
+      "estado": "corregido_revalidado",
+      "descripcion": "En baseline, cambiar reduce con original/título enfocados llevaba siempre a Ampliar. Candidata final conserva la acción de original y contexto del título."
+    },
+    {
+      "estado": "corregido_revalidado",
+      "descripcion": "Baseline carece de descripción AX para la imagen central. Candidata final expone la descripción de la escena actual mediante relación programática."
+    }
+  ],
+  "ultimoGuard": {
+    "fecha": "2026-10-15T03:35:25.218520+00:00",
+    "build": {
+      "indexSha256": "b51e1ef5967118d047f59283b0e2d0cbe5ad9c0ea612c2965fd2a3b76d8117f9",
+      "scripts": [
+        "/_astro/Explorador.astro_astro_type_script_index_0_lang.BCpmHLMN.js",
+        "/_astro/index.astro_astro_type_script_index_0_lang.674Yy2h1.js"
+      ]
+    },
+    "cambioRevisado": "La habilitación exige Element.prototype.animate y soporte CSS de height100svh y aspect-ratio1440/1000. Lectura directa de explorador.ts:140-142.",
+    "comprobaciones": [
+      "Con capacidades disponibles, p≈0.5 mantiene modo central y opacidades0/1/0, capítulo2, WAAPI pausada.",
+      "Con height100svh no soportado, aspect-ratio no soportado o WAAPI ausente, los tres artículos permanecen visibles, progreso3 escenas y recorrido central oculto; sin erroresJS."
+    ],
+    "limite": "Este último build recibió revisión del guard y sondas focalizadas; no se volvió a ejecutar toda la matriz ni los defectos de foco/modal. Los metadatos reales de cada comprobación se conservan separados en revalidacionFocoModal, revalidacionFocoVentanaBaja y rawgzip.",
+    "evidencia": "auditoria-guard-final.json.gz"
+  },
+  "revalidacionFocoModal": {
+    "scriptsObservados": [
+      "http://127.0.0.1:4324/_astro/Explorador.astro_astro_type_script_index_0_lang.yShr2rCU.js",
+      "http://127.0.0.1:4324/_astro/index.astro_astro_type_script_index_0_lang.674Yy2h1.js"
+    ],
+    "sha256DomSerializadoObservado": "713f236fd92757b99c6d00ac7e3f5c82a7ac28fbc22b7d2093f539a494830b34",
+    "alcanceHash": "SHA256 de page.content() tras las pruebas; no representa el index.html estático. No se conservó el hash estático de esa build intermedia en el raw.",
+    "evidencia": "auditoria-retest.json.gz",
+    "alcancePruebas": "Preferencias y resize de foco, modal1440/390 y descripción AX; contraste con baseline4328."
+  },
+  "revalidacionFocoVentanaBaja": {
+    "indexSha256": "5b0a482948548ac1c8883f5f98644eece395a9d213e46e0f0510d260f8452389",
+    "scripts": [
+      "/_astro/Explorador.astro_astro_type_script_index_0_lang.BcxP5FCc.js",
+      "/_astro/index.astro_astro_type_script_index_0_lang.674Yy2h1.js"
+    ],
+    "origen": "http://127.0.0.1:4324/",
+    "contrasteSinArreglo": "http://127.0.0.1:4328/",
+    "alcancePruebas": "Solo AI-04: original/ampliar tras resize320×250, con control completamente visible."
+  }
+}

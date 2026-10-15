@@ -1,0 +1,158 @@
+[
+  {
+    "carga": 1,
+    "estado": "correcto",
+    "scripts": [
+      "/_astro/Explorador.astro_astro_type_script_index_0_lang.BCpmHLMN.js",
+      "/_astro/index.astro_astro_type_script_index_0_lang.674Yy2h1.js"
+    ],
+    "progresos": [
+      {
+        "progreso": 0,
+        "opacidades": [
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "progreso": 0.25,
+        "opacidades": [
+          0.500657,
+          0.499343,
+          0
+        ]
+      },
+      {
+        "progreso": 0.5,
+        "opacidades": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "progreso": 0.75,
+        "opacidades": [
+          0,
+          0.501404,
+          0.498596
+        ]
+      },
+      {
+        "progreso": 1,
+        "opacidades": [
+          0,
+          0,
+          1
+        ]
+      }
+    ],
+    "reversa": true,
+    "pausa": true
+  },
+  {
+    "carga": 2,
+    "estado": "correcto",
+    "scripts": [
+      "/_astro/Explorador.astro_astro_type_script_index_0_lang.BCpmHLMN.js",
+      "/_astro/index.astro_astro_type_script_index_0_lang.674Yy2h1.js"
+    ],
+    "progresos": [
+      {
+        "progreso": 0,
+        "opacidades": [
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "progreso": 0.25,
+        "opacidades": [
+          0.500657,
+          0.499343,
+          0
+        ]
+      },
+      {
+        "progreso": 0.5,
+        "opacidades": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "progreso": 0.75,
+        "opacidades": [
+          0,
+          0.501404,
+          0.498596
+        ]
+      },
+      {
+        "progreso": 1,
+        "opacidades": [
+          0,
+          0,
+          1
+        ]
+      }
+    ],
+    "reversa": true,
+    "pausa": true
+  },
+  {
+    "carga": 3,
+    "estado": "correcto",
+    "scripts": [
+      "/_astro/Explorador.astro_astro_type_script_index_0_lang.BCpmHLMN.js",
+      "/_astro/index.astro_astro_type_script_index_0_lang.674Yy2h1.js"
+    ],
+    "progresos": [
+      {
+        "progreso": 0,
+        "opacidades": [
+          1,
+          0,
+          0
+        ]
+      },
+      {
+        "progreso": 0.25,
+        "opacidades": [
+          0.500657,
+          0.499343,
+          0
+        ]
+      },
+      {
+        "progreso": 0.5,
+        "opacidades": [
+          0,
+          1,
+          0
+        ]
+      },
+      {
+        "progreso": 0.75,
+        "opacidades": [
+          0,
+          0.501404,
+          0.498596
+        ]
+      },
+      {
+        "progreso": 1,
+        "opacidades": [
+          0,
+          0,
+          1
+        ]
+      }
+    ],
+    "reversa": true,
+    "pausa": true
+  }
+]
