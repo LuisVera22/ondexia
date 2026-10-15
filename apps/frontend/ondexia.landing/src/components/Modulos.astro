@@ -1,18 +1,18 @@
 ---
 const funciones = [
   {
-    numero: '01', titulo: 'Ventas y comprobantes',
-    descripcion: 'Preparar la venta, identificar al cliente y registrar el cobro desde el mismo punto de venta.',
+    numero: '01', titulo: 'Atender una venta',
+    descripcion: 'Encontrar bienes o servicios, seleccionar al cliente y completar la operación desde el punto de venta.',
     detalles: ['Notas de venta, boletas y facturas', 'Bienes y servicios en el mismo mostrador', 'Consulta del registro y vista de impresión'],
   },
   {
-    numero: '02', titulo: 'Caja y cobros',
-    descripcion: 'Acompañar la jornada desde la apertura de caja hasta el cierre y el arqueo.',
+    numero: '02', titulo: 'Seguir los cobros',
+    descripcion: 'Revisar los pagos registrados en la sesión de caja y cerrar la jornada con el arqueo.',
     detalles: ['Sesiones de caja por establecimiento', 'Registro de las formas de pago', 'Cierre con importes declarados'],
   },
   {
-    numero: '03', titulo: 'Catálogo y existencias',
-    descripcion: 'Distinguir lo que se vende y consultar las existencias de los bienes por establecimiento.',
+    numero: '03', titulo: 'Consultar las existencias',
+    descripcion: 'Ver qué bienes hay en cada establecimiento y distinguirlos de los servicios que no manejan stock.',
     detalles: ['Catálogos separados de bienes y servicios', 'Clientes vinculados a la venta', 'Consulta de movimientos de almacén'],
   },
 ];
@@ -23,9 +23,9 @@ const funciones = [
     <div class="encabezado-seccion">
       <div>
         <p class="rotulo text-brand-600">El sistema</p>
-        <h2 class="titulo-seccion">Cada parte del negocio,<br />en el mismo lugar.</h2>
+        <h2 class="titulo-seccion">Para el trabajo<br />de todos los días.</h2>
       </div>
-      <p class="introduccion-seccion">Ventas, caja y almacén comparten el registro de la operación. Menos cambios de pantalla para entender lo que ocurrió.</p>
+      <p class="introduccion-seccion">Desde atender en el mostrador hasta revisar el cierre de caja: cada tarea tiene un lugar en Ondexia.</p>
     </div>
     <div class="funciones">
       {funciones.map((funcion) => (

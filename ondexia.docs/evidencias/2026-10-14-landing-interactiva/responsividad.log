@@ -1,0 +1,4 @@
+CON ARREGLO: PASA — contraste 6.43:1
+MUTACIÓN AISLADA: DETECTADA — Contraste 2.25:1 menor que 4.5:1
+RESTAURADO: PASA
+[{"ancho": 320, "desbordamiento": false, "menu_teclado": true, "preguntas_teclado": true}, {"ancho": 390, "desbordamiento": false, "menu_teclado": true, "preguntas_teclado": true}, {"ancho": 768, "desbordamiento": false, "menu_teclado": true, "preguntas_teclado": true}, {"ancho": 1024, "desbordamiento": false, "menu_teclado": false, "preguntas_teclado": true}, {"ancho": 1440, "desbordamiento": false, "menu_teclado": false, "preguntas_teclado": true}]

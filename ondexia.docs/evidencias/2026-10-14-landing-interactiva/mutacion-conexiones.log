@@ -1,0 +1,15 @@
+test_conserva_la_denegacion_de_conexiones_y_marcos (test_landing_interactiva.PoliticaDeLandingTest.test_conserva_la_denegacion_de_conexiones_y_marcos) ... FAIL
+test_permite_solo_scripts_del_mismo_sitio (test_landing_interactiva.PoliticaDeLandingTest.test_permite_solo_scripts_del_mismo_sitio) ... ok
+
+======================================================================
+FAIL: test_conserva_la_denegacion_de_conexiones_y_marcos (test_landing_interactiva.PoliticaDeLandingTest.test_conserva_la_denegacion_de_conexiones_y_marcos)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/workspace/ondexia/herramientas/pruebas/test_landing_interactiva.py", line 24, in test_conserva_la_denegacion_de_conexiones_y_marcos
+    self.assertFalse(any(regla.startswith('connect-src ') and regla != "connect-src 'none'" for regla in reglas))
+AssertionError: True is not false
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.001s
+
+FAILED (failures=1)

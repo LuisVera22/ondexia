@@ -1,0 +1,36 @@
+[
+  {
+    "focus": "<button class=\"boton-recorrido\" type=\"button\" data-ampliar=\"\" data-astro-cid-zaifm5te=\"\">Ampliar captura</button>",
+    "rect": {
+      "x": 21.34375,
+      "y": 213.140625,
+      "width": 136.28125,
+      "height": 44,
+      "top": 213.140625,
+      "right": 157.625,
+      "bottom": 257.140625,
+      "left": 21.34375
+    },
+    "width": 320,
+    "height": 250,
+    "control": "ampliar",
+    "enteroVisible": false
+  },
+  {
+    "focus": "<a class=\"enlace-original\" href=\"/capturas/registro-completo.png\" data-original=\"\" data-astro-cid-zaifm5te=\"\">Ver captura original</a>",
+    "rect": {
+      "x": 175.625,
+      "y": 213.140625,
+      "width": 123.015625,
+      "height": 44,
+      "top": 213.140625,
+      "right": 298.640625,
+      "bottom": 257.140625,
+      "left": 175.625
+    },
+    "width": 320,
+    "height": 250,
+    "control": "original",
+    "enteroVisible": false
+  }
+]

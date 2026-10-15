@@ -1,0 +1,333 @@
+{
+  "estado": "correcto",
+  "url": "http://127.0.0.1:4324/",
+  "etapa": "completado",
+  "noVerificado": [
+    "AWS",
+    "SUNAT",
+    "API real",
+    "CI/SCA",
+    "dispositivos físicos",
+    "conformidad WCAG completa"
+  ],
+  "recorridoAnterior": {
+    "desktop": {
+      "estado": "falloEsperado",
+      "motivo": "Locator expected to have count '0'\nActual value: 4 \nCall log:\n  - Expect \"to_have_count\" with timeout 5000ms\n  - waiting for locator(\"[data-explorador] source\")\n    14 × locator resolved to 4 elements\n       - unexpected value \"4\"\n"
+    },
+    "progresos": {
+      "estado": "falloEsperado",
+      "motivo": "Locator expected to be visible\nActual value: None\nError: element(s) not found \nCall log:\n  - Expect \"to_be_visible\" with timeout 5000ms\n  - waiting for locator(\"[data-escenario]\")\n\nAria snapshot:\n- link \"Saltar al contenido\":\n  - /url: \"#contenido\"\n- banner:\n  - navigation \"Principal\":\n    - link \"Ondexia — inicio\":\n      - /url: /\n      - img \"Ondexia\"\n    - link \"Explorar\":\n      - /url: \"#explorar\"\n    - link \"Planes\":\n      - /url: \"#precios\""
+    }
+  },
+  "politicaAnterior": {
+    "scriptsBloqueados": true,
+    "anclasYOriginalesConservados": true
+  },
+  "scriptsServidos": [
+    "/_astro/Explorador.astro_astro_type_script_index_0_lang.BCpmHLMN.js",
+    "/_astro/index.astro_astro_type_script_index_0_lang.674Yy2h1.js"
+  ],
+  "imagenes": {
+    "archivos": [
+      "venta-completa.png",
+      "registro-completo.png",
+      "documento-completo.png"
+    ],
+    "pixeles": [
+      1440,
+      1000
+    ]
+  },
+  "progresos": [
+    {
+      "progreso": 0,
+      "opacidades": [
+        1,
+        0,
+        0
+      ],
+      "contorno": [
+        79.98,
+        40.02,
+        720.0,
+        0.01,
+        1360.02,
+        40.02,
+        1439.98,
+        500.0,
+        1360.02,
+        959.98,
+        720.0,
+        999.99,
+        79.98,
+        959.98,
+        0.02,
+        500.0,
+        79.98,
+        40.02
+      ]
+    },
+    {
+      "progreso": 0.25,
+      "opacidades": [
+        0.500657,
+        0.499343,
+        0
+      ],
+      "contorno": [
+        54.01,
+        63.99,
+        720.0,
+        14.0,
+        1385.99,
+        63.99,
+        1410.01,
+        500.0,
+        1385.99,
+        936.01,
+        720.0,
+        986.0,
+        54.01,
+        936.01,
+        29.99,
+        500.0,
+        54.01,
+        63.99
+      ]
+    },
+    {
+      "progreso": 0.5,
+      "opacidades": [
+        0,
+        1,
+        0
+      ],
+      "contorno": [
+        28.01,
+        87.98,
+        720.0,
+        28.0,
+        1411.99,
+        87.98,
+        1380.0,
+        500.0,
+        1411.99,
+        912.02,
+        720.0,
+        972.0,
+        28.01,
+        912.02,
+        60.0,
+        500.0,
+        28.01,
+        87.98
+      ]
+    },
+    {
+      "progreso": 0.75,
+      "opacidades": [
+        0,
+        0.501404,
+        0.498596
+      ],
+      "contorno": [
+        41.99,
+        56.02,
+        720.0,
+        26.0,
+        1398.01,
+        56.02,
+        1382.0,
+        500.0,
+        1398.01,
+        943.98,
+        720.0,
+        974.0,
+        41.99,
+        943.98,
+        58.0,
+        500.0,
+        41.99,
+        56.02
+      ]
+    },
+    {
+      "progreso": 1,
+      "opacidades": [
+        0,
+        0,
+        1
+      ],
+      "contorno": [
+        56.0,
+        24.0,
+        720.0,
+        24.0,
+        1384.0,
+        24.0,
+        1384.0,
+        500.0,
+        1384.0,
+        976.0,
+        720.0,
+        976.0,
+        56.0,
+        976.0,
+        56.0,
+        500.0,
+        56.0,
+        24.0
+      ]
+    }
+  ],
+  "mutaciones": {
+    "opacidadDetectadaYRestaurada": true,
+    "morphForzadoDetectadoYRestaurado": true
+  },
+  "entradaNativa": {
+    "wheelNativo": true,
+    "tecladoNativo": true
+  },
+  "ampliacion": [
+    {
+      "ancho": 390,
+      "alto": 844,
+      "escenas": 3,
+      "aperturasPorEscena": 2,
+      "ajusteInicialSinOverflow": true,
+      "tamanoReal": 1440,
+      "pan": true
+    },
+    {
+      "ancho": 1440,
+      "alto": 1000,
+      "escenas": 3,
+      "aperturasPorEscena": 2,
+      "ajusteInicialSinOverflow": true,
+      "tamanoReal": 1440,
+      "pan": true
+    }
+  ],
+  "pantallas": [
+    {
+      "ancho": 320,
+      "alto": 900,
+      "cinematica": true,
+      "sinDesborde": true,
+      "titulosVisibles": true
+    },
+    {
+      "ancho": 390,
+      "alto": 844,
+      "cinematica": true,
+      "sinDesborde": true,
+      "titulosVisibles": true
+    },
+    {
+      "ancho": 768,
+      "alto": 900,
+      "cinematica": true,
+      "sinDesborde": true,
+      "titulosVisibles": true
+    },
+    {
+      "ancho": 1024,
+      "alto": 900,
+      "cinematica": true,
+      "sinDesborde": true,
+      "titulosVisibles": true
+    },
+    {
+      "ancho": 1440,
+      "alto": 1000,
+      "cinematica": true,
+      "sinDesborde": true,
+      "titulosVisibles": true
+    },
+    {
+      "ancho": 1440,
+      "alto": 400,
+      "cinematica": false,
+      "sinDesborde": true,
+      "titulosVisibles": true
+    },
+    {
+      "ancho": 320,
+      "alto": 320,
+      "cinematica": false,
+      "sinDesborde": true,
+      "titulosVisibles": true
+    },
+    {
+      "ancho": 360,
+      "alto": 250,
+      "cinematica": false,
+      "sinDesborde": true,
+      "titulosVisibles": true
+    },
+    {
+      "ancho": 390,
+      "alto": 240,
+      "cinematica": false,
+      "sinDesborde": true,
+      "titulosVisibles": true
+    },
+    {
+      "ancho": 320,
+      "alto": 225,
+      "cinematica": false,
+      "sinDesborde": true,
+      "titulosVisibles": true
+    }
+  ],
+  "focoResize": {
+    "ventana": [
+      320,
+      250
+    ],
+    "controlesCompletamenteVisibles": [
+      "ampliar",
+      "original"
+    ]
+  },
+  "reduccionDinamica": {
+    "focoEquivalente": [
+      "ampliar",
+      "original",
+      "titulo"
+    ],
+    "retornoCinematica": true,
+    "detencionPersiste": true
+  },
+  "csp": {
+    "scriptLocal": true,
+    "inlineRechazado": true,
+    "evalRechazado": true,
+    "conexionesLocalYOtroOrigenRechazadas": true,
+    "scriptOtroOrigenRechazado": true,
+    "iframeRechazado": true
+  },
+  "externas": [],
+  "erroresJavascript": [],
+  "sinJavascript": {
+    "tresEscenas": true,
+    "anclasNativas": true,
+    "originalesDesktop": true,
+    "alturasBajas": true
+  },
+  "sinCapacidades": [
+    {
+      "capacidad": "sinAnimate",
+      "tresEscenas": true,
+      "navegacion": true,
+      "sinErrores": true
+    },
+    {
+      "capacidad": "sinUnidadesYProporcion",
+      "tresEscenas": true,
+      "navegacion": true,
+      "sinErrores": true
+    }
+  ]
+}

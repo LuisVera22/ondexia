@@ -1,19 +1,24 @@
-"""Revisa la landing compilada y compara la legibilidad con una versión anterior.
+"""Revisa legibilidad y responsividad de la landing compilada.
 
-Requiere Playwright para Python, Chromium y dos builds servidos localmente.
+Requiere Playwright para Python, Chromium y un build servido localmente.
+URL_LANDING_ANTERIOR permite contrastar opcionalmente el defecto histórico.
 No verifica AWS, SUNAT, recepción de correos ni una conformidad WCAG completa.
 """
 import json
 import re
 from pathlib import Path
+from urllib.parse import urlparse
 from playwright.sync_api import sync_playwright
 
 import os
 
 DIRECTORIO = Path(os.environ.get('EVIDENCIA_LANDING', '/tmp/ondexia-landing'))
 DIRECTORIO.mkdir(parents=True, exist_ok=True)
-URL_ACTUAL = os.environ.get('URL_LANDING', 'http://127.0.0.1:4321/')
-URL_ANTERIOR = os.environ.get('URL_LANDING_ANTERIOR', 'http://127.0.0.1:4322/')
+URL_ACTUAL = os.environ.get('URL_LANDING', 'http://127.0.0.1:4324/')
+URL_ANTERIOR = os.environ.get('URL_LANDING_ANTERIOR')
+for direccion in [URL_ACTUAL, URL_ANTERIOR]:
+    if direccion and urlparse(direccion).hostname not in {'127.0.0.1', 'localhost', '::1'}:
+        raise ValueError('La comprobación solo admite servidores locales')
 
 def luminancia(color):
     componentes = [float(c) / 255 for c in re.findall(r'[\d.]+', color)[:3]]
@@ -35,18 +40,20 @@ def contraste(pagina):
 with sync_playwright() as p:
     navegador = p.chromium.launch(executable_path='/usr/bin/chromium', args=['--no-sandbox'])
     pagina = navegador.new_page(viewport={'width': 1440, 'height': 1000}, reduced_motion='reduce')
-    pagina.goto(URL_ANTERIOR, wait_until='networkidle')
-    try:
-        contraste(pagina)
-        raise RuntimeError('La versión anterior no reproduce el fallo esperado')
-    except AssertionError as fallo:
-        print('SIN ARREGLO: FALLA —', str(fallo))
+    if URL_ANTERIOR:
+        pagina.goto(URL_ANTERIOR, wait_until='networkidle')
+        try:
+            contraste(pagina)
+            raise RuntimeError('La versión anterior no reproduce el fallo esperado')
+        except AssertionError as fallo:
+            print('SIN ARREGLO: FALLA —', str(fallo))
     pagina.goto(URL_ACTUAL, wait_until='networkidle')
     print(f'CON ARREGLO: PASA — contraste {contraste(pagina):.2f}:1')
     assert pagina.locator('h1').count() == 1
-    assert pagina.locator('script:not([type="application/ld+json"])').count() == 0
+    scripts = pagina.locator('script:not([type="application/ld+json"])').all()
+    assert all(script.get_attribute('src') and script.get_attribute('src').startswith('/_astro/') for script in scripts), 'La mejora progresiva solo admite archivos de script locales'
     assert pagina.locator('a[href="https://app.ondexia.com"]').count() >= 1
-    assert pagina.get_by_text('Vista ilustrativa · datos de ejemplo', exact=True).count() == 1
+    assert pagina.locator('figcaption').filter(has_text='Capturas del sistema · datos de demostración').count() == 3
     for enlace in pagina.locator('a[href^="#"]').all():
         destino = enlace.get_attribute('href')
         assert pagina.locator(destino).count() == 1, destino

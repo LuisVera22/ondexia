@@ -1,0 +1,26 @@
+{
+  "generadoEn": "2026-10-14T02:51:14.646261+00:00",
+  "controles": [
+    {
+      "ancho": 1440,
+      "esperado": "NV01-00000042",
+      "ventaSiguiente": "NV01-00000042",
+      "registroNumero": "NV01-00000042",
+      "documentoNumero": "NV01-00000042",
+      "correcto": true,
+      "regla": "Las tres capturas representan el mismo recorrido de la nota de demostración 42.",
+      "fuenteObservada": "Texto visible del DOM Angular real: Siguiente, título de registro y cabecera documental."
+    },
+    {
+      "ancho": 390,
+      "esperado": "NV01-00000042",
+      "ventaSiguiente": "NV01-00000042",
+      "registroNumero": "NV01-00000042",
+      "documentoNumero": "NV01-00000042",
+      "correcto": true,
+      "regla": "Las tres capturas representan el mismo recorrido de la nota de demostración 42.",
+      "fuenteObservada": "Texto visible del DOM Angular real: Siguiente, título de registro y cabecera documental."
+    }
+  ],
+  "correcto": true
+}

@@ -1,0 +1,102 @@
+{
+  "csp": {
+    "inline": false,
+    "local": true,
+    "eval": false,
+    "fetch": false,
+    "evalError": "EvalError",
+    "fetchError": "TypeError",
+    "events": [
+      {
+        "d": "script-src-elem",
+        "u": "inline"
+      },
+      {
+        "d": "script-src",
+        "u": "eval"
+      },
+      {
+        "d": "connect-src",
+        "u": "http://127.0.0.1:4324/__conexion-no-permitida__"
+      }
+    ]
+  },
+  "requests": [
+    "http://127.0.0.1:4324/",
+    "http://127.0.0.1:4324/fonts/outfit-latin.woff2",
+    "http://127.0.0.1:4324/capturas/venta-completa.png",
+    "http://127.0.0.1:4324/_astro/Explorador.astro_astro_type_script_index_0_lang.CwsThIgj.js",
+    "http://127.0.0.1:4324/_astro/index.astro_astro_type_script_index_0_lang.BuaN1GMA.js",
+    "http://127.0.0.1:4324/capturas/registro-completo.png",
+    "http://127.0.0.1:4324/capturas/documento-completo.png",
+    "http://127.0.0.1:4324/favicon.svg",
+    "http://127.0.0.1:4324/__auditoria-csp__.js"
+  ],
+  "perfil": {
+    "navegador": "151.0.7922.173",
+    "viewport": [
+      1440,
+      1000
+    ],
+    "condiciones": "Chromium headless local; sin throttling; 120 saltos scroll/rAF en bajada y subida; medición descriptiva sin comparación de morphing desactivado.",
+    "eventos": {
+      "Layout": {
+        "count": 121,
+        "total_ms": 33.34,
+        "max_ms": 1.158
+      },
+      "UpdateLayoutTree": {
+        "count": 171,
+        "total_ms": 35.596,
+        "max_ms": 0.669
+      },
+      "Paint": {
+        "count": 384,
+        "total_ms": 69.779,
+        "max_ms": 11.498
+      },
+      "CompositeLayers": {
+        "count": 0,
+        "total_ms": 0.0,
+        "max_ms": 0.0
+      },
+      "RasterTask": {
+        "count": 0,
+        "total_ms": 0.0,
+        "max_ms": 0.0
+      },
+      "FunctionCall": {
+        "count": 363,
+        "total_ms": 22.915,
+        "max_ms": 1.677
+      },
+      "AnimationFrame::Render": {
+        "count": 0,
+        "total_ms": 0.0,
+        "max_ms": 0.0
+      }
+    },
+    "longtasks": [],
+    "limite": "No prueba 60fps, dispositivos físicos ni coste incremental del SVG."
+  },
+  "sin_js_salto": {
+    "article": {
+      "x": 20,
+      "y": 196.015625,
+      "width": 350,
+      "height": 509.453125
+    },
+    "header": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 77
+    },
+    "nav": {
+      "x": 20,
+      "y": 76,
+      "width": 350,
+      "height": 97
+    }
+  }
+}

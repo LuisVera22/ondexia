@@ -226,12 +226,11 @@ locals {
   # codigos de barras seria el primer candidato—, y solo en esa superficie.
   permissions_policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), accelerometer=(), gyroscope=(), magnetometer=()"
 
-  # La landing no tiene JavaScript ni habla con nadie (doc 03 §3). Su CSP puede
-  # ser la mas estricta de las cuatro, y que lo sea es ademas una prueba de que
-  # sigue siendo estatica: el dia que alguien le meta un script de analitica,
-  # deja de cargar.
+  # Interacción local sin API ni terceros: test_landing_interactiva.py y
+  # comprobar-interactividad-landing.py ejercitan la política y su rechazo.
   csp_landing = join("; ", [
     "default-src 'none'",
+    "script-src 'self'",
     "img-src 'self' data:",
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",

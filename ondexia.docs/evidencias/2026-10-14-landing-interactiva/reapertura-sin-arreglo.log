@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/workspace/ondexia/herramientas/comprobar-interactividad-landing.py", line 155, in <module>
+    comprobar(parametros.url, parametros.politica_anterior, parametros.evidencia)
+  File "/workspace/ondexia/herramientas/comprobar-interactividad-landing.py", line 80, in comprobar
+    comprobar_reapertura(pagina)
+  File "/workspace/ondexia/herramientas/comprobar-interactividad-landing.py", line 22, in comprobar_reapertura
+    assert dialogo.evaluate('e => e.scrollTop') == 0, 'Cada ampliación debe abrir desde el principio, sin heredar el desplazamiento'
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Cada ampliación debe abrir desde el principio, sin heredar el desplazamiento

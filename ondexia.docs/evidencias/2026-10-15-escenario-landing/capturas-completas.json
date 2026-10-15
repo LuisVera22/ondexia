@@ -1,0 +1,113 @@
+{
+  "generadoEn": "2026-10-15T03:06:49.869831+00:00",
+  "commitTrabajo": "6ca86e8bf7e927c3f60f5dc9a60056d142e145e2",
+  "capturas": [
+    {
+      "original": "/workspace/ondexia-vistas/escenario-landing/capturas-producto/venta-1440.png",
+      "publicado": "/workspace/ondexia/apps/frontend/ondexia.landing/public/capturas/venta-completa.png",
+      "dimensiones": [
+        1440,
+        1000
+      ],
+      "sha256": "0489d9c20b7ba8f5f873da72a69749ec6034cd3c7d9454ae62afba46aed6075f",
+      "copiaExacta": true,
+      "encuadre": "Viewport completo de escritorio, sin recorte de componente ni edición del PNG.",
+      "verificacionVisual": {
+        "logoOndexia": true,
+        "cabecera": true,
+        "menuLateral": true,
+        "correlativo42": true,
+        "total535": true
+      }
+    },
+    {
+      "original": "/workspace/ondexia-vistas/escenario-landing/capturas-producto/registro-1440.png",
+      "publicado": "/workspace/ondexia/apps/frontend/ondexia.landing/public/capturas/registro-completo.png",
+      "dimensiones": [
+        1440,
+        1000
+      ],
+      "sha256": "dfb543e9028251571f13507a199fe3616df3c083b0dfb0f4f008c1f13e2ab7c5",
+      "copiaExacta": true,
+      "encuadre": "Viewport completo de escritorio, sin recorte de componente ni edición del PNG.",
+      "verificacionVisual": {
+        "logoOndexia": true,
+        "cabecera": true,
+        "menuLateral": true,
+        "correlativo42": true,
+        "total535": true
+      }
+    },
+    {
+      "original": "/workspace/ondexia-vistas/escenario-landing/capturas-producto/comprobante-logo-1440.png",
+      "publicado": "/workspace/ondexia/apps/frontend/ondexia.landing/public/capturas/documento-completo.png",
+      "dimensiones": [
+        1440,
+        1000
+      ],
+      "sha256": "5f269bcdc7306214f9d6b9c8223fe4368f3c76c2e66b1e9cd27cb84b4465ed54",
+      "copiaExacta": true,
+      "encuadre": "Viewport completo de escritorio, sin recorte de componente ni edición del PNG.",
+      "verificacionVisual": {
+        "logoOndexia": true,
+        "cabecera": true,
+        "menuLateral": true,
+        "correlativo42": true,
+        "total535": true
+      }
+    }
+  ],
+  "helper": "/workspace/ondexia/herramientas/capturar-producto-landing.py",
+  "helperSha256": "edad161e7903bbf8489d0d9f321167b71b574b5fc9a5c36e2665c62f8212d51a",
+  "helperSinCambios": true,
+  "fixturesSha256": "579b7ad0baaf828e636bfa3a199997537ceb19be57494c0a98ef374a371d126d",
+  "inputs": {
+    "empresa": "Comercial Demo S.A.C.",
+    "cliente": "Cliente de demostración",
+    "documento": "NV01-00000042",
+    "total": "535.00",
+    "efectivo": "550.00",
+    "vuelto": "15.00",
+    "datos": "Fixtures y sesión sintéticos, sin identidades ni credenciales reales."
+  },
+  "compilado": "/workspace/ondexia/apps/frontend/ondexia.web/dist/ondexia-web/browser",
+  "compiladoSha256": {
+    "index.html": "3187757c188eaea382a86e6a612bf8cf700a75350eac5554a2b94a36b940da77",
+    "main-YLIAGIAC.js": "5130dd60d392dbea3f94b9e26668c42177d4ff2a2d791020c68fd03729f51edc",
+    "polyfills-EBB6HFCX.js": "f1b35a3b4db37b73ca0281d6b6247701465ff9e56a7a7b3aff9784518dc2c30a",
+    "styles-ESYM42RR.css": "d361156bb9b29126e8027417deea99c3df42cb4b29b7f402faa79841b4bdd82b"
+  },
+  "controlRecorrido": {
+    "generadoEn": "2026-10-15T03:05:46.297454+00:00",
+    "controles": [
+      {
+        "ancho": 1440,
+        "esperado": "NV01-00000042",
+        "ventaSiguiente": "NV01-00000042",
+        "registroNumero": "NV01-00000042",
+        "documentoNumero": "NV01-00000042",
+        "correcto": true,
+        "regla": "Las tres capturas representan el mismo recorrido de la nota de demostración 42.",
+        "fuenteObservada": "Texto visible del DOM Angular real: Siguiente, título de registro y cabecera documental."
+      },
+      {
+        "ancho": 390,
+        "esperado": "NV01-00000042",
+        "ventaSiguiente": "NV01-00000042",
+        "registroNumero": "NV01-00000042",
+        "documentoNumero": "NV01-00000042",
+        "correcto": true,
+        "regla": "Las tres capturas representan el mismo recorrido de la nota de demostración 42.",
+        "fuenteObservada": "Texto visible del DOM Angular real: Siguiente, título de registro y cabecera documental."
+      }
+    ],
+    "correcto": true
+  },
+  "peticionesFixture": 50,
+  "peticionesBloqueadas": [],
+  "erroresJavascript": [],
+  "produccion": "No acredita producción, autenticación ni persistencia real, emisión SUNAT o impresión física.",
+  "interaccion": "Componentes Angular reales, búsqueda/selección y entradas UI nativas; API local de solo GET interceptada.",
+  "servidor": "http://127.0.0.1:8030",
+  "sinEdicionImagenes": true
+}

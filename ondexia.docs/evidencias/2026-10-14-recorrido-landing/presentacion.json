@@ -1,0 +1,1454 @@
+{
+  "direccion": "http://127.0.0.1:4326/",
+  "procedencia": "Build Astro real con CSP actual, Chromium local. Desplazamiento continuo mediante rueda nativa y controles de la página; sin alterar DOM, PNG o vídeo.",
+  "capturas": [
+    {
+      "archivo": "escena-escritorio.png",
+      "ancho": 1440,
+      "alto": 1000,
+      "escena": "Preparar la venta",
+      "estado": {
+        "desplazamientoPagina": 630,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": 194,
+            "fijada": true,
+            "posicionFigura": 242,
+            "parallax": "1.25px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 1.25)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 994,
+            "fijada": true,
+            "posicionFigura": 1042,
+            "parallax": "11.91px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 11.91)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1794,
+            "fijada": true,
+            "posicionFigura": 1842,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "archivo": "escena-movil.png",
+      "ancho": 390,
+      "alto": 1160,
+      "escena": "Previsualizar el documento",
+      "estado": {
+        "desplazamientoPagina": 2498,
+        "progreso": "Escena 3 de 3",
+        "topeRecorrido": "228px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -1618,
+            "fijada": false,
+            "posicionFigura": -1404,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": -695,
+            "fijada": false,
+            "posicionFigura": -481,
+            "parallax": "-9.37px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -9.37)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 228,
+            "fijada": false,
+            "posicionFigura": 442,
+            "parallax": "1.26px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 1.26)"
+          }
+        ]
+      }
+    },
+    {
+      "archivo": "escena-movil-horizontal.png",
+      "ancho": 320,
+      "alto": 225,
+      "escena": "Previsualizar el documento",
+      "navegacionCompactaUnaFila": true,
+      "tituloCompletoVisible": true,
+      "limitesTitulo": {
+        "x": 20,
+        "y": 151.875,
+        "width": 280,
+        "height": 62.375
+      },
+      "limitesNavegacion": {
+        "x": 20,
+        "y": 77,
+        "width": 280,
+        "height": 55
+      },
+      "nombresAccesiblesPasos": [
+        "01 Preparar la venta",
+        "02 Revisar el registro",
+        "03 Previsualizar el documento"
+      ]
+    }
+  ],
+  "eventos": [
+    {
+      "evento": "Portada del build actual",
+      "segundo": 0.69,
+      "estado": {
+        "desplazamientoPagina": 0,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": 816,
+            "fijada": true,
+            "posicionFigura": 864,
+            "parallax": "10.77px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 10.77)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 1559,
+            "fijada": true,
+            "posicionFigura": 1607,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 2330,
+            "fijada": true,
+            "posicionFigura": 2378,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "evento": "Explorar: escena 1, Preparar la venta",
+      "segundo": 3.32,
+      "estado": {
+        "desplazamientoPagina": 539,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": 277,
+            "fijada": true,
+            "posicionFigura": 325,
+            "parallax": "2.90px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 2.9)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 1020,
+            "fijada": true,
+            "posicionFigura": 1068,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1791,
+            "fijada": true,
+            "posicionFigura": 1839,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "evento": "Captura de venta durante el desplazamiento",
+      "segundo": 5.38,
+      "estado": {
+        "desplazamientoPagina": 669,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": 147,
+            "fijada": true,
+            "posicionFigura": 195,
+            "parallax": "1.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 1)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 890,
+            "fijada": true,
+            "posicionFigura": 938,
+            "parallax": "11.86px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 11.86)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1661,
+            "fijada": true,
+            "posicionFigura": 1709,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "evento": "Escena 2, Revisar el registro, alcanzada mediante rueda nativa",
+      "segundo": 9.34,
+      "estado": {
+        "desplazamientoPagina": 1365,
+        "progreso": "Escena 2 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -549,
+            "fijada": true,
+            "posicionFigura": -501,
+            "parallax": "-9.16px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -9.16)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 194,
+            "fijada": true,
+            "posicionFigura": 242,
+            "parallax": "1.86px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 1.86)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 965,
+            "fijada": true,
+            "posicionFigura": 1013,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "evento": "Escena 3, Previsualizar el documento, alcanzada mediante rueda nativa",
+      "segundo": 13.91,
+      "estado": {
+        "desplazamientoPagina": 2136,
+        "progreso": "Escena 3 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -1320,
+            "fijada": true,
+            "posicionFigura": -1272,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": -577,
+            "fijada": true,
+            "posicionFigura": -529,
+            "parallax": "-9.22px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -9.22)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 194,
+            "fijada": true,
+            "posicionFigura": 242,
+            "parallax": "1.53px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 1.53)"
+          }
+        ]
+      }
+    },
+    {
+      "evento": "Escena anterior: volver manualmente al registro",
+      "segundo": 16.75,
+      "estado": {
+        "desplazamientoPagina": 1365,
+        "progreso": "Escena 2 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -549,
+            "fijada": true,
+            "posicionFigura": -501,
+            "parallax": "-9.16px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -9.16)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 194,
+            "fijada": true,
+            "posicionFigura": 242,
+            "parallax": "1.86px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 1.86)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 965,
+            "fijada": true,
+            "posicionFigura": 1013,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "evento": "Escena siguiente: avanzar manualmente al documento",
+      "segundo": 18.58,
+      "estado": {
+        "desplazamientoPagina": 2136,
+        "progreso": "Escena 3 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -1320,
+            "fijada": true,
+            "posicionFigura": -1272,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": -577,
+            "fijada": true,
+            "posicionFigura": -529,
+            "parallax": "-9.22px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -9.22)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 194,
+            "fijada": true,
+            "posicionFigura": 242,
+            "parallax": "1.53px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 1.53)"
+          }
+        ]
+      }
+    },
+    {
+      "evento": "Ampliar la captura real del documento",
+      "segundo": 19.23,
+      "estado": {
+        "desplazamientoPagina": 2136,
+        "progreso": "Escena 3 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -1320,
+            "fijada": true,
+            "posicionFigura": -1272,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": -577,
+            "fijada": true,
+            "posicionFigura": -529,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 194,
+            "fijada": true,
+            "posicionFigura": 242,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "evento": "Cerrar la ampliación y devolver el foco",
+      "segundo": 22.27,
+      "estado": {
+        "desplazamientoPagina": 2136,
+        "progreso": "Escena 3 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -1320,
+            "fijada": true,
+            "posicionFigura": -1272,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": -577,
+            "fijada": true,
+            "posicionFigura": -529,
+            "parallax": "-9.22px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -9.22)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 194,
+            "fijada": true,
+            "posicionFigura": 242,
+            "parallax": "1.53px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 1.53)"
+          }
+        ]
+      }
+    }
+  ],
+  "muestrasMovimiento": [
+    {
+      "momento": "Fijación y parallax en la primera escena",
+      "segundo": 4.39,
+      "estado": {
+        "desplazamientoPagina": 546,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": 270,
+            "fijada": true,
+            "posicionFigura": 318,
+            "parallax": "2.80px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 2.8)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 1013,
+            "fijada": true,
+            "posicionFigura": 1061,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1784,
+            "fijada": true,
+            "posicionFigura": 1832,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Fijación y parallax en la primera escena",
+      "segundo": 4.75,
+      "estado": {
+        "desplazamientoPagina": 587,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": 229,
+            "fijada": true,
+            "posicionFigura": 277,
+            "parallax": "2.20px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 2.2)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 972,
+            "fijada": true,
+            "posicionFigura": 1020,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1743,
+            "fijada": true,
+            "posicionFigura": 1791,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Fijación y parallax en la primera escena",
+      "segundo": 5.07,
+      "estado": {
+        "desplazamientoPagina": 628,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": 188,
+            "fijada": true,
+            "posicionFigura": 236,
+            "parallax": "1.60px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 1.6)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 931,
+            "fijada": true,
+            "posicionFigura": 979,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1702,
+            "fijada": true,
+            "posicionFigura": 1750,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Fijación y parallax en la primera escena",
+      "segundo": 5.37,
+      "estado": {
+        "desplazamientoPagina": 669,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": 147,
+            "fijada": true,
+            "posicionFigura": 195,
+            "parallax": "1.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 1)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 890,
+            "fijada": true,
+            "posicionFigura": 938,
+            "parallax": "11.86px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 11.86)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1661,
+            "fijada": true,
+            "posicionFigura": 1709,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Retorno dentro de la primera escena",
+      "segundo": 5.43,
+      "estado": {
+        "desplazamientoPagina": 662,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": 154,
+            "fijada": true,
+            "posicionFigura": 202,
+            "parallax": "1.10px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 1.1)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 897,
+            "fijada": true,
+            "posicionFigura": 945,
+            "parallax": "11.96px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 11.96)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1668,
+            "fijada": true,
+            "posicionFigura": 1716,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Retorno dentro de la primera escena",
+      "segundo": 5.74,
+      "estado": {
+        "desplazamientoPagina": 621,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": 195,
+            "fijada": true,
+            "posicionFigura": 243,
+            "parallax": "1.70px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 1.7)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 938,
+            "fijada": true,
+            "posicionFigura": 986,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1709,
+            "fijada": true,
+            "posicionFigura": 1757,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Retorno dentro de la primera escena",
+      "segundo": 6.03,
+      "estado": {
+        "desplazamientoPagina": 580,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": 236,
+            "fijada": true,
+            "posicionFigura": 284,
+            "parallax": "2.30px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 2.3)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 979,
+            "fijada": true,
+            "posicionFigura": 1027,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1750,
+            "fijada": true,
+            "posicionFigura": 1798,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Retorno dentro de la primera escena",
+      "segundo": 6.37,
+      "estado": {
+        "desplazamientoPagina": 539,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": 277,
+            "fijada": true,
+            "posicionFigura": 325,
+            "parallax": "2.90px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 2.9)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 1020,
+            "fijada": true,
+            "posicionFigura": 1068,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1791,
+            "fijada": true,
+            "posicionFigura": 1839,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia registro",
+      "segundo": 6.48,
+      "estado": {
+        "desplazamientoPagina": 554,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": 262,
+            "fijada": true,
+            "posicionFigura": 310,
+            "parallax": "2.68px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 2.68)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 1005,
+            "fijada": true,
+            "posicionFigura": 1053,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1776,
+            "fijada": true,
+            "posicionFigura": 1824,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia registro",
+      "segundo": 6.82,
+      "estado": {
+        "desplazamientoPagina": 644,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": 172,
+            "fijada": true,
+            "posicionFigura": 220,
+            "parallax": "1.37px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 1.37)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 915,
+            "fijada": true,
+            "posicionFigura": 963,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1686,
+            "fijada": true,
+            "posicionFigura": 1734,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia registro",
+      "segundo": 7.12,
+      "estado": {
+        "desplazamientoPagina": 734,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": 82,
+            "fijada": true,
+            "posicionFigura": 130,
+            "parallax": "0.05px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0.05)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 825,
+            "fijada": true,
+            "posicionFigura": 873,
+            "parallax": "10.93px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 10.93)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1596,
+            "fijada": true,
+            "posicionFigura": 1644,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia registro",
+      "segundo": 7.42,
+      "estado": {
+        "desplazamientoPagina": 825,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -9,
+            "fijada": true,
+            "posicionFigura": 39,
+            "parallax": "-1.28px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -1.28)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 734,
+            "fijada": true,
+            "posicionFigura": 782,
+            "parallax": "9.62px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 9.62)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1505,
+            "fijada": true,
+            "posicionFigura": 1553,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia registro",
+      "segundo": 7.72,
+      "estado": {
+        "desplazamientoPagina": 915,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -99,
+            "fijada": true,
+            "posicionFigura": -51,
+            "parallax": "-2.59px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -2.59)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 644,
+            "fijada": true,
+            "posicionFigura": 692,
+            "parallax": "8.33px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 8.33)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1415,
+            "fijada": true,
+            "posicionFigura": 1463,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia registro",
+      "segundo": 8.02,
+      "estado": {
+        "desplazamientoPagina": 1005,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -189,
+            "fijada": true,
+            "posicionFigura": -141,
+            "parallax": "-3.90px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -3.9)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 554,
+            "fijada": true,
+            "posicionFigura": 602,
+            "parallax": "7.03px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 7.03)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1325,
+            "fijada": true,
+            "posicionFigura": 1373,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia registro",
+      "segundo": 8.32,
+      "estado": {
+        "desplazamientoPagina": 1095,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -279,
+            "fijada": true,
+            "posicionFigura": -231,
+            "parallax": "-5.22px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -5.22)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 464,
+            "fijada": true,
+            "posicionFigura": 512,
+            "parallax": "5.74px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 5.74)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1235,
+            "fijada": true,
+            "posicionFigura": 1283,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia registro",
+      "segundo": 8.62,
+      "estado": {
+        "desplazamientoPagina": 1185,
+        "progreso": "Escena 1 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -369,
+            "fijada": true,
+            "posicionFigura": -321,
+            "parallax": "-6.53px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -6.53)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 374,
+            "fijada": true,
+            "posicionFigura": 422,
+            "parallax": "4.45px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 4.45)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1145,
+            "fijada": true,
+            "posicionFigura": 1193,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia registro",
+      "segundo": 8.97,
+      "estado": {
+        "desplazamientoPagina": 1275,
+        "progreso": "Escena 2 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -459,
+            "fijada": true,
+            "posicionFigura": -411,
+            "parallax": "-7.85px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -7.85)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 284,
+            "fijada": true,
+            "posicionFigura": 332,
+            "parallax": "3.15px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 3.15)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 1055,
+            "fijada": true,
+            "posicionFigura": 1103,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia registro",
+      "segundo": 9.33,
+      "estado": {
+        "desplazamientoPagina": 1365,
+        "progreso": "Escena 2 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -549,
+            "fijada": true,
+            "posicionFigura": -501,
+            "parallax": "-9.16px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -9.16)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 194,
+            "fijada": true,
+            "posicionFigura": 242,
+            "parallax": "1.86px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 1.86)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 965,
+            "fijada": true,
+            "posicionFigura": 1013,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia documento",
+      "segundo": 11.01,
+      "estado": {
+        "desplazamientoPagina": 1379,
+        "progreso": "Escena 2 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -563,
+            "fijada": true,
+            "posicionFigura": -515,
+            "parallax": "-9.36px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -9.36)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 180,
+            "fijada": true,
+            "posicionFigura": 228,
+            "parallax": "1.66px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 1.66)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 951,
+            "fijada": true,
+            "posicionFigura": 999,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia documento",
+      "segundo": 11.33,
+      "estado": {
+        "desplazamientoPagina": 1464,
+        "progreso": "Escena 2 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -648,
+            "fijada": true,
+            "posicionFigura": -600,
+            "parallax": "-10.61px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -10.61)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 95,
+            "fijada": true,
+            "posicionFigura": 143,
+            "parallax": "0.44px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0.44)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 866,
+            "fijada": true,
+            "posicionFigura": 914,
+            "parallax": "11.49px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 11.49)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia documento",
+      "segundo": 11.63,
+      "estado": {
+        "desplazamientoPagina": 1548,
+        "progreso": "Escena 2 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -732,
+            "fijada": true,
+            "posicionFigura": -684,
+            "parallax": "-11.83px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -11.83)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": 11,
+            "fijada": true,
+            "posicionFigura": 59,
+            "parallax": "-0.77px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -0.77)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 782,
+            "fijada": true,
+            "posicionFigura": 830,
+            "parallax": "10.24px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 10.24)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia documento",
+      "segundo": 11.93,
+      "estado": {
+        "desplazamientoPagina": 1632,
+        "progreso": "Escena 2 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -816,
+            "fijada": true,
+            "posicionFigura": -768,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": -73,
+            "fijada": true,
+            "posicionFigura": -25,
+            "parallax": "-1.98px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -1.98)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 698,
+            "fijada": true,
+            "posicionFigura": 746,
+            "parallax": "9.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 9)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia documento",
+      "segundo": 12.23,
+      "estado": {
+        "desplazamientoPagina": 1716,
+        "progreso": "Escena 2 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -900,
+            "fijada": true,
+            "posicionFigura": -852,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": -157,
+            "fijada": true,
+            "posicionFigura": -109,
+            "parallax": "-3.18px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -3.18)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 614,
+            "fijada": true,
+            "posicionFigura": 662,
+            "parallax": "7.76px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 7.76)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia documento",
+      "segundo": 12.53,
+      "estado": {
+        "desplazamientoPagina": 1800,
+        "progreso": "Escena 2 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -984,
+            "fijada": true,
+            "posicionFigura": -936,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": -241,
+            "fijada": true,
+            "posicionFigura": -193,
+            "parallax": "-4.39px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -4.39)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 530,
+            "fijada": true,
+            "posicionFigura": 578,
+            "parallax": "6.51px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 6.51)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia documento",
+      "segundo": 12.83,
+      "estado": {
+        "desplazamientoPagina": 1884,
+        "progreso": "Escena 2 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -1068,
+            "fijada": true,
+            "posicionFigura": -1020,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": -325,
+            "fijada": true,
+            "posicionFigura": -277,
+            "parallax": "-5.60px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -5.6)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 446,
+            "fijada": true,
+            "posicionFigura": 494,
+            "parallax": "5.27px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 5.27)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia documento",
+      "segundo": 13.13,
+      "estado": {
+        "desplazamientoPagina": 1968,
+        "progreso": "Escena 3 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -1152,
+            "fijada": true,
+            "posicionFigura": -1104,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": -409,
+            "fijada": true,
+            "posicionFigura": -361,
+            "parallax": "-6.80px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -6.8)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 362,
+            "fijada": true,
+            "posicionFigura": 414,
+            "parallax": "4.02px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 4.02)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia documento",
+      "segundo": 13.5,
+      "estado": {
+        "desplazamientoPagina": 2052,
+        "progreso": "Escena 3 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -1236,
+            "fijada": true,
+            "posicionFigura": -1188,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": -493,
+            "fijada": true,
+            "posicionFigura": -445,
+            "parallax": "-8.01px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -8.01)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 278,
+            "fijada": true,
+            "posicionFigura": 326,
+            "parallax": "2.78px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 2.78)"
+          }
+        ]
+      }
+    },
+    {
+      "momento": "Recorrer hacia documento",
+      "segundo": 13.9,
+      "estado": {
+        "desplazamientoPagina": 2136,
+        "progreso": "Escena 3 de 3",
+        "topeRecorrido": "194px",
+        "escenas": [
+          {
+            "id": "escena-venta",
+            "posicion": -1320,
+            "fijada": true,
+            "posicionFigura": -1272,
+            "parallax": "0.00px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 0)"
+          },
+          {
+            "id": "escena-registro",
+            "posicion": -577,
+            "fijada": true,
+            "posicionFigura": -529,
+            "parallax": "-9.22px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, -9.22)"
+          },
+          {
+            "id": "escena-documento",
+            "posicion": 194,
+            "fijada": true,
+            "posicionFigura": 242,
+            "parallax": "1.53px",
+            "transformacion": "matrix(1, 0, 0, 1, 0, 1.53)"
+          }
+        ]
+      }
+    }
+  ],
+  "solicitudes": [
+    "http://127.0.0.1:4326/",
+    "http://127.0.0.1:4326/_astro/Explorador.astro_astro_type_script_index_0_lang.BJUKOe2s.js",
+    "http://127.0.0.1:4326/_astro/index.astro_astro_type_script_index_0_lang.BuaN1GMA.js",
+    "http://127.0.0.1:4326/capturas/documento-escritorio.png",
+    "http://127.0.0.1:4326/capturas/documento-movil.png",
+    "http://127.0.0.1:4326/capturas/registro-escritorio.png",
+    "http://127.0.0.1:4326/capturas/registro-movil.png",
+    "http://127.0.0.1:4326/capturas/venta-escritorio.png",
+    "http://127.0.0.1:4326/capturas/venta-movil.png",
+    "http://127.0.0.1:4326/favicon.svg",
+    "http://127.0.0.1:4326/fonts/outfit-latin.woff2"
+  ],
+  "errores": [],
+  "consolaErrores": [],
+  "csp": "default-src 'none'; script-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'",
+  "solicitudesExternas": [],
+  "video": {
+    "archivo": "recorrido-escenas.webm",
+    "movimiento": "no-preference",
+    "sinCortesNiEdicion": true,
+    "datosFfprobe": {
+      "programs": [],
+      "stream_groups": [],
+      "streams": [
+        {
+          "codec_name": "vp8",
+          "width": 1280,
+          "height": 900,
+          "r_frame_rate": "25/1"
+        }
+      ],
+      "format": {
+        "duration": "25.680000"
+      }
+    }
+  },
+  "huellasSha256": {
+    "recorrido-escenas.webm": "6576035e01cf59b8138808e355098df0374187a2b8320f6e3d4b055b3dd404ee",
+    "escena-movil.png": "11c268a57c6c0096e2573205db8c0f52e93c1376c64626840e85d05d924150fe",
+    "escena-escritorio.png": "1707090b7632b8283c53c4ff61e737c41b236f925e83f82c9866fc9a31e1216d",
+    "escena-movil-horizontal.png": "44d99a646a4d7136aff452d18ddd0d5aa9bdd608f4973bc79c3a3b72ea790e5b"
+  },
+  "huellasContenidoServidoSha256": {
+    "http://127.0.0.1:4326/": "087791156962213c705ff2df3f3ce85865fc57820951d73243752c72633df059",
+    "http://127.0.0.1:4326/_astro/Explorador.astro_astro_type_script_index_0_lang.BJUKOe2s.js": "95777cf74509127e643a8e658f4cf3c9253d8be5eae782a331f42e5d79a4e576",
+    "http://127.0.0.1:4326/_astro/index.astro_astro_type_script_index_0_lang.BuaN1GMA.js": "2a3a6d80f264fa3afb907884cac2ab7fe59f38b3692ae53365936398f3542aef"
+  },
+  "adaptacionCapturadorEnMemoria": "Se seleccionaron los enlaces de escena por su href porque el nombre accesible ahora incluye número y título; no se modificaron archivos de código.",
+  "contenidoServidoCoincideConDistActual": true
+}

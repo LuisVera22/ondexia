@@ -1,0 +1,39 @@
+{
+  "pantallas": [
+    {
+      "ancho": 320,
+      "desbordamiento": false,
+      "variante": "movil",
+      "dialogo": true
+    },
+    {
+      "ancho": 390,
+      "desbordamiento": false,
+      "variante": "movil",
+      "dialogo": true
+    },
+    {
+      "ancho": 768,
+      "desbordamiento": false,
+      "variante": "escritorio",
+      "dialogo": true
+    },
+    {
+      "ancho": 1024,
+      "desbordamiento": false,
+      "variante": "escritorio",
+      "dialogo": true
+    },
+    {
+      "ancho": 1440,
+      "desbordamiento": false,
+      "variante": "escritorio",
+      "dialogo": true
+    }
+  ],
+  "reaperturaDesdeArriba": true,
+  "sinJavascript": true,
+  "csp": true,
+  "externas": [],
+  "errores": []
+}

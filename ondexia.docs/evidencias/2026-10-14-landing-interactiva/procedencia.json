@@ -1,0 +1,575 @@
+{
+  "generadoEn": "2026-10-14T02:51:14.646261+00:00",
+  "scriptSha256": "edad161e7903bbf8489d0d9f321167b71b574b5fc9a5c36e2665c62f8212d51a",
+  "commit": "69290ea19f6a27279460c57d271c73e3c5d6a5b7",
+  "origen": "http://127.0.0.1:8030",
+  "capturas": [
+    {
+      "archivo": "venta-1440.png",
+      "ruta": "/ventas/punto-de-venta",
+      "componente": "app-punto-de-venta",
+      "ventana": {
+        "ancho": 1440,
+        "alto": 1000
+      },
+      "paginaCompleta": false,
+      "medidas": {
+        "ancho": 1440,
+        "anchoPagina": 1430
+      },
+      "sha256": "0489d9c20b7ba8f5f873da72a69749ec6034cd3c7d9454ae62afba46aed6075f"
+    },
+    {
+      "archivo": "venta-escritorio.png",
+      "ruta": "/ventas/punto-de-venta",
+      "componente": "app-punto-de-venta",
+      "ventana": {
+        "ancho": 1440,
+        "alto": 1000
+      },
+      "recorteNativo": {
+        "x": 324,
+        "y": 89,
+        "width": 1082,
+        "height": 864
+      },
+      "sha256": "af11c33ece85508d80676c8e602115907bb97b991f2f92b0a0f460196752f991"
+    },
+    {
+      "archivo": "registro-1440.png",
+      "ruta": "/ventas/documentos/NV/00000000-0000-4000-8000-000000009901",
+      "componente": "app-detalle-documento",
+      "ventana": {
+        "ancho": 1440,
+        "alto": 1000
+      },
+      "paginaCompleta": false,
+      "medidas": {
+        "ancho": 1440,
+        "anchoPagina": 1430
+      },
+      "sha256": "dfb543e9028251571f13507a199fe3616df3c083b0dfb0f4f008c1f13e2ab7c5"
+    },
+    {
+      "archivo": "registro-escritorio.png",
+      "ruta": "/ventas/documentos/NV/00000000-0000-4000-8000-000000009901",
+      "componente": "app-detalle-documento",
+      "ventana": {
+        "ancho": 1440,
+        "alto": 1000
+      },
+      "recorteNativo": {
+        "x": 324,
+        "y": 89,
+        "width": 1082,
+        "height": 901
+      },
+      "sha256": "b165e926d2a477e9232deb5195cb2df4bb002c99ce0f6b5c9fe225858c0d2ebe"
+    },
+    {
+      "archivo": "identidad-1440.png",
+      "ruta": "/configuracion/identidad",
+      "componente": "app-identidad",
+      "ventana": {
+        "ancho": 1440,
+        "alto": 1000
+      },
+      "paginaCompleta": false,
+      "medidas": {
+        "ancho": 1440,
+        "anchoPagina": 1430
+      },
+      "sha256": "5a4b947bd4b062be416acbb1f6d812e7486b6375a5f31573bb83e6cd60fc04c3"
+    },
+    {
+      "archivo": "identidad-escritorio.png",
+      "ruta": "/configuracion/identidad",
+      "componente": "app-identidad",
+      "ventana": {
+        "ancho": 1440,
+        "alto": 1000
+      },
+      "recorteNativo": {
+        "x": 324,
+        "y": 89,
+        "width": 1082,
+        "height": 548
+      },
+      "sha256": "9141a759d9253bc0cacc4e3ba73525c388bf796bcbd31db4d6e9243cff88ccb7"
+    },
+    {
+      "archivo": "previsualizacion-logo-1440.png",
+      "ruta": "/configuracion/identidad",
+      "componente": "app-identidad aside",
+      "recorteNativo": {
+        "x": 1022,
+        "y": 161,
+        "width": 384,
+        "height": 375.96875
+      },
+      "sha256": "6db684cc34e1995988b40d6ebff0c96985c8b12e868ee47156da638bcbbc5748"
+    },
+    {
+      "archivo": "comprobante-logo-1440.png",
+      "ruta": "/ventas/documentos/NV/00000000-0000-4000-8000-000000009901",
+      "componente": "app-detalle-documento article",
+      "ventana": {
+        "ancho": 1440,
+        "alto": 1000
+      },
+      "paginaCompleta": false,
+      "medidas": {
+        "ancho": 1440,
+        "anchoPagina": 1430
+      },
+      "sha256": "5f269bcdc7306214f9d6b9c8223fe4368f3c76c2e66b1e9cd27cb84b4465ed54"
+    },
+    {
+      "archivo": "documento-escritorio.png",
+      "ruta": "/ventas/documentos/NV/00000000-0000-4000-8000-000000009901",
+      "componente": "app-detalle-documento",
+      "ventana": {
+        "ancho": 1440,
+        "alto": 1000
+      },
+      "recorteNativo": {
+        "x": 324,
+        "y": 89,
+        "width": 1082,
+        "height": 633.15625
+      },
+      "sha256": "37c50a74fc2a4e542a0d219317b72661bdcfe6a6c7296d372023c3690985b28a"
+    },
+    {
+      "archivo": "venta-390.png",
+      "ruta": "/ventas/punto-de-venta",
+      "componente": "app-punto-de-venta",
+      "ventana": {
+        "ancho": 390,
+        "alto": 844
+      },
+      "paginaCompleta": true,
+      "medidas": {
+        "ancho": 390,
+        "anchoPagina": 380
+      },
+      "sha256": "73b57c3645b345fab7fde557a4e0c2e8fff72b1ccbfdf7cc9365eec2b23dd25c"
+    },
+    {
+      "archivo": "venta-movil.png",
+      "ruta": "/ventas/punto-de-venta",
+      "componente": "app-punto-de-venta",
+      "ventana": {
+        "ancho": 390,
+        "alto": 844
+      },
+      "recorteNativo": {
+        "x": 16,
+        "y": 81,
+        "width": 348,
+        "height": 2081.84375
+      },
+      "sha256": "301f3cca883cef6b631108c3c4bef47ea0e4c7cbef47b4d6239a28fad8e7190b"
+    },
+    {
+      "archivo": "registro-390.png",
+      "ruta": "/ventas/documentos/NV/00000000-0000-4000-8000-000000009901",
+      "componente": "app-detalle-documento",
+      "ventana": {
+        "ancho": 390,
+        "alto": 844
+      },
+      "paginaCompleta": true,
+      "medidas": {
+        "ancho": 390,
+        "anchoPagina": 380
+      },
+      "sha256": "2962379ab9b0571d270446eaaf4b991156e706eefd35527631c5a2d87a36c7f6"
+    },
+    {
+      "archivo": "registro-movil.png",
+      "ruta": "/ventas/documentos/NV/00000000-0000-4000-8000-000000009901",
+      "componente": "app-detalle-documento",
+      "ventana": {
+        "ancho": 390,
+        "alto": 844
+      },
+      "recorteNativo": {
+        "x": 16,
+        "y": 81,
+        "width": 348,
+        "height": 1615.84375
+      },
+      "sha256": "bd8b3097ccf7068cbf9d5e0312960d780d848c72d97486707f2cc023bd145de1"
+    },
+    {
+      "archivo": "identidad-390.png",
+      "ruta": "/configuracion/identidad",
+      "componente": "app-identidad",
+      "ventana": {
+        "ancho": 390,
+        "alto": 844
+      },
+      "paginaCompleta": false,
+      "medidas": {
+        "ancho": 390,
+        "anchoPagina": 380
+      },
+      "sha256": "e1818053d2e4956029c28dd783957f06fbe97404ef592c56219c1a5deb872c26"
+    },
+    {
+      "archivo": "identidad-movil.png",
+      "ruta": "/configuracion/identidad",
+      "componente": "app-identidad",
+      "ventana": {
+        "ancho": 390,
+        "alto": 844
+      },
+      "recorteNativo": {
+        "x": 16,
+        "y": 81,
+        "width": 348,
+        "height": 1295.96875
+      },
+      "sha256": "c7b7b29023a36771bf54112312ee4ceb1972b10689f479af1cb532a4e93ff739"
+    },
+    {
+      "archivo": "previsualizacion-logo-390.png",
+      "ruta": "/configuracion/identidad",
+      "componente": "app-identidad aside",
+      "recorteNativo": {
+        "x": 16,
+        "y": 933,
+        "width": 348,
+        "height": 375.96875
+      },
+      "sha256": "6042d02df8c4c60f7093a8662565e2b02d46b4d7be9b68ee36b971044bc1331b"
+    },
+    {
+      "archivo": "comprobante-logo-390.png",
+      "ruta": "/ventas/documentos/NV/00000000-0000-4000-8000-000000009901",
+      "componente": "app-detalle-documento article",
+      "ventana": {
+        "ancho": 390,
+        "alto": 844
+      },
+      "paginaCompleta": true,
+      "medidas": {
+        "ancho": 390,
+        "anchoPagina": 380
+      },
+      "sha256": "7e93c8bb685b14d0aec025181d708e079ef34aab6304d926f9a5d519c298e12f"
+    },
+    {
+      "archivo": "documento-movil.png",
+      "ruta": "/ventas/documentos/NV/00000000-0000-4000-8000-000000009901",
+      "componente": "app-detalle-documento",
+      "ventana": {
+        "ancho": 390,
+        "alto": 844
+      },
+      "recorteNativo": {
+        "x": 16,
+        "y": 81,
+        "width": 348,
+        "height": 803.15625
+      },
+      "sha256": "cda94460246675664f9f84a53d1f368445ccc672fdda32fffbbf6b99cbf2cb56"
+    }
+  ],
+  "peticionesFixture": [
+    {
+      "metodo": "GET",
+      "ruta": "/config.json",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/contexto",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/cajas",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/configuracion/empresa",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/series",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/almacen/productos/disponibles",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/almacen/productos/disponibles",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/almacen/productos/disponibles",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/clientes",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/config.json",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/contexto",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/cajas",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/notas-de-venta/00000000-0000-4000-8000-000000009901",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/documentos/00000000-0000-4000-8000-000000009901/relacionados",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/config.json",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/contexto",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/cajas",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/configuracion/identidad",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/configuracion/empresa",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/configuracion/series",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/config.json",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/contexto",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/cajas",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/notas-de-venta/00000000-0000-4000-8000-000000009901",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/documentos/00000000-0000-4000-8000-000000009901/relacionados",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/config.json",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/contexto",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/cajas",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/configuracion/empresa",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/series",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/almacen/productos/disponibles",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/almacen/productos/disponibles",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/almacen/productos/disponibles",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/clientes",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/config.json",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/contexto",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/cajas",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/notas-de-venta/00000000-0000-4000-8000-000000009901",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/documentos/00000000-0000-4000-8000-000000009901/relacionados",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/config.json",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/contexto",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/cajas",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/configuracion/identidad",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/configuracion/empresa",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/configuracion/series",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/config.json",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/contexto",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/cajas",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/notas-de-venta/00000000-0000-4000-8000-000000009901",
+      "origen": "http://127.0.0.1:8030"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/ventas/documentos/00000000-0000-4000-8000-000000009901/relacionados",
+      "origen": "http://127.0.0.1:8030"
+    }
+  ],
+  "peticionesBloqueadas": [],
+  "erroresJavascript": [],
+  "controlesRecorrido": [
+    {
+      "ancho": 1440,
+      "esperado": "NV01-00000042",
+      "ventaSiguiente": "NV01-00000042",
+      "registroNumero": "NV01-00000042",
+      "documentoNumero": "NV01-00000042",
+      "correcto": true,
+      "regla": "Las tres capturas representan el mismo recorrido de la nota de demostración 42.",
+      "fuenteObservada": "Texto visible del DOM Angular real: Siguiente, título de registro y cabecera documental."
+    },
+    {
+      "ancho": 390,
+      "esperado": "NV01-00000042",
+      "ventaSiguiente": "NV01-00000042",
+      "registroNumero": "NV01-00000042",
+      "documentoNumero": "NV01-00000042",
+      "correcto": true,
+      "regla": "Las tres capturas representan el mismo recorrido de la nota de demostración 42.",
+      "fuenteObservada": "Texto visible del DOM Angular real: Siguiente, título de registro y cabecera documental."
+    }
+  ],
+  "datos": "Datos de demostración creados para esta captura; API y sesión sintéticas.",
+  "interaccion": "Búsqueda y selección nativas de productos/cliente; entrada nativa de cantidades y cobro.",
+  "logo": "Activo PNG existente de Ondexia, usado como logo del fixture demo; sin edición de imagen.",
+  "captura": "Chromium/Playwright del frontend Angular compilado; sin recreación de HTML ni modificación del DOM.",
+  "servicios": "Sin conexión a AWS, SUNAT ni base de datos; solo GET locales y fixtures de lista cerrada.",
+  "limites": "Demostración visual del frontend. No acredita emisión, escritura, autenticación real ni producción.",
+  "fuentesSha256": {
+    "apps/frontend/ondexia.web/src/app/pages/ventas/punto-de-venta/punto-de-venta.component.html": "ebc40a4c54c2f8c57699360914a8953211e8e4380eb2f6738e6d5d5e8d947046",
+    "apps/frontend/ondexia.web/src/app/pages/ventas/documentos/detalle-documento.component.html": "2d81bafc0316145ce4f61529c6e95f3a8c7846d4e79558fcddbb967c145edcdb",
+    "apps/frontend/ondexia.web/src/app/pages/configuracion/identidad/identidad.component.html": "9ee56f827c22c0c6a0b7db0ecaa4539a5d440f4bdff95b9d8a7a1aae68ec08cd",
+    "apps/frontend/ondexia.web/public/apple-touch-icon.png": "0b10d62892b01b9ff64797c9dbc03a6ab39118b335ada3d4c8fc4d49a5d24dbb"
+  },
+  "compilado": "/workspace/ondexia/apps/frontend/ondexia.web/dist/ondexia-web/browser",
+  "compiladoSha256": {
+    "index.html": "3187757c188eaea382a86e6a612bf8cf700a75350eac5554a2b94a36b940da77",
+    "main-YLIAGIAC.js": "5130dd60d392dbea3f94b9e26668c42177d4ff2a2d791020c68fd03729f51edc",
+    "polyfills-EBB6HFCX.js": "f1b35a3b4db37b73ca0281d6b6247701465ff9e56a7a7b3aff9784518dc2c30a",
+    "styles-ESYM42RR.css": "d361156bb9b29126e8027417deea99c3df42cb4b29b7f402faa79841b4bdd82b"
+  }
+}
