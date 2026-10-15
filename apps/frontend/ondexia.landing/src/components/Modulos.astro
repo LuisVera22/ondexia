@@ -1,60 +1,74 @@
 ---
-const funciones = [
-  {
-    numero: '01', titulo: 'Atender una venta',
-    descripcion: 'Encontrar bienes o servicios, seleccionar al cliente y completar la operación desde el punto de venta.',
-    detalles: ['Notas de venta, boletas y facturas', 'Bienes y servicios en el mismo mostrador', 'Consulta del registro y vista de impresión'],
-  },
-  {
-    numero: '02', titulo: 'Seguir los cobros',
-    descripcion: 'Revisar los pagos registrados en la sesión de caja y cerrar la jornada con el arqueo.',
-    detalles: ['Sesiones de caja por establecimiento', 'Registro de las formas de pago', 'Cierre con importes declarados'],
-  },
-  {
-    numero: '03', titulo: 'Consultar las existencias',
-    descripcion: 'Ver qué bienes hay en cada establecimiento y distinguirlos de los servicios que no manejan stock.',
-    detalles: ['Catálogos separados de bienes y servicios', 'Clientes vinculados a la venta', 'Consulta de movimientos de almacén'],
-  },
+const herramientas = [
+  {titulo:'Punto de venta', detalle:'Seleccionar bienes y servicios, indicar el cliente y revisar el importe de la operación.', captura:'/capturas/venta-completa.png', alternativa:'Punto de venta con selección de bienes y servicios.'},
+  {titulo:'Registro de ventas', detalle:'Consultar el documento y el detalle de una venta junto con sus pagos registrados.', captura:'/capturas/registro-completo.png', alternativa:'Detalle completo de una nota de venta registrada.'},
+  {titulo:'Documentos', detalle:'Previsualizar la nota de venta completa y acceder a su impresión desde el registro.', captura:'/capturas/documento-completo.png', alternativa:'Previsualización de la nota de venta para impresión.'},
+  {titulo:'Cobros', detalle:'Indicar formas de pago y revisar el saldo o el vuelto antes de registrar la venta.', captura:'/capturas/venta-completa.png', alternativa:'Pantalla de punto de venta con controles de cobro y vuelto.'},
 ];
 ---
-
-<section id="funciones" class="seccion-funciones seccion">
+<section id="funciones" class="seccion herramientas" aria-labelledby="titulo-herramientas" data-herramientas>
   <div class="contenedor">
-    <div class="encabezado-seccion">
-      <div>
-        <p class="rotulo text-brand-600">El sistema</p>
-        <h2 class="titulo-seccion">Para el trabajo<br />de todos los días.</h2>
-      </div>
-      <p class="introduccion-seccion">Desde atender en el mostrador hasta revisar el cierre de caja: cada tarea tiene un lugar en Ondexia.</p>
+    <div class="encabezado-herramientas">
+      <p class="rotulo">De la atención al documento</p>
+      <h2 id="titulo-herramientas" class="titulo-seccion">Herramientas para<br />la operación diaria.</h2>
+      <p>Una vista de las tareas que se pueden realizar en Ondexia.</p>
     </div>
-    <div class="funciones">
-      {funciones.map((funcion) => (
-        <article class="funcion">
-          <span class="numero-funcion" aria-hidden="true">{funcion.numero}</span>
-          <h3>{funcion.titulo}</h3>
-          <p>{funcion.descripcion}</p>
-          <ul>{funcion.detalles.map((detalle) => <li>{detalle}</li>)}</ul>
-        </article>
-      ))}
+    <div class="carrusel-controles" data-carrusel-controles hidden>
+      <button type="button" aria-label="Ver herramientas anteriores" data-anterior disabled>←</button>
+      <button type="button" aria-label="Ver herramientas siguientes" data-siguiente>→</button>
     </div>
+    <ul class="lista-herramientas" tabindex="0" aria-label="Herramientas de Ondexia" data-carrusel>
+      {herramientas.map(herramienta => <li>
+        <div><h3>{herramienta.titulo}</h3><p>{herramienta.detalle}</p></div>
+        <a href={herramienta.captura} aria-label={`Ver captura completa: ${herramienta.titulo}`}>
+          <img src={herramienta.captura} alt={herramienta.alternativa} width="1440" height="1000" loading="lazy" decoding="async" />
+          <span>Ver captura completa <svg class="flecha" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12" /></svg></span>
+        </a>
+      </li>)}
+    </ul>
+    <p class="nota-herramientas">Capturas del sistema · datos de demostración. La nota de venta es un documento interno.</p>
   </div>
 </section>
-
+<script>
+  document.querySelectorAll<HTMLElement>('[data-herramientas]').forEach(seccion => {
+    const carrusel = seccion.querySelector<HTMLElement>('[data-carrusel]');
+    const anterior = seccion.querySelector<HTMLButtonElement>('[data-anterior]');
+    const siguiente = seccion.querySelector<HTMLButtonElement>('[data-siguiente]');
+    const controles = seccion.querySelector<HTMLElement>('[data-carrusel-controles]');
+    if (!carrusel || !anterior || !siguiente || !controles) return;
+    controles.hidden = false;
+    const actualizar = () => {
+      anterior.disabled = carrusel.scrollLeft <= 2;
+      siguiente.disabled = carrusel.scrollLeft >= carrusel.scrollWidth - carrusel.clientWidth - 2;
+    };
+    const avanzar = (direccion: number) => {
+      const tarjeta = carrusel.querySelector('li');
+      const paso = tarjeta ? tarjeta.getBoundingClientRect().width + 20 : carrusel.clientWidth;
+      carrusel.scrollBy({left: direccion * paso, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth'});
+    };
+    anterior.addEventListener('click', () => avanzar(-1));
+    siguiente.addEventListener('click', () => avanzar(1));
+    carrusel.addEventListener('scroll', actualizar, {passive: true});
+    window.addEventListener('resize', actualizar, {passive: true});
+    actualizar();
+  });
+</script>
 <style>
-  .seccion-funciones { background: var(--color-gray-25); }
-  .funciones { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--color-gray-300); }
-  .funcion { padding: 34px 28px 0; border-left: 1px solid var(--color-gray-200); }
-  .funcion:first-child { padding-left: 0; border-left: 0; }
-  .funcion:last-child { padding-right: 0; }
-  .numero-funcion { display: block; margin-bottom: 38px; font-size: 14px; color: var(--color-brand-600); font-weight: 500; }
-  h3 { margin-bottom: 14px; font-size: 23px; line-height: 1.3; font-weight: 500; letter-spacing: -0.02em; }
-  .funcion p { color: var(--color-gray-600); font-size: 16px; line-height: 1.65; }
-  ul { margin-top: 27px; display: grid; gap: 12px; }
-  li { padding-left: 15px; border-left: 2px solid var(--color-brand-200); font-size: 14px; line-height: 1.55; }
-  @media (max-width: 767px) {
-    .funciones { grid-template-columns: 1fr; }
-    .funcion, .funcion:first-child, .funcion:last-child { padding: 27px 0; border-left: 0; border-bottom: 1px solid var(--color-gray-200); }
-    .numero-funcion { margin-bottom: 17px; }
-    ul { margin-top: 20px; }
-  }
+  [hidden] { display: none !important; }
+  .encabezado-herramientas { text-align: center; }
+  .encabezado-herramientas > p { color: var(--color-gray-600); margin: 20px auto; max-width: 600px; }
+  .carrusel-controles { display: flex; justify-content: center; gap: 12px; margin: 26px 0; }
+  button { width: 48px; height: 48px; border: 1px solid var(--color-gray-200); border-radius: var(--radius-base); background: white; font-size: 22px; font-family: system-ui, sans-serif; cursor: pointer; }
+  button:disabled { opacity: .35; cursor: default; }
+  button:hover:not(:disabled) { border-color: var(--color-brand-500); color: var(--color-brand-700); }
+  .lista-herramientas { display: grid; grid-auto-flow: column; grid-auto-columns: 31%; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 4px; overscroll-behavior-x: contain; padding: 4px 4px 16px; margin: 28px 0 0; list-style: none; }
+  li { min-width: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 44px; scroll-snap-align: start; border-radius: var(--radius-base); background: var(--color-gray-25); border: 1px solid var(--color-gray-100); padding: 28px 22px 20px; }
+  h3 { font-size: 22px; font-weight: 500; margin-bottom: 12px; }
+  li p { color: var(--color-gray-600); font-size: 15px; line-height: 1.7; }
+  li img { width: 100%; height: auto; border: 1px solid var(--color-gray-200); border-radius: var(--radius-base); }
+  li a > span { display: flex; justify-content: space-between; align-items: center; min-height: 44px; font-size: 13px; margin-top: 8px; }
+  li a:hover > span { color: var(--color-brand-700); text-decoration: underline; }
+  .nota-herramientas { margin-top: 16px; color: var(--color-gray-600); font-size: 12px; }
+  @media (max-width: 1023px) { .lista-herramientas { grid-auto-columns: 46%; } }
+  @media (max-width: 600px) { .lista-herramientas { grid-auto-columns: 86%; } li { padding: 24px 18px 16px; gap: 28px; } }
 </style>

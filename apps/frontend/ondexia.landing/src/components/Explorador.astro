@@ -1,4 +1,5 @@
 ---
+import Cartel from './Cartel.astro';
 const escenas = [
   {
     clave: 'venta',
@@ -31,30 +32,61 @@ const escenas = [
 const rotuloCaptura = 'Capturas del sistema · datos de demostración';
 ---
 
-<section id="explorar" class="explorador" aria-labelledby="titulo-explorador" data-explorador>
-  <div class="explorador-interior">
-    <div class="explorador-presentacion">
-      <h2 id="titulo-explorador">Una venta. Todo su recorrido.</h2>
-      <p>Preparar la operación, consultar su registro y revisar el documento.</p>
+<section class="explorador" aria-label="Presentación del sistema" data-explorador>
+  <Cartel />
+  <div id="explorar" class="explorador-interior">
+    <div class="explorador-recorrido" data-recorrido hidden>
+      <div class="recorrido-escenario" data-escenario>
+        <div class="escenario-adornos" aria-hidden="true" data-adornos>
+          {escenas.map((_escena, indice) => (
+            <div class="adornos-grupo" data-adorno-grupo hidden={indice !== 0}>
+              <div class="adorno adorno-izquierdo">
+                <span class="adorno-numero">0{indice + 1}</span>
+                <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2" focusable="false">
+                  {indice === 0 ? <><path d="M20 30 50 15 80 30 50 45Z M20 30v40l30 15 30-15V30 M50 45v40 M35 22l30 15v17" /></>
+                    : indice === 1 ? <><rect x="18" y="18" width="64" height="64" rx="6" /><path d="M30 35h40 M30 50h40 M30 65h25" /></>
+                    : <><path d="M27 12h35l13 13v63H27Z M62 12v15h13 M37 42h28 M37 55h28 M37 68h18" /></>}
+                </svg>
+                <span>{['Bienes y servicios', 'Detalle de la operación', 'Nota de venta'][indice]}</span>
+              </div>
+              <div class="adorno adorno-derecho">
+                <span class="adorno-etiqueta">{['Preparar', 'Consultar', 'Presentar'][indice]}</span>
+                <strong>{['Revisar antes de registrar', 'Consultar lo registrado', 'Preparar la impresión'][indice]}</strong>
+                <svg viewBox="0 0 220 85" fill="none" stroke="currentColor" stroke-width="2" focusable="false"><path d="M5 65Q55 0 110 42T215 12" /><circle cx="110" cy="42" r="5" /></svg>
+              </div>
+            </div>
+          ))}
+        </div>
+        <nav class="escenario-timeline" aria-label="Recorrido del sistema" data-timeline hidden>
+          <p class="rotulo">Una venta. Todo su recorrido.</p>
+          {escenas.map((escena, indice) => (
+            <div class="timeline-paso">
+              <div class="timeline-linea" aria-hidden="true"><span data-barra></span></div>
+              <h2><button type="button" data-paso aria-expanded={indice === 0 ? 'true' : 'false'} aria-controls={`detalle-${escena.clave}`}>
+                <span>{escena.numero}</span>{escena.tituloCorto}
+              </button></h2>
+              <div id={`detalle-${escena.clave}`} data-detalle hidden={indice !== 0}>
+                <h3>{escena.titulo}</h3><p>{escena.descripcion}</p>
+              </div>
+            </div>
+          ))}
+        </nav>
+        <div class="escenario-composicion" data-composicion>
+          <svg class="escenario-contorno" viewBox="0 0 1440 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M80 40 Q720 0 1360 40 Q1440 500 1360 960 Q720 1000 80 960 Q0 500 80 40 Z" data-contorno /></svg>
+          <div class="escenario-marco" role="img" aria-label={escenas[0].alternativa} data-marco data-visual>
+            {escenas.map((escena) => <img class="escenario-capa" src={escena.captura} alt="" aria-hidden="true" width="1440" height="1000" decoding="async" data-capa />)}
+          </div>
+          <div class="escenario-informacion">
+            <p class="captura-rotulo">{rotuloCaptura}</p>
+            <div class="escena-acciones">
+              <button class="boton-recorrido" type="button" data-ampliar-actual>Ampliar captura</button>
+              <a class="enlace-original" href={escenas[0].captura} data-original-actual>Ver captura original</a>
+            </div>
+          </div>
+        </div>
+        <button class="boton-recorrido detener" type="button" data-detener>Ver sin animación</button>
+      </div>
     </div>
-
-    <nav class="explorador-navegacion" aria-label="Recorrido del sistema" data-pasos>
-      <div class="explorador-pasos">
-        {escenas.map((escena) => (
-          <a class="explorador-paso" href={`#escena-${escena.clave}`} aria-label={`${escena.numero} ${escena.titulo}`} data-paso>
-            <span class="paso-numero" aria-hidden="true">{escena.numero}</span>
-            <span class="titulo-amplio">{escena.titulo}</span>
-            <span class="titulo-corto" aria-hidden="true">{escena.tituloCorto}</span>
-          </a>
-        ))}
-      </div>
-      <div class="navegacion-opciones">
-        <span class="recorrido-progreso" data-progreso>3 escenas</span>
-        <button class="boton-recorrido" type="button" data-detener hidden>Ver sin animación</button>
-      </div>
-    </nav>
-
-    <!-- Las pantallas completas conservan su recorrido sin depender del movimiento. -->
     <div class="explorador-escenas" data-escenas>
       {escenas.map((escena, indice) => (
         <article id={`escena-${escena.clave}`} class="explorador-escena" aria-labelledby={`titulo-escena-${escena.clave}`} data-escena data-clave={escena.clave}>
@@ -72,30 +104,6 @@ const rotuloCaptura = 'Capturas del sistema · datos de demostración';
           </figure>
         </article>
       ))}
-    </div>
-
-    <div class="explorador-recorrido" data-recorrido hidden>
-      <div class="recorrido-escenario" data-escenario>
-        <div class="escenario-composicion">
-          <svg class="escenario-contorno" viewBox="0 0 1440 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-            <path d="M80 40 Q720 0 1360 40 Q1440 500 1360 960 Q720 1000 80 960 Q0 500 80 40 Z" data-contorno />
-          </svg>
-          <div class="escenario-marco" role="img" aria-label={escenas[0].alternativa} aria-describedby="descripcion-pantalla-actual" data-marco data-visual>
-            {escenas.map((escena) => (
-              <img class="escenario-capa" src={escena.captura} alt="" aria-hidden="true" width="1440" height="1000" loading="lazy" decoding="async" data-capa data-clave={escena.clave} />
-            ))}
-          </div>
-        </div>
-        <div class="escenario-informacion">
-          <h3 tabindex="-1" data-titulo-actual>{escenas[0].titulo}</h3>
-          <p id="descripcion-pantalla-actual" class="escenario-descripcion" data-descripcion-actual>{escenas[0].descripcion}</p>
-          <div class="escena-acciones">
-            <button class="boton-recorrido" type="button" data-ampliar-actual>Ampliar captura</button>
-            <a class="enlace-original" href={escenas[0].captura} data-original-actual>Ver captura original</a>
-          </div>
-          <p class="captura-rotulo">{rotuloCaptura}</p>
-        </div>
-      </div>
     </div>
 
     <dialog class="explorador-dialogo" aria-labelledby="titulo-captura-ampliada" data-dialogo>
@@ -116,327 +124,50 @@ const rotuloCaptura = 'Capturas del sistema · datos de demostración';
     </dialog>
   </div>
 </section>
-
 <script src="../scripts/explorador.ts"></script>
-
 <style>
-  .explorador {
-    --alto-cabecera: 90px;
-    scroll-margin-top: calc(var(--alto-cabecera) + 16px);
-    background: var(--color-white);
-  }
-
-  [hidden] {
-    display: none !important;
-  }
-
-  .explorador-interior {
-    width: min(100% - 64px, 1200px);
-    margin-inline: auto;
-    padding-bottom: 80px;
-  }
-
-  .explorador-presentacion {
-    margin-bottom: 28px;
-    text-align: center;
-  }
-
-  .explorador-presentacion h2 {
-    color: var(--color-gray-900);
-    font-size: clamp(28px, 3.1vw, 42px);
-    font-weight: 500;
-    letter-spacing: -0.035em;
-    line-height: 1.2;
-    text-wrap: balance;
-  }
-
-  .explorador-presentacion p {
-    margin-top: 12px;
-    color: var(--color-gray-600);
-    font-size: 17px;
-    line-height: 1.6;
-  }
-
-  .explorador-navegacion {
-    position: sticky;
-    z-index: 30;
-    top: var(--alto-cabecera);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 16px;
-    padding-block: 12px;
-    border-bottom: 1px solid var(--color-gray-200);
-    background: var(--color-white);
-  }
-
-  .explorador-pasos {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    flex: 1;
-    gap: 4px;
-    min-width: min(100%, 540px);
-    padding: 4px;
-    border: 1px solid var(--color-gray-200);
-    border-radius: var(--radius-base);
-    background: var(--color-gray-25);
-  }
-
-  .explorador-paso {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    min-height: 44px;
-    padding: 8px 12px;
-    border: 1px solid transparent;
-    border-bottom: 2px solid transparent;
-    border-radius: var(--radius-base);
-    color: var(--color-gray-600);
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.4;
-    text-align: center;
-    transition:
-      color var(--duracion-normal) var(--ease-propia),
-      background-color var(--duracion-normal) var(--ease-propia),
-      border-color var(--duracion-normal) var(--ease-propia);
-  }
-
-  .explorador-paso:hover {
-    background: var(--color-gray-100);
-    color: var(--color-gray-900);
-  }
-
-  .explorador-paso[aria-current='step'] {
-    border-color: var(--color-gray-300);
-    border-bottom-color: var(--color-brand-500);
-    background: var(--color-white);
-    color: var(--color-brand-700);
-  }
-
-  .paso-numero,
-  .recorrido-progreso {
-    font-size: 12px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .titulo-corto {
-    display: none;
-  }
-
-  .navegacion-opciones {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    max-width: 100%;
-  }
-
-  .recorrido-progreso {
-    color: var(--color-gray-600);
-    line-height: 1.5;
-    white-space: nowrap;
-  }
-
-  .boton-recorrido {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 44px;
-    padding: 10px 16px;
-    border: 1px solid var(--color-gray-500);
-    border-radius: var(--radius-base);
-    background: var(--color-white);
-    color: var(--color-gray-800);
-    font: inherit;
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 1.4;
-    transition: background-color var(--duracion-normal) var(--ease-propia);
-  }
-
-  .boton-recorrido:hover {
-    background: var(--color-gray-50);
-  }
-
-  .enlace-original {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    color: var(--color-brand-700);
-    font-size: 14px;
-    line-height: 1.4;
-    text-decoration: underline;
-    text-underline-offset: 4px;
-  }
-
-  .explorador-escenas {
-    display: grid;
-  }
-
-  .explorador-escena {
-    min-width: 0;
-    padding-block: 40px;
-    border-bottom: 1px solid var(--color-gray-200);
-    scroll-margin-top: var(--tope-recorrido, calc(var(--alto-cabecera) + 120px));
-  }
-
-  .explorador-escena:last-child {
-    border-bottom: 0;
-  }
-
-  .escena-encabezado {
-    max-width: 840px;
-    margin: 0 auto 24px;
-    text-align: center;
-  }
-
-  .escena-encabezado h3,
-  .escenario-informacion h3 {
-    color: var(--color-gray-900);
-    font-size: clamp(24px, 2.5vw, 32px);
-    font-weight: 500;
-    letter-spacing: -0.025em;
-    line-height: 1.3;
-    text-wrap: balance;
-  }
-
-  .escena-encabezado > p {
-    margin-top: 10px;
-    color: var(--color-gray-600);
-    font-size: 16px;
-    line-height: 1.6;
-  }
-
-  .escena-acciones {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    gap: 8px 18px;
-  }
-
-  .escena-encabezado .escena-acciones {
-    margin-top: 16px;
-  }
-
-  figure {
-    margin: 0;
-  }
-
-  .captura-completa {
-    display: block;
-    width: 100%;
-    height: auto;
-    border: 1px solid var(--color-gray-300);
-    border-radius: var(--radius-base);
-    background: var(--color-gray-25);
-  }
-
-  figcaption,
-  .captura-rotulo {
-    color: var(--color-gray-600);
-    font-size: 12px;
-    line-height: 1.5;
-    text-align: center;
-  }
-
-  figcaption {
-    margin-top: 12px;
-  }
-
-  .explorador-recorrido {
-    margin: 0;
-    padding: 0;
-  }
-
-  .modo-scroll .explorador-recorrido {
-    height: calc(3 * 100svh);
-  }
-
-  .recorrido-escenario {
-    margin: 0;
-    padding: 0;
-  }
-
-  .modo-scroll .recorrido-escenario {
-    position: sticky;
-    top: var(--tope-recorrido, calc(var(--alto-cabecera) + 100px));
-  }
-
-  .escenario-composicion {
-    position: relative;
-    isolation: isolate;
-    width: min(100%, 1200px, calc((100svh - var(--tope-recorrido, 190px) - 150px) * 1.44));
-    margin-inline: auto;
-  }
-
-  .escenario-contorno {
-    position: absolute;
-    z-index: -1;
-    inset: -16px -24px;
-    width: calc(100% + 48px);
-    height: calc(100% + 32px);
-    overflow: visible;
-    fill: var(--color-brand-100);
-    pointer-events: none;
-  }
-
-  .escenario-marco {
-    position: relative;
-    width: 100%;
-    overflow: hidden;
-    aspect-ratio: 1440 / 1000;
-    border: 1px solid var(--color-gray-300);
-    border-radius: var(--radius-base);
-    background: var(--color-gray-25);
-  }
-
-  .escenario-capa {
-    position: absolute;
-    inset: 0;
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  .escenario-capa:first-child {
-    opacity: 1;
-  }
-
-  .escenario-informacion {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    margin-top: 10px;
-    text-align: center;
-  }
-
-  .escenario-informacion h3 {
-    max-width: 100%;
-    font-size: 24px;
-  }
-
-  .escenario-descripcion {
-    max-width: 920px;
-    color: var(--color-gray-600);
-    font-size: 15px;
-    line-height: 1.5;
-  }
-
-  .boton-recorrido,
-  .enlace-original,
-  .escenario-informacion h3 {
-    scroll-margin-top: var(--tope-recorrido, calc(var(--alto-cabecera) + 100px));
-    scroll-margin-bottom: 16px;
-  }
-
+  [hidden] { display: none !important; }
+  .explorador { --alto-cabecera: 90px; background: white; overflow-x: clip; }
+  .explorador-interior { width: min(100% - 64px, 1200px); margin-inline: auto; scroll-margin-top: 100px; }
+  .explorador-recorrido { height: calc((100svh - 110px) * 6); }
+  .recorrido-escenario { position: sticky; top: 100px; height: calc(100svh - 110px); min-height: 560px; }
+  .escenario-composicion { position: absolute; left: 50%; top: 50%; width: min(76%, 900px, calc((100svh - 240px) * 1.44)); transform: translate(-50%, -50%); z-index: 2; }
+  .escenario-marco { position: relative; aspect-ratio: 1440 / 1000; border: 1px solid var(--color-gray-300); border-radius: var(--radius-base); overflow: hidden; background: var(--color-gray-25); }
+  .escenario-capa { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; }
+  .escenario-capa:first-child { opacity: 1; }
+  .escenario-contorno { position: absolute; inset: -16px; width: calc(100% + 32px); height: calc(100% - 50px); z-index: -1; fill: var(--color-brand-50); }
+  .escenario-informacion { text-align: center; padding-top: 14px; }
+  .captura-rotulo, figcaption { color: var(--color-gray-600); font-size: 12px; margin-top: 12px; }
+  .escena-acciones { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 24px; }
+  .boton-recorrido, .enlace-original { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px; color: var(--color-gray-600); font: inherit; font-size: 13px; cursor: pointer; text-decoration: underline; text-underline-offset: 5px; background: transparent; border: 0; }
+  .boton-recorrido:hover, .enlace-original:hover { color: var(--color-brand-700); }
+  .detener { position: absolute; bottom: 0; right: 0; z-index: 3; }
+  .escenario-timeline { position: absolute; left: 0; top: 50%; width: 26%; transform: translateY(-50%); z-index: 1; }
+  .escenario-timeline > p { font-size: 12px; color: var(--color-gray-600); margin-bottom: 26px; }
+  .timeline-linea { height: 2px; background: var(--color-gray-200); }
+  .timeline-linea span { display: block; height: 100%; background: var(--color-brand-500); transform: scaleX(0); transform-origin: left; }
+  .timeline-paso button { display: flex; gap: 16px; align-items: center; width: 100%; min-height: 64px; border: 0; text-align: left; background: none; font: inherit; font-weight: 500; font-size: 22px; cursor: pointer; color: var(--color-gray-600); }
+  .timeline-paso button span { font-size: 12px; font-weight: 400; }
+  .timeline-paso button[aria-expanded='true'] { color: var(--color-brand-700); }
+  .timeline-paso h3 { font-size: 16px; font-weight: 500; line-height: 1.5; margin: 4px 0 12px; }
+  .timeline-paso p { font-size: 15px; color: var(--color-gray-600); line-height: 1.7; margin-bottom: 28px; }
+  .escenario-adornos { position: absolute; inset: 0; pointer-events: none; }
+  .adornos-grupo { position: absolute; inset: 0; }
+  .adorno { position: absolute; width: 220px; padding: 24px; border: 1px solid var(--color-brand-100); border-radius: var(--radius-base); background: var(--color-brand-25); color: var(--color-brand-700); }
+  .adorno-izquierdo { left: -20px; top: -70px; transform: rotate(-12deg); }
+  .adorno-derecho { right: -20px; top: -40px; transform: rotate(10deg); background: var(--color-gray-25); }
+  .adorno svg { width: 100%; height: 100px; margin: 20px 0; }
+  .adorno span { font-size: 13px; }
+  .adorno-numero { display: block; }
+  .adorno strong { display: block; margin-top: 20px; font-size: 24px; font-weight: 500; line-height: 1.2; }
+  .adornos-grupo:nth-child(2) .adorno { color: #24645c; background: #f1f7f5; border-color: #dbe9e4; }
+  .adornos-grupo:nth-child(3) .adorno { color: #85522e; background: #fbf5ef; border-color: #eee0d0; }
+  .explorador-escena { padding: 48px 0; scroll-margin-top: 110px; }
+  .escena-encabezado { text-align: center; margin-bottom: 24px; }
+  .escena-encabezado h3 { font-size: 28px; font-weight: 500; }
+  .escena-encabezado p { margin: 16px auto; max-width: 600px; color: var(--color-gray-600); }
+  .escena-figura { margin: 0; text-align: center; }
+  .captura-completa { display: block; width: 100%; height: auto; border: 1px solid var(--color-gray-200); border-radius: var(--radius-base); }
   .explorador-dialogo {
     width: min(1480px, calc(100% - 48px));
     max-width: none;
@@ -519,189 +250,12 @@ const rotuloCaptura = 'Capturas del sistema · datos de demostración';
     border-top: 1px solid var(--color-gray-200);
   }
 
-  @media (max-width: 1023px) {
-    .explorador {
-      --alto-cabecera: 76px;
-    }
-  }
 
   @media (max-width: 767px) {
-    .explorador-interior {
-      width: calc(100% - 40px);
-      padding-bottom: 56px;
-    }
-
-    .explorador-presentacion {
-      margin-bottom: 20px;
-    }
-
-    .explorador-presentacion p {
-      font-size: 15px;
-    }
-
-    .explorador-navegacion {
-      gap: 8px;
-      padding-block: 8px;
-    }
-
-    .explorador-pasos {
-      flex: none;
-      width: 100%;
-      min-width: 0;
-    }
-
-    .explorador-paso {
-      gap: 0;
-      padding: 8px 6px;
-      font-size: 13px;
-    }
-
-    .paso-numero,
-    .titulo-amplio {
-      display: none;
-    }
-
-    .titulo-corto {
-      display: inline;
-    }
-
-    .navegacion-opciones {
-      width: 100%;
-    }
-
-    .explorador-escena {
-      padding-block: 32px;
-    }
-
-    .escena-encabezado {
-      margin-bottom: 20px;
-    }
-
-    .escena-encabezado h3 {
-      font-size: 26px;
-    }
-
-    .escena-encabezado > p {
-      font-size: 15px;
-    }
-
-    .escenario-informacion h3 {
-      min-height: 2.6em;
-    }
-
-    .escenario-descripcion {
-      min-height: 4.5em;
-    }
-
-    .escenario-contorno {
-      inset: -12px -16px;
-      width: calc(100% + 32px);
-      height: calc(100% + 24px);
-    }
-
-    .explorador-dialogo {
-      width: calc(100% - 24px);
-      height: min(1100px, calc(100dvh - 24px));
-      max-height: calc(100dvh - 24px);
-    }
-
-    .dialogo-encabezado {
-      gap: 12px;
-      padding: 12px;
-    }
-
-    .dialogo-encabezado h2 {
-      font-size: 17px;
-    }
-
-    .dialogo-pie {
-      padding-inline: 12px;
-    }
-
-    .dialogo-pie .boton-recorrido,
-    .dialogo-pie .enlace-original {
-      font-size: 13px;
-    }
-
-    .dialogo-pie .boton-recorrido {
-      padding-inline: 12px;
-    }
-  }
-
-  @media (max-height: 699px) {
-    .explorador-navegacion {
-      position: static;
-      gap: 8px;
-      padding-block: 4px;
-    }
-
-    .explorador-pasos {
-      flex: none;
-      width: auto;
-      min-width: 0;
-      padding: 0;
-      grid-template-columns: repeat(3, 44px);
-    }
-
-    .explorador-paso {
-      padding: 8px 4px;
-    }
-
-    .titulo-amplio,
-    .titulo-corto {
-      display: none;
-    }
-
-    .paso-numero {
-      display: inline;
-    }
-
-    .navegacion-opciones {
-      flex: 1;
-      width: auto;
-      justify-content: flex-end;
-    }
-
-    .explorador-escena {
-      padding-block: 12px;
-      scroll-margin-top: calc(var(--alto-cabecera) + 16px);
-    }
-
-    .modo-scroll .explorador-recorrido {
-      height: auto;
-    }
-
-    .modo-scroll .recorrido-escenario {
-      position: static;
-    }
-
-    .dialogo-encabezado {
-      padding-block: 8px;
-    }
-
-    .dialogo-encabezado p {
-      display: none;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .explorador-navegacion,
-    .modo-scroll .recorrido-escenario {
-      position: static;
-    }
-
-    .modo-scroll .explorador-recorrido {
-      height: auto;
-    }
-
-    .explorador-paso,
-    .boton-recorrido {
-      transition: none;
-    }
-
-    .escenario-marco,
-    .escenario-contorno {
-      transform: none;
-    }
+    .explorador-interior { width: calc(100% - 40px); }
+    .explorador-dialogo { width: calc(100% - 24px); }
+    .dialogo-encabezado { padding: 12px; }
+    .dialogo-encabezado h2 { font-size: 16px; }
+    .dialogo-pie { padding: 8px; }
   }
 </style>

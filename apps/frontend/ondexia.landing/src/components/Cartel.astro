@@ -1,24 +1,29 @@
 <section class="portada" aria-labelledby="titulo-portada">
   <div class="contenedor portada-interior">
-    <p class="portada-rotulo">Ondexia · Gestión comercial</p>
-    <h1 id="titulo-portada">Vender, cobrar y seguir<br class="salto-escritorio" /> cada operación.</h1>
-    <p class="portada-descripcion">Ventas, caja y catálogo conectados para trabajar con bienes y servicios desde el mismo sistema.</p>
+    <p class="portada-rotulo">Ondexia · Gestión comercial para empresas peruanas</p>
+    <h1 id="titulo-portada"><a href="#escena-venta" data-verbo>Vender</a>,{' '}
+      <a href="#escena-registro" data-verbo>consultar</a><br />e{' '}<a href="#escena-documento" data-verbo>imprimir</a>.<br />En un mismo lugar.</h1>
+    <p class="portada-descripcion">Del punto de venta al documento.<br />Una misma operación, con su detalle y sus pagos.</p>
     <div class="portada-acciones">
-      <a href="#acceso" class="btn-primario">Solicitar acceso</a>
-      <a href="#explorar" class="btn-contorno">Explorar el sistema</a>
+      <a href="#acceso" class="btn-primario">Solicitar acceso <svg class="flecha" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12" /></svg></a>
+      <a href="https://app.ondexia.com" class="enlace-ingresar">Ingresar al sistema <svg class="flecha" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12" /></svg></a>
     </div>
-    <p class="portada-contexto">Software de gestión comercial para empresas peruanas.</p>
+    <p class="portada-indicacion">Explorar una acción y continuar hacia abajo.</p>
   </div>
 </section>
-
 <style>
-  .portada { background: var(--color-white); }
-  .portada-interior { padding-block: 82px 62px; text-align: center; }
-  .portada-rotulo { margin-bottom: 24px; color: var(--color-gray-600); font-size: 14px; line-height: 1.5; }
-  h1 { margin-inline: auto; max-width: 990px; color: var(--color-gray-900); font-size: clamp(44px, 5.4vw, 72px); font-weight: 500; letter-spacing: -0.05em; line-height: 1.08; text-wrap: balance; }
-  .portada-descripcion { margin: 26px auto 0; max-width: 600px; color: var(--color-gray-600); font-size: 19px; line-height: 1.65; }
-  .portada-acciones { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 30px; }
-  .portada-contexto { margin-top: 22px; color: var(--color-gray-600); font-size: 13px; line-height: 1.6; }
-  @media (max-width: 767px) { .portada-interior { padding-block: 52px 42px; } .portada-descripcion { font-size: 17px; max-width: 480px; } .salto-escritorio { display: none; } }
-  @media (max-width: 420px) { h1 { font-size: 42px; } .portada-acciones { display: grid; grid-template-columns: 1fr; } .portada-rotulo { margin-bottom: 20px; font-size: 13px; } }
+  .portada-interior { padding-block: 64px 48px; text-align: center; }
+  .portada-rotulo { color: var(--color-gray-600); font-size: 13px; margin-bottom: 30px; }
+  h1 { color: var(--color-gray-900); font-size: clamp(48px, 6.5vw, 94px); font-weight: 500; letter-spacing: -0.055em; line-height: 1.04; }
+  h1 a { text-decoration: underline; text-decoration-color: var(--color-gray-200); text-decoration-thickness: 2px; text-underline-offset: 9px; transition: color 160ms, text-decoration-color 160ms; }
+  h1 a[aria-current='true'] { color: var(--color-brand-500); text-decoration-color: currentColor; }
+  h1 a:nth-of-type(2)[aria-current='true'] { color: #24645c; }
+  h1 a:nth-of-type(3)[aria-current='true'] { color: #85522e; }
+  .portada-descripcion { margin: 28px auto 0; color: var(--color-gray-600); font-size: 18px; line-height: 1.65; }
+  .portada-acciones { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 16px 30px; margin-top: 28px; }
+  .enlace-ingresar { display: inline-flex; gap: 16px; align-items: center; min-height: 48px; font-size: 14px; }
+  .enlace-ingresar:hover { text-decoration: underline; }
+  .portada-indicacion { font-size: 12px; margin-top: 24px; color: var(--color-gray-600); }
+  @media (max-width: 767px) { .portada-interior { padding-block: 44px 20px; } h1 { font-size: clamp(39px, 7vw, 60px); } .portada-descripcion { font-size: 16px; } }
+  @media (prefers-reduced-motion: reduce) { h1 a { transition: none; } }
 </style>

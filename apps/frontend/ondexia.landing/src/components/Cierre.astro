@@ -8,8 +8,8 @@ const correo = 'hola@ondexia.com';
   <div class="contenedor contacto-interior">
     <div>
       <p class="rotulo text-brand-600">El siguiente paso</p>
-      <h2 id="titulo-contacto" class="titulo-seccion">Comenzar con Ondexia.</h2>
-      <p class="descripcion-contacto">Presentar una necesidad del negocio y consultar si el sistema cubre la operación que se busca gestionar.</p>
+      <h2 id="titulo-contacto" class="titulo-seccion">Conocer Ondexia en acción.</h2>
+      <p class="descripcion-contacto">Solicitar acceso para conocer el sistema. Si ya se dispone de una cuenta, ingresar a la aplicación.</p>
     </div>
     <div class="acciones-contacto">
       {endpoint ? (
@@ -29,14 +29,16 @@ const correo = 'hola@ondexia.com';
       ) : (
         <a href={`mailto:${correo}?subject=Informaci%C3%B3n%20sobre%20Ondexia`} class="btn-primario">Solicitar acceso</a>
       )}
+      <a href="https://app.ondexia.com" class="enlace-aplicacion">Ingresar a la aplicación <svg class="flecha" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12" /></svg></a>
       <p>También se puede escribir directamente a<br /><a href={`mailto:${correo}`}>{correo}</a></p>
     </div>
   </div>
 </section>
 
 <style>
-  .contacto { background: var(--color-gray-25); border-top: 1px solid var(--color-gray-200); }
-  .contacto-interior { display: grid; grid-template-columns: 1fr 0.65fr; gap: 90px; align-items: center; }
+  .contacto { background: white; }
+  .enlace-aplicacion { display: flex; align-items: center; min-height: 44px; margin-top: 12px; font-size: 14px; text-decoration: underline; text-underline-offset: 4px; }
+  .contacto-interior { padding: 48px; background: var(--color-gray-25); border-radius: var(--radius-base); display: grid; grid-template-columns: 1fr 0.65fr; gap: 90px; align-items: center; }
   .descripcion-contacto { margin-top: 24px; max-width: 430px; font-size: 17px; line-height: 1.7; color: var(--color-gray-600); }
   .acciones-contacto > .btn-primario { min-width: 240px; }
   .acciones-contacto > p { margin-top: 22px; color: var(--color-gray-600); font-size: 14px; line-height: 1.8; }
@@ -48,5 +50,5 @@ const correo = 'hola@ondexia.com';
   .consentimiento { display: flex; align-items: flex-start; gap: 12px; font-size: 13px; color: var(--color-gray-600); line-height: 1.7; }
   .consentimiento input { width: 18px; height: 18px; margin-top: 3px; flex-shrink: 0; accent-color: var(--color-brand-500); }
   .consentimiento a { text-decoration: underline; }
-  @media (max-width: 767px) { .contacto-interior { grid-template-columns: 1fr; gap: 32px; } .acciones-contacto > .btn-primario { width: 100%; min-width: 0; } }
+  @media (max-width: 767px) { .contacto-interior { grid-template-columns: 1fr; gap: 32px; padding: 32px 24px; } .acciones-contacto > .btn-primario { width: 100%; min-width: 0; } }
 </style>

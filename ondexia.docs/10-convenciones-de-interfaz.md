@@ -430,11 +430,11 @@ y los [formatos de evaluación](investigacion/2026-10-10-requisitos-ux-seguridad
 
 ## 16. Presentación pública del producto
 
-Complemento para la [landing interactiva, revisión del 2026-10-15](landing-propuesta/2026-10-14-interactividad.md#revisión-vigente--2026-10-15--ventana-central-y-capturas-de-computador).
+Complemento para la [landing interactiva, revisión del 2026-10-15](landing-propuesta/2026-10-14-interactividad.md#revisión-del-recorrido-continuo--2026-10-15).
 Conserva el registro del §2, el sistema visual de los §§3–6 y los controles del
 §15. Describe cómo presentar tareas del producto; no aprueba condiciones
 comerciales ni una nueva política de emisión. Los resultados locales y límites
-se registran en la [evidencia del 2026-10-15](evidencias/2026-10-15-escenario-landing.md).
+se registran en la [evidencia del recorrido continuo](evidencias/2026-10-15-presentacion-continua.md).
 
 ### 16.1. Escritura editorial
 
@@ -481,50 +481,50 @@ explicación en HTML además de la descripción accesible.
 
 ### 16.3. Interacción local y alternativa estática
 
-Aplicar §15 a una ventana central grande que presenta tres capítulos de la misma
-tarea. Habilitar la mejora solo con las capacidades necesarias, altura de al
-menos 700 píxeles CSS y espacio efectivo para la captura, explicación y controles.
-El desplazamiento nativo controla un progreso continuo y reversible: bajar y
-subir recorren los mismos estados, sin temporizadores, avance autónomo ni captura
-de rueda, teclas o gestos. Los enlaces ancla de capítulos proporcionan navegación
-directa y `aria-current="step"`; el desplazamiento por sí solo no mueve el foco
-ni anuncia cada fotograma.
+La revisión del recorrido continuo del 2026-10-15 en la especificación vigente
+incorpora la referencia visual entregada por el propietario: portada con verbos,
+salida de complementos, traslado de la captura y acordeón con progreso por capítulo.
+Mantener las capturas completas y los controles estables durante toda la secuencia.
+Los verbos utilizan enlaces ancla nativos; en escritorio mejorado, hover, foco y
+activación seleccionan la misma escena. No introducir semántica de pestañas.
 
-La ventana central expone una única imagen accesible y descripción compartida
-de la escena actual. Sus capas de captura y el SVG decorativo no duplican la
-lectura. Los controles de capítulos, ampliación y «Ver sin animación» permanecen
-estables: cambiar por desplazamiento no oculta un control enfocado. Los saltos
-solicitados dejan título y foco visibles; no utilizar semántica de pestañas.
+Habilitar la fijación solo desde 1024 píxeles CSS de ancho y 700 de alto, con
+soporte para unidades svh y aspect-ratio. El scroll nativo controla un avance
+continuo y reversible, sin capturar rueda, teclas o gestos ni introducir avance
+autónomo. El primer tramo retira los elementos ilustrativos; el segundo desplaza
+la captura y revela el acordeón; los últimos tres tramos activan cada capítulo y
+su barra. La barra representa distancia recorrida, no duración. Al finalizar,
+la sección recupera el flujo normal. Solo la activación expresa de un encabezado
+puede saltar al capítulo; el scroll no cambia el foco ni anuncia cada fotograma.
 
-La excepción de marketing del §6 permite fundidos por opacidad y morphing
-opcional de un marco o fondo SVG, no de los píxeles de las capturas. Mantener
-idéntica estructura `M Q Q Q Q Z` e interpolar coordenadas por tramos; no añadir
-una dependencia para el efecto. Las animaciones WAAPI se mantienen pausadas y
-`currentTime` sigue el progreso. Un listener pasivo y rAF coordinan las
-actualizaciones; rAF no se presenta como limitador de frecuencia. No depender
-de `animation-timeline` o `ScrollTimeline` para poder leer la demostración.
-La investigación de soporte y los offsets esperados están en la especificación.
+La escena expone una única imagen accesible. Sus capas y objetos decorativos no
+duplican la lectura. Los encabezados del acordeón son botones permanentes con
+aria-expanded y aria-controls; únicamente el párrafo asociado cambia de visibilidad.
+No ocultar ni tapar un encabezado enfocado al retroceder; conservar la composición lateral hasta que salga el foco. La excepción de marketing del §6
+permite desplazamiento, opacidad y morphing del contorno SVG; nunca de los píxeles
+de la aplicación. Interpolar una estructura común M/Q/Q/Q/Q/Z sin dependencias.
+Un listener pasivo y rAF coordinan actualizaciones; no se consideran garantía de
+rendimiento. Medir el comportamiento real antes de afirmar una frecuencia de cuadros.
 
 Con movimiento reducido, «Ver sin animación», JavaScript ausente o bloqueado,
-altura inferior a 700 píxeles CSS o espacio insuficiente, mostrar los tres
-artículos en flujo normal, sin fijación ni animación de la demostración. Atender
-el cambio de preferencia o tamaño con la página abierta y conservar el punto de
-lectura y el foco. La alternativa estática indica «3 escenas», conserva enlaces
-ancla y originales; menú y preguntas funcionan con HTML nativo.
+ancho/alto insuficiente o capacidades ausentes, mostrar los tres artículos en
+flujo normal. Los verbos conservan sus destinos ancla. Respetar cambios dinámicos
+de tamaño o preferencia, conservar el punto de lectura y llevar el foco a la
+escena equivalente si su control anterior desaparece. No reactivar la fijación
+mientras se lee o se utiliza un artículo de la alternativa.
 
-La ampliación utiliza el mismo PNG de computador: ajuste completo inicial y
-«Tamaño real» a 1440 píxeles CSS con paneo dentro del diálogo, sin desplazar de
-lado toda la página. Ofrecer retorno al ajuste, Escape y Cerrar, reapertura
-ajustada con desplazamientos en cero y retorno del foco al botón estable de
-apertura. Mantener el enlace al original como alternativa sin JavaScript.
+La ampliación conserva ajuste inicial, tamaño real de 1440 píxeles con paneo
+interno, Escape, Cerrar, reapertura ajustada y retorno de foco. Sin scripts,
+conservar el enlace al PNG original. El carrusel de herramientas admite flechas,
+desplazamiento táctil y teclado sin bloquear la página. Sus botones se deshabilitan
+en los extremos; sin scripts el listado continúa siendo desplazable.
 
-La landing se compila como Astro estático. Utilizar el mínimo código local en
-archivos externos para la mejora progresiva, sin introducir API, backend,
-autenticación ni terceros. La propuesta de CSP mantiene `default-src 'none'` y
-permite `script-src 'self'`; comprobar scripts locales operativos y rechazo de
-scripts ejecutables inline y conexiones con cabeceras servidas, no solo leyendo
-la configuración. La aplicación efectiva en AWS queda para una publicación
-revisada; AWS no se ha modificado ni verificado en este trabajo local.
+Servir páginas estáticas y scripts locales bajo la CSP existente; no agregar
+terceros ni relajar directivas. La página comercial usa /planes.html para funcionar
+como objeto S3 sin requerir reescritura CloudFront. Canonical, sitemap y enlaces
+comparten esa dirección. Las ofertas estructuradas solo aparecen en la página
+que muestra los importes y sus condiciones. Mantener explícitos los pendientes
+legales y no presentar contactos por correo como políticas aprobadas.
 
 ### 16.4. Evidencia y pendientes
 
@@ -537,18 +537,18 @@ Reutilizar el harness existente al implementar:
 `herramientas/capturar-producto-landing.py` para acreditar las capturas completas
 y `herramientas/comprobar-interactividad-landing.py` para los nuevos casos de uso.
 Playwright y Chromium son dependencias locales opcionales de esa revisión, no
-del sitio publicado. Fijar esperados de 0/25/50/75/100 % y reversa, estabilidad en
-pausa, estructura e intermedios del path, procedencia de los mismos PNG a todos
-los anchos, alternativas estáticas, modal, foco y CSP. Registrar un perfil de
+del sitio publicado. Fijar esperados de salida, traslado intermedio, 50 % de cada capítulo y reversa,
+estabilidad en pausa, procedencia de los mismos PNG, alternativas, modal, foco y CSP.
+Los oráculos del escenario anterior quedan disponibles con --escenario-historico. Registrar un perfil de
 rendimiento y tareas largas; no deducir «60 fps» de la tecnología elegida.
 
 La [reproducción de la landing](../apps/frontend/ondexia.landing/README.md) explica
 la preparación local. La [evidencia del recorrido del 2026-10-14](evidencias/2026-10-14-recorrido-landing.md)
 y la [primera versión interactiva](evidencias/2026-10-14-landing-interactiva.md)
-son históricas; no verifican la revisión del 2026-10-15. La [evidencia actual](evidencias/2026-10-15-escenario-landing.md)
-registra los casos ejecutados en Chromium local, la revisión independiente y el
-perfil descriptivo; otros navegadores, teléfonos físicos y conformidad completa
-continúan sin verificar. Se complementa el mismo harness.
+son históricas, junto con la [ventana central anterior](evidencias/2026-10-15-escenario-landing.md).
+La [evidencia actual del recorrido continuo](evidencias/2026-10-15-presentacion-continua.md)
+registra Chromium local y el perfil descriptivo. Otros navegadores, teléfonos físicos,
+auditoría independiente de esta iteración y conformidad completa siguen pendientes.
 
 La mejora de presentación no decide precios ni CTA final, no habilita el servicio
 de contacto y no cambia el ensayo de SUNAT. Esos pendientes conservan su autoridad

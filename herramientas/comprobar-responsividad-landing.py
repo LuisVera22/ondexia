@@ -81,12 +81,12 @@ with sync_playwright() as p:
         pagina.screenshot(path=str(DIRECTORIO / f'despues-{ancho}.png'), full_page=True)
         resultados.append({'ancho': ancho, 'desbordamiento': False, 'menu_teclado': ancho < 1024, 'preguntas_teclado': True})
     # Mutación aislada en el DOM: no modifica archivos ni configuración publicada.
-    pagina.locator('#acceso').evaluate("e => e.style.backgroundColor = '#4f46e5'")
+    pagina.locator('#acceso > div').evaluate("e => e.style.backgroundColor = '#4f46e5'")
     pagina.locator('#acceso > div > div > p:not(.rotulo)').first.evaluate("e => e.style.color = '#26235e'")
     pagina.wait_for_function('''() => {
       const parrafo = document.querySelector('#acceso > div > div > p:not(.rotulo)');
       return getComputedStyle(parrafo).color === 'rgb(38, 35, 94)'
-        && getComputedStyle(document.querySelector('#acceso')).backgroundColor === 'rgb(79, 70, 229)';
+        && getComputedStyle(document.querySelector('#acceso > div')).backgroundColor === 'rgb(79, 70, 229)';
     }''')
     try:
         contraste(pagina)

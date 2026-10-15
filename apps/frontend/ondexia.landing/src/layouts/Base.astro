@@ -21,7 +21,7 @@ const { titulo, descripcion } = Astro.props;
 
 // Absolutas y derivadas de `site` (astro.config.mjs). Escribirlas a mano es
 // como se acaba con un canonical que apunta a localhost.
-const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const canonical = new URL(Astro.url.pathname === '/index.html' ? '/' : Astro.url.pathname, Astro.site).href;
 const imagenSocial = new URL('/og-ondexia.png', Astro.site).href;
 
 /**
@@ -60,14 +60,14 @@ const datosEstructurados = {
     'Catálogos de bienes y servicios',
     'Control de inventario por establecimiento',
   ],
-  offers: planes.map((plan) => ({
+  offers: Astro.url.pathname.startsWith('/planes') ? planes.map((plan) => ({
     '@type': 'Offer',
     name: `Plan ${plan.nombre}`,
     description: plan.descripcion,
     price: plan.precio,
     priceCurrency: 'PEN',
     availability: 'https://schema.org/PreOrder',
-  })),
+  })) : undefined,
 };
 ---
 

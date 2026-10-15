@@ -1,6 +1,7 @@
-"""Aceptación local de ventana cinematográfica, alternativa estática, ampliación y CSP.
+"""Aceptación local del recorrido continuo, alternativas, ampliación y CSP.
 
-Esperados independientes: tres PNG 1440 × 1000, cinco progresos y morph M/Q/Q/Q/Q/Z.
+Esperados independientes: tres PNG 1440 × 1000, traslado, capítulos al 50 % y reversa.
+--escenario-historico conserva los cinco progresos y morph de la versión anterior.
 Requiere Playwright Python, Chromium y build servido con la cabecera Terraform.
 No acredita AWS, servicios reales, dispositivos físicos ni conformidad WCAG.
 """
@@ -699,12 +700,184 @@ def comprobar(direccion, anterior, base, destino):
     return resultado['estado'] == 'correcto'
 
 
+def comprobar_presentacion(direccion, destino):
+    """Oráculo de la referencia del propietario; no deriva esperados del script del sitio."""
+    destino.mkdir(parents=True, exist_ok=True)
+    resultado = {'estado': 'enCurso', 'etapa': 'verbos', 'url': direccion,
+                 'noVerificado':['AWS', 'servicios reales', 'otros navegadores', 'dispositivos físicos', 'auditoría independiente', 'WCAG completa']}
+    try:
+        with sync_playwright() as p:
+            navegador = p.chromium.launch(executable_path=shutil.which('chromium'), args=['--no-sandbox', '--disable-background-networking'])
+            contexto, externas, errores = contexto_local(navegador, direccion, viewport={'width':1440,'height':1000}, reduced_motion='no-preference')
+            pagina, respuesta = abrir_pagina(contexto, direccion)
+            verbos = pagina.locator('h1 [data-verbo]')
+            expect(verbos).to_have_count(3)
+            comprobar_imagenes_escritorio(pagina, direccion)
+            for indice, verbo in enumerate(['Vender', 'consultar', 'imprimir']):
+                expect(verbos.nth(indice)).to_have_text(verbo)
+                verbos.nth(indice).hover()
+                expect(verbos.nth(indice)).to_have_attribute('aria-current', 'true')
+                exigir(pagina.locator('[data-capa]').nth(indice).evaluate('e=>getComputedStyle(e).opacity') == '1', 'El verbo debe seleccionar su captura')
+                expect(pagina.locator('[data-adorno-grupo]').nth(indice)).to_be_visible()
+                verbos.nth(indice).focus()
+                pagina.keyboard.press('Enter')
+                expect(pagina.locator('[data-original-actual]')).to_have_attribute('href', urljoin(direccion, '/capturas/'+ESCENAS[indice][1]))
+            pagina.goto(direccion, wait_until='networkidle')
+            pagina.evaluate('document.fonts.ready')
+            pagina.screenshot(path=str(destino/'01-portada.png'))
+            resultado['verbos'] = ['hover', 'foco', 'Enter', 'captura y elementos sincronizados']
+            resultado['etapa'] = 'scroll'
+            geometria = pagina.locator('[data-recorrido]').evaluate('e=>({inicio:e.getBoundingClientRect().top+scrollY-100,distancia:e.offsetHeight-e.firstElementChild.offsetHeight})')
+            def ir(proporcion):
+                desplazarse(pagina, geometria['inicio'] + geometria['distancia'] * proporcion)
+            ir(0)
+            inicial = pagina.locator('[data-marco]').bounding_box()
+            exigir(abs(inicial['x']+inicial['width']/2-720)<2, 'Captura inicial centrada')
+            ir(.16)
+            exigir(float(pagina.locator('[data-adornos]').evaluate('e=>getComputedStyle(e).opacity')) < .01, 'Complementos deben salir antes de mover captura')
+            centro = pagina.locator('[data-marco]').bounding_box()
+            exigir(abs(centro['x']+centro['width']/2-720)<2, 'Captura permanece centrada tras salida de complementos')
+            pagina.screenshot(path=str(destino/'02-captura-centrada.png'))
+            ir(.23)
+            intermedio = pagina.locator('[data-marco]').bounding_box()
+            ir(.3)
+            final = pagina.locator('[data-marco]').bounding_box()
+            exigir(centro['x'] < intermedio['x'] < final['x'], 'Traslado debe tener posición intermedia real')
+            exigir(abs(final['y']-centro['y']) < 70, 'El escenario conserva la captura dentro del viewport')
+            expect(pagina.locator('[data-timeline]')).to_be_visible()
+            progresos = []
+            for indice, punto in [(0, 5/12), (1, .65), (2, 53/60), (0, 5/12)]:
+                ir(punto)
+                expect(pagina.locator('[data-paso]').nth(indice)).to_have_attribute('aria-expanded','true')
+                expect(pagina.locator('[data-detalle]:visible')).to_have_count(1)
+                expect(pagina.locator('[data-original-actual]')).to_have_attribute('href', urljoin(direccion, '/capturas/'+ESCENAS[indice][1]))
+                escala = pagina.locator('[data-barra]').nth(indice).evaluate('e=>new DOMMatrixReadOnly(getComputedStyle(e).transform).a')
+                exigir(abs(escala-.5) < .01, f'La barra {indice} debe estar al 50 %, recibido {escala}')
+                progresos.append({'punto':punto,'escena':indice,'barra':escala})
+                pagina.screenshot(path=str(destino/f'03-capitulo-{indice+1}.png'))
+            antes = pagina.locator('[data-barra]').evaluate_all('xs=>xs.map(x=>x.style.transform)')
+            pagina.wait_for_timeout(700)
+            exigir(antes == pagina.locator('[data-barra]').evaluate_all('xs=>xs.map(x=>x.style.transform)'), 'El recorrido no avanza con el tiempo')
+            resultado['progresos'] = progresos
+            # Mutación de un control visible, aislada en el DOM y restaurada antes de continuar.
+            barra = pagina.locator('[data-barra]').first
+            anterior = barra.get_attribute('style')
+            barra.evaluate('e=>e.style.transform="scaleX(0)"')
+            try:
+                exigir(abs(barra.evaluate('e=>new DOMMatrixReadOnly(getComputedStyle(e).transform).a')-.5)<.01, 'Mutación de barra detectada')
+            except AssertionError:
+                resultado['mutacionBarra'] = 'detectada'
+            else:
+                raise AssertionError('El oráculo no detectó la mutación de la barra')
+            barra.evaluate('(e,s)=>e.setAttribute("style",s)', anterior)
+            exigir(abs(barra.evaluate('e=>new DOMMatrixReadOnly(getComputedStyle(e).transform).a')-.5)<.01, 'Restauración de barra')
+            resultado['etapa'] = 'tecladoYAmpliacion'
+            paso = pagina.locator('[data-paso]').nth(2)
+            paso.focus(); pagina.keyboard.press('Enter'); dejar_pintar(pagina)
+            expect(paso).to_be_focused()
+            expect(paso).to_have_attribute('aria-expanded','true')
+            ir(0)
+            expect(paso).to_be_focused()
+            caja_paso = paso.bounding_box()
+            exigir(pagina.evaluate('''([x,y])=>Boolean(document.elementFromPoint(x,y)?.closest('[data-paso]'))''', [caja_paso['x']+40,caja_paso['y']+20]), 'La captura no debe tapar el encabezado enfocado al volver atrás')
+            paso.click(); dejar_pintar(pagina)
+            boton = pagina.locator('[data-ampliar-actual]')
+            boton.click()
+            expect(pagina.locator('[data-dialogo]')).to_be_visible()
+            expect(pagina.locator('[data-captura-ampliada]')).to_have_attribute('src', urljoin(direccion,'/capturas/documento-completo.png'))
+            pagina.locator('[data-tamano-real]').click()
+            exigir(pagina.locator('[data-captura-ampliada]').bounding_box()['width']==1440, 'Tamaño real conserva 1440 px')
+            pagina.keyboard.press('Escape'); expect(boton).to_be_focused()
+            boton.click()
+            expect(pagina.locator('[data-tamano-real]')).to_have_attribute('aria-pressed','false')
+            exigir(pagina.locator('[data-lienzo-ampliado]').evaluate('e=>e.scrollLeft+e.scrollTop')==0, 'Reapertura ajustada')
+            pagina.locator('[data-cerrar]').click()
+            ir(1)
+            antes = pagina.locator('[data-marco]').bounding_box()['y']
+            desplazarse(pagina, geometria['inicio']+geometria['distancia']+350)
+            exigir(pagina.locator('[data-marco]').bounding_box()['y'] < antes-300, 'El escenario se libera tras último capítulo')
+            resultado['etapa'] = 'carrusel'
+            siguiente = pagina.locator('[data-siguiente]')
+            siguiente.click(); pagina.wait_for_timeout(600)
+            exigir(pagina.locator('[data-carrusel]').evaluate('e=>e.scrollLeft') > 100, 'La flecha debe mover tarjetas')
+            expect(pagina.locator('[data-anterior]')).to_be_enabled()
+            pagina.locator('[data-anterior]').click(); pagina.wait_for_timeout(600)
+            expect(pagina.locator('[data-anterior]')).to_be_disabled()
+            pagina.locator('#funciones').scroll_into_view_if_needed()
+            pagina.screenshot(path=str(destino/'04-herramientas.png'))
+            resultado['etapa'] = 'planes'
+            pagina.locator('#precios a').click()
+            exigir(pagina.url.endswith('/planes.html'), 'Planes debe abrir archivo estático')
+            expect(pagina.locator('.precio')).to_have_count(3)
+            expect(pagina.locator('.condiciones')).to_contain_text('sin IGV')
+            expect(pagina.locator('.condiciones')).to_contain_text('pendiente de validación')
+            pagina.screenshot(path=str(destino/'05-planes.png'))
+            pagina.goto(direccion, wait_until='networkidle')
+            pagina.locator('#confianza').scroll_into_view_if_needed()
+            pagina.screenshot(path=str(destino/'06-confianza.png'))
+            pagina.locator('#acceso').scroll_into_view_if_needed()
+            pagina.screenshot(path=str(destino/'07-cierre.png'))
+            resultado['etapa'] = 'detenerYResize'
+            pagina.goto(direccion, wait_until='networkidle'); ir(.65)
+            pagina.locator('[data-detener]').click()
+            expect(pagina.locator('[data-escenas]')).to_be_visible()
+            expect(pagina.locator('[data-escena]').nth(1)).to_be_focused()
+            pagina.goto(direccion, wait_until='networkidle'); ir(.65)
+            pagina.locator('[data-ampliar-actual]').focus()
+            pagina.set_viewport_size({'width':390,'height':844}); dejar_pintar(pagina)
+            expect(pagina.locator('[data-escena]').nth(1)).to_be_focused()
+            exigir(pagina.locator('[data-escena]').nth(1).bounding_box()['y']>=70, 'Conservar lectura tras resize')
+            pagina.set_viewport_size({'width':1440,'height':1000})
+            resultado['etapa'] = 'reduccionDinamica'
+            pagina.goto(direccion, wait_until='networkidle'); ir(.65)
+            pagina.locator('[data-paso]').nth(1).focus()
+            pagina.emulate_media(reduced_motion='reduce'); dejar_pintar(pagina)
+            expect(pagina.locator('[data-escenas]')).to_be_visible()
+            expect(pagina.locator('[data-escena]').nth(1)).to_be_focused()
+            resultado['etapa'] = 'csp'
+            resultado['csp'] = comprobar_csp(pagina, contexto, direccion, respuesta)
+            exigir(not externas and not errores, f'Red externa o errores: {externas}, {errores}')
+            contexto.close()
+            resultado['etapa'] = 'alternativas'
+            resultado['alternativas'] = []
+            for ancho, alto, js, reducido in [(320,900,True,False),(390,844,True,False),(768,900,True,False),(1024,900,True,False),(1440,400,True,False),(320,225,True,False),(1440,1000,True,True),(1440,1000,False,False),(390,844,False,False)]:
+                contexto, externas, errores = contexto_local(navegador, direccion, viewport={'width':ancho,'height':alto}, java_script_enabled=js, reduced_motion='reduce' if reducido else 'no-preference', has_touch=ancho<1024)
+                pagina, _ = abrir_pagina(contexto,direccion,sin_script=not js)
+                cinematica = js and not reducido and ancho>=1024 and alto>=700
+                if not cinematica:
+                    expect(pagina.locator('[data-escenas]')).to_be_visible()
+                    expect(pagina.locator('[data-recorrido]')).to_be_hidden()
+                    pagina.locator('[data-verbo]').nth(2).click()
+                    pagina.wait_for_timeout(700)
+                    caja = pagina.locator('#escena-documento').bounding_box()
+                    exigir(caja['y']>=70 and caja['y']<alto, f'Ancla visible en {ancho}x{alto}: {caja}')
+                    if js:
+                        pagina.locator('[data-escena]').nth(2).locator('[data-ampliar]').click()
+                        pagina.keyboard.press('Escape')
+                exigir(pagina.evaluate('document.documentElement.scrollWidth') <= ancho, f'Desbordamiento en {ancho}x{alto}')
+                if ancho in [390,1440] and alto>400:
+                    pagina.evaluate("scrollTo({top:0,behavior:'instant'})")
+                    pagina.wait_for_timeout(100)
+                    pagina.screenshot(path=str(destino/f'alternativa-{ancho}-{js}-{reducido}.png'),full_page=True)
+                exigir(not externas and not errores, f'Alternativa con errores: {errores}')
+                resultado['alternativas'].append({'ancho':ancho,'alto':alto,'javascript':js,'reducido':reducido,'correcto':True})
+                contexto.close()
+            navegador.close()
+            resultado.update(estado='correcto',etapa='completado')
+    except Exception as fallo:
+        resultado.update(estado='fallido', error=str(fallo)[:900])
+    (destino / 'presentacion.json').write_text(json.dumps(resultado, ensure_ascii=False, indent=2)+'\n')
+    print(json.dumps({'estado':resultado['estado'],'etapa':resultado['etapa'],'error':resultado.get('error'),'evidencia':str(destino)}, ensure_ascii=False))
+    return resultado['estado'] == 'correcto'
+
+
 if __name__ == '__main__':
     argumentos = argparse.ArgumentParser(description=__doc__)
     argumentos.add_argument('--url', default='http://127.0.0.1:4324/')
     argumentos.add_argument('--politica-anterior')
     argumentos.add_argument('--recorrido-anterior', help='Build anterior: debe fallar los mismos oráculos desktop y progresos')
     argumentos.add_argument('--evidencia', type=Path, default=Path('/tmp/ondexia-landing-cinematica'))
+    argumentos.add_argument('--escenario-historico', action='store_true', help='Reproducir el oráculo de la composición anterior')
     parametros = argumentos.parse_args()
     try:
         for direccion in [parametros.url, parametros.politica_anterior, parametros.recorrido_anterior]:
@@ -712,4 +885,5 @@ if __name__ == '__main__':
                 direccion_local(direccion)
     except AssertionError as fallo:
         argumentos.error(str(fallo))
-    sys.exit(0 if comprobar(parametros.url, parametros.politica_anterior, parametros.recorrido_anterior, parametros.evidencia) else 1)
+    correcto = comprobar(parametros.url, parametros.politica_anterior, parametros.recorrido_anterior, parametros.evidencia) if parametros.escenario_historico else comprobar_presentacion(parametros.url, parametros.evidencia)
+    sys.exit(0 if correcto else 1)
