@@ -1,5 +1,6 @@
 ---
 import Cartel from './Cartel.astro';
+import Adornos from './Adornos.astro';
 const escenas = [
   {
     clave: 'venta',
@@ -39,21 +40,8 @@ const rotuloCaptura = 'Capturas del sistema · datos de demostración';
       <div class="recorrido-escenario" data-escenario>
         <div class="escenario-adornos" aria-hidden="true" data-adornos>
           {escenas.map((_escena, indice) => (
-            <div class="adornos-grupo" data-adorno-grupo hidden={indice !== 0}>
-              <div class="adorno adorno-izquierdo">
-                <span class="adorno-numero">0{indice + 1}</span>
-                <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2" focusable="false">
-                  {indice === 0 ? <><path d="M20 30 50 15 80 30 50 45Z M20 30v40l30 15 30-15V30 M50 45v40 M35 22l30 15v17" /></>
-                    : indice === 1 ? <><rect x="18" y="18" width="64" height="64" rx="6" /><path d="M30 35h40 M30 50h40 M30 65h25" /></>
-                    : <><path d="M27 12h35l13 13v63H27Z M62 12v15h13 M37 42h28 M37 55h28 M37 68h18" /></>}
-                </svg>
-                <span>{['Bienes y servicios', 'Detalle de la operación', 'Nota de venta'][indice]}</span>
-              </div>
-              <div class="adorno adorno-derecho">
-                <span class="adorno-etiqueta">{['Preparar', 'Consultar', 'Presentar'][indice]}</span>
-                <strong>{['Revisar antes de registrar', 'Consultar lo registrado', 'Preparar la impresión'][indice]}</strong>
-                <svg viewBox="0 0 220 85" fill="none" stroke="currentColor" stroke-width="2" focusable="false"><path d="M5 65Q55 0 110 42T215 12" /><circle cx="110" cy="42" r="5" /></svg>
-              </div>
+            <div class="adornos-grupo" data-adorno-grupo data-activo={indice === 0 ? "true" : "false"}>
+              <Adornos indice={indice} />
             </div>
           ))}
         </div>
@@ -73,18 +61,23 @@ const rotuloCaptura = 'Capturas del sistema · datos de demostración';
         </nav>
         <div class="escenario-composicion" data-composicion>
           <svg class="escenario-contorno" viewBox="0 0 1440 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M80 40 Q720 0 1360 40 Q1440 500 1360 960 Q720 1000 80 960 Q0 500 80 40 Z" data-contorno /></svg>
-          <div class="escenario-marco" role="img" aria-label={escenas[0].alternativa} data-marco data-visual>
+          <button type="button" class="escenario-marco" aria-label={`Ampliar: ${escenas[0].titulo}`} aria-haspopup="dialog" data-marco data-visual data-ampliar-actual>
             {escenas.map((escena) => <img class="escenario-capa" src={escena.captura} alt="" aria-hidden="true" width="1440" height="1000" decoding="async" data-capa />)}
-          </div>
+            <span class="ampliar-indicador" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3H3v5 M16 3h5v5 M21 16v5h-5 M8 21H3v-5" /></svg></span>
+          </button>
           <div class="escenario-informacion">
             <p class="captura-rotulo">{rotuloCaptura}</p>
-            <div class="escena-acciones">
-              <button class="boton-recorrido" type="button" data-ampliar-actual>Ampliar captura</button>
-              <a class="enlace-original" href={escenas[0].captura} data-original-actual>Ver captura original</a>
+            <div class="galeria-controles" data-controles>
+              <div class="galeria-selector" role="group" aria-label="Elegir una captura">
+                {escenas.map((escena, indice) => <button type="button" data-selector aria-pressed={indice === 0 ? 'true' : 'false'}><span>{escena.numero}</span>{escena.tituloCorto}</button>)}
+              </div>
+              <button class="control-reproduccion" type="button" aria-label="Pausar cambio automático" aria-pressed="false" data-reproduccion>
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path class="icono-pausa" d="M5 4h3v12H5z M12 4h3v12h-3z"/><path class="icono-reproducir" d="m6 3 11 7-11 7Z"/></svg>
+              </button>
             </div>
+            <div class="galeria-descripcion" data-resumen><h2 data-titulo-actual>{escenas[0].titulo}</h2><p data-descripcion-actual>{escenas[0].descripcion}</p></div>
           </div>
         </div>
-        <button class="boton-recorrido detener" type="button" data-detener>Ver sin animación</button>
       </div>
     </div>
     <div class="explorador-escenas" data-escenas>
@@ -93,13 +86,10 @@ const rotuloCaptura = 'Capturas del sistema · datos de demostración';
           <div class="escena-encabezado">
             <h3 id={`titulo-escena-${escena.clave}`}>{escena.titulo}</h3>
             <p data-descripcion>{escena.descripcion}</p>
-            <div class="escena-acciones">
-              <button class="boton-recorrido" type="button" data-ampliar hidden>Ampliar captura</button>
-              <a class="enlace-original" href={escena.captura} data-original>Ver captura original</a>
-            </div>
+
           </div>
           <figure class="escena-figura">
-            <img class="captura-completa" src={escena.captura} alt={escena.alternativa} width="1440" height="1000" loading={indice === 0 ? 'eager' : 'lazy'} decoding="async" data-captura />
+            <a href={escena.captura} data-original aria-label={`Ver captura completa: ${escena.titulo}`}><img class="captura-completa" src={escena.captura} alt={escena.alternativa} width="1440" height="1000" loading={indice === 0 ? 'eager' : 'lazy'} decoding="async" data-captura /></a>
             <figcaption>{rotuloCaptura}</figcaption>
           </figure>
         </article>
@@ -112,14 +102,15 @@ const rotuloCaptura = 'Capturas del sistema · datos de demostración';
           <h2 id="titulo-captura-ampliada" data-titulo-ampliado>{escenas[0].titulo}</h2>
           <p>{rotuloCaptura}</p>
         </div>
-        <button class="boton-recorrido dialogo-cerrar" type="button" data-cerrar autofocus>Cerrar</button>
+        <button class="boton-recorrido dialogo-cerrar" type="button" data-cerrar autofocus aria-label="Cerrar captura"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m6 6 12 12 M6 18 18 6"/></svg></button>
       </div>
       <div class="dialogo-lienzo" role="region" aria-label="Captura ampliada. Desplazar para revisar todos los detalles." tabindex="0" data-lienzo-ampliado>
         <img src={escenas[0].captura} alt={escenas[0].alternativa} width="1440" height="1000" loading="lazy" decoding="async" data-captura-ampliada />
       </div>
       <div class="dialogo-pie">
+        <div class="dialogo-navegacion"><button class="boton-recorrido" type="button" aria-label="Captura anterior" data-captura-anterior>←</button><span data-contador>01 / 03</span><button class="boton-recorrido" type="button" aria-label="Captura siguiente" data-captura-siguiente>→</button></div>
         <button class="boton-recorrido" type="button" aria-pressed="false" data-tamano-real>Ver tamaño real</button>
-        <a class="enlace-original" href={escenas[0].captura} data-original-ampliado>Ver captura original</a>
+        <a class="enlace-original descarga-captura" href={escenas[0].captura} data-original-ampliado download aria-label="Descargar captura PNG"><span>Descargar PNG</span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 3v12 M7 10l5 5 5-5 M4 17v4h16v-4"/></svg></a>
       </div>
     </dialog>
   </div>
@@ -129,19 +120,17 @@ const rotuloCaptura = 'Capturas del sistema · datos de demostración';
   [hidden] { display: none !important; }
   .explorador { --alto-cabecera: 90px; background: white; overflow-x: clip; }
   .explorador-interior { width: min(100% - 64px, 1200px); margin-inline: auto; scroll-margin-top: 100px; }
-  .explorador-recorrido { height: calc((100svh - 110px) * 6); }
+  .explorador-recorrido { height: calc((100svh - 110px) * 6); scroll-margin-top: 100px; }
   .recorrido-escenario { position: sticky; top: 100px; height: calc(100svh - 110px); min-height: 560px; }
   .escenario-composicion { position: absolute; left: 50%; top: 50%; width: min(76%, 900px, calc((100svh - 240px) * 1.44)); transform: translate(-50%, -50%); z-index: 2; }
-  .escenario-marco { position: relative; aspect-ratio: 1440 / 1000; border: 1px solid var(--color-gray-300); border-radius: var(--radius-base); overflow: hidden; background: var(--color-gray-25); }
-  .escenario-capa { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; }
+  .escenario-marco { position: relative; aspect-ratio: 1440 / 1000; border: 1px solid var(--color-gray-300); border-radius: var(--radius-base); overflow: hidden; background: var(--color-gray-25); display: block; width: 100%; padding: 0; cursor: zoom-in; }
+  .escenario-capa { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 650ms ease; }
   .escenario-capa:first-child { opacity: 1; }
   .escenario-contorno { position: absolute; inset: -16px; width: calc(100% + 32px); height: calc(100% - 50px); z-index: -1; fill: var(--color-brand-50); }
-  .escenario-informacion { text-align: center; padding-top: 14px; }
+  .escenario-informacion { text-align: center; padding-top: 8px; }
   .captura-rotulo, figcaption { color: var(--color-gray-600); font-size: 12px; margin-top: 12px; }
-  .escena-acciones { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 24px; }
   .boton-recorrido, .enlace-original { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px; color: var(--color-gray-600); font: inherit; font-size: 13px; cursor: pointer; text-decoration: underline; text-underline-offset: 5px; background: transparent; border: 0; }
   .boton-recorrido:hover, .enlace-original:hover { color: var(--color-brand-700); }
-  .detener { position: absolute; bottom: 0; right: 0; z-index: 3; }
   .escenario-timeline { position: absolute; left: 0; top: 50%; width: 26%; transform: translateY(-50%); z-index: 1; }
   .escenario-timeline > p { font-size: 12px; color: var(--color-gray-600); margin-bottom: 26px; }
   .timeline-linea { height: 2px; background: var(--color-gray-200); }
@@ -152,16 +141,8 @@ const rotuloCaptura = 'Capturas del sistema · datos de demostración';
   .timeline-paso h3 { font-size: 16px; font-weight: 500; line-height: 1.5; margin: 4px 0 12px; }
   .timeline-paso p { font-size: 15px; color: var(--color-gray-600); line-height: 1.7; margin-bottom: 28px; }
   .escenario-adornos { position: absolute; inset: 0; pointer-events: none; }
-  .adornos-grupo { position: absolute; inset: 0; }
-  .adorno { position: absolute; width: 220px; padding: 24px; border: 1px solid var(--color-brand-100); border-radius: var(--radius-base); background: var(--color-brand-25); color: var(--color-brand-700); }
-  .adorno-izquierdo { left: -20px; top: -70px; transform: rotate(-12deg); }
-  .adorno-derecho { right: -20px; top: -40px; transform: rotate(10deg); background: var(--color-gray-25); }
-  .adorno svg { width: 100%; height: 100px; margin: 20px 0; }
-  .adorno span { font-size: 13px; }
-  .adorno-numero { display: block; }
-  .adorno strong { display: block; margin-top: 20px; font-size: 24px; font-weight: 500; line-height: 1.2; }
-  .adornos-grupo:nth-child(2) .adorno { color: #24645c; background: #f1f7f5; border-color: #dbe9e4; }
-  .adornos-grupo:nth-child(3) .adorno { color: #85522e; background: #fbf5ef; border-color: #eee0d0; }
+  .adornos-grupo { position: absolute; inset: 0; opacity: 0; transform: translateY(18px) scale(.94); transition: opacity 650ms ease, transform 900ms var(--ease-propia); }
+  .adornos-grupo[data-activo="true"] { opacity: 1; transform: translateY(0) scale(1); }
   .explorador-escena { padding: 48px 0; scroll-margin-top: 110px; }
   .escena-encabezado { text-align: center; margin-bottom: 24px; }
   .escena-encabezado h3 { font-size: 28px; font-weight: 500; }
@@ -170,6 +151,7 @@ const rotuloCaptura = 'Capturas del sistema · datos de demostración';
   .captura-completa { display: block; width: 100%; height: auto; border: 1px solid var(--color-gray-200); border-radius: var(--radius-base); }
   .explorador-dialogo {
     width: min(1480px, calc(100% - 48px));
+    overscroll-behavior: contain;
     max-width: none;
     height: min(1100px, calc(100dvh - 32px));
     max-height: calc(100dvh - 32px);
@@ -188,7 +170,8 @@ const rotuloCaptura = 'Capturas del sistema · datos de demostración';
   }
 
   .explorador-dialogo::backdrop {
-    background: rgb(14 18 29 / 0.65);
+    background: rgb(14 18 29 / 0.8);
+    backdrop-filter: blur(6px);
   }
 
   .dialogo-encabezado {
@@ -239,6 +222,12 @@ const rotuloCaptura = 'Capturas del sistema · datos de demostración';
     height: auto;
   }
 
+  .dialogo-navegacion { display: flex; align-items: center; gap: 8px; }
+  .dialogo-navegacion span { font-size: 12px; color: var(--color-gray-600); font-variant-numeric: tabular-nums; }
+  .dialogo-navegacion button { min-width: 44px; font: 20px system-ui, sans-serif; text-decoration: none; }
+  .descarga-captura { gap: 8px; }
+  .descarga-captura svg { display: none; }
+  .dialogo-cerrar { min-width: 44px; border: 1px solid var(--color-gray-200); border-radius: var(--radius-base); }
   .dialogo-pie {
     display: flex;
     flex-shrink: 0;
@@ -251,11 +240,59 @@ const rotuloCaptura = 'Capturas del sistema · datos de demostración';
   }
 
 
+  .ampliar-indicador { position: absolute; bottom: 12px; right: 12px; display: grid; place-items: center; width: 44px; height: 44px; color: var(--color-gray-900); background: white; border: 1px solid var(--color-gray-200); border-radius: var(--radius-base); transition: background 200ms; }
+  .escenario-marco:hover .ampliar-indicador { color: var(--color-brand-700); background: var(--color-brand-50); }
+  .galeria-controles { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 12px; transition: opacity 350ms, visibility 350ms; }
+  .en-capitulos .galeria-controles { opacity: 0; visibility: hidden; }
+  .galeria-selector { display: flex; border: 1px solid var(--color-gray-200); border-radius: var(--radius-base); padding: 3px; }
+  .galeria-selector button { position: relative; overflow: hidden; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 14px; border-radius: var(--radius-base); color: var(--color-gray-600); font-size: 13px; transition: background 350ms, color 350ms; }
+  .galeria-selector button span { font-size: 10px; opacity: .8; }
+  .galeria-selector button[aria-pressed='true'] { background: var(--color-brand-50); color: var(--color-brand-700); }
+  .galeria-selector button::after { content: ''; position: absolute; bottom: 0; left: 0; height: 2px; width: 100%; background: var(--color-brand-500); transform: scaleX(0); transform-origin: left; }
+  .reproduciendo .galeria-selector button[aria-pressed='true']::after { animation: cuenta-escena 6s linear forwards; }
+  @keyframes cuenta-escena { to { transform: scaleX(1); } }
+  .control-reproduccion { display: grid; place-items: center; flex-shrink: 0; width: 44px; height: 44px; border: 1px solid var(--color-gray-200); border-radius: var(--radius-base); color: var(--color-gray-700); }
+  .control-reproduccion:hover { background: var(--color-gray-50); }
+  .icono-reproducir, .control-reproduccion[aria-pressed='true'] .icono-pausa { display: none; }
+  .control-reproduccion[aria-pressed='true'] .icono-reproducir { display: block; }
+  .galeria-descripcion { display: none; }
+  .modo-compacto .explorador-recorrido { height: auto; padding-top: 52px; }
+  .modo-compacto .recorrido-escenario { position: relative; top: auto; height: auto; min-height: 0; }
+  .modo-compacto .escenario-composicion { position: relative; top: auto; left: auto; width: 100%; transform: none; max-width: 900px; margin-inline: auto; }
+  .modo-compacto .escenario-contorno { height: 65%; }
+  .modo-compacto .escenario-adornos { height: 260px; }
+  .modo-compacto .galeria-descripcion { display: block; min-height: 140px; margin: 24px auto 0; max-width: 520px; }
+  .galeria-descripcion h2 { font-size: 22px; font-weight: 500; }
+  .galeria-descripcion p { color: var(--color-gray-600); font-size: 15px; line-height: 1.6; margin-top: 10px; }
+  .timeline-paso [data-detalle]:not([hidden]) { animation: detalle-suave 400ms var(--ease-propia); }
+  @keyframes detalle-suave { from { opacity: .3; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .explorador-dialogo[open] { animation: abrir-captura 300ms var(--ease-propia); }
+  @keyframes abrir-captura { from { opacity: 0; transform: scale(.97); } to { opacity: 1; transform: scale(1); } }
+  @media (prefers-reduced-motion: reduce) { .escenario-adornos, .escenario-contorno, .control-reproduccion { display: none; } }
+
   @media (max-width: 767px) {
-    .explorador-interior { width: calc(100% - 40px); }
+    .explorador-interior { width: calc(100% - 32px); }
+    .galeria-controles { gap: 6px; }
+    .galeria-selector { flex: 1; justify-content: space-between; }
+    .galeria-selector button { padding-inline: 9px; font-size: 12px; }
+    .galeria-selector button span { display: none; }
+    .ampliar-indicador { width: 44px; height: 44px; right: 6px; bottom: 6px; }
+    .captura-rotulo { font-size: 11px; }
+    .dialogo-encabezado p { display: none; }
+    .dialogo-pie { gap: 0 6px; }
+    .dialogo-pie .enlace-original { font-size: 12px; }
+    .dialogo-navegacion { gap: 0; }
+    .dialogo-navegacion span { font-size: 11px; }
+    .descarga-captura span { display: none; }
+    .descarga-captura svg { display: block; }
+    .descarga-captura { min-width: 44px; }
+    .dialogo-pie { column-gap: 0; }
+    .dialogo-pie > button { font-size: 12px; padding-inline: 4px; }
     .explorador-dialogo { width: calc(100% - 24px); }
     .dialogo-encabezado { padding: 12px; }
     .dialogo-encabezado h2 { font-size: 16px; }
     .dialogo-pie { padding: 8px; }
   }
+  @media (pointer: coarse) { :global(html) { scrollbar-gutter: auto; } }
+  @media (max-height: 450px) { .dialogo-encabezado { padding-block: 4px; } .dialogo-encabezado p { display: none; } .dialogo-pie { padding-block: 0; } }
 </style>

@@ -700,6 +700,67 @@ def comprobar(direccion, anterior, base, destino):
     return resultado['estado'] == 'correcto'
 
 
+def comprobar_cambio_automatico(navegador, direccion):
+    """Reloj controlado: 6 s por escena; la interacción tiene prioridad."""
+    contexto, externas, errores = contexto_local(navegador, direccion, viewport={'width':1440,'height':1000})
+    pagina = contexto.new_page()
+    pagina.clock.install()
+    pagina.goto(direccion, wait_until='networkidle')
+    pagina.evaluate('document.fonts.ready')
+    activo = lambda: pagina.locator('[data-selector][aria-pressed="true"]').inner_text().split()[-1]
+    expect(pagina.get_by_text('Ver sin animación', exact=True)).to_have_count(0)
+    expect(pagina.get_by_text('Ver captura original', exact=True)).to_have_count(0)
+    expect(pagina.locator('[data-ampliar-actual]:visible')).to_have_count(1)
+    expect(pagina.locator('[data-adorno-grupo]').first.locator('.pieza')).to_have_count(7)
+    secuencia = [activo()]
+    for _ in range(3):
+        pagina.clock.fast_forward(6100)
+        secuencia.append(activo())
+    exigir(secuencia == ['Venta','Registro','Documento','Venta'], f'Ciclo automático completo: {secuencia}')
+    pagina.locator('[data-verbo]').nth(1).hover()
+    pagina.clock.fast_forward(12000)
+    exigir(activo() == 'Registro', 'Hover conserva la elección manual')
+    pagina.mouse.move(1, 1)
+    pagina.locator('[data-verbo]').nth(2).focus()
+    pagina.clock.fast_forward(12000)
+    exigir(activo() == 'Documento', 'Foco de teclado conserva la elección manual')
+    pagina.locator('[data-reproduccion]').click()
+    pagina.locator('header a').first.focus()
+    pagina.mouse.move(1, 1)
+    pagina.clock.fast_forward(12000)
+    exigir(activo() == 'Documento', 'Pausa explícita persiste fuera del control')
+    pagina.locator('[data-reproduccion]').click()
+    pagina.locator('header a').first.focus()
+    pagina.mouse.move(1, 1)
+    # El botón está junto a la captura; volver a la portada antes de medir el ciclo.
+    pagina.evaluate('scrollTo({top:0,behavior:"instant"})')
+    pagina.wait_for_function('document.querySelector("[data-explorador]").classList.contains("reproduciendo")')
+    pagina.clock.fast_forward(6100)
+    exigir(activo() == 'Venta', f'Reanudar permite el siguiente cambio: {activo()}')
+    # Estado oculto simulado: se contrasta el listener sin un gestor de ventanas.
+    pagina.evaluate("Object.defineProperty(document,'hidden',{configurable:true,get:()=>true}); document.dispatchEvent(new Event('visibilitychange'))")
+    pagina.clock.fast_forward(12000)
+    exigir(activo() == 'Venta', 'Documento oculto no avanza')
+    pagina.evaluate("delete document.hidden; document.dispatchEvent(new Event('visibilitychange'))")
+    pagina.clock.fast_forward(6100)
+    exigir(activo() == 'Registro', 'Documento visible reanuda con intervalo completo')
+    pagina.locator('[data-ampliar-actual]').click()
+    pagina.clock.fast_forward(12000)
+    exigir(activo() == 'Registro', 'Visor abierto no cambia la escena de fondo')
+    pagina.locator('[data-captura-siguiente]').click()
+    expect(pagina.locator('[data-contador]')).to_have_text('03 / 03')
+    pagina.keyboard.press('Escape')
+    pagina.emulate_media(reduced_motion='reduce')
+    pagina.locator('header a').first.focus()
+    pagina.mouse.move(1,1)
+    pagina.clock.fast_forward(12000)
+    exigir(activo() == 'Registro', 'Movimiento reducido desactiva cambio automático')
+    expect(pagina.locator('[data-reproduccion]')).to_be_hidden()
+    exigir(not externas and not errores, f'Errores de automatismo: {errores}')
+    contexto.close()
+    return {'intervaloMs':6000,'secuencia':secuencia,'pausas':['hover','foco','explícita','documento oculto simulado','visor','movimiento reducido'],'adornosPorEscena':7}
+
+
 def comprobar_presentacion(direccion, destino):
     """Oráculo de la referencia del propietario; no deriva esperados del script del sitio."""
     destino.mkdir(parents=True, exist_ok=True)
@@ -708,6 +769,7 @@ def comprobar_presentacion(direccion, destino):
     try:
         with sync_playwright() as p:
             navegador = p.chromium.launch(executable_path=shutil.which('chromium'), args=['--no-sandbox', '--disable-background-networking'])
+            resultado['automatico'] = comprobar_cambio_automatico(navegador, direccion)
             contexto, externas, errores = contexto_local(navegador, direccion, viewport={'width':1440,'height':1000}, reduced_motion='no-preference')
             pagina, respuesta = abrir_pagina(contexto, direccion)
             verbos = pagina.locator('h1 [data-verbo]')
@@ -715,13 +777,23 @@ def comprobar_presentacion(direccion, destino):
             comprobar_imagenes_escritorio(pagina, direccion)
             for indice, verbo in enumerate(['Vender', 'consultar', 'imprimir']):
                 expect(verbos.nth(indice)).to_have_text(verbo)
+                forma_anterior = pagina.locator('[data-contorno]').get_attribute('d')
                 verbos.nth(indice).hover()
+                if indice == 1:
+                    pagina.wait_for_timeout(120)
+                    opacidad = float(pagina.locator('[data-capa]').nth(indice).evaluate('e=>getComputedStyle(e).opacity'))
+                    exigir(0 < opacidad < 1, f'El fundido debe tener una fase intermedia: {opacidad}')
+                    forma_intermedia = pagina.locator('[data-contorno]').get_attribute('d')
+                    exigir(forma_intermedia != forma_anterior, 'El contorno debe cambiar durante el fundido')
                 expect(verbos.nth(indice)).to_have_attribute('aria-current', 'true')
-                exigir(pagina.locator('[data-capa]').nth(indice).evaluate('e=>getComputedStyle(e).opacity') == '1', 'El verbo debe seleccionar su captura')
-                expect(pagina.locator('[data-adorno-grupo]').nth(indice)).to_be_visible()
+                pagina.wait_for_function('(i)=>getComputedStyle(document.querySelectorAll("[data-capa]")[i]).opacity === "1"', arg=indice)
+                if indice == 1:
+                    pagina.wait_for_timeout(250)
+                    exigir(pagina.locator('[data-contorno]').get_attribute('d') != forma_intermedia, 'El morphing debe continuar hasta su forma final')
+                expect(pagina.locator('[data-adorno-grupo]').nth(indice)).to_have_attribute('data-activo', 'true')
                 verbos.nth(indice).focus()
                 pagina.keyboard.press('Enter')
-                expect(pagina.locator('[data-original-actual]')).to_have_attribute('href', urljoin(direccion, '/capturas/'+ESCENAS[indice][1]))
+                expect(pagina.locator('[data-selector]').nth(indice)).to_have_attribute('aria-pressed', 'true')
             pagina.goto(direccion, wait_until='networkidle')
             pagina.evaluate('document.fonts.ready')
             pagina.screenshot(path=str(destino/'01-portada.png'))
@@ -745,18 +817,19 @@ def comprobar_presentacion(direccion, destino):
             exigir(centro['x'] < intermedio['x'] < final['x'], 'Traslado debe tener posición intermedia real')
             exigir(abs(final['y']-centro['y']) < 70, 'El escenario conserva la captura dentro del viewport')
             expect(pagina.locator('[data-timeline]')).to_be_visible()
+            expect(pagina.locator('[data-controles]')).to_be_hidden()
             progresos = []
             for indice, punto in [(0, 5/12), (1, .65), (2, 53/60), (0, 5/12)]:
                 ir(punto)
                 expect(pagina.locator('[data-paso]').nth(indice)).to_have_attribute('aria-expanded','true')
                 expect(pagina.locator('[data-detalle]:visible')).to_have_count(1)
-                expect(pagina.locator('[data-original-actual]')).to_have_attribute('href', urljoin(direccion, '/capturas/'+ESCENAS[indice][1]))
+                expect(pagina.locator('[data-selector]').nth(indice)).to_have_attribute('aria-pressed', 'true')
                 escala = pagina.locator('[data-barra]').nth(indice).evaluate('e=>new DOMMatrixReadOnly(getComputedStyle(e).transform).a')
                 exigir(abs(escala-.5) < .01, f'La barra {indice} debe estar al 50 %, recibido {escala}')
                 progresos.append({'punto':punto,'escena':indice,'barra':escala})
                 pagina.screenshot(path=str(destino/f'03-capitulo-{indice+1}.png'))
             antes = pagina.locator('[data-barra]').evaluate_all('xs=>xs.map(x=>x.style.transform)')
-            pagina.wait_for_timeout(700)
+            pagina.wait_for_timeout(6500)
             exigir(antes == pagina.locator('[data-barra]').evaluate_all('xs=>xs.map(x=>x.style.transform)'), 'El recorrido no avanza con el tiempo')
             resultado['progresos'] = progresos
             # Mutación de un control visible, aislada en el DOM y restaurada antes de continuar.
@@ -817,23 +890,21 @@ def comprobar_presentacion(direccion, destino):
             pagina.screenshot(path=str(destino/'06-confianza.png'))
             pagina.locator('#acceso').scroll_into_view_if_needed()
             pagina.screenshot(path=str(destino/'07-cierre.png'))
-            resultado['etapa'] = 'detenerYResize'
-            pagina.goto(direccion, wait_until='networkidle'); ir(.65)
-            pagina.locator('[data-detener]').click()
-            expect(pagina.locator('[data-escenas]')).to_be_visible()
-            expect(pagina.locator('[data-escena]').nth(1)).to_be_focused()
+            resultado['etapa'] = 'resize'
             pagina.goto(direccion, wait_until='networkidle'); ir(.65)
             pagina.locator('[data-ampliar-actual]').focus()
             pagina.set_viewport_size({'width':390,'height':844}); dejar_pintar(pagina)
-            expect(pagina.locator('[data-escena]').nth(1)).to_be_focused()
-            exigir(pagina.locator('[data-escena]').nth(1).bounding_box()['y']>=70, 'Conservar lectura tras resize')
+            expect(pagina.locator('[data-ampliar-actual]')).to_be_focused()
+            expect(pagina.locator('[data-selector]').nth(1)).to_have_attribute('aria-pressed','true')
+            exigir(pagina.locator('[data-marco]').bounding_box()['y']>=70, 'Conservar lectura tras resize')
             pagina.set_viewport_size({'width':1440,'height':1000})
             resultado['etapa'] = 'reduccionDinamica'
             pagina.goto(direccion, wait_until='networkidle'); ir(.65)
             pagina.locator('[data-paso]').nth(1).focus()
             pagina.emulate_media(reduced_motion='reduce'); dejar_pintar(pagina)
-            expect(pagina.locator('[data-escenas]')).to_be_visible()
-            expect(pagina.locator('[data-escena]').nth(1)).to_be_focused()
+            expect(pagina.locator('.modo-compacto')).to_be_visible()
+            expect(pagina.locator('[data-selector]').nth(1)).to_be_focused()
+            expect(pagina.locator('[data-reproduccion]')).to_be_hidden()
             resultado['etapa'] = 'csp'
             resultado['csp'] = comprobar_csp(pagina, contexto, direccion, respuesta)
             exigir(not externas and not errores, f'Red externa o errores: {externas}, {errores}')
@@ -844,16 +915,28 @@ def comprobar_presentacion(direccion, destino):
                 contexto, externas, errores = contexto_local(navegador, direccion, viewport={'width':ancho,'height':alto}, java_script_enabled=js, reduced_motion='reduce' if reducido else 'no-preference', has_touch=ancho<1024)
                 pagina, _ = abrir_pagina(contexto,direccion,sin_script=not js)
                 cinematica = js and not reducido and ancho>=1024 and alto>=700
-                if not cinematica:
+                if not js:
                     expect(pagina.locator('[data-escenas]')).to_be_visible()
                     expect(pagina.locator('[data-recorrido]')).to_be_hidden()
                     pagina.locator('[data-verbo]').nth(2).click()
                     pagina.wait_for_timeout(700)
                     caja = pagina.locator('#escena-documento').bounding_box()
                     exigir(caja['y']>=70 and caja['y']<alto, f'Ancla visible en {ancho}x{alto}: {caja}')
-                    if js:
-                        pagina.locator('[data-escena]').nth(2).locator('[data-ampliar]').click()
-                        pagina.keyboard.press('Escape')
+                elif not cinematica:
+                    expect(pagina.locator('[data-escenas]')).to_be_hidden()
+                    expect(pagina.locator('.modo-compacto')).to_be_visible()
+                    pagina.locator('[data-verbo]').nth(2).click()
+                    expect(pagina.locator('[data-selector]').nth(2)).to_have_attribute('aria-pressed','true')
+                    pagina.locator('[data-ampliar-actual]').click()
+                    expect(pagina.locator('[data-dialogo]')).to_be_visible()
+                    pagina.locator('[data-dialogo]').evaluate('e=>Promise.all(e.getAnimations().map(a=>a.finished))')
+                    pagina.locator('[data-tamano-real]').click()
+                    exigir(pagina.locator('[data-captura-ampliada]').bounding_box()['width']==1440, 'Móvil conserva el original completo al ampliar')
+                    pagina.locator('[data-captura-siguiente]').click()
+                    expect(pagina.locator('[data-contador]')).to_have_text('01 / 03')
+                    expect(pagina.locator('[data-tamano-real]')).to_have_attribute('aria-pressed','false')
+                    pagina.keyboard.press('Escape')
+                    expect(pagina.locator('[data-ampliar-actual]')).to_be_focused()
                 exigir(pagina.evaluate('document.documentElement.scrollWidth') <= ancho, f'Desbordamiento en {ancho}x{alto}')
                 if ancho in [390,1440] and alto>400:
                     pagina.evaluate("scrollTo({top:0,behavior:'instant'})")

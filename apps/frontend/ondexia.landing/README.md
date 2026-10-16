@@ -1,4 +1,25 @@
-## Recorrido continuo — revisión del 15 de octubre de 2026
+## Presentación automática y galería compacta — 16 de octubre de 2026
+
+Revisión solicitada por el propietario: la portada alterna las tres escenas cada
+seis segundos, con pausa durante interacción, foco, visor, pestaña oculta y
+recorrido de scroll. Un control compacto permite pausar/reanudar; se retira
+«Ver sin animación» y se mantiene `prefers-reduced-motion`.
+
+Una sola imagen permite abrir el visor, navegar entre capturas, ajustar o ver
+1440 px y descargar el PNG. Se eliminan los enlaces repetidos de ampliación.
+En móvil y ventanas bajas se usa la galería compacta; con movimiento reducido
+es manual. Sin JavaScript siguen disponibles los tres artículos y originales.
+Siete piezas SVG/editoriales por escena acompañan la demostración en escritorio;
+en móvil solo se conservan cuatro acentos pequeños. Fundidos, entradas por sección
+y morphing del fondo usan recursos locales y mantienen la CSP y los MIME de rc.5.
+
+Ejecutar las mismas comprobaciones locales descritas debajo. El oráculo por defecto
+comprueba el comportamiento actualizado; los documentos de fechas anteriores
+registran sus propias versiones. Ver [evidencia de esta revisión](../../../ondexia.docs/evidencias/2026-10-16-presentacion-fluida.md).
+
+---
+
+## Referencia histórica: recorrido continuo — 15 de octubre de 2026
 
 La portada y la demostración forman una sola secuencia: **Vender / Consultar /
 Imprimir** seleccionan capturas y objetos ilustrativos. El scroll retira los

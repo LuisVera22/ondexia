@@ -180,8 +180,10 @@ antes quedan tarjetas huérfanas en el DOM, invisibles pero interceptando clics.
 especificada el 2026-10-15 admite una ventana central con fundidos reversibles y
 un marco decorativo que cambia de forma según el desplazamiento. El progreso
 controla animaciones pausadas; la duración de referencia no es un temporizador.
-Ofrecer «Ver sin animación» y flujo estático con movimiento reducido, sin
-JavaScript, en ventanas bajas o cuando no quepa. Esta excepción no se extiende
+La revisión del propietario del 2026-10-16 añade reproducción automática de
+portada y elimina «Ver sin animación»: conservar pausa de reproducción, preferencia
+del dispositivo y galería compacta manual con movimiento reducido. Sin JavaScript,
+mostrar los artículos estáticos. Esta excepción no se extiende
 a la aplicación de trabajo ni cambia las reglas anteriores de avisos y diálogos.
 Su especificación no acredita implementación, compatibilidad ni rendimiento.
 
@@ -490,14 +492,15 @@ activación seleccionan la misma escena. No introducir semántica de pestañas.
 
 Habilitar la fijación solo desde 1024 píxeles CSS de ancho y 700 de alto, con
 soporte para unidades svh y aspect-ratio. El scroll nativo controla un avance
-continuo y reversible, sin capturar rueda, teclas o gestos ni introducir avance
-autónomo. El primer tramo retira los elementos ilustrativos; el segundo desplaza
+continuo y reversible, sin capturar rueda, teclas o gestos. El recorrido no avanza
+autónomamente; la portada sí alterna escenas cada seis segundos, por solicitud
+del propietario del 2026-10-16. El primer tramo retira los elementos ilustrativos; el segundo desplaza
 la captura y revela el acordeón; los últimos tres tramos activan cada capítulo y
 su barra. La barra representa distancia recorrida, no duración. Al finalizar,
 la sección recupera el flujo normal. Solo la activación expresa de un encabezado
 puede saltar al capítulo; el scroll no cambia el foco ni anuncia cada fotograma.
 
-La escena expone una única imagen accesible. Sus capas y objetos decorativos no
+La escena expone un único botón con nombre descriptivo para ampliar la captura. Sus capas y objetos decorativos no
 duplican la lectura. Los encabezados del acordeón son botones permanentes con
 aria-expanded y aria-controls; únicamente el párrafo asociado cambia de visibilidad.
 No ocultar ni tapar un encabezado enfocado al retroceder; conservar la composición lateral hasta que salga el foco. La excepción de marketing del §6
@@ -506,15 +509,26 @@ de la aplicación. Interpolar una estructura común M/Q/Q/Q/Q/Z sin dependencias
 Un listener pasivo y rAF coordinan actualizaciones; no se consideran garantía de
 rendimiento. Medir el comportamiento real antes de afirmar una frecuencia de cuadros.
 
-Con movimiento reducido, «Ver sin animación», JavaScript ausente o bloqueado,
-ancho/alto insuficiente o capacidades ausentes, mostrar los tres artículos en
-flujo normal. Los verbos conservan sus destinos ancla. Respetar cambios dinámicos
-de tamaño o preferencia, conservar el punto de lectura y llevar el foco a la
-escena equivalente si su control anterior desaparece. No reactivar la fijación
-mientras se lee o se utiliza un artículo de la alternativa.
+En ventanas pequeñas o bajas, usar una galería compacta con las tres escenas
+seleccionables y una sola captura completa. Con movimiento reducido, esa misma
+galería funciona manualmente, sin avance automático ni adornos animados. Sin
+JavaScript o aspect-ratio, mostrar los tres artículos con sus imágenes enlazadas
+a los originales. Conservar punto de lectura y foco al cambiar tamaño o preferencia;
+no introducir la fijación mientras se lee la galería compacta.
+
+El ciclo automático se limita a la portada y se pausa durante hover de los
+controles, foco dentro de la presentación, diálogo abierto, documento oculto y
+al entrar al recorrido. Ofrecer un control compacto «Pausar cambio automático» /
+«Reanudar cambio automático»; la pausa explícita persiste durante la visita.
+La barra del selector mide los seis segundos; las del acordeón siguen midiendo
+scroll. Evitar avisos aria-live durante la reproducción. Capturas y adornos usan
+fundidos; el contorno interpola su forma durante 800 ms, sin deformar la interfaz.
+La ampliación se activa desde la imagen con un único icono visible, sin repetir
+«Ver captura original» en capítulos ni tarjetas de herramientas.
 
 La ampliación conserva ajuste inicial, tamaño real de 1440 píxeles con paneo
-interno, Escape, Cerrar, reapertura ajustada y retorno de foco. Sin scripts,
+interno, Escape, Cerrar, navegación anterior/siguiente, descarga PNG, reapertura
+ajustada y retorno de foco. Bloquear el scroll del fondo mientras el visor está abierto. Sin scripts,
 conservar el enlace al PNG original. El carrusel de herramientas admite flechas,
 desplazamiento táctil y teclado sin bloquear la página. Sus botones se deshabilitan
 en los extremos; sin scripts el listado continúa siendo desplazable.
