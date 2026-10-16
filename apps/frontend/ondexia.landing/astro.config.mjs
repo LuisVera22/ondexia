@@ -29,6 +29,9 @@ export default defineConfig({
 
   build: {
     format: 'file',
+    // No reutilizar módulos cacheados con MIME binario. Invalidar CloudFront
+    // no elimina la caché de los navegadores: los recursos reciben otra URL.
+    assets: '_astro/modulos',
     // CSS integrado por página; los scripts siguen siendo archivos locales.
     inlineStylesheets: 'always',
   },
