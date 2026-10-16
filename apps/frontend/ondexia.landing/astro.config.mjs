@@ -23,15 +23,13 @@ export default defineConfig({
   // `es_spa = false` a proposito: aqui un 404 es un 404).
   trailingSlash: 'never',
 
-  // El sitemap se genera solo a partir de las paginas. Hoy es una y parece de
-  // sobra; el dia que existan /precios o el blog, ya esta puesto y nadie tiene
-  // que acordarse. robots.txt lo declara.
-  integrations: [sitemap()],
+  // La página de planes se sirve como archivo explícito desde S3, sin reescrituras.
+  // Canonical, enlaces y sitemap conservan esa misma dirección.
+  integrations: [sitemap({ serialize: (pagina) => ({ ...pagina, url: pagina.url.replace(/\/planes$/, '/planes.html') }) })],
 
   build: {
-    // El CSS va dentro del HTML. Es una sola pagina y pesa poco: quitar el
-    // viaje extra al servidor mejora el LCP, que es la metrica que Google
-    // mira en una landing.
+    format: 'file',
+    // CSS integrado por página; los scripts siguen siendo archivos locales.
     inlineStylesheets: 'always',
   },
 

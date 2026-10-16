@@ -332,3 +332,50 @@ independiente, comprobaciones de navegador y perfil descriptivo. Es una propuest
 local para evaluación del propietario; no acredita CI, publicación AWS, soporte
 de otros navegadores, teléfonos físicos ni conformidad WCAG completa. La
 aceptación visual y el efecto sobre conversión siguen pendientes.
+
+
+## Revisión del recorrido continuo — 2026-10-15
+
+Sustituye la composición de ventana central descrita arriba para la siguiente
+iteración. Autoridad: capturas y explicación del propietario recibidas el 15 de
+octubre. No modifica reglas comerciales, fiscales ni autenticación.
+
+### Flujo y oráculos de aceptación
+
+1. En la portada, Vender / Consultar / Imprimir seleccionan la captura de punto
+   de venta / registro / documento respectivamente y sus elementos ilustrativos.
+   Hover y foco ofrecen la misma vista; clic o toque conservan la selección.
+2. En escritorio con espacio suficiente, el scroll nativo mantiene la captura
+   centrada. En el primer 16 % del recorrido salen los complementos; entre el
+   16 y el 30 % la captura se desplaza a la derecha y aparece el acordeón.
+3. Entre el 30 y el 100 %, tres tramos iguales abren Venta / Registro / Documento.
+   Cada barra representa el progreso dentro de su tramo, no tiempo transcurrido.
+   El centro de cada tramo debe mostrar 50 % y su PNG correspondiente. Subir
+   revierte todos los estados; quedarse quieto no avanza. Al finalizar se libera
+   la fijación y aparece Herramientas. Los encabezados también navegan por clic
+   y teclado. El foco no se mueve por scroll.
+4. Herramientas ofrece tarjetas con flechas, desplazamiento táctil y enlaces a
+   las capturas originales. No recortar las pantallas ni presentar ilustraciones
+   como capturas. Planes dirige a /planes.html con los importes y condiciones vigentes.
+5. Privacidad y seguridad ofrecen contacto para consultas sin presentar una
+   política aprobada o certificación. El alcance tributario en ensayo se conserva.
+   El cierre mantiene Solicitar acceso y ofrece Ingresar a la aplicación existente.
+
+### Alternativas y límites
+
+Sin JavaScript, movimiento reducido, ancho inferior a 1024 px o altura inferior
+a 700 px, conservar los tres artículos y originales en flujo normal. Los verbos
+son enlaces ancla en esa alternativa. Conservar ampliación, Escape, foco de
+retorno y tamaño real. No forzar desplazamiento horizontal de la página.
+El acordeón no oculta un control enfocado al avanzar: solo cambia el párrafo,
+con encabezados estables. El cambio dinámico de tamaño o preferencia conserva
+la escena y el foco. Un cambio de política CSP que bloquee JavaScript debe dejar
+el contenido disponible. No se conectan servicios ni se despliega AWS.
+
+### Verificación
+
+Extender el harness de interactividad existente; sus controles anteriores quedan
+reproducibles como históricos. Fijar los oráculos anteriores antes de implementar,
+registrar fallo sobre el build previo, ejecutar escritorio, móvil, teclado,
+alternativas y CSP sobre la corrección. La inspección propia no se denomina
+auditoría independiente. Capturas provenientes de frontend real y datos sintéticos.

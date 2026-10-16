@@ -19,7 +19,7 @@ if (!movimientoReducido.matches && 'IntersectionObserver' in window) {
 }
 
 const menu = document.querySelector<HTMLDetailsElement>('.menu-movil');
-menu?.querySelectorAll('a[href^="#"]').forEach((enlace) => {
+menu?.querySelectorAll('a[href*="#"]').forEach((enlace) => {
   enlace.addEventListener('click', () => { menu.open = false; });
 });
 menu?.addEventListener('keydown', (evento) => {

@@ -2,9 +2,9 @@
 import Logo from './Logo.astro';
 
 const enlaces = [
-  { texto: 'Explorar', destino: '#explorar' },
-  { texto: 'Planes', destino: '#precios' },
-  { texto: 'Preguntas frecuentes', destino: '#preguntas' },
+  { texto: 'Explorar', destino: '/#explorar' },
+  { texto: 'Planes', destino: '/planes.html' },
+  { texto: 'Preguntas frecuentes', destino: '/#preguntas' },
 ];
 ---
 
@@ -16,14 +16,14 @@ const enlaces = [
     </div>
     <div class="acciones-escritorio">
       <a href="https://app.ondexia.com" class="ingresar">Ingresar</a>
-      <a href="#acceso" class="btn-primario">Solicitar acceso</a>
+      <a href="/#acceso" class="btn-primario">Solicitar acceso</a>
     </div>
     <details class="menu-movil">
       <summary>Menú</summary>
       <div class="enlaces-movil">
         {enlaces.map((enlace) => <a href={enlace.destino}>{enlace.texto}</a>)}
         <a href="https://app.ondexia.com">Ingresar al sistema</a>
-        <a href="#acceso" class="btn-primario">Solicitar acceso</a>
+        <a href="/#acceso" class="btn-primario">Solicitar acceso</a>
       </div>
     </details>
   </nav>

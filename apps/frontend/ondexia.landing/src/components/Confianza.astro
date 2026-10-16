@@ -1,0 +1,19 @@
+<section id="confianza" class="seccion" aria-labelledby="titulo-confianza">
+  <div class="contenedor">
+    <h2 id="titulo-confianza" class="titulo-seccion">Privacidad y seguridad.</h2>
+    <p class="introduccion">Consultar el tratamiento de la información del negocio y las condiciones del servicio antes de solicitar acceso.</p>
+    <div class="aspectos">
+      <article><h3>Privacidad de la información</h3><p>La política de privacidad está pendiente de publicación. Para consultas sobre el tratamiento de datos, contactar con Ondexia.</p><a class="btn-contorno" href="mailto:hola@ondexia.com?subject=Consulta%20sobre%20privacidad">Consultar sobre privacidad <svg class="flecha" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12" /></svg></a></article>
+      <article><h3>Seguridad y acceso</h3><p>Consultar los requisitos de acceso y las condiciones del servicio antes de incorporar información del negocio.</p><a class="btn-contorno" href="mailto:hola@ondexia.com?subject=Consulta%20sobre%20seguridad">Consultar sobre seguridad <svg class="flecha" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12" /></svg></a></article>
+    </div>
+  </div>
+</section>
+<style>
+  h2, .introduccion { text-align: center; }
+  .introduccion { margin: 24px auto 46px; max-width: 600px; color: var(--color-gray-600); font-size: 17px; line-height: 1.7; }
+  .aspectos { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  article { padding: 32px; border: 1px solid var(--color-gray-200); border-radius: var(--radius-base); display: flex; flex-direction: column; align-items: flex-start; }
+  h3 { font-weight: 500; font-size: 20px; }
+  article p { margin: 20px 0 28px; font-size: 15px; line-height: 1.7; color: var(--color-gray-600); flex: 1; }
+  @media (max-width: 767px) { .aspectos { grid-template-columns: 1fr; } article { padding: 24px; } .btn-contorno { text-align: left; } }
+</style>

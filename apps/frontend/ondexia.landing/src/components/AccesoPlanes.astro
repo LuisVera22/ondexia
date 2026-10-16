@@ -1,0 +1,14 @@
+<section id="precios" class="seccion" aria-labelledby="titulo-planes">
+  <div class="contenedor acceso-planes">
+    <div><h2 id="titulo-planes">Planes y precios</h2><p>Comparar la propuesta según el número de empresas y usuarios.<br />Consultar importes, condiciones y alcance.</p></div>
+    <a class="btn-primario" href="/planes.html">Consultar los planes <svg class="flecha" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12" /></svg></a>
+  </div>
+</section>
+<style>
+  .seccion { padding-block: 30px 80px; }
+  .acceso-planes { display: flex; justify-content: space-between; align-items: center; gap: 36px; padding: 48px 60px; border-radius: var(--radius-base); background: var(--color-gray-25); }
+  h2 { font-size: 28px; font-weight: 500; letter-spacing: -.03em; }
+  p { font-size: 16px; line-height: 1.65; color: var(--color-gray-600); margin-top: 12px; }
+  a { flex-shrink: 0; }
+  @media (max-width: 767px) { .acceso-planes { align-items: flex-start; flex-direction: column; padding: 32px 24px; } }
+</style>
