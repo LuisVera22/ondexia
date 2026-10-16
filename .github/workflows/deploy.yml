@@ -795,14 +795,21 @@ jobs:
           # sin esto la gente sigue viendo la version anterior hasta que la
           # cache expire sola.
           #
-          # /_astro/ puede no existir. Hoy no existe: el CSS va dentro del HTML
-          # y no hay JavaScript, asi que el build no genera ningun recurso
-          # aparte. Se comprueba antes de copiar para que el paso no dependa de
-          # como resuelva la CLI un prefijo vacio.
-          if [ -n "$(aws s3 ls "s3://${BUCKET}/_astro/" || true)" ]; then
-            aws s3 cp "s3://${BUCKET}/_astro" "s3://${BUCKET}/_astro" \
-              --recursive --metadata-directive REPLACE \
-              --cache-control "public, max-age=31536000, immutable"
+          # REPLACE en una copia S3→S3 puede perder Content-Type. Los módulos
+          # requieren MIME JavaScript: publicar desde el artefacto y declararlo.
+          # Regresión: herramientas/pruebas/test_publicacion_landing.py.
+          if [ -d "${DESTINO}/_astro" ]; then
+            while IFS= read -r -d '' RECURSO; do
+              case "${RECURSO}" in
+                *.js|*.mjs) TIPO="text/javascript; charset=utf-8" ;;
+                *.css) TIPO="text/css; charset=utf-8" ;;
+                *) continue ;;
+              esac
+              CLAVE="${RECURSO#"${DESTINO}/"}"
+              aws s3 cp "${RECURSO}" "s3://${BUCKET}/${CLAVE}" \
+                --cache-control "public, max-age=31536000, immutable" \
+                --content-type "${TIPO}"
+            done < <(find "${DESTINO}/_astro" -type f -print0)
           fi
 
           # Las fuentes si estan siempre, y son lo mas pesado de la pagina.
@@ -812,10 +819,11 @@ jobs:
             --cache-control "public, max-age=31536000, immutable" \
             --content-type "font/woff2"
 
-          aws s3 cp "s3://${BUCKET}/index.html" "s3://${BUCKET}/index.html" \
-            --metadata-directive REPLACE \
-            --cache-control "no-cache, no-store, must-revalidate" \
-            --content-type "text/html; charset=utf-8"
+          for PAGINA in index.html planes.html; do
+            aws s3 cp "${DESTINO}/${PAGINA}" "s3://${BUCKET}/${PAGINA}" \
+              --cache-control "no-cache, no-store, must-revalidate" \
+              --content-type "text/html; charset=utf-8"
+          done
 
           # El sitemap y el robots cambian de contenido con el mismo nombre.
           # Una hora basta: no son criticos y no conviene invalidarlos a mano.
@@ -827,9 +835,13 @@ jobs:
             fi
           done
 
-          aws cloudfront create-invalidation \
+          # El mismo hash pudo quedar cacheado con MIME binario antes del arreglo.
+          INVALIDACION=$(aws cloudfront create-invalidation \
             --distribution-id "${DISTRIBUCION}" \
-            --paths "/" "/index.html" "/sitemap-index.xml" "/sitemap-0.xml" "/robots.txt" > /dev/null
+            --paths "/" "/index.html" "/planes.html" "/_astro/*" "/sitemap-index.xml" "/sitemap-0.xml" "/robots.txt" \
+            --query 'Invalidation.Id' --output text)
+          aws cloudfront wait invalidation-completed \
+            --distribution-id "${DISTRIBUCION}" --id "${INVALIDACION}"
 
       # En su propio paso y no dentro del siguiente: aquella sonda hace `exit 0`
       # en cuanto la API contesta, asi que cualquier comprobacion que fuera
@@ -838,20 +850,8 @@ jobs:
         working-directory: ondexia.infra
         run: |
           LANDING=$(terraform output -json landing | jq -r .url)
-          echo "Sondeando ${LANDING}"
-
-          for intento in $(seq 1 10); do
-            CODIGO=$(curl -s -o /dev/null -w '%{http_code}' "${LANDING}" || true)
-            if [ "$CODIGO" = "200" ]; then
-              echo "La landing responde."
-              exit 0
-            fi
-            echo "  intento ${intento}: HTTP ${CODIGO}"
-            sleep 10
-          done
-
-          echo "::error title=Landing caida::No respondio 200 tras 10 intentos. Suele ser la distribucion de CloudFront, que tarda en propagarse tras el primer apply."
-          exit 1
+          python3 ../herramientas/comprobar-landing-publicada.py \
+            --url "${LANDING}" --directorio ../apps/frontend/ondexia.landing/dist
 
       - name: Comprobar que responde
         if: ${{ !inputs.solo_landing }}
