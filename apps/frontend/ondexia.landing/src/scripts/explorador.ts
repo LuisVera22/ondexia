@@ -1,4 +1,5 @@
 function iniciarExplorador(explorador: HTMLElement): void {
+  if (typeof CSS === 'undefined' || !CSS.supports('aspect-ratio', '1440 / 1000')) return;
   const escenas = [...explorador.querySelectorAll<HTMLElement>('[data-escena]')];
   const imagenes = escenas.map(escena => escena.querySelector<HTMLImageElement>('[data-captura]'));
   const enlaces = [...explorador.querySelectorAll<HTMLButtonElement>('[data-paso]')];
@@ -16,12 +17,15 @@ function iniciarExplorador(explorador: HTMLElement): void {
   const visual = explorador.querySelector<HTMLElement>('[data-visual]');
   const contorno = explorador.querySelector<SVGPathElement>('[data-contorno]');
   const ampliarActual = explorador.querySelector<HTMLButtonElement>('[data-ampliar-actual]');
-  const originalActual = explorador.querySelector<HTMLAnchorElement>('[data-original-actual]');
-  const detener = explorador.querySelector<HTMLButtonElement>('[data-detener]');
+  const reproduccion = explorador.querySelector<HTMLButtonElement>('[data-reproduccion]');
+  const selectores = [...explorador.querySelectorAll<HTMLButtonElement>('[data-selector]')];
+  const tituloActual = explorador.querySelector<HTMLElement>('[data-titulo-actual]');
+  const descripcionActual = explorador.querySelector<HTMLElement>('[data-descripcion-actual]');
+  const controles = explorador.querySelector<HTMLElement>('[data-controles]');
   if (!alternativa || !recorrido || !escenario || !composicion || !timeline || !adornos || !visual
-    || !contorno || !ampliarActual || !originalActual || !detener || escenas.length !== 3
+    || !contorno || !ampliarActual || !reproduccion || !tituloActual || !descripcionActual || !controles || selectores.length !== 3 || escenas.length !== 3
     || imagenes.some(imagen => !imagen) || enlaces.length !== 3 || verbos.length !== 3 || capas.length !== 3) return;
-  const partes = { alternativa, recorrido, escenario, composicion, timeline, adornos, visual, contorno, ampliarActual, originalActual, detener };
+  const partes = { alternativa, recorrido, escenario, composicion, timeline, adornos, visual, contorno, ampliarActual, reproduccion, tituloActual, descripcionActual, controles };
   const movimientoReducido = window.matchMedia('(prefers-reduced-motion: reduce)');
   const dialogo = explorador.querySelector<HTMLDialogElement>('[data-dialogo]');
   const cerrar = explorador.querySelector<HTMLButtonElement>('[data-cerrar]');
@@ -35,12 +39,51 @@ function iniciarExplorador(explorador: HTMLElement): void {
   let indiceAmpliado = 0;
   let botonApertura: HTMLButtonElement | null = null;
   let modoScroll = false;
-  let detenido = false;
+  let pausaSolicitada = false;
+  let temporizador: ReturnType<typeof setTimeout> | undefined;
+  let punteroSobreControl = false;
+  let mejoraActiva = false;
+  let bloqueoAnterior = '';
+  const titulo = (indice: number) => escenas[indice].querySelector('h3')?.textContent ?? '';
+
+  function programarCambio(): void {
+    const caja = explorador.getBoundingClientRect();
+    const cajaRecorrido = partes.recorrido.getBoundingClientRect();
+    const enPortada = modoScroll ? scrollY < inicio + distancia * .16 : cajaRecorrido.bottom > 100;
+    const disponible = mejoraActiva && !pausaSolicitada && !movimientoReducido.matches && !document.hidden
+      && !dialogo?.open && !punteroSobreControl && !explorador.contains(document.activeElement)
+      && caja.top < innerHeight && caja.bottom > 100 && enPortada;
+    partes.reproduccion.setAttribute('aria-pressed', String(pausaSolicitada));
+    partes.reproduccion.setAttribute('aria-label', pausaSolicitada ? 'Reanudar cambio automático' : 'Pausar cambio automático');
+    if (!disponible) {
+      clearTimeout(temporizador);
+      temporizador = undefined;
+      explorador.classList.remove('reproduciendo');
+    } else if (temporizador === undefined) {
+      explorador.classList.add('reproduciendo');
+      temporizador = setTimeout(() => {
+        temporizador = undefined;
+        indicePortada = (indicePortada + 1) % escenas.length;
+        indicarEscena(indicePortada);
+        programarCambio();
+      }, 6000);
+    }
+  }
+
+  function elegirEscena(indice: number): void {
+    clearTimeout(temporizador);
+    temporizador = undefined;
+    indicePortada = indice;
+    indicarEscena(indice);
+    programarCambio();
+  }
   let inicio = 0;
   let distancia = 1;
   let ancho = 0;
   let anchoCaptura = 0;
   let pendiente = false;
+  let cuadroContorno = 0;
+  let progresoContorno = 0;
   const limitar = (numero: number) => Math.max(0, Math.min(1, numero));
   // Las formas comparten M/Q/Q/Q/Q/Z; se transforma el fondo, nunca la interfaz.
   const formas = [
@@ -50,6 +93,7 @@ function iniciarExplorador(explorador: HTMLElement): void {
   ];
 
   function actualizarContorno(avance: number): void {
+    progresoContorno = avance;
     const tramo = avance < 0.5 ? 0 : 1;
     const proporcion = Math.min(1, (avance - tramo * 0.5) * 2);
     const puntos = formas[tramo].map((punto, indice) =>
@@ -57,8 +101,21 @@ function iniciarExplorador(explorador: HTMLElement): void {
     partes.contorno.setAttribute('d', `M${puntos.slice(0, 2).join(' ')} Q${puntos.slice(2, 6).join(' ')} Q${puntos.slice(6, 10).join(' ')} Q${puntos.slice(10, 14).join(' ')} Q${puntos.slice(14, 18).join(' ')} Z`);
   }
 
+  function transformarContorno(indice: number): void {
+    cancelAnimationFrame(cuadroContorno);
+    const origen = progresoContorno;
+    const destino = indice / 2;
+    const inicioCambio = performance.now();
+    const pintar = (ahora: number) => {
+      const fraccion = movimientoReducido.matches ? 1 : limitar((ahora - inicioCambio) / 800);
+      actualizarContorno(origen + (destino - origen) * (1 - (1 - fraccion) ** 3));
+      if (fraccion < 1) cuadroContorno = requestAnimationFrame(pintar);
+    };
+    cuadroContorno = requestAnimationFrame(pintar);
+  }
 
   function indicarEscena(indice: number): void {
+    if (indice !== indiceActivo && (!modoScroll || scrollY < inicio)) transformarContorno(indice);
     indiceActivo = indice;
     capas.forEach((capa, posicion) => { capa.style.opacity = posicion === indice ? '1' : '0'; });
     verbos.forEach((verbo, posicion) => {
@@ -68,23 +125,28 @@ function iniciarExplorador(explorador: HTMLElement): void {
     enlaces.forEach((enlace, posicion) => {
       enlace.setAttribute('aria-expanded', String(posicion === indice));
       detalles[posicion].hidden = posicion !== indice;
-      adornosGrupos[posicion].hidden = posicion !== indice;
+      adornosGrupos[posicion].dataset.activo = String(posicion === indice);
+      selectores[posicion].setAttribute('aria-pressed', String(posicion === indice));
     });
-    partes.visual.setAttribute('aria-label', imagenes[indice]?.alt ?? 'Captura de Ondexia');
-    partes.originalActual.href = imagenes[indice]?.src ?? '';
+    partes.visual.setAttribute('aria-label', `Ampliar: ${titulo(indice)}`);
+    partes.tituloActual.textContent = titulo(indice);
+    partes.descripcionActual.textContent = escenas[indice].querySelector('[data-descripcion]')?.textContent ?? '';
   }
 
   function actualizarRecorrido(): void {
     pendiente = false;
-    if (!modoScroll) return;
+    if (!modoScroll) { programarCambio(); return; }
     const avance = limitar((scrollY - inicio) / distancia);
     // Un control enfocado conserva una composición legible incluso al volver atrás.
     const conservaFoco = partes.timeline.contains(document.activeElement);
     const salida = conservaFoco ? 1 : limitar(avance / .16);
     const traslado = conservaFoco ? 1 : limitar((avance - .16) / .14);
     const capitulos = limitar((avance - .3) / .7) * 3;
+    const usaAcordeon = avance >= .3 && !partes.controles.contains(document.activeElement);
+    explorador.classList.toggle('en-capitulos', usaAcordeon);
+    partes.controles.inert = usaAcordeon;
     const indice = avance < .3 ? indicePortada : Math.min(2, Math.floor(capitulos));
-    indicarEscena(indice);
+    if (indice !== indiceActivo) indicarEscena(indice);
     partes.adornos.style.opacity = String(1 - salida);
     partes.adornos.style.transform = `translateY(${-160 * salida}px) scale(${1 + .15 * salida})`;
     partes.composicion.style.transform = `translate(calc(-50% + ${ancho * .17 * traslado}px), -50%)`;
@@ -94,7 +156,11 @@ function iniciarExplorador(explorador: HTMLElement): void {
     partes.timeline.style.opacity = String(conservaFoco ? 1 : traslado);
     partes.timeline.style.transform = `translate(${(1 - traslado) * 70}px, -50%)`;
     barras.forEach((barra, indice) => { barra.style.transform = `scaleX(${limitar(capitulos - indice)})`; });
-    actualizarContorno(avance);
+    if (scrollY >= inicio) {
+      cancelAnimationFrame(cuadroContorno);
+      actualizarContorno(avance);
+    }
+    programarCambio();
   }
 
   function solicitarCuadro(): void {
@@ -102,36 +168,41 @@ function iniciarExplorador(explorador: HTMLElement): void {
   }
 
   function actualizarMedidas(): void {
-    const cabecera = document.querySelector('header')?.getBoundingClientRect().height ?? 90;
     const estabaAnimado = modoScroll;
     const focoAnterior = document.activeElement;
-    const focoEnRecorrido = partes.recorrido.contains(focoAnterior);
-    const leyendoAlternativa = !partes.alternativa.hidden && partes.alternativa.getBoundingClientRect().top < cabecera;
-    const puedeAnimar = !detenido && !movimientoReducido.matches && innerWidth >= 1024 && innerHeight >= 700
+    const enRecorrido = partes.recorrido.contains(focoAnterior);
+    const leyendo = mejoraActiva && partes.recorrido.getBoundingClientRect().top < 100;
+    const puedeAnimar = !movimientoReducido.matches && innerWidth >= 1024 && innerHeight >= 700
       && typeof CSS !== 'undefined' && CSS.supports('height', '100svh') && CSS.supports('aspect-ratio', '1440 / 1000');
-    if (!puedeAnimar) {
-      modoScroll = false;
-      partes.recorrido.hidden = true;
-      partes.alternativa.hidden = false;
-      explorador.classList.remove('modo-scroll');
-      verbos.forEach(verbo => verbo.removeAttribute('aria-current'));
-      if (estabaAnimado) {
-        const destino = focoEnRecorrido ? escenas[indiceActivo] : null;
-        destino?.focus({ preventScroll: true });
-        // La portada sigue en su sitio si la persona aún no entró al recorrido.
-        if (scrollY >= inicio) escenas[indiceActivo].scrollIntoView({ block: 'start', behavior: 'instant' });
-      }
-      return;
-    }
-    if (!modoScroll && (partes.alternativa.contains(focoAnterior) || leyendoAlternativa)) return;
-    modoScroll = true;
+    // Al ampliar la ventana durante la lectura no introducir seis pantallas de scroll.
+    modoScroll = puedeAnimar && (estabaAnimado || !leyendo);
+    mejoraActiva = true;
     partes.recorrido.hidden = false;
     partes.alternativa.hidden = true;
-    explorador.classList.add('modo-scroll');
+    explorador.classList.toggle('modo-scroll', modoScroll);
+    explorador.classList.toggle('modo-compacto', !modoScroll);
+    if (!modoScroll) {
+      explorador.classList.remove('en-capitulos');
+      partes.controles.inert = false;
+      partes.timeline.hidden = true;
+      partes.composicion.style.removeProperty('transform');
+      partes.composicion.style.removeProperty('width');
+      partes.adornos.style.removeProperty('opacity');
+      partes.adornos.style.removeProperty('transform');
+      indicePortada = indiceActivo;
+      indicarEscena(indiceActivo);
+      if (estabaAnimado && leyendo) {
+        if (partes.timeline.contains(focoAnterior)) selectores[indiceActivo].focus({ preventScroll: true });
+        if (enRecorrido || scrollY >= inicio) partes.recorrido.scrollIntoView({ block: 'start', behavior: 'instant' });
+      }
+      programarCambio();
+      return;
+    }
     ancho = partes.escenario.clientWidth;
     anchoCaptura = Math.min(ancho * .76, 900, (innerHeight - 240) * 1.44);
     inicio = partes.recorrido.getBoundingClientRect().top + scrollY - 100;
     distancia = Math.max(1, partes.recorrido.offsetHeight - partes.escenario.offsetHeight);
+    indicarEscena(indiceActivo);
     actualizarRecorrido();
   }
 
@@ -140,21 +211,33 @@ function iniciarExplorador(explorador: HTMLElement): void {
     window.scrollTo({ top: inicio + distancia * (.3 + .7 * (indice + .05) / 3), behavior: 'instant' });
     actualizarRecorrido();
   }));
+  selectores.forEach((selector, indice) => selector.addEventListener('click', () => {
+    elegirEscena(indice);
+    if (modoScroll && scrollY >= inicio + distancia * .3) {
+      window.scrollTo({ top: inicio + distancia * (.3 + .7 * (indice + .05) / 3), behavior: 'instant' });
+      actualizarRecorrido();
+    }
+  }));
   verbos.forEach((verbo, indice) => {
-    const elegir = () => {
-      if (!modoScroll) return;
-      indicePortada = indice;
-      indicarEscena(indice);
-    };
-    verbo.addEventListener('pointerenter', elegir);
+    const elegir = () => { if (mejoraActiva) elegirEscena(indice); };
+    verbo.addEventListener('pointerenter', evento => { if (evento.pointerType === 'mouse') elegir(); });
     verbo.addEventListener('focus', elegir);
     verbo.addEventListener('click', evento => {
-      if (!modoScroll || evento.ctrlKey || evento.metaKey || evento.shiftKey || evento.altKey || evento.button !== 0) return;
+      if (!mejoraActiva || evento.ctrlKey || evento.metaKey || evento.shiftKey || evento.altKey || evento.button !== 0) return;
       evento.preventDefault();
       elegir();
     });
   });
-  partes.detener.addEventListener('click', () => { detenido = true; actualizarMedidas(); });
+  [...verbos, ...selectores, partes.ampliarActual, partes.reproduccion].forEach(control => {
+    control.addEventListener('pointerenter', evento => {
+      if (evento instanceof PointerEvent && evento.pointerType === 'mouse') { punteroSobreControl = true; programarCambio(); }
+    });
+    control.addEventListener('pointerleave', () => { punteroSobreControl = false; programarCambio(); });
+  });
+  partes.reproduccion.addEventListener('click', () => { pausaSolicitada = !pausaSolicitada; programarCambio(); });
+  explorador.addEventListener('focusin', programarCambio);
+  explorador.addEventListener('focusout', () => queueMicrotask(actualizarRecorrido));
+  document.addEventListener('visibilitychange', programarCambio);
   if (dialogo && typeof dialogo.showModal === 'function' && cerrar && tamanoReal && lienzoAmpliado
     && tituloAmpliado && capturaAmpliada && originalAmpliado) {
     const ampliacion = { dialogo, tamanoReal, lienzoAmpliado, tituloAmpliado, capturaAmpliada, originalAmpliado };
@@ -169,20 +252,23 @@ function iniciarExplorador(explorador: HTMLElement): void {
       if (!imagen) return;
       indiceAmpliado = indice;
       botonApertura = boton;
-      ampliacion.tituloAmpliado.textContent = escenas[indice].querySelector('h3')?.textContent ?? '';
+      ampliacion.tituloAmpliado.textContent = titulo(indice);
       ampliacion.capturaAmpliada.src = imagen.src;
       ampliacion.capturaAmpliada.alt = imagen.alt;
       ampliacion.originalAmpliado.href = imagen.src;
-      ampliacion.dialogo.showModal();
+      if (!ampliacion.dialogo.open) {
+        bloqueoAnterior = document.documentElement.style.overflow;
+        document.documentElement.style.overflow = 'hidden';
+        ampliacion.dialogo.showModal();
+      }
+      const contador = explorador.querySelector('[data-contador]');
+      if (contador) contador.textContent = `0${indice + 1} / 03`;
+      programarCambio();
       ajustarCaptura();
       ampliacion.dialogo.scrollTop = 0;
     }
-    escenas.forEach((escena, indice) => {
-      const boton = escena.querySelector<HTMLButtonElement>('[data-ampliar]');
-      if (!boton) return;
-      boton.addEventListener('click', () => abrirCaptura(indice, boton));
-      boton.hidden = false;
-    });
+    explorador.querySelector('[data-captura-anterior]')?.addEventListener('click', () => abrirCaptura((indiceAmpliado + 2) % 3, partes.ampliarActual));
+    explorador.querySelector('[data-captura-siguiente]')?.addEventListener('click', () => abrirCaptura((indiceAmpliado + 1) % 3, partes.ampliarActual));
     partes.ampliarActual.addEventListener('click', () => abrirCaptura(Math.max(0, indiceActivo), partes.ampliarActual));
     tamanoReal.addEventListener('click', () => {
       const real = ampliacion.lienzoAmpliado.classList.toggle('tamano-real');
@@ -192,10 +278,11 @@ function iniciarExplorador(explorador: HTMLElement): void {
     });
     cerrar.addEventListener('click', () => ampliacion.dialogo.close());
     dialogo.addEventListener('close', () => {
-      const destino = botonApertura && !botonApertura.closest('[hidden]') ? botonApertura
-        : escenas[indiceAmpliado].querySelector<HTMLButtonElement>('[data-ampliar]');
+      document.documentElement.style.overflow = bloqueoAnterior;
+      const destino = botonApertura;
       destino?.focus({ preventScroll: true });
       botonApertura = null;
+      programarCambio();
     });
   }
 
@@ -203,6 +290,7 @@ function iniciarExplorador(explorador: HTMLElement): void {
   escenas.forEach(escena => { escena.tabIndex = -1; });
   actualizarMedidas();
   const indiceInicial = escenas.findIndex(escena => `#${escena.id}` === location.hash);
+  if (indiceInicial >= 0 && !modoScroll) elegirEscena(indiceInicial);
   if (indiceInicial >= 0 && modoScroll) {
     window.scrollTo({top: inicio + distancia * (.3 + .7 * (indiceInicial + .05) / 3), behavior: 'instant'});
     actualizarRecorrido();

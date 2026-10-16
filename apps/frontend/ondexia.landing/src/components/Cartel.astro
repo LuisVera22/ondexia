@@ -8,14 +8,14 @@
       <a href="#acceso" class="btn-primario">Solicitar acceso <svg class="flecha" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12" /></svg></a>
       <a href="https://app.ondexia.com" class="enlace-ingresar">Ingresar al sistema <svg class="flecha" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12" /></svg></a>
     </div>
-    <p class="portada-indicacion">Explorar una acción y continuar hacia abajo.</p>
+    <p class="portada-indicacion">Explorar cada acción. Seguir el recorrido.</p>
   </div>
 </section>
 <style>
   .portada-interior { padding-block: 64px 48px; text-align: center; }
   .portada-rotulo { color: var(--color-gray-600); font-size: 13px; margin-bottom: 30px; }
   h1 { color: var(--color-gray-900); font-size: clamp(48px, 6.5vw, 94px); font-weight: 500; letter-spacing: -0.055em; line-height: 1.04; }
-  h1 a { text-decoration: underline; text-decoration-color: var(--color-gray-200); text-decoration-thickness: 2px; text-underline-offset: 9px; transition: color 160ms, text-decoration-color 160ms; }
+  h1 a { text-decoration: underline; text-decoration-color: var(--color-gray-200); text-decoration-thickness: 2px; text-underline-offset: 9px; transition: color 550ms ease, text-decoration-color 550ms ease; }
   h1 a[aria-current='true'] { color: var(--color-brand-500); text-decoration-color: currentColor; }
   h1 a:nth-of-type(2)[aria-current='true'] { color: #24645c; }
   h1 a:nth-of-type(3)[aria-current='true'] { color: #85522e; }
@@ -24,6 +24,6 @@
   .enlace-ingresar { display: inline-flex; gap: 16px; align-items: center; min-height: 48px; font-size: 14px; }
   .enlace-ingresar:hover { text-decoration: underline; }
   .portada-indicacion { font-size: 12px; margin-top: 24px; color: var(--color-gray-600); }
-  @media (max-width: 767px) { .portada-interior { padding-block: 44px 20px; } h1 { font-size: clamp(39px, 7vw, 60px); } .portada-descripcion { font-size: 16px; } }
+  @media (max-width: 767px) { .portada-interior { padding-block: 36px 20px; } h1 { font-size: clamp(34px, 7.8vw, 60px); line-height: 1.1; } h1 a { text-underline-offset: 5px; } .portada-rotulo { font-size: 11px; margin-bottom: 24px; } .portada-descripcion { font-size: 15px; margin-top: 24px; } .portada-acciones { gap: 6px 18px; margin-top: 22px; } .portada-indicacion { margin-top: 16px; } }
   @media (prefers-reduced-motion: reduce) { h1 a { transition: none; } }
 </style>

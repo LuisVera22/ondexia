@@ -1,0 +1,191 @@
+{
+  "revision": "2026-10-16",
+  "base": "76a6da9c0330f6aa66f2f36623d81fc3ad151cd0",
+  "antes": {
+    "antes": "Vender",
+    "despues": "Vender",
+    "avanceAutomatico": false,
+    "botonesOriginal": 5,
+    "botonSinAnimacion": 1,
+    "movilArticulosVisibles": 3
+  },
+  "interactividad": {
+    "estado": "correcto",
+    "etapa": "completado",
+    "url": "http://127.0.0.1:4330/",
+    "noVerificado": [
+      "AWS",
+      "servicios reales",
+      "otros navegadores",
+      "dispositivos físicos",
+      "auditoría independiente",
+      "WCAG completa"
+    ],
+    "automatico": {
+      "intervaloMs": 6000,
+      "secuencia": [
+        "Venta",
+        "Registro",
+        "Documento",
+        "Venta"
+      ],
+      "pausas": [
+        "hover",
+        "foco",
+        "explícita",
+        "documento oculto simulado",
+        "visor",
+        "movimiento reducido"
+      ],
+      "adornosPorEscena": 7
+    },
+    "verbos": [
+      "hover",
+      "foco",
+      "Enter",
+      "captura y elementos sincronizados"
+    ],
+    "progresos": [
+      {
+        "punto": 0.4166666666666667,
+        "escena": 0,
+        "barra": 0.499975
+      },
+      {
+        "punto": 0.65,
+        "escena": 1,
+        "barra": 0.499654
+      },
+      {
+        "punto": 0.8833333333333333,
+        "escena": 2,
+        "barra": 0.500296
+      },
+      {
+        "punto": 0.4166666666666667,
+        "escena": 0,
+        "barra": 0.499975
+      }
+    ],
+    "mutacionBarra": "detectada",
+    "csp": {
+      "scriptLocal": true,
+      "inlineRechazado": true,
+      "evalRechazado": true,
+      "conexionesLocalYOtroOrigenRechazadas": true,
+      "scriptOtroOrigenRechazado": true,
+      "iframeRechazado": true
+    },
+    "alternativas": [
+      {
+        "ancho": 320,
+        "alto": 900,
+        "javascript": true,
+        "reducido": false,
+        "correcto": true
+      },
+      {
+        "ancho": 390,
+        "alto": 844,
+        "javascript": true,
+        "reducido": false,
+        "correcto": true
+      },
+      {
+        "ancho": 768,
+        "alto": 900,
+        "javascript": true,
+        "reducido": false,
+        "correcto": true
+      },
+      {
+        "ancho": 1024,
+        "alto": 900,
+        "javascript": true,
+        "reducido": false,
+        "correcto": true
+      },
+      {
+        "ancho": 1440,
+        "alto": 400,
+        "javascript": true,
+        "reducido": false,
+        "correcto": true
+      },
+      {
+        "ancho": 320,
+        "alto": 225,
+        "javascript": true,
+        "reducido": false,
+        "correcto": true
+      },
+      {
+        "ancho": 1440,
+        "alto": 1000,
+        "javascript": true,
+        "reducido": true,
+        "correcto": true
+      },
+      {
+        "ancho": 1440,
+        "alto": 1000,
+        "javascript": false,
+        "reducido": false,
+        "correcto": true
+      },
+      {
+        "ancho": 390,
+        "alto": 844,
+        "javascript": false,
+        "reducido": false,
+        "correcto": true
+      }
+    ]
+  },
+  "responsividad": [
+    {
+      "ancho": 320,
+      "desbordamiento": false,
+      "menu_teclado": true,
+      "preguntas_teclado": true
+    },
+    {
+      "ancho": 390,
+      "desbordamiento": false,
+      "menu_teclado": true,
+      "preguntas_teclado": true
+    },
+    {
+      "ancho": 768,
+      "desbordamiento": false,
+      "menu_teclado": true,
+      "preguntas_teclado": true
+    },
+    {
+      "ancho": 1024,
+      "desbordamiento": false,
+      "menu_teclado": false,
+      "preguntas_teclado": true
+    },
+    {
+      "ancho": 1440,
+      "desbordamiento": false,
+      "menu_teclado": false,
+      "preguntas_teclado": true
+    }
+  ],
+  "perfilLocal": {
+    "tareasLargas": [
+      {
+        "inicio": 57.100000001490116,
+        "duracion": 64
+      }
+    ],
+    "entorno": "Chromium headless local con grabación y trazado; no benchmark de dispositivos reales"
+  },
+  "capturas": {
+    "documento-completo.png": "5f269bcdc7306214f9d6b9c8223fe4368f3c76c2e66b1e9cd27cb84b4465ed54",
+    "registro-completo.png": "dfb543e9028251571f13507a199fe3616df3c083b0dfb0f4f008c1f13e2ab7c5",
+    "venta-completa.png": "0489d9c20b7ba8f5f873da72a69749ec6034cd3c7d9454ae62afba46aed6075f"
+  }
+}

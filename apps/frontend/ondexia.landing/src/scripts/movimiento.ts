@@ -11,7 +11,7 @@ if (!movimientoReducido.matches && 'IntersectionObserver' in window) {
     });
   }, { threshold: 0.1 });
 
-  document.querySelectorAll('.portada-interior, .encabezado-seccion, .presentacion-proceso, .bloque-preguntas, .contacto-interior')
+  document.querySelectorAll('.portada-interior, .encabezado-seccion, .encabezado-herramientas, .lista-herramientas, .acceso-planes, #confianza h2, #confianza .introduccion, .aspectos article, .alcance dl, .bloque-preguntas, .contacto-interior, footer')
     .forEach((elemento) => observador.observe(elemento));
   movimientoReducido.addEventListener('change', () => {
     if (movimientoReducido.matches) observador.disconnect();

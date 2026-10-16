@@ -20,10 +20,9 @@ const herramientas = [
     <ul class="lista-herramientas" tabindex="0" aria-label="Herramientas de Ondexia" data-carrusel>
       {herramientas.map(herramienta => <li>
         <div><h3>{herramienta.titulo}</h3><p>{herramienta.detalle}</p></div>
-        <a href={herramienta.captura} aria-label={`Ver captura completa: ${herramienta.titulo}`}>
+        <div class="herramienta-vista">
           <img src={herramienta.captura} alt={herramienta.alternativa} width="1440" height="1000" loading="lazy" decoding="async" />
-          <span>Ver captura completa <svg class="flecha" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M6 18 18 6M6 6h12v12" /></svg></span>
-        </a>
+        </div>
       </li>)}
     </ul>
     <p class="nota-herramientas">Capturas del sistema · datos de demostración. La nota de venta es un documento interno.</p>
@@ -66,8 +65,9 @@ const herramientas = [
   h3 { font-size: 22px; font-weight: 500; margin-bottom: 12px; }
   li p { color: var(--color-gray-600); font-size: 15px; line-height: 1.7; }
   li img { width: 100%; height: auto; border: 1px solid var(--color-gray-200); border-radius: var(--radius-base); }
-  li a > span { display: flex; justify-content: space-between; align-items: center; min-height: 44px; font-size: 13px; margin-top: 8px; }
-  li a:hover > span { color: var(--color-brand-700); text-decoration: underline; }
+  .herramienta-vista { overflow: hidden; border-radius: var(--radius-base); }
+  li img { transition: transform 700ms var(--ease-propia); }
+  @media (hover: hover) { li:hover img { transform: scale(1.035); } }
   .nota-herramientas { margin-top: 16px; color: var(--color-gray-600); font-size: 12px; }
   @media (max-width: 1023px) { .lista-herramientas { grid-auto-columns: 46%; } }
   @media (max-width: 600px) { .lista-herramientas { grid-auto-columns: 86%; } li { padding: 24px 18px 16px; gap: 28px; } }
