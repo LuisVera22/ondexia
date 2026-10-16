@@ -379,3 +379,35 @@ reproducibles como históricos. Fijar los oráculos anteriores antes de implemen
 registrar fallo sobre el build previo, ejecutar escritorio, móvil, teclado,
 alternativas y CSP sobre la corrección. La inspección propia no se denomina
 auditoría independiente. Capturas provenientes de frontend real y datos sintéticos.
+
+## Revisión del 2026-10-16 — reproducción y galería compacta
+
+El propietario solicita alternancia automática, transiciones suaves en la página,
+morphing donde aporte, retirada de «Ver sin animación», menos controles de
+ampliación, mejor uso de pantallas pequeñas y más complementos ilustrativos.
+Esta revisión sustituye las restricciones anteriores de no reproducción y de
+mostrar tres artículos en todo móvil; conserva las decisiones comerciales.
+
+Criterios de aceptación:
+
+- Dada la portada visible sin interacción, alternar Venta → Registro → Documento
+  cada seis segundos. Hover, foco, visor, pestaña oculta y pausa explícita detienen
+  el ciclo. Al salir de esas condiciones, esperar un intervalo completo.
+- Dado el recorrido de escritorio, el scroll conserva la salida de adornos,
+  traslado lateral, barras por capítulo, reversa y liberación. El temporizador
+  de portada no avanza el recorrido. El acordeón reemplaza visualmente al selector.
+- Dada una pantalla pequeña, presentar una galería compacta en flujo normal,
+  selección manual accesible y una captura completa de computador. Movimiento
+  reducido desactiva reproducción, transiciones y adornos; permite selección.
+- Dada una captura, pulsarla abre un único visor con anterior/siguiente, ajuste,
+  tamaño real, descarga, Escape y retorno de foco. Reabrir o cambiar de captura
+  restablece el ajuste. No repetir enlaces de ampliación en las herramientas.
+- Dado un cambio de escena, fundir las capas sin deformar la interfaz; transformar
+  el contorno decorativo con estados intermedios. Siete objetos por escena en
+  escritorio y cuatro acentos pequeños en móvil, sin información comercial nueva.
+- Sin JavaScript o sin aspect-ratio, conservar artículos y enlaces nativos a los
+  originales. Mantener CSP, scripts locales y la corrección de MIME de rc.5.
+
+La verificación usa el harness existente, actualizado con estos oráculos. La
+[evidencia de esta revisión](../evidencias/2026-10-16-presentacion-fluida.md)
+distingue observaciones locales de servicios y navegadores no comprobados.
