@@ -1,12 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
 import Barra from '../components/Barra.astro';
-import Cartel from '../components/Cartel.astro';
 import Explorador from '../components/Explorador.astro';
 import Modulos from '../components/Modulos.astro';
-import Proceso from '../components/Proceso.astro';
+import Confianza from '../components/Confianza.astro';
 import Preguntas from '../components/Preguntas.astro';
-import Precios from '../components/Precios.astro';
+import AccesoPlanes from '../components/AccesoPlanes.astro';
 import Estado from '../components/Estado.astro';
 import Cierre from '../components/Cierre.astro';
 import Pie from '../components/Pie.astro';
@@ -24,11 +23,10 @@ const descripcion =
 <Base titulo={titulo} descripcion={descripcion}>
   <Barra />
   <main id="contenido">
-    <Cartel />
     <Explorador />
     <Modulos />
-    <Proceso />
-    <Precios />
+    <AccesoPlanes />
+    <Confianza />
     <Estado />
     <Preguntas />
     <Cierre />

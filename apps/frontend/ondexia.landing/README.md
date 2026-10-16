@@ -1,3 +1,43 @@
+## Recorrido continuo — revisión del 15 de octubre de 2026
+
+La portada y la demostración forman una sola secuencia: **Vender / Consultar /
+Imprimir** seleccionan capturas y objetos ilustrativos. El scroll retira los
+objetos, mueve la captura a la derecha y presenta el acordeón con tres barras.
+La sección se libera al completar el último capítulo. Después aparecen las
+herramientas, el acceso a planes, privacidad/seguridad, alcance, preguntas y cierre.
+
+- Capturas completas existentes de computador, con datos sintéticos y origen
+  conservado en la evidencia anterior; no son datos de clientes ni nuevas pruebas de backend.
+- Escritorio mejorado: ancho >= 1024 px, alto >= 700 px, movimiento permitido.
+  Sin esas condiciones, sin scripts o al detener: tres artículos en flujo normal.
+- Teclado, hover y clic; sin timers de reproducción ni secuestro de scroll.
+- Carrusel nativo con botones y desplazamiento táctil; originales disponibles.
+- `/planes.html` conserva importes, aviso sin IGV y propuesta pendiente de validación.
+  Se genera como archivo para S3 sin cambios en CloudFront; SEO comprueba ambas rutas.
+- Contacto de privacidad/seguridad por correo; la política sigue pendiente. No se
+  inventan certificaciones, garantías, prueba gratuita ni condiciones comerciales.
+- `Solicitar acceso` mantiene su destino vigente; `Ingresar` abre la aplicación.
+
+Ver [especificación del recorrido](../../../ondexia.docs/landing-propuesta/2026-10-14-interactividad.md#revisión-del-recorrido-continuo--2026-10-15)
+y [evidencia](../../../ondexia.docs/evidencias/2026-10-15-presentacion-continua.md).
+
+Validar con el build del paquete y el servidor local con CSP:
+
+```sh
+pnpm --dir apps/frontend/ondexia.landing build
+python3 herramientas/servir-landing-local.py --puerto 4330
+python3 herramientas/comprobar-interactividad-landing.py --url http://127.0.0.1:4330/ --evidencia /tmp/ondexia-presentacion
+URL_LANDING=http://127.0.0.1:4330/ python3 herramientas/comprobar-responsividad-landing.py
+```
+
+El oráculo del recorrido anterior se conserva mediante `--escenario-historico`,
+para reproducir aquella versión, y no corresponde a la nueva composición.
+Las pruebas de navegador requieren Playwright Python y Chromium locales.
+
+---
+
+## Referencia histórica de la versión anterior
+
 # ondexia.landing
 
 Página pública de Ondexia: Astro estático con JavaScript local mínimo para

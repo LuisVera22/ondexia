@@ -1,0 +1,160 @@
+{
+  "base": "cdbed6b2c21438fca6753180dd46af94c9ac9a5e",
+  "rojo": {
+    "estado": "fallido",
+    "etapa": "verbos",
+    "url": "http://127.0.0.1:4330/",
+    "error": "Locator expected to have count '3'\nActual value: 0 \nCall log:\n  - Expect \"to_have_count\" with timeout 5000ms\n  - waiting for locator(\"h1 [data-verbo]\")\n    14 × locator resolved to 0 elements\n       - unexpected value \"0\"\n"
+  },
+  "verde": {
+    "estado": "correcto",
+    "etapa": "completado",
+    "url": "http://127.0.0.1:4330/",
+    "noVerificado": [
+      "AWS",
+      "servicios reales",
+      "otros navegadores",
+      "dispositivos físicos",
+      "auditoría independiente",
+      "WCAG completa"
+    ],
+    "verbos": [
+      "hover",
+      "foco",
+      "Enter",
+      "captura y elementos sincronizados"
+    ],
+    "progresos": [
+      {
+        "punto": 0.4166666666666667,
+        "escena": 0,
+        "barra": 0.499975
+      },
+      {
+        "punto": 0.65,
+        "escena": 1,
+        "barra": 0.499654
+      },
+      {
+        "punto": 0.8833333333333333,
+        "escena": 2,
+        "barra": 0.500296
+      },
+      {
+        "punto": 0.4166666666666667,
+        "escena": 0,
+        "barra": 0.499975
+      }
+    ],
+    "mutacionBarra": "detectada",
+    "csp": {
+      "scriptLocal": true,
+      "inlineRechazado": true,
+      "evalRechazado": true,
+      "conexionesLocalYOtroOrigenRechazadas": true,
+      "scriptOtroOrigenRechazado": true,
+      "iframeRechazado": true
+    },
+    "alternativas": [
+      {
+        "ancho": 320,
+        "alto": 900,
+        "javascript": true,
+        "reducido": false,
+        "correcto": true
+      },
+      {
+        "ancho": 390,
+        "alto": 844,
+        "javascript": true,
+        "reducido": false,
+        "correcto": true
+      },
+      {
+        "ancho": 768,
+        "alto": 900,
+        "javascript": true,
+        "reducido": false,
+        "correcto": true
+      },
+      {
+        "ancho": 1024,
+        "alto": 900,
+        "javascript": true,
+        "reducido": false,
+        "correcto": true
+      },
+      {
+        "ancho": 1440,
+        "alto": 400,
+        "javascript": true,
+        "reducido": false,
+        "correcto": true
+      },
+      {
+        "ancho": 320,
+        "alto": 225,
+        "javascript": true,
+        "reducido": false,
+        "correcto": true
+      },
+      {
+        "ancho": 1440,
+        "alto": 1000,
+        "javascript": true,
+        "reducido": true,
+        "correcto": true
+      },
+      {
+        "ancho": 1440,
+        "alto": 1000,
+        "javascript": false,
+        "reducido": false,
+        "correcto": true
+      },
+      {
+        "ancho": 390,
+        "alto": 844,
+        "javascript": false,
+        "reducido": false,
+        "correcto": true
+      }
+    ]
+  },
+  "responsividad": [
+    {
+      "ancho": 320,
+      "desbordamiento": false,
+      "menu_teclado": true,
+      "preguntas_teclado": true
+    },
+    {
+      "ancho": 390,
+      "desbordamiento": false,
+      "menu_teclado": true,
+      "preguntas_teclado": true
+    },
+    {
+      "ancho": 768,
+      "desbordamiento": false,
+      "menu_teclado": true,
+      "preguntas_teclado": true
+    },
+    {
+      "ancho": 1024,
+      "desbordamiento": false,
+      "menu_teclado": false,
+      "preguntas_teclado": true
+    },
+    {
+      "ancho": 1440,
+      "desbordamiento": false,
+      "menu_teclado": false,
+      "preguntas_teclado": true
+    }
+  ],
+  "perfil": {
+    "tareasMayores50ms": [],
+    "alcance": "Recorrido programado en Chromium local; no demuestra rendimiento de dispositivos físicos."
+  }
+}

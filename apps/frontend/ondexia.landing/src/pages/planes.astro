@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import Barra from '../components/Barra.astro';
+import Precios from '../components/Precios.astro';
+import Estado from '../components/Estado.astro';
+import Cierre from '../components/Cierre.astro';
+import Pie from '../components/Pie.astro';
+---
+<Base titulo="Planes y precios · Ondexia" descripcion="Consultar la propuesta de planes de Ondexia según empresas y usuarios, sus importes en soles y las condiciones pendientes de validación.">
+  <Barra />
+  <main id="contenido">
+    <div class="contenedor presentacion-planes"><a href="/"><svg class="flecha" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M19 12H5m7-7-7 7 7 7" /></svg> Volver a Ondexia</a><h1>Elegir el alcance<br />para cada negocio.</h1></div>
+    <Precios /><Estado /><Cierre />
+  </main>
+  <Pie />
+</Base>
+<script src="../scripts/movimiento.ts"></script>
+<style>
+  .presentacion-planes { padding-top: 52px; }
+  .presentacion-planes a { display: inline-flex; align-items: center; min-height: 44px; color: var(--color-gray-600); }
+  h1 { margin-top: 36px; font-size: clamp(38px, 5vw, 64px); font-weight: 500; letter-spacing: -.04em; line-height: 1.1; }
+</style>

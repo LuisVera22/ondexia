@@ -429,3 +429,6 @@
     }
   }
 }
+
+/* Los iconos direccionales no dependen de los glifos de la fuente. */
+.flecha { display: inline-block; flex-shrink: 0; vertical-align: middle; }
