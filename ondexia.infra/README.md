@@ -1,5 +1,11 @@
 # ondexia.infra
 
+> **En pausa desde el 2026-11-05.** RDS detenida, Lambdas en concurrencia 0,
+> app y panel con página de mantenimiento y `deploy.yml` deshabilitado. Hay
+> cambios fuera de Terraform: un `plan` o `apply` antes de revertirlos los
+> muestra como deriva y los deshace a medias. Registro y reanudación en
+> [`../ondexia.docs/operacion-pausa-aws.md`](../ondexia.docs/operacion-pausa-aws.md).
+
 Infraestructura de Ondexia en AWS, con Terraform. Corresponde a la **v1** del
 diagrama de arquitectura: un cliente, dos usuarios, **sin integración SUNAT**.
 
@@ -521,11 +527,12 @@ despliegue cubre el caso a mano.
 `terraform fmt`, `terraform init` y `terraform validate` pasan sobre esta
 configuración y sobre `bootstrap/`.
 
-**No se ha ejecutado `plan` ni `apply` contra una cuenta real.** `validate`
-comprueba sintaxis y coherencia de referencias; no comprueba que AWS acepte cada
-combinación de argumentos, ni que las cuotas den, ni que los identificadores de
-políticas gestionadas de CloudFront sigan vigentes. El primer `plan` es parte
-del trabajo, no un trámite.
+Contra la cuenta real, `deploy.yml` aplicó con éxito sobre el estado
+`ondexia/prod/terraform.tfstate` entre el 2026-10-12 y el 2026-10-16; desde el
+2026-11-05 la pila está en pausa (aviso del principio). `validate` comprueba
+sintaxis y coherencia de referencias; no comprueba que AWS acepte cada
+combinación de argumentos, ni que las cuotas den. Cada `plan` contra la cuenta
+es parte del trabajo, no un trámite.
 
 ## Promoción del único entorno AWS a producción
 

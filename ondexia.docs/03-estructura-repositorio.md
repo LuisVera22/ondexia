@@ -378,7 +378,7 @@ que validen automáticamente los mensajes.
 
 ### 9.1 Qué hace el despliegue
 
-Sigue siendo manual (`workflow_dispatch`) porque no hay nada desplegado: un workflow automático que apunta a nada solo produce fallos rojos que enseñan a ignorar el tablero. El disparador por rama se activa al llegar la Fase 1.
+Sigue siendo manual (`workflow_dispatch`): cada despliegue a la única pila productiva se decide y se revisa. Desde el 2026-11-05 la pila está en pausa y el workflow, deshabilitado en GitHub; reanudar sigue [`operacion-pausa-aws.md`](operacion-pausa-aws.md).
 
 Tres jobs, y el orden es el control:
 
