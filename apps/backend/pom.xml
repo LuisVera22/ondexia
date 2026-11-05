@@ -143,6 +143,17 @@
     <tomcat.version>11.0.25</tomcat.version>
 
     <!--
+      Tercera vuelta, 2026-11-05: el webjar swagger-ui 5.32.11 que trae
+      springdoc 3.1.0 empaqueta DOMPurify 3.4.12, con CVE-2026-116803 y
+      CVE-2026-116804 (10.0), corregidos en DOMPurify 3.4.17. Subir springdoc
+      no basta: su 3.2.0 trae swagger-ui 5.34.0, que sigue con 3.4.16. La 5.34.1
+      es la primera que empaqueta 3.4.17 (comprobado dentro del propio jar, no
+      por el rango declarado). Se puede retirar cuando springdoc traiga una
+      swagger-ui igual o posterior.
+    -->
+    <swagger-ui.version>5.34.1</swagger-ui.version>
+
+    <!--
       Clave de API del NIST.
 
       Desde 2023 la NVD limita con dureza a quien consulta sin clave: la primera
@@ -170,6 +181,11 @@
         <groupId>org.springdoc</groupId>
         <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
         <version>${springdoc.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.webjars</groupId>
+        <artifactId>swagger-ui</artifactId>
+        <version>${swagger-ui.version}</version>
       </dependency>
       <dependency>
         <groupId>com.tngtech.archunit</groupId>
