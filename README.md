@@ -127,8 +127,10 @@ además Tailwind solo emite las utilidades que se usan: la ausencia de un radio 
 la hoja servida no es una aproximación a «nadie lo escribió», es exactamente eso.
 
 El despliegue ([`deploy.yml`](.github/workflows/deploy.yml)) es **manual**, con
-casilla de «solo plan». Se deja así mientras no haya nada desplegado: un workflow
-que apunta a nada solo produce rojos que enseñan a ignorar el tablero.
+casilla de «solo plan». La pila productiva de AWS se desplegó por última vez el
+2026-10-16 y **está en pausa desde el 2026-11-05**, con el workflow
+deshabilitado en GitHub: antes de volver a desplegar, seguir
+[`ondexia.docs/operacion-pausa-aws.md`](ondexia.docs/operacion-pausa-aws.md).
 
 ## Estructura
 
