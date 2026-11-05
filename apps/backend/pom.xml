@@ -61,7 +61,7 @@
       Adaptador de Lambda (DT-D17). La serie 3.x es la de Spring Boot 4; la 2.x
       se quedo en Boot 3 y en Jackson 2.
     -->
-    <serverless-container.version>3.0.2</serverless-container.version>
+    <serverless-container.version>3.0.4</serverless-container.version>
     <lambda-core.version>1.2.3</lambda-core.version>
     <!--
       API de CRaC. La implementacion NO se empaqueta: la pone el runtime de
