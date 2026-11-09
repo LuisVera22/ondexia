@@ -36,8 +36,8 @@ importers:
         specifier: ~7.8.0
         version: 7.8.2
       tailwindcss:
-        specifier: ^4.1.11
-        version: 4.3.3
+        specifier: ^4.3.4
+        version: 4.3.4
       tslib:
         specifier: ^2.3.0
         version: 2.8.1
@@ -47,7 +47,7 @@ importers:
     devDependencies:
       '@angular/build':
         specifier: ^21.2.26
-        version: 21.2.26(@angular/compiler-cli@21.2.26(@angular/compiler@21.2.26)(typescript@5.9.3))(@angular/compiler@21.2.26)(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2)(zone.js@0.16.3))(@angular/platform-browser@21.2.26(@angular/common@21.2.26(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2)(zone.js@0.16.3)))(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@types/node@26.2.0)(chokidar@5.0.0)(jiti@2.7.0)(karma@6.4.4)(lightningcss@1.32.0)(postcss@8.5.29)(tailwindcss@4.3.3)(tslib@2.8.1)(typescript@5.9.3)
+        version: 21.2.26(@angular/compiler-cli@21.2.26(@angular/compiler@21.2.26)(typescript@5.9.3))(@angular/compiler@21.2.26)(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2)(zone.js@0.16.3))(@angular/platform-browser@21.2.26(@angular/common@21.2.26(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2)(zone.js@0.16.3)))(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@types/node@26.2.0)(chokidar@5.0.0)(jiti@2.7.0)(karma@6.4.4)(lightningcss@1.32.0)(postcss@8.5.29)(tailwindcss@4.3.4)(tslib@2.8.1)(typescript@5.9.3)
       '@angular/cli':
         specifier: ^21.2.26
         version: 21.2.26(@types/node@26.2.0)(chokidar@5.0.0)
@@ -2976,6 +2976,9 @@ packages:
   tailwindcss@4.3.3:
     resolution: {integrity: sha512-gOhV3P7ufE62QDGg1zVaTgCR+EtPv92k2nIhVcVKcLmxT1sUBsQGhnZj175j+MqRt4zLF7ic+sCYjfhxMxj7YQ==}
 
+  tailwindcss@4.3.4:
+    resolution: {integrity: sha512-PCJZTFFdG+sL3gvnP1Do9o6GbkvH2q0p04xSs3f7cSvmAeK+sttG+/7ncK1fdRwKFfC7n+wDDJaOMBSefkI9ow==}
+
   tapable@2.3.3:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
     engines: {node: '>=6'}
@@ -3331,7 +3334,7 @@ snapshots:
     transitivePeerDependencies:
       - chokidar
 
-  '@angular/build@21.2.26(@angular/compiler-cli@21.2.26(@angular/compiler@21.2.26)(typescript@5.9.3))(@angular/compiler@21.2.26)(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2)(zone.js@0.16.3))(@angular/platform-browser@21.2.26(@angular/common@21.2.26(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2)(zone.js@0.16.3)))(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@types/node@26.2.0)(chokidar@5.0.0)(jiti@2.7.0)(karma@6.4.4)(lightningcss@1.32.0)(postcss@8.5.29)(tailwindcss@4.3.3)(tslib@2.8.1)(typescript@5.9.3)':
+  '@angular/build@21.2.26(@angular/compiler-cli@21.2.26(@angular/compiler@21.2.26)(typescript@5.9.3))(@angular/compiler@21.2.26)(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2)(zone.js@0.16.3))(@angular/platform-browser@21.2.26(@angular/common@21.2.26(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@21.2.26(@angular/compiler@21.2.26)(rxjs@7.8.2)(zone.js@0.16.3)))(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)(@types/node@26.2.0)(chokidar@5.0.0)(jiti@2.7.0)(karma@6.4.4)(lightningcss@1.32.0)(postcss@8.5.29)(tailwindcss@4.3.4)(tslib@2.8.1)(typescript@5.9.3)':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@angular-devkit/architect': 0.2102.26(chokidar@5.0.0)
@@ -3370,7 +3373,7 @@ snapshots:
       karma: 6.4.4
       lmdb: 3.5.1
       postcss: 8.5.29
-      tailwindcss: 4.3.3
+      tailwindcss: 4.3.4
     transitivePeerDependencies:
       - '@emnapi/core'
       - '@emnapi/runtime'
@@ -6093,6 +6096,8 @@ snapshots:
       has-flag: 4.0.0
 
   tailwindcss@4.3.3: {}
+
+  tailwindcss@4.3.4: {}
 
   tapable@2.3.3: {}
 
